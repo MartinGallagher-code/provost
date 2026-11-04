@@ -1,0 +1,70 @@
+3344 warnings generated.
+/home/dev/src/ledger.c:8:18: warning: 16 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+    8 |     char account[16];
+      |                  ^
+/home/dev/src/ledger.c:20:5: warning: Call to function 'strncpy' is insecure as it does not provide security checks introduced in the C11 standard. Replace with analogous functions that support length arguments or provides boundary checks such as 'strncpy_s' in case of C11 [clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling]
+   20 |     strncpy(book[nbook].account, acct, sizeof book[nbook].account - 1);
+      |     ^~~~~~~
+/home/dev/src/ledger.c:20:5: note: Call to function 'strncpy' is insecure as it does not provide security checks introduced in the C11 standard. Replace with analogous functions that support length arguments or provides boundary checks such as 'strncpy_s' in case of C11
+   20 |     strncpy(book[nbook].account, acct, sizeof book[nbook].account - 1);
+      |     ^~~~~~~
+/home/dev/src/ledger.c:35:23: warning: 2 adjacent parameters of 'scale' of convertible types are easily swapped by mistake [bugprone-easily-swappable-parameters]
+   35 | void scale(double *v, int n, double k)
+      |                       ^~~~~~~~~~~~~~~
+/home/dev/src/ledger.c:35:27: note: the first parameter in the range is 'n'
+   35 | void scale(double *v, int n, double k)
+      |                           ^
+/home/dev/src/ledger.c:35:37: note: the last parameter in the range is 'k'
+   35 | void scale(double *v, int n, double k)
+      |                                     ^
+/home/dev/src/ledger.c:35:30: note: 'int' and 'double' may be implicitly converted
+   35 | void scale(double *v, int n, double k)
+      |                              ^
+/home/dev/src/ledger.c:43:34: warning: 8 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   43 |     char *p = malloc(strlen(s) + 8);
+      |                                  ^
+/home/dev/src/ledger.c:44:5: warning: the value returned by this function should not be disregarded; neglecting it may lead to errors [cert-err33-c]
+   44 |     sprintf(p, "label:%s", s);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~
+/home/dev/src/ledger.c:44:5: note: cast the expression to void to silence this warning
+/home/dev/src/ledger.c:44:5: warning: Call to function 'sprintf' is insecure as it does not provide bounding of the memory buffer or security checks introduced in the C11 standard. Replace with analogous functions that support length arguments or provides boundary checks such as 'sprintf_s' in case of C11 [clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling]
+   44 |     sprintf(p, "label:%s", s);
+      |     ^~~~~~~
+/home/dev/src/ledger.c:44:5: note: Call to function 'sprintf' is insecure as it does not provide bounding of the memory buffer or security checks introduced in the C11 standard. Replace with analogous functions that support length arguments or provides boundary checks such as 'sprintf_s' in case of C11
+   44 |     sprintf(p, "label:%s", s);
+      |     ^~~~~~~
+/home/dev/src/ledger.c:50:14: warning: 256 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   50 |     double v[256];
+      |              ^
+/home/dev/src/ledger.c:51:25: warning: 256 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   51 |     for (int i = 0; i < 256; i++) v[i] = i;
+      |                         ^
+/home/dev/src/ledger.c:52:14: warning: 256 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   52 |     scale(v, 256, 1.5);
+      |              ^
+/home/dev/src/ledger.c:52:19: warning: 1.5 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   52 |     scale(v, 256, 1.5);
+      |                   ^
+/home/dev/src/ledger.c:53:18: warning: 12000 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   53 |     post("cash", 12000);
+      |                  ^
+/home/dev/src/ledger.c:54:19: warning: 4500 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   54 |     post("rent", -4500);
+      |                   ^
+/home/dev/src/ledger.c:55:19: warning: 300 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   55 |     post("cash", -300);
+      |                   ^
+/home/dev/src/ledger.c:56:19: warning: 125 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   56 |     post("fees", -125);
+      |                   ^
+/home/dev/src/ledger.c:57:37: warning: 'atoi' used to convert a string to an integer value, but function will not report conversion errors; consider using 'strtol' instead [cert-err34-c]
+   57 |     for (int r = 0; r < (argc > 1 ? atoi(argv[1]) : 2000); r++)
+      |                                     ^
+/home/dev/src/ledger.c:57:53: warning: 2000 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   57 |     for (int r = 0; r < (argc > 1 ? atoi(argv[1]) : 2000); r++)
+      |                                                     ^
+/home/dev/src/ledger.c:60:82: warning: 255 is a magic number; consider replacing it with a named constant [readability-magic-numbers]
+   60 |     printf("%s cash=%ld rent=%ld v=%g\n", l, balance("cash"), balance("rent"), v[255]);
+      |                                                                                  ^
+Suppressed 3327 warnings (3327 in non-user code).
+Use -header-filter=.* to display errors from all non-system headers. Use -system-headers to display errors from system headers as well.

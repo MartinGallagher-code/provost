@@ -1,0 +1,70 @@
+<core-sw01-wien>display vlan all
+ VLAN ID: 1
+ VLAN type: Static
+ Route interface: Not configured
+ Description: VLAN 0001
+ Name: VLAN 0001
+ Tagged ports:   None
+ Untagged ports:
+    GigabitEthernet1/0/1     GigabitEthernet1/0/2     GigabitEthernet1/0/3
+    GigabitEthernet1/0/4     GigabitEthernet1/0/21    GigabitEthernet1/0/22
+    GigabitEthernet1/0/23    GigabitEthernet1/0/24
+
+ VLAN ID: 10
+ VLAN type: Static
+ Route interface: Configured
+ IPv4 address: 192.0.2.1
+ IPv4 subnet mask: 255.255.255.0
+ Description: Verwaltung
+ Name: Verwaltung
+ Tagged ports:
+    Bridge-Aggregation1      Ten-GigabitEthernet1/0/49
+ Untagged ports:
+    GigabitEthernet1/0/5     GigabitEthernet1/0/6     GigabitEthernet1/0/7
+    GigabitEthernet1/0/8
+
+ VLAN ID: 20
+ VLAN type: Static
+ Route interface: Configured
+ IPv4 address: 198.51.100.1
+ IPv4 subnet mask: 255.255.255.192
+ Description: Buchhaltung und Lohnverrechnung
+ Name: Buchhaltung
+ Tagged ports:
+    Bridge-Aggregation1      Ten-GigabitEthernet1/0/49
+ Untagged ports:
+    GigabitEthernet1/0/9     GigabitEthernet1/0/10    GigabitEthernet1/0/11
+    GigabitEthernet1/0/12    GigabitEthernet1/0/13    GigabitEthernet1/0/14
+
+ VLAN ID: 30
+ VLAN type: Static
+ Route interface: Not configured
+ Description: Drucker Erdgeschoß
+ Name: VLAN 0030
+ Tagged ports:
+    Bridge-Aggregation1
+ Untagged ports:
+    GigabitEthernet1/0/15    GigabitEthernet1/0/16
+
+ VLAN ID: 99
+ VLAN type: Static
+ Route interface: Not configured
+ Description: VLAN 0099
+ Name: VLAN 0099
+ Tagged ports:   None
+ Untagged ports: None
+
+ VLAN ID: 4000
+ VLAN type: Static
+ Route interface: Configured
+ IPv4 address: 203.0.113.1
+ IPv4 subnet mask: 255.255.255.252
+ IPv6 global unicast addresses:
+    2001:DB8:4000::1, subnet is 2001:DB8:4000::/64 [PREFERRED]
+ Description: Transit Firewall
+ Name: VLAN 4000
+ Tagged ports:
+    Ten-GigabitEthernet1/0/50
+ Untagged ports: None
+
+<core-sw01-wien>

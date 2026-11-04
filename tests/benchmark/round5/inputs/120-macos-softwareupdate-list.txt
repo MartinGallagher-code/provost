@@ -1,0 +1,16 @@
+jdupont@mbp-jdupont ~ % softwareupdate --list
+Software Update Tool
+
+Finding available software
+Software Update found the following new or updated software:
+* Label: macOS Tahoe 26.1-25B78
+	Title: macOS Tahoe 26.1, Version: 26.1, Size: 3482911KiB, Recommended: YES, Action: restart, 
+* Label: macOS Sequoia 15.7.2-24G325
+	Title: macOS Sequoia 15.7.2, Version: 15.7.2, Size: 2841207KiB, Recommended: YES, Action: restart, 
+* Label: Safari26.1SequoiaAuto-26.1
+	Title: Safari, Version: 26.1, Size: 210345KiB, Recommended: YES, 
+* Label: Command Line Tools for Xcode-26.1
+	Title: Command Line Tools for Xcode, Version: 26.1, Size: 812345KiB, Recommended: YES, 
+* Label: XProtectPlistConfigData_10_15-5321
+	Title: XProtectPlistConfigData, Version: 5321, Size: 1284KiB, Recommended: YES, 
+jdupont@mbp-jdupont ~ % 

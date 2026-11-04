@@ -1,0 +1,16 @@
+{
+ "format": 1,
+ "tool": "ruby-objspace-count",
+ "detect": "^\\{?\\s*:(?:TOTAL|FREE|T_[A-Z]+)=>\\d+",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "object_counts",
+   "kind": "kv",
+   "line": "^\\{?\\s*:(?P<key>\\w+)=>(?P<value>-?\\d+),?\\}?\\s*$"
+  }
+ ],
+ "examples": [
+  "{:TOTAL=>24861,\n :FREE=>6718,\n :T_OBJECT=>363,\n :T_CLASS=>744,\n :T_MODULE=>40,\n :T_FLOAT=>4,\n :T_STRING=>8786,\n :T_REGEXP=>91,\n :T_ARRAY=>1617,\n :T_HASH=>124,\n :T_STRUCT=>10,\n :T_BIGNUM=>1,\n :T_FILE=>3,\n :T_DATA=>239,\n :T_COMPLEX=>1,\n :T_SYMBOL=>25,\n :T_IMEMO=>6042,\n :T_ICLASS=>53}"
+ ]
+}

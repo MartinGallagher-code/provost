@@ -1,0 +1,9 @@
+[marking 0x14f079783709 <JSFunction slug (sfi = 0x2da44bd5bc49)> for optimization to TURBOFAN, ConcurrencyMode::kConcurrent, reason: hot and stable]
+[compiling method 0x14f079783709 <JSFunction slug (sfi = 0x2da44bd5bc49)> (target TURBOFAN), mode: ConcurrencyMode::kConcurrent]
+[marking 0x14f079783771 <JSFunction hot (sfi = 0x2da44bd5bca1)> for optimization to TURBOFAN, ConcurrencyMode::kConcurrent, reason: hot and stable]
+[compiling method 0x14f079783771 <JSFunction hot (sfi = 0x2da44bd5bca1)> (target TURBOFAN), mode: ConcurrencyMode::kConcurrent]
+[completed compiling 0x2da44bd5ec29 <JSFunction slug (sfi = 0x2da44bd5bc49)> (target TURBOFAN) - took 0.015, 1.876, 0.026 ms]
+[completed optimizing 0x2da44bd5ec29 <JSFunction slug (sfi = 0x2da44bd5bc49)> (target TURBOFAN)]
+[completed compiling 0x2da44bd5ec69 <JSFunction hot (sfi = 0x2da44bd5bca1)> (target TURBOFAN) - took 0.005, 3.693, 0.027 ms]
+[completed optimizing 0x2da44bd5ec69 <JSFunction hot (sfi = 0x2da44bd5bca1)> (target TURBOFAN)]
+700000

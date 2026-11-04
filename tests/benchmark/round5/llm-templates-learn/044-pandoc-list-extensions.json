@@ -1,0 +1,20 @@
+{
+ "format": 1,
+ "tool": "pandoc-list-extensions",
+ "detect": "^[+-][a-z][a-z0-9_]*$",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "extensions",
+   "kind": "table",
+   "line": "(?P<state>[+-])(?P<extension>[a-z][a-z0-9_]*)",
+   "columns": {
+    "state": "state",
+    "extension": "extension"
+   }
+  }
+ ],
+ "examples": [
+  "-abbreviations\n+all_symbols_escapable\n-angle_brackets_escapable\n-ascii_identifiers\n+auto_identifiers\n-autolink_bare_uris\n+backtick_code_blocks\n+blank_before_blockquote\n+blank_before_header\n+bracketed_spans\n+citations\n-compact_definition_lists\n+definition_lists\n-east_asian_line_breaks\n-emoji\n+escaped_line_breaks\n+example_lists\n+fancy_lists\n+fenced_code_attributes\n+fenced_code_blocks\n+fenced_divs\n+footnotes\n-four_space_rule\n-gfm_auto_identifiers\n+grid_tables\n-gutenberg\n-hard_line_breaks\n+header_attributes\n-ignore_line_breaks\n+implicit_figures\n+implicit_header_references\n+inline_code_attributes\n+inline_notes\n+intraword_underscores\n+latex_macros\n+line_blocks\n+link_attributes\n-lists_without_preceding_blankline\n-literate_haskell\n-mark\n-markdown_attribute\n+markdown_in_html_blocks\n-mmd_header_identifiers\n-mmd_link_attributes\n-mmd_title_block\n+multiline_tables\n+native_divs\n+native_spans\n-old_dashes\n+pandoc_title_block\n+pipe_tables\n+raw_attribute\n+raw_html\n+raw_tex\n-rebase_relative_paths\n-short_subsuperscripts\n+shortcut_reference_links\n+simple_tables\n+smart\n+space_in_atx_header\n-spaced_reference_links\n+startnum\n+strikeout\n+subscript\n+superscript\n+task_lists\n+table_captions\n+tex_math_dollars\n-tex_math_double_backslash\n-tex_math_single_backslash"
+ ]
+}

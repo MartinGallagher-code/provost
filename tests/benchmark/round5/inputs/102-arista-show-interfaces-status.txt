@@ -1,0 +1,20 @@
+leaf1-r12#show interfaces status
+Port       Name                    Status       Vlan      Duplex Speed  Type            Flags Encapsulation
+Et1        uplink spine1-fra Et1/1 connected    routed    full   100G   100GBASE-SR4
+Et2        uplink spine2-fra Et1/1 connected    routed    full   100G   100GBASE-SR4
+Et3        db01 eth0               connected    in Po10   full   25G    25GBASE-SR
+Et4        db01 eth1               connected    in Po10   full   25G    25GBASE-SR
+Et5        esx-müller-01 vmnic2    connected    trunk     full   25G    25GBASE-CR
+Et6        esx-müller-01 vmnic3    connected    trunk     full   25G    25GBASE-CR
+Et7                                notconnect   1         full   25G    25GBASE-SR
+Et8        spare                   disabled     1         full   25G    25GBASE-LR
+Et9        nas02 port A            errdisabled  110       full   10G    10GBASE-SR
+Et10                               notconnect   1         full   10G    Not Present
+Et11                               notconnect   1         full   10G    Not Present
+Et12       mgmt-switch uplink      connected    4094      full   1G     1000BASE-T
+Et49/1     MLAG peer-link          connected    in Po2000 full   100G   100GBASE-CR4
+Et50/1     MLAG peer-link          connected    in Po2000 full   100G   100GBASE-CR4
+Ma1        oob                     connected    routed    a-full a-1G   10/100/1000
+Po10       db01 bond0              connected    trunk     full   50G    N/A
+Po2000     MLAG peer-link          connected    trunk     full   200G   N/A
+leaf1-r12#

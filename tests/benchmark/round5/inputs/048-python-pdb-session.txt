@@ -1,0 +1,28 @@
+> /home/dev/cart/drive.py(1)<module>()
+-> from cart import Cart
+(Pdb) Breakpoint 1 at /home/dev/cart/cart.py:23
+(Pdb) > /home/dev/cart/cart.py(23)total()
+-> if self.coupon == "TEN":
+(Pdb) [Line(sku='K-100', cents=1299, qty=2), Line(sku='S-220', cents=450, qty=1)]
+(Pdb)   /usr/local/lib/python3.13/bdb.py(680)run()
+-> exec(cmd, globals, locals)
+  <string>(1)<module>()
+  /home/dev/cart/drive.py(5)<module>()
+-> print(c.total())
+> /home/dev/cart/cart.py(23)total()
+-> if self.coupon == "TEN":
+(Pdb) > /home/dev/cart/cart.py(24)total()
+-> t -= t // 10
+(Pdb) > /home/dev/cart/cart.py(25)total()
+-> return t
+(Pdb) 2744
+(Pdb)  21  	    def total(self) -> int:
+ 22  	        t = sum(l.cents * l.qty for l in self.lines)
+ 23 B	        if self.coupon == "TEN":
+ 24  	            t -= t // 10
+ 25  ->	        return t
+(Pdb) 2744
+The program finished and will be restarted
+> /home/dev/cart/drive.py(1)<module>()
+-> from cart import Cart
+(Pdb) 

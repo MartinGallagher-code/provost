@@ -1,0 +1,30 @@
+{
+ "format": 1,
+ "tool": "go-coverprofile",
+ "detect": "^mode: (?:set|count|atomic)",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "mode",
+   "kind": "kv",
+   "line": "(?P<key>mode): (?P<value>\\S+)"
+  },
+  {
+   "name": "blocks",
+   "kind": "table",
+   "line": "(?P<file>\\S+?):(?P<start_line>\\d+)\\.(?P<start_col>\\d+),(?P<end_line>\\d+)\\.(?P<end_col>\\d+) (?P<num_stmt>\\d+) (?P<count>\\d+)",
+   "columns": {
+    "file": "file",
+    "start_line": "start line",
+    "start_col": "start col",
+    "end_line": "end line",
+    "end_col": "end col",
+    "num_stmt": "statements",
+    "count": "count"
+   }
+  }
+ ],
+ "examples": [
+  "mode: set\nexample.com/pricing/pricing.go:15.58,16.21 1 1\nexample.com/pricing/pricing.go:16.21,18.3 1 1\nexample.com/pricing/pricing.go:19.2,20.27 2 1\nexample.com/pricing/pricing.go:20.27,22.3 1 1\nexample.com/pricing/pricing.go:23.2,23.42 1 1\nexample.com/pricing/pricing.go:27.27,29.12 2 1\nexample.com/pricing/pricing.go:29.12,31.3 1 1\nexample.com/pricing/pricing.go:32.2,32.14 1 1"
+ ]
+}

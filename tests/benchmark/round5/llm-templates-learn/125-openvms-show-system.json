@@ -1,0 +1,41 @@
+{
+ "format": 1,
+ "tool": "openvms-show-system",
+ "detect": "^\\s*Pid\\s+Process Name\\s+State\\s+Pri\\s+I/O\\s+CPU",
+ "skip": [
+  "^\\$"
+ ],
+ "blocks": [
+  {
+   "name": "system",
+   "kind": "table",
+   "line": "^OpenVMS\\s+(?P<version>\\S+)\\s+on node\\s+(?P<node>\\S+)\\s+(?P<time>\\d{1,2}-[A-Z]{3}-\\d{4}\\s+\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?)\\s+Uptime\\s+(?P<uptime>\\d+\\s+\\d\\d:\\d\\d:\\d\\d)\\s*$",
+   "columns": {
+    "version": "Version",
+    "node": "Node",
+    "time": "Time",
+    "uptime": "Uptime"
+   }
+  },
+  {
+   "name": "processes",
+   "kind": "table",
+   "header": "^\\s*Pid\\s+Process Name\\s+State",
+   "line": "^(?P<pid>[0-9A-Fa-f]{8})\\s(?P<name>\\S(?:.*?\\S)?)\\s+(?P<state>[A-Z]+)\\s+(?P<pri>\\d+)\\s+(?P<io>\\d+)\\s+(?P<cpu>\\d+\\s+\\d\\d:\\d\\d:\\d\\d\\.\\d+)\\s+(?P<page_flts>\\d+)\\s+(?P<pages>\\d+)(?:\\s+(?P<flag>\\S+))?\\s*$",
+   "columns": {
+    "pid": "Pid",
+    "name": "Process Name",
+    "state": "State",
+    "pri": "Pri",
+    "io": "I/O",
+    "cpu": "CPU",
+    "page_flts": "Page flts",
+    "pages": "Pages",
+    "flag": "Flag"
+   }
+  }
+ ],
+ "examples": [
+  "$ SHOW SYSTEM\nOpenVMS V8.4-2L1  on node VMSPRD   3-NOV-2026 14:22:07.31   Uptime   41 03:17:52\n  Pid    Process Name    State  Pri      I/O       CPU       Page flts  Pages\n20200201 SWAPPER         HIB     16        0   0 00:00:16.29         0      0\n20200205 CLUSTER_SERVER  HIB     12     1342   0 00:00:04.42       172    278\n20200206 CONFIGURE       HIB     10       38   0 00:00:00.04       139    264\n20200208 LANACP          HIB     14     1203   0 00:00:00.91       398    512\n2020020A IPCACP          HIB     10        7   0 00:00:00.02       102    196\n2020020B ERRFMT          HIB      9    48211   0 00:00:31.77       154    236\n2020020D OPCOM           HIB      8     9321   0 00:00:12.03      9411    141\n2020020E AUDIT_SERVER    HIB     10     4402   0 00:00:08.61      1802   1188\n2020020F JOB_CONTROL     HIB     10    18823   0 00:00:22.48       451    618\n20200210 QUEUE_MANAGER   HIB     10    39220   0 00:01:02.15      1290   2304\n20200211 SECURITY_SERVER HIB     10     7214   0 00:00:19.60      3341   2048\n20200213 TCPIP$INETACP   HIB     10      902   0 00:00:03.12       488    471\n20200215 TCPIP$FTP_1     LEF     10    11043   0 00:00:09.55      2219    702  N\n2020021A SMTP Gateway    LEF      6     4821   0 00:00:12.08      2304   1023\n2020021C Oracle Listener LEF      6   152831   0 00:14:51.07     18234   8192\n2020022D MQ Channel 01   LEF      6    88412   0 00:03:27.90      9180   4096\n20200238 BATCH_812       COM      4      932   0 00:00:04.11      1823    891  B\n2020023B _TNA12:         LEF      6     1823   0 00:00:03.21      4421    512\n2020023E SYSTEM          CUR      4    10233   0 00:01:12.48     22013   1408\n20200241 SYSTEM_1        LEF      4      211   0 00:00:00.66       812    644  S\n20200244 FISCHER         LEF      4     6120   0 00:00:41.92     15022  12288\n$ "
+ ]
+}

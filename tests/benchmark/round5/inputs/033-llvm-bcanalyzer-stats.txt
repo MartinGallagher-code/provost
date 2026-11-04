@@ -1,0 +1,90 @@
+Summary of ledger.bc:
+         Total size: 57568b/7196.00B/1799W
+        Stream type: LLVM IR
+  # Toplevel Blocks: 4
+
+Per-block Summary:
+  Block ID #0 (BLOCKINFO_BLOCK):
+      Num Instances: 1
+         Total Size: 800b/100.00B/25W
+    Percent of file: 1.3897%
+      Num SubBlocks: 0
+        Num Abbrevs: 19
+        Num Records: 3
+    Percent Abbrevs: 0.0000%
+
+	Record Histogram:
+		  Count    # Bits     b/Rec   % Abv  Record Kind
+		      3        60      20.0          SETBID
+
+  Block ID #8 (MODULE_BLOCK):
+      Num Instances: 1
+         Total Size: 5154b/644.25B/161W
+    Percent of file: 8.9529%
+      Num SubBlocks: 14
+        Num Abbrevs: 3
+        Num Records: 29
+    Percent Abbrevs: 6.8966%
+
+	Record Histogram:
+		  Count    # Bits     b/Rec   % Abv  Record Kind
+		     13      1911     147.0          FUNCTION
+		     11      1533     139.4          GLOBALVAR
+		      1        57            100.00  SOURCE_FILENAME
+		      1        35            100.00  VSTOFFSET
+		      1       969                    DATALAYOUT
+		      1       243                    TRIPLE
+		      1        21                    VERSION
+
+  Block ID #9 (PARAMATTR_BLOCK):
+      Num Instances: 1
+         Total Size: 917b/114.62B/28W
+    Percent of file: 1.5929%
+      Num SubBlocks: 0
+        Num Abbrevs: 0
+        Num Records: 23
+    Percent Abbrevs: 0.0000%
+
+	Record Histogram:
+		  Count    # Bits     b/Rec   % Abv  Record Kind
+		     23       855      37.2          ENTRY
+
+  Block ID #10 (PARAMATTR_GROUP_BLOCK_ID):
+      Num Instances: 1
+         Total Size: 16373b/2046.62B/511W
+    Percent of file: 28.4411%
+      Num SubBlocks: 0
+        Num Abbrevs: 0
+        Num Records: 40
+    Percent Abbrevs: 0.0000%
+
+	Record Histogram:
+		  Count    # Bits     b/Rec   % Abv  Record Kind
+		     40     16302     407.6          ENTRY
+
+  Block ID #11 (CONSTANTS_BLOCK):
+      Num Instances: 5
+         Total Size: 2032b/254.00B/63W
+    Percent of file: 3.5297%
+       Average Size: 406.40/50.80B/12W
+  Tot/Avg SubBlocks: 0/0.000000e+00
+    Tot/Avg Abbrevs: 4/8.000000e-01
+    Tot/Avg Records: 61/1.220000e+01
+    Percent Abbrevs: 90.1639%
+
+	Record Histogram:
+		  Count    # Bits     b/Rec   % Abv  Record Kind
+		     23       348      15.1  100.00  INTEGER
+		     23       207       9.0  100.00  SETTYPE
+		      6       418      69.7  100.00  CSTRING
+		      5        80      16.0          NULL
+		      3       414     138.0  100.00  STRING
+		      1        94                    FLOAT
+
+  Block ID #12 (FUNCTION_BLOCK):
+      Num Instances: 4
+         Total Size: 7807b/975.88B/243W
+    Percent of file: 13.5614%
+       Average Size: 1951.75/243.97B/60W
+  Tot/Avg SubBlocks: 12/3.000000e+00
+    Tot/Avg Abbrevs: 0/0.000000e+00
