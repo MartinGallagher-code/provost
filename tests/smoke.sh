@@ -1280,7 +1280,7 @@ check "no capture runs git in a refused store" "no" "$([[ -e "$T/pwned-filter" ]
 # and stays; new stores start at format 3.
 MWS="$(mktemp -d)/.migrate"
 printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n/dev/sdb1 10G 1G\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1
-check "new store records format 3" "3" "$(cat "$MWS/.store_format" 2>/dev/null)"
+check "new store records format 4" "4" "$(cat "$MWS/.store_format" 2>/dev/null)"
 mds="$(ls "$MWS/datasets" | head -1)"
 awk -F'\t' -v OFS='\t' 'NR==1{print $0, "total_entries"; next} {print $0, 2}' "$MWS/datasets/$mds" > "$MWS/x" && mv "$MWS/x" "$MWS/datasets/$mds"
 printf 'a\ttotal_entries\nx\tnot-a-count\n' > "$MWS/datasets/keep.tsv"
@@ -1290,8 +1290,8 @@ printf 'k=v\nj=w\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1
 check_not "migration drops the record-count column" "total_entries" "$(head -1 "$MWS/datasets/$mds")"
 check "migration keeps the dataset's rows" "sdb1" "$(cat "$MWS/datasets/$mds")"
 check "a non-count total_entries column is kept" "total_entries" "$(head -1 "$MWS/datasets/keep.tsv")"
-check "migrated store records format 3" "3" "$(cat "$MWS/.store_format" 2>/dev/null)"
-check "migration is committed" "store format 3" "$(tgit "$MWS" log --format=%s)"
+check "migrated store records format 4" "4" "$(cat "$MWS/.store_format" 2>/dev/null)"
+check "migration is committed" "store format 4" "$(tgit "$MWS" log --format=%s)"
 check_not "a store that already has the capture column is not given it twice" "_capture" "$(head -1 "$MWS/datasets/$mds")"
 
 # Store format 3: every dataset row carries the capture it came from, after
@@ -1317,7 +1317,40 @@ check "migration fills each old row's capture from provenance" "$(printf '1\tc00
 check "and the new rows carry theirs" "6	c0005	1	/dev/sdc1" "$(cat "$CWS/datasets/df.tsv")"
 check "migration names a clashing column _capture" "#	_capture	n	capture	value" "$(head -1 "$CWS/datasets/own.tsv")"
 check "migration covers the triage bucket" "5	c0004	" "$(cat "$CWS/datasets/unsorted.tsv")"
-check "the format-3 store records it" "3" "$(cat "$CWS/.store_format")"
+check "the migrated format-2 store records format 4" "4" "$(cat "$CWS/.store_format")"
+
+# PV-015: a reconcile keeps provost's capture column (column 2) the capture id
+# in every row when a capture brings a data column named `capture`, in either
+# order; the data column keeps its name. A format-3 store a reconcile got
+# wrong is put right from provenance.tsv by the format-4 migration.
+RWS="$(mktemp -d)/.recapcol"
+PROVOST_WORKSPACE="$RWS" "$PROVOST" run --name d printf 'a,b,c\n1,2,3\n' >/dev/null 2>&1
+PROVOST_WORKSPACE="$RWS" "$PROVOST" run --name d printf 'capture,a,b,c\nc0001,4,5,6\n' >/dev/null 2>&1
+check "a later data column named capture renames provost's to _capture" "#	_capture	n	a	b	c	capture" "$(head -1 "$RWS/datasets/d.tsv")"
+check "and every row's column 2 is its own capture" "$(printf '1\tc0001\t1\t1\t2\t3\t\n2\tc0002\t1\t4\t5\t6\tc0001')" "$(tail -n +2 "$RWS/datasets/d.tsv")"
+rs="$(PROVOST_WORKSPACE="$RWS" "$PROVOST" show d --capture c0002 2>&1 | sq)"
+check "show --capture finds the later capture's row" "2 c0002 1 4 5 6 c0001" "$rs"
+check_not "and only that row" "1 c0001 1 1 2 3" "$rs"
+check_not "show --capture of the first capture leaves the later row out" "c0002" "$(PROVOST_WORKSPACE="$RWS" "$PROVOST" show d --capture c0001 2>&1)"
+PROVOST_WORKSPACE="$RWS" "$PROVOST" run --name d printf 'a,b,c\n7,8,9\n' >/dev/null 2>&1
+check "a third capture without the column keeps column 2 true" "3	c0003	1	7	8	9	" "$(cat "$RWS/datasets/d.tsv")"
+RWS2="$(mktemp -d)/.recapcol2"
+PROVOST_WORKSPACE="$RWS2" "$PROVOST" run --name d printf 'capture,a,b\nzz,1,2\n' >/dev/null 2>&1
+PROVOST_WORKSPACE="$RWS2" "$PROVOST" run --name d printf 'a,b\n3,4\n' >/dev/null 2>&1
+check "the mirror order files the later row's capture in column 2" "$(printf '#\t_capture\tn\tcapture\ta\tb\n1\tc0001\t1\tzz\t1\t2\n2\tc0002\t1\t\t3\t4')" "$(cat "$RWS2/datasets/d.tsv")"
+check "show --capture finds it" "2 c0002 1 3 4" "$(PROVOST_WORKSPACE="$RWS2" "$PROVOST" show d --capture c0002 2>&1 | sq)"
+# the two stores as a reconcile before format 4 left them
+printf '#\tcapture\tn\ta\tb\tc\t_capture\n1\tc0001\t1\t1\t2\t3\t\n2\tc0001\t1\t4\t5\t6\tc0002\n' > "$RWS/datasets/d.tsv"
+printf '#\t_capture\tn\tcapture\ta\tb\n1\tc0001\t1\tzz\t1\t2\n2\t\t1\tc0002\t3\t4\n' > "$RWS2/datasets/d.tsv"
+sed -i '/^3\t/d' "$RWS/provenance.tsv"
+printf '#\tcapture\tv\n1\tdata\tx\n' > "$RWS/datasets/odd.tsv"      # no other capture column holds the id: left alone
+for w in "$RWS" "$RWS2"; do echo 3 > "$w/.store_format"; tgit "$w" add -A >/dev/null 2>&1; tgit "$w" commit -qm "simulate a format-3 store" >/dev/null 2>&1; done
+PROVOST_WORKSPACE="$RWS" "$PROVOST" run --name other printf 'x,y\n1,2\n' >/dev/null 2>&1
+PROVOST_WORKSPACE="$RWS2" "$PROVOST" run --name other printf 'x,y\n1,2\n' >/dev/null 2>&1
+check "migration puts a wrong capture column right" "$(printf '#\t_capture\tn\ta\tb\tc\tcapture\n1\tc0001\t1\t1\t2\t3\t\n2\tc0002\t1\t4\t5\t6\tc0001')" "$(cat "$RWS/datasets/d.tsv")"
+check "migration fills the mirror order's empty column 2" "$(printf '#\t_capture\tn\tcapture\ta\tb\n1\tc0001\t1\tzz\t1\t2\n2\tc0002\t1\t\t3\t4')" "$(cat "$RWS2/datasets/d.tsv")"
+check "migration leaves a dataset it cannot put right" "1	data	x" "$(cat "$RWS/datasets/odd.tsv")"
+check "the repaired store records format 4" "4" "$(cat "$RWS/.store_format")"
 
 # Browsing runs: show --capture / --at, source by capture id, next / prev,
 # and log while restored. All read from git; the store stays where it is
