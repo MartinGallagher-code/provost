@@ -1,0 +1,38 @@
+$ openstack hypervisor show compute-07.example.com
++----------------------+-------------------------------------------------------------------------------+
+| Field                | Value                                                                         |
++----------------------+-------------------------------------------------------------------------------+
+| aggregates           | ['az-fra-1', 'ssd-hosts']                                                     |
+| cpu_info             | arch='x86_64', features='3dnowprefetch, abm, adx, aes, apic, arat, avx, avx2, |
+|                      | avx512bw, avx512cd, avx512dq, avx512f, avx512vl, bmi1, bmi2, clflush, cmov,   |
+|                      | cx16, cx8, de, erms, f16c, fma, fpu, fsgsbase, fxsr, invpcid, lahf_lm, lm,    |
+|                      | mca, mce, mmx, movbe, msr, mtrr, nx, pae, pat, pcid, pclmuldq, pdpe1gb, pge,  |
+|                      | pni, popcnt, pse, pse36, rdrand, rdseed, rdtscp, sep, smap, smep, sse,        |
+|                      | sse2, sse4.1, sse4.2, ssse3, syscall, tsc, vme, vmx, x2apic, xsave',          |
+|                      | model='Icelake-Server', topology.cells='1', topology.cores='28',              |
+|                      | topology.sockets='2', topology.threads='2', vendor='Intel'                    |
+| current_workload     | 0                                                                             |
+| disk_available_least | 1612                                                                          |
+| free_disk_gb         | 2310                                                                          |
+| free_ram_mb          | 184320                                                                        |
+| host_ip              | 198.51.100.57                                                                 |
+| host_time            | 14:22:07                                                                      |
+| hypervisor_hostname  | compute-07.example.com                                                        |
+| hypervisor_type      | QEMU                                                                          |
+| hypervisor_version   | 6002000                                                                       |
+| id                   | 8f3c2a51-6d0e-4b7a-9c21-5e4f7d1a0b93                                          |
+| load_average         | 3.41, 3.12, 2.98                                                              |
+| local_gb             | 3575                                                                          |
+| local_gb_used        | 1265                                                                          |
+| memory_mb            | 772608                                                                        |
+| memory_mb_used       | 588288                                                                        |
+| running_vms          | 23                                                                            |
+| service_host         | compute-07                                                                    |
+| service_id           | 2b7e91c4-0a3f-4d68-8e15-c6f2a9d4b710                                          |
+| state                | up                                                                            |
+| status               | enabled                                                                       |
+| uptime               | 41 days,  3:17                                                                |
+| users                | 0                                                                             |
+| vcpus                | 112                                                                           |
+| vcpus_used           | 86                                                                            |
++----------------------+-------------------------------------------------------------------------------+

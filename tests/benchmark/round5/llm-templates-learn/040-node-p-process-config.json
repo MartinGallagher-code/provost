@@ -1,0 +1,27 @@
+{
+ "format": 1,
+ "tool": "node-p-process-config",
+ "detect": "^\\s*(?:variables|target_defaults): \\{",
+ "skip": [
+  "^\\s*(?:[\\w$']+:\\s*)?[\\[{]\\s*$",
+  "^\\s*[\\]}],?\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "config_variables",
+   "kind": "kv",
+   "line": "^\\s*(?P<key>[\\w$]+|'[^']*'):\\s(?!\\s*[\\[{]\\s*$)'?(?P<value>.*?)'?,?$"
+  },
+  {
+   "name": "list_items",
+   "kind": "table",
+   "line": "^\\s*'(?P<item>[^']*)',?$",
+   "columns": {
+    "item": "item"
+   }
+  }
+ ],
+ "examples": [
+  "{\n  variables: {\n    use_ccache_win: 0,\n    clang: 0,\n    llvm_version: '0.0',\n    gas_version: '2.35',\n    node_prefix: '/',\n    node_install_npm: true,\n    node_install_corepack: true,\n    control_flow_guard: false,\n    node_use_amaro: true,\n    debug_node: false,\n    error_on_warn: false,\n    suppress_all_error_on_warn: false,\n    use_prefix_to_find_headers: false,\n    host_arch: 'x64',\n    target_arch: 'x64',\n    node_byteorder: 'little',\n    want_separate_host_toolset: 0,\n    node_use_node_snapshot: true,\n    node_use_node_code_cache: true,\n    node_write_snapshot_as_array_literals: false,\n    node_enable_v8_vtunejit: false,\n    enable_pgo_generate: false,\n    enable_pgo_use: false,\n    enable_lto: false,\n    single_executable_application: true,\n    node_with_ltcg: false,\n    node_tag: '',\n    node_release_urlbase: 'https://nodejs.org/download/release/',\n    node_debug_lib: false,\n    debug_nghttp2: false,\n    node_no_browser_globals: false,\n    node_shared: false,\n    libdir: 'lib',\n    node_module_version: 127,\n    shlib_suffix: 'so.127',\n    asan: 0,\n    ubsan: 0,\n    coverage: false,\n    node_target_type: 'executable',\n    node_library_files: [\n      'lib/_http_agent.js',\n      'lib/_http_client.js',\n      'lib/_http_common.js',\n      'lib/_http_incoming.js',\n      'lib/_http_outgoing.js',\n      'lib/_http_server.js',\n      'lib/_stream_duplex.js',\n      'lib/_stream_passthrough.js',\n      'lib/_stream_readable.js',\n      'lib/_stream_transform.js',\n      'lib/_stream_wrap.js',\n      'lib/_stream_writable.js',\n      'lib/_tls_common.js',\n      'lib/_tls_wrap.js',\n      'lib/assert.js',\n      'lib/assert/strict.js',\n      'lib/async_hooks.js',\n      'lib/buffer.js',\n      'lib/child_process.js',\n      'lib/cluster.js',\n      'lib/console.js',\n      'lib/constants.js',\n      'lib/crypto.js',\n      'lib/dgram.js',\n      'lib/diagnostics_channel.js',\n      'lib/dns.js',\n      'lib/dns/promises.js',\n      'lib/domain.js',\n      'lib/events.js',\n      'lib/fs.js',\n      'lib/fs/promises.js',\n      'lib/http.js',\n      'lib/http2.js',\n      'lib/https.js',\n      'lib/inspector.js',\n      'lib/inspector/promises.js',\n      'lib/internal/abort_controller.js',\n      'lib/internal/assert.js',\n      'lib/internal/assert/assertion_error.js',\n      'lib/internal/assert/calltracker.js',\n      'lib/internal/assert/myers_diff.js',\n      'lib/internal/assert/utils.js',\n      'lib/internal/async_context_frame.js',\n      'lib/internal/async_hooks.js',\n      'lib/internal/async_local_storage/async_context_frame.js',\n      'lib/internal/async_local_storage/async_hooks.js',\n      'lib/internal/blob.js',\n      'lib/internal/blocklist.js',\n      'lib/internal/bootstrap/node.js',\n      'lib/internal/bootstrap/realm.js',\n      'lib/internal/bootstrap/shadow_realm.js',\n      'lib/internal/bootstrap/switches/does_not_own_process_state.js',\n      'lib/internal/bootstrap/switches/does_own_process_state.js',\n      'lib/internal/bootstrap/switches/is_main_thread.js',\n      'lib/internal/bootstrap/switches/is_not_main_thread.js',\n      'lib/internal/bootstrap/web/exposed-wildcard.js',\n      'lib/internal/bootstrap/web/exposed-window-or-worker.js',\n      'lib/internal/buffer.js',\n      'lib/internal/child_process.js',\n      'lib/internal/child_process/serialization.js',\n      'lib/internal/cli_table.js',\n      'lib/internal/cluster/child.js',\n      'lib/internal/cluster/primary.js',\n      'lib/internal/cluster/round_robin_handle.js',\n      'lib/internal/cluster/shared_handle.js',\n      'lib/internal/cluster/utils.js',\n      'lib/internal/cluster/worker.js',\n      'lib/internal/console/constructor.js',\n      'lib/internal/console/global.js',\n      'lib/internal/constants.js',\n      'lib/internal/crypto/aes.js',\n      'lib/internal/crypto/certificate.js',\n      'lib/internal/crypto/cfrg.js',\n      'lib/internal/crypto/cipher.js',\n      'lib/internal/crypto/diffiehellman.js',\n      'lib/internal/crypto/ec.js',\n      'lib/internal/crypto/hash.js',\n      'lib/internal/crypto/hashnames.js',"
+ ]
+}

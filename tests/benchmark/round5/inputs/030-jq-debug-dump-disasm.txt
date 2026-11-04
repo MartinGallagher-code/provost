@@ -1,0 +1,72 @@
+jq: error (at <stdin>:1): Cannot iterate over null (null)
+0000 TOP
+0001 PUSHK_UNDER "items"
+0003 INDEX
+0004 CALL_JQ map:1 @lambda:4
+0010 CALL_JQ sort_by:3 @lambda:5
+0016 PUSHK_UNDER "sku"
+0018 PUSHK_UNDER 0
+0020 INDEX
+0021 INDEX
+0022 RET
+empty:0:
+  0000 BACKTRACK
+  0001 RET
+map:1:
+  [params: f]
+  0000 DUP
+  0001 LOADK []
+  0003 STOREV $collect:0
+  0006 FORK 0017
+  0008 EACH
+  0009 CALL_JQ f:0
+  0013 APPEND $collect:0
+  0016 BACKTRACK
+  0017 LOADVN $collect:0
+  0020 RET
+select:2:
+  [params: f]
+  0000 DUP
+  0001 SUBEXP_BEGIN
+  0002 CALL_JQ f:0
+  0006 SUBEXP_END
+  0007 POP
+  0008 JUMP_F 0013
+  0010 POP
+  0011 JUMP 0018
+  0013 POP
+  0014 TAIL_CALL_JQ empty:0^1
+  0018 RET
+sort_by:3:
+  [params: f]
+  0000 SUBEXP_BEGIN
+  0001 CALL_JQ map:1^1 @lambda:0
+  0007 SUBEXP_END
+  0008 CALL_BUILTIN _sort_by_impl
+  0011 RET
+  @lambda:0:
+    0000 DUP
+    0001 LOADK []
+    0003 STOREV $collect:0
+    0006 FORK 0016
+    0008 CALL_JQ f:0^1
+    0012 APPEND $collect:0
+    0015 BACKTRACK
+    0016 LOADVN $collect:0
+    0019 RET
+@lambda:4:
+  0000 CALL_JQ select:2^1 @lambda:0
+  0006 RET
+  @lambda:0:
+    0000 PUSHK_UNDER 0
+    0002 SUBEXP_BEGIN
+    0003 PUSHK_UNDER "qty"
+    0005 INDEX
+    0006 SUBEXP_END
+    0007 CALL_BUILTIN _greater
+    0010 RET
+@lambda:5:
+  0000 PUSHK_UNDER "sku"
+  0002 INDEX
+  0003 RET
+

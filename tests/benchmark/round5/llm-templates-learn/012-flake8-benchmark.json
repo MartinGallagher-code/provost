@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "tool": "flake8-benchmark",
+ "detect": "(?m)^[\\d.]+\\s+(?:seconds elapsed|total logical lines processed)",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "violations",
+   "kind": "table",
+   "line": "(?P<path>[^:]+):(?P<line>\\d+):(?P<col>\\d+):\\s+(?P<code>[A-Z]+\\d+)\\s+(?P<message>.*)",
+   "columns": {
+    "path": "path",
+    "line": "line",
+    "col": "col",
+    "code": "code",
+    "message": "message"
+   }
+  },
+  {
+   "name": "benchmark",
+   "kind": "kv",
+   "line": "(?P<value>[\\d.]+)\\s+(?P<key>[a-z].*\\S)"
+  }
+ ],
+ "examples": [
+  "cart.py:22:37: E741 ambiguous variable name 'l'\ncart.py:28:49: E741 ambiguous variable name 'l'\ncart.py:37:27: F821 undefined name 'undefined_name'\ntest_cart.py:4:1: E302 expected 2 blank lines, found 1\ntest_cart.py:6:19: E702 multiple statements on one line (semicolon)\ntest_cart.py:6:39: E702 multiple statements on one line (semicolon)\ntest_cart.py:7:5: E301 expected 1 blank line, found 0\ntest_cart.py:8:31: E702 multiple statements on one line (semicolon)\ntest_cart.py:8:48: E702 multiple statements on one line (semicolon)\ntest_cart.py:9:5: E301 expected 1 blank line, found 0\ntest_cart.py:10:19: E702 multiple statements on one line (semicolon)\ntest_cart.py:10:34: E702 multiple statements on one line (semicolon)\ntest_cart.py:10:52: E702 multiple statements on one line (semicolon)\n0.0967     seconds elapsed\n35         total logical lines processed\n361        logical lines processed per second\n47         total physical lines processed\n486        physical lines processed per second\n388        total tokens processed\n4012       tokens processed per second\n2          total files processed\n20         files processed per second"
+ ]
+}

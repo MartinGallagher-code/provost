@@ -1,0 +1,32 @@
+{
+ "format": 1,
+ "tool": "make-trace",
+ "detect": "update target '[^']*' due to:|make(?:\\[\\d+\\])?: (?:Entering|Leaving) directory",
+ "skip": [
+  "^make(?:\\[\\d+\\])?: (?:Entering|Leaving) directory"
+ ],
+ "blocks": [
+  {
+   "name": "updates",
+   "kind": "table",
+   "line": "(?P<file>[^:\\s]+):(?P<lineno>\\d+): update target '(?P<target>[^']*)' due to: (?P<prerequisites>.*\\S)",
+   "columns": {
+    "file": "file",
+    "lineno": "line",
+    "target": "target",
+    "prerequisites": "due to"
+   }
+  },
+  {
+   "name": "commands",
+   "kind": "table",
+   "line": "(?P<command>(?!make(?:\\[\\d+\\])?:)\\S.*)",
+   "columns": {
+    "command": "command"
+   }
+  }
+ ],
+ "examples": [
+  "make: Entering directory '/tmp/mk'\nMakefile:6: update target 'main.o' due to: main.c\ncc -c main.c -o main.o\nMakefile:6: update target 'util.o' due to: util.c\ncc -c util.c -o util.o\nMakefile:4: update target 'app' due to: main.o util.o\ncc -o app main.o util.o\nmake: Leaving directory '/tmp/mk'"
+ ]
+}

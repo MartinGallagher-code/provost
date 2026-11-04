@@ -1,0 +1,42 @@
+{
+ "format": 1,
+ "tool": "jshell-vars-methods",
+ "detect": "jshell>",
+ "skip": [
+  "^\\s*(?:jshell>\\s*)+$"
+ ],
+ "blocks": [
+  {
+   "name": "variables",
+   "kind": "table",
+   "line": "^(?:jshell>\\s*)*\\|\\s+(?P<type>\\S+)\\s+(?P<name>\\w+) = (?P<value>.*)$",
+   "columns": {
+    "type": "type",
+    "name": "name",
+    "value": "value"
+   }
+  },
+  {
+   "name": "methods",
+   "kind": "table",
+   "line": "^(?:jshell>\\s*)*\\|\\s+(?P<return_type>\\S+)\\s+(?P<name>\\w+)\\((?P<params>[^)]*)\\)\\s*$",
+   "columns": {
+    "return_type": "return type",
+    "name": "name",
+    "params": "parameters"
+   }
+  },
+  {
+   "name": "snippets",
+   "kind": "table",
+   "line": "^\\s*(?P<id>\\w+) : (?P<source>.*)$",
+   "columns": {
+    "id": "id",
+    "source": "source"
+   }
+  }
+ ],
+ "examples": [
+  "jshell> jshell> jshell> jshell> jshell> |    int qty = 7\n|    String sku = \"K-100\"\n|    Map<String,Integer> m = {b=2, a=1}\njshell> |    double price(int)\njshell> jshell> \n   1 : int qty = 7;\n   2 : String sku = \"K-100\";\n   3 : double price(int q) { return q * 19.99; }\n   4 : var m = java.util.Map.of(\"a\", 1, \"b\", 2);\njshell> "
+ ]
+}

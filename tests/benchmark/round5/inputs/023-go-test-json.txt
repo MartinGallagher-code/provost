@@ -1,0 +1,16 @@
+{"Time":"2026-11-04T20:13:55.304260664Z","Action":"start","Package":"example.com/pricing"}
+{"Time":"2026-11-04T20:13:55.306381654Z","Action":"run","Package":"example.com/pricing","Test":"TestTotal"}
+{"Time":"2026-11-04T20:13:55.30640834Z","Action":"output","Package":"example.com/pricing","Test":"TestTotal","Output":"=== RUN   TestTotal\n"}
+{"Time":"2026-11-04T20:13:55.306528195Z","Action":"output","Package":"example.com/pricing","Test":"TestTotal","Output":"--- PASS: TestTotal (0.00s)\n"}
+{"Time":"2026-11-04T20:13:55.306553121Z","Action":"pass","Package":"example.com/pricing","Test":"TestTotal","Elapsed":0}
+{"Time":"2026-11-04T20:13:55.306565254Z","Action":"run","Package":"example.com/pricing","Test":"TestEmpty"}
+{"Time":"2026-11-04T20:13:55.306567224Z","Action":"output","Package":"example.com/pricing","Test":"TestEmpty","Output":"=== RUN   TestEmpty\n"}
+{"Time":"2026-11-04T20:13:55.306569529Z","Action":"output","Package":"example.com/pricing","Test":"TestEmpty","Output":"--- PASS: TestEmpty (0.00s)\n"}
+{"Time":"2026-11-04T20:13:55.306571585Z","Action":"pass","Package":"example.com/pricing","Test":"TestEmpty","Elapsed":0}
+{"Time":"2026-11-04T20:13:55.306580315Z","Action":"run","Package":"example.com/pricing","Test":"TestRound"}
+{"Time":"2026-11-04T20:13:55.30658224Z","Action":"output","Package":"example.com/pricing","Test":"TestRound","Output":"=== RUN   TestRound\n"}
+{"Time":"2026-11-04T20:13:55.306584462Z","Action":"output","Package":"example.com/pricing","Test":"TestRound","Output":"--- PASS: TestRound (0.00s)\n"}
+{"Time":"2026-11-04T20:13:55.306593043Z","Action":"pass","Package":"example.com/pricing","Test":"TestRound","Elapsed":0}
+{"Time":"2026-11-04T20:13:55.306595334Z","Action":"output","Package":"example.com/pricing","Output":"PASS\n"}
+{"Time":"2026-11-04T20:13:55.306743141Z","Action":"output","Package":"example.com/pricing","Output":"ok  \texample.com/pricing\t0.002s\n"}
+{"Time":"2026-11-04T20:13:55.307000275Z","Action":"pass","Package":"example.com/pricing","Elapsed":0.003}

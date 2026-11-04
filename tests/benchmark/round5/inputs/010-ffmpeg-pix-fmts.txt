@@ -1,0 +1,60 @@
+Pixel formats:
+I.... = Supported Input  format for conversion
+.O... = Supported Output format for conversion
+..H.. = Hardware accelerated format
+...P. = Paletted format
+....B = Bitstream format
+FLAGS NAME            NB_COMPONENTS BITS_PER_PIXEL BIT_DEPTHS
+-----
+IO... yuv420p                3             12      8-8-8
+IO... yuyv422                3             16      8-8-8
+IO... rgb24                  3             24      8-8-8
+IO... bgr24                  3             24      8-8-8
+IO... yuv422p                3             16      8-8-8
+IO... yuv444p                3             24      8-8-8
+IO... yuv410p                3              9      8-8-8
+IO... yuv411p                3             12      8-8-8
+IO... gray                   1              8      8
+IO..B monow                  1              1      1
+IO..B monob                  1              1      1
+I..P. pal8                   1              8      8
+IO... yuvj420p               3             12      8-8-8
+IO... yuvj422p               3             16      8-8-8
+IO... yuvj444p               3             24      8-8-8
+IO... uyvy422                3             16      8-8-8
+..... uyyvyy411              3             12      8-8-8
+IO... bgr8                   3              8      3-3-2
+.O..B bgr4                   3              4      1-2-1
+IO... bgr4_byte              3              4      1-2-1
+IO... rgb8                   3              8      2-3-3
+.O..B rgb4                   3              4      1-2-1
+IO... rgb4_byte              3              4      1-2-1
+IO... nv12                   3             12      8-8-8
+IO... nv21                   3             12      8-8-8
+IO... argb                   4             32      8-8-8-8
+IO... rgba                   4             32      8-8-8-8
+IO... abgr                   4             32      8-8-8-8
+IO... bgra                   4             32      8-8-8-8
+IO... gray16be               1             16      16
+IO... gray16le               1             16      16
+IO... yuv440p                3             16      8-8-8
+IO... yuvj440p               3             16      8-8-8
+IO... yuva420p               4             20      8-8-8-8
+IO... rgb48be                3             48      16-16-16
+IO... rgb48le                3             48      16-16-16
+IO... rgb565be               3             16      5-6-5
+IO... rgb565le               3             16      5-6-5
+IO... rgb555be               3             15      5-5-5
+IO... rgb555le               3             15      5-5-5
+IO... bgr565be               3             16      5-6-5
+IO... bgr565le               3             16      5-6-5
+IO... bgr555be               3             15      5-5-5
+IO... bgr555le               3             15      5-5-5
+..H.. vaapi                  0              0      0
+IO... yuv420p16le            3             24      16-16-16
+IO... yuv420p16be            3             24      16-16-16
+IO... yuv422p16le            3             32      16-16-16
+IO... yuv422p16be            3             32      16-16-16
+IO... yuv444p16le            3             48      16-16-16
+IO... yuv444p16be            3             48      16-16-16
+..H.. dxva2_vld              0              0      0

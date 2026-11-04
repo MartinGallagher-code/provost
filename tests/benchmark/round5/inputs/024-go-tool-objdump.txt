@@ -1,0 +1,60 @@
+TEXT example.com/pricing.TestRound(SB) /home/dev/pricing/pricing_test.go
+  pricing_test.go:18	0x51ff00		4c8d6424c8		LEAQ -0x38(SP), R12			
+  pricing_test.go:18	0x51ff05		4d3b6610		CMPQ R12, 0x10(R14)			
+  pricing_test.go:18	0x51ff09		0f868f010000		JBE 0x52009e				
+  pricing_test.go:18	0x51ff0f		55			PUSHQ BP				
+  pricing_test.go:18	0x51ff10		4889e5			MOVQ SP, BP				
+  pricing_test.go:18	0x51ff13		4881ecb0000000		SUBQ $0xb0, SP				
+  pricing_test.go:19	0x51ff1a		48898424c0000000	MOVQ AX, 0xc0(SP)			
+  pricing_test.go:19	0x51ff22		48c744243865000000	MOVQ $0x65, 0x38(SP)			
+  pricing_test.go:19	0x51ff2b		48c744244064000000	MOVQ $0x64, 0x40(SP)			
+  pricing_test.go:19	0x51ff34		48c744244867000000	MOVQ $0x67, 0x48(SP)			
+  pricing_test.go:19	0x51ff3d		48c744245069000000	MOVQ $0x69, 0x50(SP)			
+  pricing_test.go:19	0x51ff46		48c744245869000000	MOVQ $0x69, 0x58(SP)			
+  pricing_test.go:19	0x51ff4f		48c744246069000000	MOVQ $0x69, 0x60(SP)			
+  pricing_test.go:19	0x51ff58		488d4c2438		LEAQ 0x38(SP), CX			
+  pricing_test.go:19	0x51ff5d		31d2			XORL DX, DX				
+  pricing_test.go:19	0x51ff5f		90			NOPL					
+  pricing_test.go:19	0x51ff60		eb0b			JMP 0x51ff6d				
+  pricing_test.go:19	0x51ff62		4883c110		ADDQ $0x10, CX				
+  pricing_test.go:19	0x51ff66		488d5701		LEAQ 0x1(DI), DX			
+  pricing_test.go:21	0x51ff6a		4889f0			MOVQ SI, AX				
+  pricing_test.go:19	0x51ff6d		4883fa03		CMPQ DX, $0x3				
+  pricing_test.go:19	0x51ff71		0f8d1e010000		JGE 0x520095				
+  pricing_test.go:19	0x51ff77		488b19			MOVQ 0(CX), BX				
+  pricing_test.go:19	0x51ff7a		4889c6			MOVQ AX, SI				
+  pricing.go:28		0x51ff7d		48b8cdcccccccccccccc	MOVQ $0xcccccccccccccccd, AX		
+  pricing_test.go:19	0x51ff87		4889d7			MOVQ DX, DI				
+  pricing.go:28		0x51ff8a		48f7eb			IMULQ BX				
+  pricing.go:28		0x51ff8d		4801da			ADDQ BX, DX				
+  pricing.go:28		0x51ff90		48c1fa02		SARQ $0x2, DX				
+  pricing.go:28		0x51ff94		4889d8			MOVQ BX, AX				
+  pricing.go:28		0x51ff97		48c1fb3f		SARQ $0x3f, BX				
+  pricing.go:28		0x51ff9b		4829da			SUBQ BX, DX				
+  pricing.go:28		0x51ff9e		488d1492		LEAQ 0(DX)(DX*4), DX			
+  pricing.go:28		0x51ffa2		4889c3			MOVQ AX, BX				
+  pricing.go:28		0x51ffa5		4829d3			SUBQ DX, BX				
+  pricing.go:29		0x51ffa8		4883fb03		CMPQ BX, $0x3				
+  pricing.go:29		0x51ffac		7c0c			JL 0x51ffba				
+  pricing.go:30		0x51ffae		4889c2			MOVQ AX, DX				
+  pricing.go:30		0x51ffb1		4829da			SUBQ BX, DX				
+  pricing.go:30		0x51ffb4		4883c205		ADDQ $0x5, DX				
+  pricing_test.go:20	0x51ffb8		eb06			JMP 0x51ffc0				
+  pricing.go:32		0x51ffba		4889c2			MOVQ AX, DX				
+  pricing.go:32		0x51ffbd		4829da			SUBQ BX, DX				
+  pricing_test.go:19	0x51ffc0		488b5908		MOVQ 0x8(CX), BX			
+  pricing_test.go:20	0x51ffc4		4839da			CMPQ DX, BX				
+  pricing_test.go:20	0x51ffc7		7499			JE 0x51ff62				
+  pricing_test.go:19	0x51ffc9		48897c2470		MOVQ DI, 0x70(SP)			
+  pricing_test.go:19	0x51ffce		48898c24a8000000	MOVQ CX, 0xa8(SP)			
+  pricing_test.go:20	0x51ffd6		4889542430		MOVQ DX, 0x30(SP)			
+  pricing_test.go:19	0x51ffdb		48895c2468		MOVQ BX, 0x68(SP)			
+  pricing_test.go:21	0x51ffe0		440f117c2478		MOVUPS X15, 0x78(SP)			
+  pricing_test.go:21	0x51ffe6		440f11bc2488000000	MOVUPS X15, 0x88(SP)			
+  pricing_test.go:21	0x51ffef		440f11bc2498000000	MOVUPS X15, 0x98(SP)			
+  pricing_test.go:21	0x51fff8		e863faf4ff		CALL runtime.convT64(SB)		
+  pricing_test.go:21	0x51fffd		488d0d5c790200		LEAQ 0x2795c(IP), CX			
+  pricing_test.go:21	0x520004		48894c2478		MOVQ CX, 0x78(SP)			
+  pricing_test.go:21	0x520009		4889842480000000	MOVQ AX, 0x80(SP)			
+  pricing_test.go:21	0x520011		488b442430		MOVQ 0x30(SP), AX			
+  pricing_test.go:21	0x520016		e845faf4ff		CALL runtime.convT64(SB)		

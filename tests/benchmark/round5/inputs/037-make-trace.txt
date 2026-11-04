@@ -1,0 +1,8 @@
+make: Entering directory '/tmp/mk'
+Makefile:6: update target 'main.o' due to: main.c
+cc -c main.c -o main.o
+Makefile:6: update target 'util.o' due to: util.c
+cc -c util.c -o util.o
+Makefile:4: update target 'app' due to: main.o util.o
+cc -o app main.o util.o
+make: Leaving directory '/tmp/mk'

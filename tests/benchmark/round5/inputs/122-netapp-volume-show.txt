@@ -1,0 +1,23 @@
+cluster1::> volume show
+Vserver   Volume       Aggregate    State      Type       Size  Available Used%
+--------- ------------ ------------ ---------- ---- ---------- ---------- -----
+cluster1-01
+          vol0         aggr0_cluster1_01
+                                    online     RW      348.6GB    301.4GB   13%
+cluster1-02
+          vol0         aggr0_cluster1_02
+                                    online     RW      348.6GB    298.9GB   14%
+svm_cifs  svm_cifs_root
+                       aggr1_n01    online     RW          1GB    972.1MB    5%
+svm_cifs  abteilungen  aggr1_n01    online     RW          8TB     2.47TB   69%
+svm_cifs  archiv_2019  aggr2_n02    offline    RW            -          -     -
+svm_cifs  profiles     aggr2_n02    online     RW       1.50TB    611.8GB   60%
+svm_nfs   svm_nfs_root aggr1_n01    online     RW          1GB    972.3MB    5%
+svm_nfs   nfs_home     aggr1_n01    online     RW          4TB     1.21TB   69%
+svm_nfs   vmware_ds01  aggr2_n02    online     RW         10TB     3.88TB   61%
+svm_nfs   vmware_ds01_dr
+                       aggr1_n01    online     DP         10TB     3.91TB   60%
+svm_nfs   scratch      aggr2_n02    restricted RW            -          -     -
+11 entries were displayed.
+
+cluster1::>

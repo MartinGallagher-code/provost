@@ -1,0 +1,34 @@
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:95:10: missed: statement clobbers memory: __builtin_strncpy (_2, acct_5(D), 15);
+ledger.c:23:17: note: ***** Analysis failed with vector mode V4SI
+ledger.c:23:17: note: ***** Skipping vector mode V16QI, which would repeat the analysis for V4SI
+ledger.c:29:23: missed: couldn't vectorize loop
+ledger.c:29:23: missed: not vectorized: control flow in loop.
+ledger.c:26:6: note: vectorized 0 loops in function.
+ledger.c:30:13: missed: statement clobbers memory: _2 = strcmp (_1, acct_10(D));
+ledger.c:32:12: note: ***** Analysis failed with vector mode V4SI
+ledger.c:32:12: note: ***** Skipping vector mode V16QI, which would repeat the analysis for V4SI
+ledger.c:37:23: optimized: loop vectorized using 16 byte vectors
+ledger.c:35:6: note: vectorized 1 loops in function.
+ledger.c:39:1: note: ***** Analysis failed with vector mode V2DF
+ledger.c:39:1: note: ***** Skipping vector mode V16QI, which would repeat the analysis for V2DF
+ledger.c:43:22: missed: statement clobbers memory: _1 = strlen (s_4(D));
+ledger.c:43:15: missed: statement clobbers memory: p_6 = malloc (_2);
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:30:10: missed: statement clobbers memory: __builtin___sprintf_chk (p_6, 2, _2, "label:%s", s_4(D));
+ledger.c:45:12: note: ***** Analysis failed with vector mode VOID
+ledger.c:57:23: missed: couldn't vectorize loop
+ledger.c:57:23: missed: not vectorized: latch block not empty.
+ledger.c:37:23: optimized: loop vectorized using 16 byte vectors
+ledger.c:51:23: optimized: loop vectorized using 16 byte vectors
+ledger.c:48:5: note: vectorized 2 loops in function.
+ledger.c:53:5: missed: statement clobbers memory: post.isra ("cash", 12000);
+ledger.c:54:5: missed: statement clobbers memory: post.isra ("rent", -4500);
+ledger.c:55:5: missed: statement clobbers memory: post.isra ("cash", -300);
+ledger.c:56:5: missed: statement clobbers memory: post.isra ("fees", -125);
+/usr/include/stdlib.h:483:16: missed: statement clobbers memory: _21 = strtol (_2, 0B, 10);
+ledger.c:59:15: missed: statement clobbers memory: l_19 = leak_label ("ledger");
+ledger.c:60:5: missed: statement clobbers memory: _4 = balance ("rent");
+ledger.c:60:5: missed: statement clobbers memory: _5 = balance ("cash");
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:86:10: missed: statement clobbers memory: __printf_chk (2, "%s cash=%ld rent=%ld v=%g\n", l_19, _5, _4, _3);
+ledger.c:61:5: missed: statement clobbers memory: leak_label ("unused");
+ledger.c:48:5: note: ***** Analysis failed with vector mode V2DI
+ledger.c:48:5: note: ***** Skipping vector mode V16QI, which would repeat the analysis for V2DI

@@ -1,0 +1,22 @@
+root@hpux01:/ # bdf
+Filesystem          kbytes    used   avail %used Mounted on
+/dev/vg00/lvol3    1048576  312880  730368   30% /
+/dev/vg00/lvol1    1835008  398144 1426480   22% /stand
+/dev/vg00/lvol8    8912896 6012984 2876536   68% /var
+/dev/vg00/lvol7    6553600 4281232 2254296   66% /usr
+/dev/vg00/lvol4    2097152  108328 1975200    5% /tmp
+/dev/vg00/lvol6    9175040 7432104 1730944   81% /opt
+/dev/vg00/lvol5     131072    5368  124792    4% /home
+/dev/vgoracle/lv_oradata
+                   104857600 81920312 22740368   78% /oradata
+/dev/vgoracle/lv_oraarch
+                   31457280 29884416 1572864   95% /oraarch
+/dev/vgoracle/lv_orahome
+                   20971520 11534336 9354880   55% /u01/app/oracle
+/dev/vgapp/lvapp    4194304 2215672 1964080   53% /app
+/dev/vgapp/lv_app_logs
+                   10485760 9961472  520312   95% /app/logs
+198.51.100.40:/export/home
+                   524288000 318767104 205520896   61% /nfs/home
+nas01.example.com:/vol/projects_2026
+                   1073741824 912680550 161061274   85% /projects

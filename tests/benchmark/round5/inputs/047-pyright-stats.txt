@@ -1,0 +1,25 @@
+Auto-excluding **/node_modules
+Auto-excluding **/__pycache__
+Auto-excluding **/.*
+Auto-excluding **/__editable__.*
+Assuming Python version 3.13.18.final.0
+Found 1 source file
+pyright 1.1.414
+/home/dev/cart/cart.py
+  /home/dev/cart/cart.py:37:27 - error: "undefined_name" is not defined (reportUndefinedVariable)
+1 error, 0 warnings, 0 informations
+Completed in 1.125sec
+
+Analysis stats
+Total files parsed and bound: 23
+Total files checked: 1
+
+Timing stats
+Find Source Files:    0sec
+Read Source Files:    0.01sec
+Tokenize:             0.05sec
+Parse:                0.08sec
+Resolve Imports:      0.02sec
+Bind:                 0.1sec
+Check:                0.13sec
+Detect Cycles:        0sec

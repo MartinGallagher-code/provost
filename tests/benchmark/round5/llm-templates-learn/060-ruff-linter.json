@@ -1,0 +1,20 @@
+{
+ "format": 1,
+ "tool": "ruff-linter",
+ "detect": "^\\s*[A-Z][A-Z0-9/]{0,5}\\s+(?:flake8-\\S+|pycodestyle|Pyflakes|isort|mccabe|Pylint|pyupgrade|Airflow|eradicate|refurb)\\b",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "linters",
+   "kind": "table",
+   "line": "^\\s*(?P<prefix>[A-Z][A-Z0-9]*(?:/[A-Z][A-Z0-9]*)*)\\s+(?P<name>\\S(?:.*?\\S)?)\\s*$",
+   "columns": {
+    "prefix": "Prefix",
+    "name": "Name"
+   }
+  }
+ ],
+ "examples": [
+  " AIR Airflow\n ERA eradicate\nFAST FastAPI\n YTT flake8-2020\n ANN flake8-annotations\nASYNC flake8-async\n   S flake8-bandit\n BLE flake8-blind-except\n FBT flake8-boolean-trap\n   B flake8-bugbear\n   A flake8-builtins\n COM flake8-commas\n  C4 flake8-comprehensions\n CPY flake8-copyright\n DTZ flake8-datetimez\n T10 flake8-debugger\n  DJ flake8-django\n  EM flake8-errmsg\n EXE flake8-executable\n FIX flake8-fixme\n  FA flake8-future-annotations\n INT flake8-gettext\n ISC flake8-implicit-str-concat\n ICN flake8-import-conventions\n LOG flake8-logging\n   G flake8-logging-format\n INP flake8-no-pep420\n PIE flake8-pie\n T20 flake8-print\n PYI flake8-pyi\n  PT flake8-pytest-style\n   Q flake8-quotes\n RSE flake8-raise\n RET flake8-return\n SLF flake8-self\n SIM flake8-simplify\nSLOT flake8-slots\n TID flake8-tidy-imports\n  TD flake8-todos\n  TC flake8-type-checking\n ARG flake8-unused-arguments\n PTH flake8-use-pathlib\n FLY flynt\n   I isort\n C90 mccabe\n NPY NumPy-specific rules\n  PD pandas-vet\n   N pep8-naming\nPERF Perflint\n E/W pycodestyle\n DOC pydoclint\n   D pydocstyle\n   F Pyflakes\n PGH pygrep-hooks\n  PL Pylint\n  UP pyupgrade\nFURB refurb\n RUF Ruff-specific rules\n TRY tryceratops"
+ ]
+}

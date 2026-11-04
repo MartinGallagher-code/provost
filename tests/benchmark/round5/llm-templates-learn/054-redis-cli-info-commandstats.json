@@ -1,0 +1,26 @@
+{
+ "format": 1,
+ "tool": "redis-cli-info-commandstats",
+ "detect": "^(?:# Commandstats|cmdstat_\\S+:calls=)",
+ "skip": [
+  "^#\\s"
+ ],
+ "blocks": [
+  {
+   "name": "commandstats",
+   "kind": "table",
+   "line": "^cmdstat_(?P<command>[^:]+):calls=(?P<calls>\\d+),usec=(?P<usec>\\d+),usec_per_call=(?P<usec_per_call>[\\d.]+)(?:,rejected_calls=(?P<rejected_calls>\\d+))?(?:,failed_calls=(?P<failed_calls>\\d+))?\\s*$",
+   "columns": {
+    "command": "command",
+    "calls": "calls",
+    "usec": "usec",
+    "usec_per_call": "usec_per_call",
+    "rejected_calls": "rejected_calls",
+    "failed_calls": "failed_calls"
+   }
+  }
+ ],
+ "examples": [
+  "# Commandstats\ncmdstat_hset:calls=300,usec=611,usec_per_call=2.04,rejected_calls=0,failed_calls=0\ncmdstat_zadd:calls=300,usec=714,usec_per_call=2.38,rejected_calls=0,failed_calls=0\ncmdstat_hgetall:calls=3,usec=13,usec_per_call=4.33,rejected_calls=0,failed_calls=0\ncmdstat_zrange:calls=3,usec=30,usec_per_call=10.00,rejected_calls=0,failed_calls=0\ncmdstat_set:calls=300,usec=304,usec_per_call=1.01,rejected_calls=0,failed_calls=0\ncmdstat_lpush:calls=300,usec=215,usec_per_call=0.72,rejected_calls=0,failed_calls=0\ncmdstat_command|docs:calls=1,usec=801,usec_per_call=801.00,rejected_calls=0,failed_calls=0"
+ ]
+}

@@ -1,0 +1,110 @@
+db2inst1@db2prd01:~> db2 list tablespaces show detail
+
+           Tablespaces for Current Database
+
+ Tablespace ID                        = 0
+ Name                                 = SYSCATSPACE
+ Type                                 = Database managed space
+ Contents                             = All permanent data. Regular table space.
+ State                                = 0x0000
+   Detailed explanation:
+     Normal
+ Total pages                          = 32768
+ Useable pages                        = 32764
+ Used pages                           = 27136
+ Free pages                           = 5628
+ High water mark (pages)              = 27136
+ Page size (bytes)                    = 4096
+ Extent size (pages)                  = 4
+ Prefetch size (pages)                = 4
+ Number of containers                 = 1
+
+ Tablespace ID                        = 1
+ Name                                 = TEMPSPACE1
+ Type                                 = System managed space
+ Contents                             = System Temporary data
+ State                                = 0x0000
+   Detailed explanation:
+     Normal
+ Total pages                          = 1
+ Useable pages                        = 1
+ Used pages                           = 1
+ Free pages                           = Not applicable
+ High water mark (pages)              = Not applicable
+ Page size (bytes)                    = 4096
+ Extent size (pages)                  = 32
+ Prefetch size (pages)                = 32
+ Number of containers                 = 1
+
+ Tablespace ID                        = 2
+ Name                                 = USERSPACE1
+ Type                                 = Database managed space
+ Contents                             = All permanent data. Large table space.
+ State                                = 0x0000
+   Detailed explanation:
+     Normal
+ Total pages                          = 262144
+ Useable pages                        = 262112
+ Used pages                           = 198432
+ Free pages                           = 63680
+ High water mark (pages)              = 201216
+ Page size (bytes)                    = 8192
+ Extent size (pages)                  = 32
+ Prefetch size (pages)                = 32
+ Number of containers                 = 1
+
+ Tablespace ID                        = 3
+ Name                                 = SYSTOOLSPACE
+ Type                                 = Database managed space
+ Contents                             = All permanent data. Large table space.
+ State                                = 0x0000
+   Detailed explanation:
+     Normal
+ Total pages                          = 8192
+ Useable pages                        = 8188
+ Used pages                           = 148
+ Free pages                           = 8040
+ High water mark (pages)              = 148
+ Page size (bytes)                    = 4096
+ Extent size (pages)                  = 4
+ Prefetch size (pages)                = 4
+ Number of containers                 = 1
+
+ Tablespace ID                        = 4
+ Name                                 = TS_SALES_DATA
+ Type                                 = Database managed space
+ Contents                             = All permanent data. Large table space.
+ State                                = 0x0020
+   Detailed explanation:
+     Backup pending
+ Total pages                          = 1048576
+ Useable pages                        = 1048544
+ Used pages                           = 911360
+ Free pages                           = 137184
+ High water mark (pages)              = 924672
+ Page size (bytes)                    = 16384
+ Extent size (pages)                  = 32
+ Prefetch size (pages)                = 64
+ Number of containers                 = 2
+ Minimum recovery time                = 2026-11-02-21.14.08.000000
+
+ Tablespace ID                        = 5
+ Name                                 = TS_SALES_IDX
+ Type                                 = Database managed space
+ Contents                             = All permanent data. Large table space.
+ State                                = 0x0000
+   Detailed explanation:
+     Normal
+ Total pages                          = 262144
+ Useable pages                        = 262112
+ Used pages                           = 140288
+ Free pages                           = 121824
+ High water mark (pages)              = 144384
+ Page size (bytes)                    = 16384
+ Extent size (pages)                  = 32
+ Prefetch size (pages)                = 64
+ Number of containers                 = 1
+
+DB21011I  In a partitioned database server environment, only the table spaces
+on the current node are listed.
+

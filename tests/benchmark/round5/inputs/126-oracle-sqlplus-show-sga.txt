@@ -1,0 +1,32 @@
+SQL> SHOW SGA
+
+Total System Global Area 4294963664 bytes
+Fixed Size                  9142736 bytes
+Variable Size             872415232 bytes
+Database Buffers         3405774848 bytes
+Redo Buffers                7630848 bytes
+SQL> SELECT * FROM v$sgainfo;
+
+NAME                                  BYTES RES     CON_ID
+-------------------------------- ---------- --- ----------
+Fixed SGA Size                      9142736 No           0
+Redo Buffers                        7630848 No           0
+Buffer Cache Size                3405774848 Yes          0
+In-Memory Area Size                       0 No           0
+Shared Pool Size                  738197504 Yes          0
+Large Pool Size                    16777216 Yes          0
+Java Pool Size                            0 Yes          0
+Streams Pool Size                         0 Yes          0
+Shared IO Pool Size               134217728 Yes          0
+Data Transfer Cache Size                  0 Yes          0
+Granule Size                       16777216 No           0
+
+NAME                                  BYTES RES     CON_ID
+-------------------------------- ---------- --- ----------
+Maximum SGA Size                 4294963664 No           0
+Startup overhead in Shared Pool   369098752 No           0
+Free SGA Memory Available                 0              0
+
+14 rows selected.
+
+SQL> 

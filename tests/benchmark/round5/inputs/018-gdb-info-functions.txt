@@ -1,0 +1,26 @@
+All defined functions:
+
+File ledger.c:
+26:	long balance(const char *);
+41:	char *leak_label(const char *);
+48:	int main(int, char **);
+35:	void scale(double *, int, double);
+16:	static int post(const char *, long);
+
+Non-debugging symbols:
+0x0000000000001000  _init
+0x00000000000010b0  __cxa_finalize@plt
+0x00000000000010c0  strncpy@plt
+0x00000000000010d0  strlen@plt
+0x00000000000010e0  __stack_chk_fail@plt
+0x00000000000010f0  printf@plt
+0x0000000000001100  strcmp@plt
+0x0000000000001110  malloc@plt
+0x0000000000001120  atoi@plt
+0x0000000000001130  sprintf@plt
+0x0000000000001140  _start
+0x0000000000001170  deregister_tm_clones
+0x00000000000011a0  register_tm_clones
+0x00000000000011e0  __do_global_dtors_aux
+0x0000000000001220  frame_dummy
+0x00000000000015cc  _fini

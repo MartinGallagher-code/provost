@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "tool": "debugfs-ls-long",
+ "detect": "^debugfs \\d",
+ "skip": [
+  "^debugfs \\d"
+ ],
+ "blocks": [
+  {
+   "name": "entries",
+   "kind": "table",
+   "line": "^\\s*(?P<inode>\\d+)\\s+(?P<mode>[0-7]+)\\s+\\((?P<type>\\d+)\\)\\s+(?P<uid>\\d+)\\s+(?P<gid>\\d+)\\s+(?P<size>\\d+(?:,\\s*\\d+)?)\\s+(?P<mtime>\\d{1,2}-[A-Za-z]{3}-\\d{4} \\d{1,2}:\\d{2})\\s(?P<name>.*)$",
+   "columns": {
+    "inode": "inode",
+    "mode": "mode",
+    "type": "type",
+    "uid": "uid",
+    "gid": "gid",
+    "size": "size",
+    "mtime": "mtime",
+    "name": "name"
+   }
+  }
+ ],
+ "examples": [
+  "debugfs 1.47.0 (5-Feb-2023)\n     13   40755 (2)      0      0    4096  4-Nov-2026 20:16 .\n     12   40755 (2)      0      0    4096  4-Nov-2026 20:16 ..\n     16  100644 (1)      0      0    1348  4-Nov-2026 20:16 ledger.c\n     17  100644 (1)      0      0     745  4-Nov-2026 20:16 cart.py\n     18  100644 (1)      0      0     359  4-Nov-2026 20:16 slug.rb\n     19  100644 (1)      0      0     574  4-Nov-2026 20:16 pricing.go\n"
+ ]
+}

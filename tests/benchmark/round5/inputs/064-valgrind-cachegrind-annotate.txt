@@ -1,0 +1,98 @@
+--------------------------------------------------------------------------------
+-- Metadata
+--------------------------------------------------------------------------------
+Invocation:       /usr/bin/cg_annotate /tmp/cg.out
+Command:          ./ledger 200
+Events recorded:  Ir
+Events shown:     Ir
+Event sort order: Ir
+Threshold:        0.1%
+Annotation:       on
+
+--------------------------------------------------------------------------------
+-- Summary
+--------------------------------------------------------------------------------
+Ir______________ 
+
+327,462 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+-- File:function summary
+--------------------------------------------------------------------------------
+  Ir____________________  file:function
+
+< 112,923 (34.5%, 34.5%)  ./elf/./elf/dl-tunables.c:
+  111,804 (34.1%)           __GI___tunables_init
+      839  (0.3%)           __tunable_get_val
+
+<  42,032 (12.8%, 47.3%)  ./elf/./elf/dl-lookup.c:
+   26,008  (7.9%)           do_lookup_x
+   10,035  (3.1%)           _dl_lookup_symbol_x
+    5,989  (1.8%)           check_match
+
+<  28,140  (8.6%, 55.9%)  ./stdlib/../stdlib/strtol_l.c:____strtol_l_internal
+
+<  28,082  (8.6%, 64.5%)  /home/dev/src/ledger.c:
+   18,577  (5.7%)           balance
+    4,930  (1.5%)           main
+    4,367  (1.3%)           scale
+
+<  17,776  (5.4%, 69.9%)  ./string/../sysdeps/x86_64/multiarch/strcmp-avx2.S:__strcmp_avx2
+
+<  15,907  (4.9%, 74.8%)  ./elf/./elf/dl-reloc.c:_dl_relocate_object
+
+<  11,141  (3.4%, 78.2%)  ./elf/./elf/dl-tunables.h:
+   11,116  (3.4%)           __GI___tunables_init
+
+<   9,636  (2.9%, 81.1%)  ./elf/../sysdeps/generic/dl-new-hash.h:_dl_lookup_symbol_x
+
+<   6,408  (2.0%, 83.1%)  ./string/../sysdeps/x86_64/multiarch/../multiarch/strcmp-sse2.S:
+    6,376  (1.9%)           strcmp
+
+<   5,928  (1.8%, 84.9%)  ./elf/./elf/do-rel.h:
+    5,872  (1.8%)           _dl_relocate_object
+
+<   4,384  (1.3%, 86.2%)  ./elf/../sysdeps/x86_64/dl-machine.h:
+    4,318  (1.3%)           _dl_relocate_object
+
+<   4,294  (1.3%, 87.5%)  ./elf/../sysdeps/x86/dl-cacheinfo.h:
+    3,322  (1.0%)           intel_check_word.constprop.0
+      516  (0.2%)           handle_intel.constprop.0
+
+<   3,297  (1.0%, 88.5%)  ./elf/./elf/dl-load.c:
+    1,558  (0.5%)           _dl_map_object_from_fd
+      473  (0.1%)           _dl_map_object
+
+<   2,724  (0.8%, 89.4%)  ./elf/./elf/dl-version.c:
+    2,652  (0.8%)           _dl_check_map_versions
+
+<   2,268  (0.7%, 90.1%)  ./elf/../bits/stdlib-bsearch.h:intel_check_word.constprop.0
+
+<   2,263  (0.7%, 90.8%)  ???:
+    2,251  (0.7%)           ???
+
+<   1,615  (0.5%, 91.3%)  ./malloc/./malloc/malloc.c:
+      771  (0.2%)           ptmalloc_init.part.0
+      662  (0.2%)           _int_malloc
+
+<   1,608  (0.5%, 91.7%)  ./stdlib/./stdlib/atoi.c:atoi
+
+<   1,570  (0.5%, 92.2%)  ./elf/./elf/rtld.c:
+Traceback (most recent call last):
+  File "/usr/bin/cg_annotate", line 1222, in <module>
+    main()
+    ~~~~^^
+  File "/usr/bin/cg_annotate", line 1209, in main
+    ann_mfls = print_mname_summary(
+        "File:function", "< ", events, dict_mfl_dcc, summary_cc
+    )
+  File "/usr/bin/cg_annotate", line 891, in print_mname_summary
+    printer.print_lcc(indent, lcc, mname, cumul_cc)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/bin/cg_annotate", line 757, in print_lcc
+    self.print_cc(inner_cc, None, f"  {inner_mname}")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/bin/cg_annotate", line 765, in print_cc
+    print(self.count_and_percs_str(i, count, perc1, perc2), end="")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe

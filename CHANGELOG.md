@@ -55,7 +55,39 @@ can move.
 - **CI** before: run 41911978755 (main, #101's merge) took 8 min 43 s; its
   critical path was the extract suite (519 s), then the corpus goldens
   (475 s) and smoke (284 s). After: see the pull request's run (filled in below once it is green).
-- **Docs:** `CLAUDE.md` (Testing), `HANDOFF.md` (0v).
+- **Docs:** `CLAUDE.md` (Testing), `HANDOFF.md` (0w).
+## 2026-11-04 — Round 5 of the held-out benchmark: built, frozen, rated for four readers (PV-005)
+
+Round 4 was spent on `--llm`, the tiny LM and auto-multi, so every open
+measurement was waiting on a fresh unseen set. Round 5 is 107 inputs nobody
+had parsed: 65 real captures from the 2026-11-04 container and 42
+reproductions of documented formats for platforms it lacks. The set was
+novelty-checked against the corpus, rounds 1-4 and round 4's second captures:
+no name clash, highest 3-gram 0.11. It was frozen (`SHA256SUMS`, b0fd175)
+before anything ran.
+
+Each reader ran once and was rated blind. Every distinct output went on its
+own sheet with the reader hidden, and six subagent raters rated the sheets
+on round 4's unchanged criteria:
+
+| reader | PASS / PARTIAL / FAIL |
+|---|---|
+| default engine | 14 / 60 / 33 |
+| `--multi` | 14 / 59 / 34 |
+| layout model, model-first | 10 / 23 / 74 |
+| `--llm`, first contact | 96 / 9 / 2 |
+
+The engine's PASS share (13%) is where every earlier round left it.
+
+No engine, strategy, hint, model or template file changed. `run.sh` takes
+`--round5`.
+
+Files:
+- `tests/benchmark/round5/` (inputs, `manifest.tsv`, `SHA256SUMS`,
+  `CRITERIA.md`, `novelty.py`, `ratings.tsv`, `llm-templates-learn/`)
+- `tests/benchmark/run.sh`, `tests/benchmark/README.md`
+- `docs/benchmark-2026-11-04-generalisation-round5.md`
+- `HANDOFF.md`, `CHANGELOG.md`
 
 ## 2026-11-04 — A data column named `#` is renamed `#_2`, not filed beside the row id (PV-011)
 
@@ -95,6 +127,7 @@ occurrence), so the tool's values would have been lost on reconcile.
   second `#` is now renamed by the same rule before the comparison, once and
   in place, so the old rows keep their values under `#_2` and the next
   capture appends to them.
+
 ## 2026-11-04 — `fold_eval.py` keeps LightGBM and torch apart (PV-014)
 
 `ml/fold_eval.py` crashed on macOS (exit 139) whenever a run loaded both

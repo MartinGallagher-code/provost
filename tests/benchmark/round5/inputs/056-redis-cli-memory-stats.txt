@@ -1,0 +1,61 @@
+ 1) "peak.allocated"
+ 2) (integer) 1209912
+ 3) "total.allocated"
+ 4) (integer) 1209880
+ 5) "startup.allocated"
+ 6) (integer) 875888
+ 7) "replication.backlog"
+ 8) (integer) 0
+ 9) "clients.slaves"
+10) (integer) 0
+11) "clients.normal"
+12) (integer) 0
+13) "cluster.links"
+14) (integer) 0
+15) "aof.buffer"
+16) (integer) 0
+17) "lua.caches"
+18) (integer) 0
+19) "functions.caches"
+20) (integer) 200
+21) "db.0"
+22) 1) "overhead.hashtable.main"
+    2) (integer) 32272
+    3) "overhead.hashtable.expires"
+    4) (integer) 0
+    5) "overhead.hashtable.slot-to-keys"
+    6) (integer) 0
+23) "overhead.total"
+24) (integer) 908360
+25) "keys.count"
+26) (integer) 602
+27) "keys.bytes-per-key"
+28) (integer) 554
+29) "dataset.bytes"
+30) (integer) 301520
+31) "dataset.percentage"
+32) "90.277610778808594"
+33) "peak.percentage"
+34) "99.997352600097656"
+35) "allocator.allocated"
+36) (integer) 1703008
+37) "allocator.active"
+38) (integer) 1835008
+39) "allocator.resident"
+40) (integer) 4808704
+41) "allocator-fragmentation.ratio"
+42) "1.077509880065918"
+43) "allocator-fragmentation.bytes"
+44) (integer) 132000
+45) "allocator-rss.ratio"
+46) "2.6205356121063232"
+47) "allocator-rss.bytes"
+48) (integer) 2973696
+49) "rss-overhead.ratio"
+50) "1.4344122409820557"
+51) "rss-overhead.bytes"
+52) (integer) 2088960
+53) "fragmentation"
+54) "7.8737578392028809"
+55) "fragmentation.bytes"
+56) (integer) 6021632
