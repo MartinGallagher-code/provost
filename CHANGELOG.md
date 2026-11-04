@@ -54,7 +54,22 @@ can move.
   after the file, still runs the golden check, and leaves nothing running.
 - **CI** before: run 41911978755 (main, #101's merge) took 8 min 43 s; its
   critical path was the extract suite (519 s), then the corpus goldens
-  (475 s) and smoke (284 s). After: see the pull request's run (filled in below once it is green).
+  (475 s) and smoke (284 s). After, on this branch's
+  2-core runners: run 41924785744 (green) took 10 min 21 s, with smoke at
+  205 s and the extract suite at 440 s, but the corpus goldens (unchanged)
+  at 617 s; run 41922118164 (red on the race below, otherwise the same code)
+  took 7 min 47 s, with smoke at 210 s, the extract suite at 318 s and the
+  corpus at 463 s. So on 2 cores CI's smoke and extract jobs are about a
+  quarter to a third faster, and the corpus job, whose time varies most from
+  runner to runner, is now the whole critical path: sharding it (PV-018's
+  runner-up 2) is the CI-side fix.
+- **A race in one smoke check, fixed:** "rm --capture skips a dataset deleted
+  while it waited" deleted the dataset through a pipe with no wait, so under
+  load the delete could land while `rm --capture` was still reading the
+  datasets rather than at its prompt (it failed in run 41922118164). The
+  deleting side now waits for the prompt (up to 10 s). It passed 3 full runs
+  at 4 jobs on 2 CPUs with the extract suite alongside, and 10 runs of its
+  part alone.
 - **Docs:** `CLAUDE.md` (Testing), `HANDOFF.md` (0w).
 ## 2026-11-04 — Round 5 of the held-out benchmark: built, frozen, rated for four readers (PV-005)
 
