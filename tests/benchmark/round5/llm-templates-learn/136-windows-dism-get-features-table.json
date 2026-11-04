@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "tool": "windows-dism-get-features-table",
+ "detect": "Feature Name\\s+\\|\\s+State",
+ "skip": [
+  "^[A-Za-z]:\\\\.*>",
+  "^Deployment Image Servicing and Management tool",
+  "^-+\\s*\\|\\s*-+\\s*$",
+  "^The operation completed successfully"
+ ],
+ "blocks": [
+  {
+   "name": "features",
+   "kind": "table",
+   "header": "^Feature Name\\s+\\|\\s+State",
+   "line": "^(?P<feature_name>\\S+)\\s*\\|\\s*(?P<state>\\S(?:.*?\\S)?)\\s*$",
+   "columns": {
+    "feature_name": "Feature Name",
+    "state": "State"
+   }
+  },
+  {
+   "name": "image_info",
+   "kind": "kv",
+   "line": "^(?P<key>[A-Za-z][A-Za-z ]*?)\\s*:\\s*(?P<value>\\S.*?)\\s*$"
+  }
+ ],
+ "examples": [
+  "C:\\Windows\\system32>dism /online /get-features /format:table\n\nDeployment Image Servicing and Management tool\nVersion: 10.0.26100.5074\n\nImage Version: 10.0.26100.7019\n\nFeatures listing for package : Microsoft-Windows-Foundation-Package~31bf3856ad364e35~amd64~~10.0.26100.1\n\n-------------------------------------------- | ---------\nFeature Name                                 | State\n-------------------------------------------- | ---------\nPrinting-PrintToPDFServices-Features         | Enabled\nPrinting-XPSServices-Features                | Disabled\nSearchEngine-Client-Package                  | Enabled\nMSRDC-Infrastructure                         | Enabled\nTelnetClient                                 | Disabled\nTFTP                                         | Disabled\nTIFFIFilter                                  | Disabled\nLegacyComponents                             | Disabled\nDirectPlay                                   | Disabled\nPrinting-Foundation-Features                 | Enabled\nPrinting-Foundation-InternetPrinting-Client  | Enabled\nPrinting-Foundation-LPDPrintService          | Disabled\nPrinting-Foundation-LPRPortMonitor           | Disabled\nSimpleTCP                                    | Disabled\nMicrosoftWindowsPowerShellV2Root             | Enabled\nMicrosoftWindowsPowerShellV2                 | Enabled\nWindows-Identity-Foundation                  | Disabled\nMicrosoft-Windows-Subsystem-Linux            | Enabled\nHypervisorPlatform                           | Disabled\nVirtualMachinePlatform                       | Enabled\nMicrosoft-Hyper-V-All                        | Disabled\nMicrosoft-Hyper-V                            | Disabled\nMicrosoft-Hyper-V-Tools-All                  | Disabled\nClient-ProjFS                                | Disabled\nNetFx4-AdvSrvs                               | Enabled\nNetFx4Extended-ASPNET45                      | Disabled\nNetFx3                                       | Disabled with Payload Removed\nIIS-WebServerRole                            | Disabled\nWCF-Services45                               | Enabled\nWCF-TCP-PortSharing45                        | Enabled\nSMB1Protocol                                 | Disabled\nSMB1Protocol-Client                          | Disabled\nSMB1Protocol-Server                          | Disabled\nContainers-DisposableClientVM                | Disabled\nMediaPlayback                                | Enabled\nWindowsMediaPlayer                           | Enabled\nRecall                                       | Disabled with Payload Removed\n\nThe operation completed successfully.\n\nC:\\Windows\\system32>"
+ ]
+}

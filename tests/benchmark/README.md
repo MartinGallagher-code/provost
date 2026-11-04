@@ -49,6 +49,19 @@ captures: 17 FAIL, 1 PARTIAL, no PASS. See
 [`docs/benchmark-2026-10-20-generalisation-round4.md`](../../docs/benchmark-2026-10-20-generalisation-round4.md).
 It is a self-assessment screen and is still unseen by any parser fix.
 
+**Round 5** (`round5/`, 107 inputs, 2026-11-04, PV-005): **14 PASS / 60
+PARTIAL / 33 FAIL** (13% / 56% / 31%; 69% usable) on provost 2.3.0 (`main` @
+a8c3d0c). 65 inputs are real captures and 42 are reproductions of documented
+formats. The set was novelty-checked against the corpus, rounds 1-4 and round
+4's second captures, and frozen (`round5/SHA256SUMS`, committed b0fd175) with
+round 4's criteria before anything ran. Four readers were rated blind on it:
+`--multi` **14 / 59 / 34**, the layout model alone (the shipped LM,
+model-first) **10 / 23 / 74**, and `--llm` at first contact (Claude writing
+each template through the API) **96 / 9 / 2**. See
+[`docs/benchmark-2026-11-04-generalisation-round5.md`](../../docs/benchmark-2026-11-04-generalisation-round5.md).
+Every output has been read, so round 5 is spent; the next honest number needs
+a round 6.
+
 ## There is no gate here, on purpose
 
 A pass/fail gate would invite fitting the engine to these fifty files, and the
@@ -64,6 +77,7 @@ bash tests/benchmark/run.sh --round2 /tmp/bench-r2         # round 2 (~4-5 min, 
 bash tests/benchmark/run.sh --round2 --tidy /tmp/bench-r2  # + melted .tidy / .multi.tidy
 bash tests/benchmark/run.sh --round3 --tidy -j 2 /tmp/bench-r3  # round 3 (107 inputs)
 bash tests/benchmark/run.sh --round4 --tidy -j 2 /tmp/bench-r4  # round 4 (107 inputs, ~7 min)
+bash tests/benchmark/run.sh --round5 --tidy -j 2 /tmp/bench-r5  # round 5 (107 inputs, ~5 min)
 ```
 
 Prints a summary line per input: strategy, confidence, input lines, output
@@ -100,6 +114,13 @@ worse than no rating.
 | `round4/CRITERIA.md` | round 4: round 3's (round 2's) rating rules, reused unchanged and frozen before the run |
 | `round4/ratings.tsv` | round 4: default-mode winner, confidence, coverage, consistency, whether the quality gate would hold it, rating, `--multi` dataset count and `--multi` rating, and a note per input |
 | `round4/novelty.py` | round 4: name and content check against the corpus, holdout and rounds 1-3 |
+| `round5/inputs/*.txt` | round 5: 107 inputs (001-065 captured, 101-142 reproduced) |
+| `round5/manifest.tsv` | round 5: provenance, category, family, shape and source command per input |
+| `round5/SHA256SUMS` | round 5: sha256 of every input, recorded at the freeze |
+| `round5/CRITERIA.md` | round 5: round 4's rating rules, unchanged, with the tie-break calls written out in a dated note |
+| `round5/ratings.tsv` | round 5: default winner, confidence, coverage, consistency, gate_held, and the default, `--multi`, model-first and `--llm` ratings with each rater's reason |
+| `round5/novelty.py` | round 5: name and content check against the corpus, holdout, rounds 1-4 and round 4's second captures |
+| `round5/llm-templates-learn/` | round 5: the templates `--llm` wrote at first contact, its summary and API log |
 | `run.sh` | re-run every input through default, `--rank priority` and `--multi` mode |
 | `make_doc_json.sh` | build the workbook JSON (input + melted parse + rating) |
 | `make_doc.js` | render that JSON as a markable `.docx` |

@@ -33,17 +33,26 @@ It has a git-backed store and ships as a thin Python launcher
 | round 3 on 2.1.0 (unseen) | 21% | 42% | 37% | 63% |
 | round 3 after the 2026-10-16 round (unseen by its fixers) | 21% | 45% | 35% | 65% |
 | round 2 after both rounds (seen: a regression set) | 32% | 58% | 10% | 90% |
+| round 4 on the 2026-10-20 engine (unseen) | 11% | 48% | 41% | 59% |
+| **round 5 on 2.3.0 (unseen, 2026-11-04)** | **13%** | **56%** | **31%** | **69%** |
+| round 5, `--llm` first contact (unseen, rated blind) | 90% | 8% | 2% | 98% |
 
-**On output provost has never seen, about one input in five is fully right and
-about one in three is wrong, and two fix rounds have barely moved that.**
+**On output provost has never seen, about one input in eight is fully right and
+about one in three is wrong, and the fix rounds have barely moved that.**
+Round 5 (PV-005) confirms it on 107 fresh inputs; its FAIL share is ten
+points under round 4's, at the edge of the ±9-point margin, and the PASS
+share has not moved. `--llm` is the one reader that changes the answer:
+it rated higher than the engine on 85 of the 107 and lower on 1.
 They have moved the seen sets a lot. The gap between round 2 (90% usable)
 and round 3 (65%) measures how much the fixes fit what their authors could
 see. The corpus figure (3677 / 3705 tidy) is a shape check on tuned inputs,
 not a quality measure.
 
-Round 3 is now seen too, so the next honest number needs a **round 4**. Build
-it, freeze it and rate it before any fix, as round 3 was
-(`tests/benchmark/round3/`, `docs/benchmark-2026-10-16-generalisation-round3.md`).
+Rounds 1 to 5 are all seen now (round 5 was rated for four readers on
+2026-11-04: `tests/benchmark/round5/`,
+`docs/benchmark-2026-11-04-generalisation-round5.md`). The next honest number
+needs a **round 6**: build it, freeze it and rate it before the change it is
+to measure, as round 5 was.
 
 ### This round (2026-10-16, PR #76)
 
@@ -110,6 +119,23 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0u. **2026-11-04: round 5 is built, frozen and rated** (PV-005,
+    `docs/benchmark-2026-11-04-generalisation-round5.md`). 107 unseen inputs
+    (65 captured, 42 reproduced), frozen in b0fd175 before any run, each
+    rated blind for four readers:
+    - default engine 14 / 60 / 33 (69% usable);
+    - `--multi` 14 / 59 / 34;
+    - layout model alone (shipped LM, model-first) 10 / 23 / 74;
+    - `--llm` first contact 96 / 9 / 2 (105 API calls, about $4.30).
+    It answers the measurements 0a, 0d, 0e, 0h and 0k were waiting on:
+    - the engine generalises no better than before;
+    - `--multi` helps where the gate holds (3 of 7 FAIL to PARTIAL);
+    - the LM still does not beat the engine (better on 13, worse on 51);
+    - `--llm` is right first time on nine captures in ten.
+    Round 5 is now spent for all four; the next change to be measured needs
+    a round 6, frozen first. The open `--llm` question is second captures
+    (round 4's part 3), not first contact.
 
 0t. **2026-11-04: 2.3.0 is ready to publish** (PV-003). It carries
     `rm --capture`, which quarterdeck's `qd rm RUN` needs, and the `lm`

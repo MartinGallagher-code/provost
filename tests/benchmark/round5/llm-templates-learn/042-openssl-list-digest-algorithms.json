@@ -1,0 +1,32 @@
+{
+ "format": 1,
+ "tool": "openssl-list-digest-algorithms",
+ "detect": "^(?:Legacy|Provided):\\s*$",
+ "skip": [
+  "^(?:Legacy|Provided):\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "provided_digests",
+   "kind": "table",
+   "line": "^\\s+(?:\\{\\s*(?:(?P<oid>\\d+(?:\\.\\d+)+),\\s*)?)?(?P<names>[^{}@\\s](?:[^{}@]*?[^{}@\\s])?)(?:\\s*\\})?\\s+@\\s+(?P<provider>\\S+)\\s*$",
+   "columns": {
+    "oid": "OID",
+    "names": "Names",
+    "provider": "Provider"
+   }
+  },
+  {
+   "name": "legacy_digests",
+   "kind": "table",
+   "line": "^\\s+(?P<name>[^\\s{]\\S*)(?:\\s+=>\\s+(?P<target>\\S+))?\\s*$",
+   "columns": {
+    "name": "Name",
+    "target": "Alias of"
+   }
+  }
+ ],
+ "examples": [
+  "Legacy:\n  RSA-MD4 => MD4\n  RSA-MD5 => MD5\n  RSA-RIPEMD160 => RIPEMD160\n  RSA-SHA1 => SHA1\n  RSA-SHA1-2 => RSA-SHA1\n  RSA-SHA224 => SHA224\n  RSA-SHA256 => SHA256\n  RSA-SHA3-224 => SHA3-224\n  RSA-SHA3-256 => SHA3-256\n  RSA-SHA3-384 => SHA3-384\n  RSA-SHA3-512 => SHA3-512\n  RSA-SHA384 => SHA384\n  RSA-SHA512 => SHA512\n  RSA-SHA512/224 => SHA512-224\n  RSA-SHA512/256 => SHA512-256\n  RSA-SM3 => SM3\n  BLAKE2b512\n  BLAKE2s256\n  id-rsassa-pkcs1-v1_5-with-sha3-224 => SHA3-224\n  id-rsassa-pkcs1-v1_5-with-sha3-256 => SHA3-256\n  id-rsassa-pkcs1-v1_5-with-sha3-384 => SHA3-384\n  id-rsassa-pkcs1-v1_5-with-sha3-512 => SHA3-512\n  MD4\n  md4WithRSAEncryption => MD4\n  MD5\n  MD5-SHA1\n  md5WithRSAEncryption => MD5\n  ripemd => RIPEMD160\n  RIPEMD160\n  ripemd160WithRSA => RIPEMD160\n  rmd160 => RIPEMD160\n  SHA1\n  sha1WithRSAEncryption => SHA1\n  SHA224\n  sha224WithRSAEncryption => SHA224\n  SHA256\n  sha256WithRSAEncryption => SHA256\n  SHA3-224\n  SHA3-256\n  SHA3-384\n  SHA3-512\n  SHA384\n  sha384WithRSAEncryption => SHA384\n  SHA512\n  SHA512-224\n  sha512-224WithRSAEncryption => SHA512-224\n  SHA512-256\n  sha512-256WithRSAEncryption => SHA512-256\n  sha512WithRSAEncryption => SHA512\n  SHAKE128\n  SHAKE256\n  SM3\n  sm3WithRSAEncryption => SM3\n  ssl3-md5 => MD5\n  ssl3-sha1 => SHA1\n  whirlpool\nProvided:\n  { 2.16.840.1.101.3.4.2.10, SHA3-512 } @ default\n  { 1.3.6.1.4.1.1722.12.2.2.8, BLAKE2S-256, BLAKE2s256 } @ default\n  { 1.2.156.10197.1.401, SM3 } @ default\n  { 2.16.840.1.101.3.4.2.8, SHA3-256 } @ default\n  { 2.16.840.1.101.3.4.2.7, SHA3-224 } @ default\n  { 2.16.840.1.101.3.4.2.2, SHA-384, SHA2-384, SHA384 } @ default\n  { 2.16.840.1.101.3.4.2.3, SHA-512, SHA2-512, SHA512 } @ default\n  { 2.16.840.1.101.3.4.2.5, SHA-512/224, SHA2-512/224, SHA512-224 } @ default\n  { 2.16.840.1.101.3.4.2.12, SHAKE-256, SHAKE256 } @ default\n  { 2.16.840.1.101.3.4.2.1, SHA-256, SHA2-256, SHA256 } @ default\n  { 1.3.14.3.2.26, SHA-1, SHA1, SSL3-SHA1 } @ default\n  { 2.16.840.1.101.3.4.2.9, SHA3-384 } @ default\n  { 2.16.840.1.101.3.4.2.11, SHAKE-128, SHAKE128 } @ default\n  MD5-SHA1 @ default\n  { 1.3.36.3.2.1, RIPEMD, RIPEMD-160, RIPEMD160, RMD160 } @ default\n  { 1.2.840.113549.2.5, MD5, SSL3-MD5 } @ default\n  { 2.16.840.1.101.3.4.2.4, SHA-224, SHA2-224, SHA224 } @ default\n  { 1.3.6.1.4.1.1722.12.2.1.16, BLAKE2B-512, BLAKE2b512 } @ default\n  { 2.16.840.1.101.3.4.2.6, SHA-512/256, SHA2-512/256, SHA512-256 } @ default\n  { KECCAK-KMAC-128, KECCAK-KMAC128 } @ default\n  { KECCAK-KMAC-256, KECCAK-KMAC256 } @ default\n  NULL @ default"
+ ]
+}
