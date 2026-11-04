@@ -548,8 +548,11 @@ _scan_max_capture_num () {
 # no `total_entries` column (melt stopped emitting the engine's record count
 # on 2026-09-25; datasets written before then still had it). 3 = every
 # dataset's second column is `capture`, the id of the capture each row came
-# from (2026-10-28; earlier rows are filled in from provenance.tsv).
-_STORE_FORMAT=3
+# from (2026-10-28; earlier rows are filled in from provenance.tsv). 4 = that
+# column holds the capture id in every row: a reconcile before 2026-11-04 could
+# match a data column named `capture` to it by name (PV-015), and the rows it
+# got wrong are put right from provenance.tsv.
+_STORE_FORMAT=4
 _store_format_file () { printf '%s/.store_format\n' "$PROVOST_WORKSPACE"; }
 _store_format () { local f; f="$(cat "$(_store_format_file)" 2>/dev/null || true)"; [[ "$f" =~ ^[0-9]{1,6}$ ]] && echo "$f" || echo 1; }
 
@@ -622,6 +625,50 @@ _migrate_add_capture () {
     return 0
 }
 
+# Format 3 -> 4: put provost's capture column right where a reconcile matched
+# a data column named `capture` to it by name (PV-015). In such a row column 2
+# holds a data value (or nothing) and the row's capture id sits in another
+# column named `capture`, `_capture`, ...; provenance.tsv says which id is the
+# row's. The two values change places, and when that happened in any row the
+# two columns' names do too if column 2 has the shorter one (a capture gives
+# provost's column the longer name, so the data column keeps its own). A
+# dataset is left as it is unless every row that disagrees with provenance is
+# put right by the same column.
+_migrate_fix_capture_column () {
+    local dir prov f tmp; dir="$(_ds_dir)"; prov="$(_prov_file)"
+    [[ -f "$prov" ]] || return 0
+    for f in "$dir"/*.tsv; do
+        [[ -f "$f" ]] || continue
+        tmp="$f.mig.$$"
+        if awk -F'\t' -v OFS='\t' -v P="$prov" '
+            FILENAME == P { if (FNR > 1) cap[$1] = $3; next }
+            FNR == 1 { if ($1 != "#" || NF < 3) exit 3
+                       for (i = 3; i <= NF; i++) if ($i ~ /^_*capture$/) C[i] = 1
+                       H = $0; next }
+            { L[++nr] = $0
+              if (!($1 in cap) || $2 == cap[$1]) next
+              k = 0; for (i in C) if ($i == cap[$1]) { k = i + 0; break }
+              if (!k || (j && k != j)) { bad = 1; exit 3 }
+              j = k; S[nr] = 1 }
+            END {
+                if (bad || !j) exit 3
+                nh = split(H, h, "\t")
+                if (length(h[2]) < length(h[j])) { t = h[2]; h[2] = h[j]; h[j] = t }
+                s = h[1]; for (i = 2; i <= nh; i++) s = s OFS h[i]; print s
+                for (r = 1; r <= nr; r++) {
+                    if (!(r in S)) { print L[r]; continue }
+                    n = split(L[r], F, "\t"); t = F[2]; F[2] = F[j]; F[j] = t
+                    s = F[1]; for (i = 2; i <= n; i++) s = s OFS F[i]; print s
+                }
+            }' "$prov" "$f" > "$tmp"; then
+            mv "$tmp" "$f"
+        else
+            rm -f "$tmp"
+        fi
+    done
+    return 0
+}
+
 _migrate_store () {
     local ws="$PROVOST_WORKSPACE" first=""
     [[ -d "$ws/.git" && -w "$ws" ]] || return 0
@@ -643,6 +690,9 @@ _migrate_store () {
     fi
     if (( $(_store_format) < 3 )); then
         _migrate_add_capture || die "could not add the capture column to the datasets (store format 3)."
+    fi
+    if (( $(_store_format) < 4 )); then
+        _migrate_fix_capture_column
     fi
     echo "$_STORE_FORMAT" > "$(_store_format_file)"
     _commit "provost: store maintenance (.gitignore, untrack runtime files, capture counter, store format $_STORE_FORMAT)"
@@ -730,6 +780,26 @@ _store_fix_row_id () {
     fi
 }
 
+# _capcol_align OLD NEW — the two headers of a reconcile, each printed on its
+# own line with column 2 (provost's capture column, when the header starts
+# with '#') renamed to `capture`, or `_capture`, `__capture`, ... : the first
+# that is not the name of any other column in either header. A data column
+# named `capture` arriving in a dataset whose own capture column is called
+# `capture` (or the reverse) would otherwise be matched to it by name.
+_capcol_align () {
+    _CA_O="$1" _CA_N="$2" awk 'BEGIN {
+        o = ENVIRON["_CA_O"]; n = ENVIRON["_CA_N"]
+        no = split(o, a, "\t"); nn = split(n, b, "\t")
+        for (i = 1; i <= no; i++) if (!(i == 2 && a[1] == "#")) U[a[i]] = 1
+        for (i = 1; i <= nn; i++) if (!(i == 2 && b[1] == "#")) U[b[i]] = 1
+        c = "capture"; while (c in U) c = "_" c
+        if (a[1] == "#" && no >= 2) a[2] = c
+        if (b[1] == "#" && nn >= 2) b[2] = c
+        s = ""; for (i = 1; i <= no; i++) s = s (i > 1 ? "\t" : "") a[i]; print s
+        s = ""; for (i = 1; i <= nn; i++) s = s (i > 1 ? "\t" : "") b[i]; print s
+    }'
+}
+
 # Append a tidy TSV FILE (header+rows) to a dataset. Store rule:
 #   new dataset            → write header + rows;
 #   header matches         → append data rows;
@@ -755,12 +825,18 @@ _store_append () {
             [[ "$overlap" =~ ^[0-9]+$ ]] || overlap=0
             if (( overlap >= PROVOST_RECONCILE_OVERLAP )); then
                 # Reconcile into the base dataset: union header, realign both sides.
-                local unified tmp; unified="$(_core_union_header "$old_header" "$new_header")"
+                # Column 2 is provost's capture column in both, whatever each
+                # side named it, so both are first given the one name that no
+                # data column of either uses; matching by name then never puts a
+                # data column called `capture` into it, or the id into that.
+                local unified tmp oh="$old_header" nh="$new_header"
+                { IFS= read -r oh; IFS= read -r nh; } < <(_capcol_align "$old_header" "$new_header")
+                unified="$(_core_union_header "$oh" "$nh")"
                 tmp="$(mktemp "$dir/.recon.XXXXXX")"
                 if {
                     printf '%s\n' "$unified"
-                    tail -n +2 "$base" | _core_align_rows "$old_header" "$unified"
-                    tail -n +2 "$src"  | _core_align_rows "$new_header" "$unified"
+                    tail -n +2 "$base" | _core_align_rows "$oh" "$unified"
+                    tail -n +2 "$src"  | _core_align_rows "$nh" "$unified"
                 } > "$tmp"; then
                     mv "$tmp" "$base"
                 else
@@ -1658,7 +1734,8 @@ _ingest_store () {
         # (which run each row came from) to the header + each row (blank lines
         # dropped), counting rows and header fields as we go. A data column
         # already named `capture` keeps its name; the added one becomes
-        # `_capture` (melt's clash rule), so a by-name union never merges them.
+        # `_capture` (melt's clash rule); a later reconcile renames the two
+        # sides' column 2 alike (_capcol_align), so a by-name union never merges them.
         ck="$ctx_cols"; cv="$ctx_vals"
         [[ "${ds_name[k]}" == unsorted ]] && { ck=""; cv=""; }
         CNTF="$tmp/cnt" CAPID="$id" CK="$ck" CV="$cv" awk -F'\t' -v s="$startid" '

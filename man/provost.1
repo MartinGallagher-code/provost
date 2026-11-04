@@ -215,7 +215,8 @@ Present a dataset as a tidy table. Every row carries \fB#\fR (its number,
 unique in the store), \fBcapture\fR (the capture it came from) and, for
 records, \fBn\fR (its record number within that capture); a data column
 already named \fBcapture\fR keeps its name and the added one is
-\fB_capture\fR. \fB--capture\fR shows only the rows capture \fIid\fR
+\fB_capture\fR, whichever capture brought it: the second column is always
+the capture id. \fB--capture\fR shows only the rows capture \fIid\fR
 filed; \fB--at\fR shows the dataset as it stood just after capture \fIid\fR,
 read from git without moving the store. For the \fBunsorted\fR bucket the
 base64 \fBraw\fR column is decoded to text.

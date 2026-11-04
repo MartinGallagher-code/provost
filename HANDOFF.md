@@ -100,7 +100,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (587)
+- `tests/smoke.sh` (599)
 - `transform/tests/test_melt.sh` (70)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -317,7 +317,10 @@ Suites (all CI-enforced):
     - **`capture` column (store format 3):** every row is `#`, `capture`,
       `n`, then the data. Older stores are migrated on the next write from
       `provenance.tsv`; a data column already named `capture` keeps its name
-      and the added one is `_capture`.
+      and the added one is `_capture`. Store format 4 (2026-11-04, PV-015): a
+      reconcile names column 2 alike on both sides first, so a data column
+      `capture` never lands in it; format-3 datasets it got wrong are
+      repaired from `provenance.tsv` on the next write.
     - **Run files:** a capture in a controlled directory commits the
       directory's files too, tagged `files-<id>`, chained run to run, built
       with a scratch index (the store's tree never holds a copy).
