@@ -102,17 +102,34 @@ _core_melt_tidy () {
 # melt itself). The pre-pass reproduces what that round trip does to the
 # bytes: trailing newlines dropped, one newline added (so an empty or
 # newline-only file is ONE empty line).
+#
+# RENAMES (optional third argument): a file the melt truncates and then fills
+# with one `old=new` line per column it renamed (see _core_melt_tidy_stream:
+# a data column named `#`), so the caller can record the rename. Empty when
+# nothing was renamed.
 _core_melt_tidy_file () {
+    [[ -n "${3:-}" ]] && : > "$3"
     awk '{ if ($0 == "") { pend++; next }
            for (; pend > 0; pend--) print ""
            print; seen = 1 }
-         END { if (!seen) print "" }' "$1" | _core_melt_tidy_stream "${2:-}"
+         END { if (!seen) print "" }' "$1" | _core_melt_tidy_stream "${2:-}" "${3:-}"
 }
 
+# The store's row id. provost puts a `#` column (the row's globally unique
+# index) in front of every dataset it files, so a data column of that name
+# (an LLM template's `#`, the tool's own row number: mikrotik `print`) would
+# leave two columns called `#`, and the by-name union / align would merge
+# them. The melt renames such a column `#_2` (the first `#_K`, K >= 2, that
+# no other column of the output already holds; several, in order) and,
+# given a RENAMES file, writes `#=#_2` to it.
+_CORE_MELT_ROW_ID="#"
+
 # The melt proper, as a stdin filter (shared by both entry points above).
+# _core_melt_tidy_stream [capid] [renames-file]
 _core_melt_tidy_stream () {
     local capid="${1:-}"
     _MELT_CAP="$capid" _MELT_RECS="$_CORE_MELT_RECORD_PREFIXES" \
+    _MELT_RID="$_CORE_MELT_ROW_ID" _MELT_RENAMES="${2:-}" \
         awk -F'\t' -v OFS='\t' '
         # Stable, O(n log n) bottom-up merge sort of IX[1..n] by the numeric
         # sort key KY[1..n] (kept in step with IX; both position-indexed, so
@@ -144,8 +161,27 @@ _core_melt_tidy_stream () {
           while (u in SEEN) u = nm "_" (++k)
           SEEN[u] = 1; return u
         }
+        # hdr(h): the header line h with every column named RID (the
+        # store row id) renamed RID_K, the first K >= 2 not already a
+        # column name; each rename is logged to RNF when one is given.
+        function hdr(h,    n, A, ALL, i, k, u, o) {
+          if (index("\t" h "\t", "\t" RID "\t") == 0) return h
+          n = split(h, A, "\t")
+          for (i = 1; i <= n; i++) ALL[A[i]] = 1
+          o = ""
+          for (i = 1; i <= n; i++) {
+            if (A[i] == RID) {
+              k = 2; u = RID "_" k
+              while (u in ALL) u = RID "_" (++k)
+              ALL[u] = 1; A[i] = u
+              if (RNF != "") print RID "=" u >> RNF
+            }
+            o = o (i > 1 ? OFS : "") A[i]
+          }
+          return o
+        }
         BEGIN {
-          cap = ENVIRON["_MELT_CAP"]
+          cap = ENVIRON["_MELT_CAP"]; RID = ENVIRON["_MELT_RID"]; RNF = ENVIRON["_MELT_RENAMES"]
           nr = split(ENVIRON["_MELT_RECS"], rl, " "); for (i = 1; i <= nr; i++) REC[rl[i]] = 1
         }
         { L[NR] = $0 }
@@ -154,7 +190,9 @@ _core_melt_tidy_stream () {
         NR == 1 { nf = split($0, H, "\t") }
         NR == 2 { split($0, V, "\t") }
         END {
-          if (NR != 2) { for (r = 1; r <= NR; r++) print L[r]; exit }  # only header+1row is meltable
+          if (NR != 2) {                                     # only header+1row is meltable
+            if (NR >= 1) print hdr(L[1])
+            for (r = 2; r <= NR; r++) print L[r]; exit }
           # total_entries: the engine record count (a bare integer) — metadata.
           for (i = 1; i <= nf; i++) if (H[i] == "total_entries" && isint(V[i])) DROP[i] = 1
           # NOTE: a data row wider than its header means a value held a TAB
@@ -219,12 +257,12 @@ _core_melt_tidy_stream () {
             ndrop = 0; for (i in DROP) ndrop++
             # (repeated names made unique: name, name_2 …)
             hu = ""; for (i = 1; i <= nf; i++) { U[i] = uniq(H[i], PSEEN); hu = hu (i > 1 ? OFS : "") U[i] }
-            if (ndrop == 0 || ndrop >= nf) { print hu; print L[2]; exit }
+            if (ndrop == 0 || ndrop >= nf) { print hdr(hu); print L[2]; exit }
             hs = ""; c = 0
             for (i = 1; i <= nf; i++) if (!(i in DROP)) { hs = hs (c ? OFS : "") U[i]; c++ }
             nd = split(L[2], D, "\t"); vs = ""; c = 0
             for (i = 1; i <= nd; i++) if (!(i in DROP)) { vs = vs (c ? OFS : "") D[i]; c++ }
-            print hs; print vs; exit
+            print hdr(hs); print vs; exit
           }
 
           nid = 0; nfld = 0; nsc = 0
@@ -277,10 +315,10 @@ _core_melt_tidy_stream () {
           while (idcol in USED) idcol = "_" idcol
           USED[idcol] = 1; capcol = "capture"
           while (capcol in USED) capcol = "_" capcol
-          hdr = (cap != "" ? capcol OFS : "") idcol
-          for (k = 1; k <= nfld; k++) hdr = hdr OFS FLDS[k]
-          for (s = 1; s <= nsc; s++) hdr = hdr OFS SCN[s]
-          print hdr
+          hdl = (cap != "" ? capcol OFS : "") idcol
+          for (k = 1; k <= nfld; k++) hdl = hdl OFS FLDS[k]
+          for (s = 1; s <= nsc; s++) hdl = hdl OFS SCN[s]
+          print hdr(hdl)
           sc = ""; for (s = 1; s <= nsc; s++) sc = sc OFS V[SC[s]]
           pre = (cap != "" ? cap OFS : "")
           for (a = 1; a <= nid; a++) {

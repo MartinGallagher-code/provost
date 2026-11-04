@@ -707,6 +707,29 @@ _col_overlap () {
               if(nu==0){print 100; exit} printf "%d\n", int(inter*100/nu) }'
 }
 
+# _store_fix_row_id FILE — a dataset filed before PV-011 (2026-11-04) can hold
+# a data column named `#` beside the store's own (column 1): the melt now files
+# such a column as `#_2` (transform/melt.sh, _CORE_MELT_ROW_ID). Rename the
+# stored one the same way (`#_K`, the first K >= 2 its header does not use), in
+# place and once, so the next capture's `#_2` lines up with it instead of the
+# by-name union dropping the old column and its values.
+_store_fix_row_id () {
+    local f="$1" h="" tmp
+    IFS= read -r h < "$f" || true
+    [[ "$h" == "#"$'\t'* && $'\t'"${h#*$'\t'}"$'\t' == *$'\t#\t'* ]] || return 0
+    tmp="$(mktemp "$(dirname "$f")/.rowid.XXXXXX")"
+    if awk -F'\t' -v OFS='\t' 'NR == 1 {
+            for (i = 1; i <= NF; i++) ALL[$i] = 1
+            for (i = 2; i <= NF; i++) if ($i == "#") {
+                k = 2; u = "#_" k; while (u in ALL) u = "#_" (++k)
+                ALL[u] = 1; $i = u }
+         } { print }' "$f" > "$tmp"; then
+        mv "$tmp" "$f"
+    else
+        rm -f "$tmp"; return 1
+    fi
+}
+
 # Append a tidy TSV FILE (header+rows) to a dataset. Store rule:
 #   new dataset            → write header + rows;
 #   header matches         → append data rows;
@@ -723,6 +746,7 @@ _store_append () {
     if [[ ! -f "$base" ]]; then
         cp "$src" "$base"
     else
+        _store_fix_row_id "$base" || return 1
         IFS= read -r old_header < "$base" || true
         if [[ "$old_header" == "$new_header" ]]; then
             tail -n +2 "$src" >> "$base"
@@ -746,6 +770,7 @@ _store_append () {
                 # Genuinely different shape → variant file.
                 local v=2
                 while [[ -f "$dir/$name.v$v.tsv" ]]; do
+                    _store_fix_row_id "$dir/$name.v$v.tsv" || return 1
                     line=""; IFS= read -r line < "$dir/$name.v$v.tsv" || true
                     [[ "$line" == "$new_header" ]] && break
                     v=$((v+1))
@@ -926,7 +951,7 @@ _am_part_check () {
     if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_LINES )); then
         _AMP_NOTE="part $i is read by the rejected parser ($dstrat) and cannot be judged"; return 0
     fi
-    _core_melt_tidy_file "$wide" > "$tsv"
+    _core_melt_tidy_file "$wide" "" "$tsv.renamed" > "$tsv"
     _AMP_ROWS=$(awk 'NR > 1 && $0 != "" { r++ } END { print r + 0 }' "$tsv")
     read -r ncols nsyn < <(_tidy_cols "$tsv" | awk '{ c++ } /^[A-Z][A-Z]?$/ { s++ } END { print c + 0, s + 0 }')
     if (( _AMP_ROWS >= 2 && ncols >= 2 && nsyn == ncols )); then
@@ -1415,7 +1440,7 @@ _ingest_parse () {
             # a fragment of an input whose other parts did match, and the whole
             # input is stored with the capture either way.
             if [[ -n "$dstrat" && -s "$tmp/ds.$i.wide" ]] && (( dconf >= threshold )); then
-                _core_melt_tidy_file "$tmp/ds.$i.wide" > "$tmp/ds.$i.tsv"
+                _core_melt_tidy_file "$tmp/ds.$i.wide" "" "$tmp/ds.$i.tsv.renamed" > "$tmp/ds.$i.tsv"
                 if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
                 ds_name+=("${name:+$name.}$dstrat"); ds_strategy+=("$dstrat"); ds_conf+=("$dconf")
                 ds_cov+=("$dcov"); ds_cons+=("$dcons")
@@ -1523,7 +1548,7 @@ _ingest_parse () {
                 if _valid_name "$strategy"; then dsname="$strategy"
                 else dsname="$(_sanitize_name "$strategy")"; dsname="${dsname:-dataset}"; fi
                 [[ -n "$name" ]] && dsname="$name"
-                _core_melt_tidy_file "$tmp/wide.tsv" > "$content"
+                _core_melt_tidy_file "$tmp/wide.tsv" "" "$content.renamed" > "$content"
             fi
             ds_name=("$dsname"); ds_strategy=("$strategy"); ds_conf=("$conf")
             ds_file=("$content")
@@ -1626,7 +1651,7 @@ _ingest_store () {
     nextid="$(cat "$(_rowid_file)" 2>/dev/null || true)"
     [[ "$nextid" =~ ^[0-9]{1,15}$ ]] || die "corrupt row counter in $(_rowid_file): '$nextid'"
     nextid=$((10#$nextid)); firstid="$nextid"
-    local -a out_names=() out_ranges=()
+    local -a out_names=() out_ranges=(); local renamed=""
     for (( k=0; k<${#ds_file[@]}; k++ )); do
         startid="$nextid"
         # Prepend the visible, globally-unique '#' index and the capture id
@@ -1658,6 +1683,12 @@ _ingest_store () {
         final="$_SA_TARGET"
         out_names+=("$final")
         if (( nrows > 0 )); then out_ranges+=("#${startid}..$((startid+nrows-1))"); else out_ranges+=("none"); fi
+        # a data column the melt renamed off the row id (`#` -> `#_2`, see
+        # transform/melt.sh): recorded as DATASET:old=new,...
+        if [[ -s "${ds_file[k]}.renamed" ]]; then
+            local rn; rn="$(paste -sd , "${ds_file[k]}.renamed")"
+            renamed="${renamed:+$renamed,}$final:${rn//,/,$final:}"
+        fi
 
         # One provenance line per row (#N → dataset, capture), in one awk.
         if (( nrows > 0 )); then
@@ -1731,6 +1762,7 @@ _ingest_store () {
         fi
         if [[ -s "$ctxf" ]]; then printf 'context\tcontext.txt\n'; fi
         if [[ -n "$ctx_map" ]]; then printf 'context_columns\t%s\n' "$ctx_map"; fi
+        if [[ -n "$renamed" ]]; then printf 'renamed_columns\t%s\n' "$(_meta_safe "$renamed")"; fi
         if [[ -n "${detection:-}" ]]; then printf 'detection\t%s\n' "$(_meta_safe "$detection")"; fi
     } > "$capd/meta.tsv"
     startid="$firstid"; nrows="$totalrows"; final="$all_names"; strategy="$all_strats"; conf="$all_confs"
@@ -4237,6 +4269,11 @@ METADATA PROLOGUE
     _NAME; meta.tsv records which columns came from the context
     ('context_columns', key=column,...). A capture held in 'unsorted' is
     kept as it came.
+
+    '#' is the store's: a data column of that name (zypper's repo number, a
+    template's row index) is filed as '#_2' (the first '#_K' the dataset
+    does not already use), so the two never share a name, and meta.tsv
+    records it ('renamed_columns', DATASET:#=#_2,...).
 
 BATCH CAPTURE (provost batch)
     'provost batch FILE...' files each FILE as a capture of its own, as

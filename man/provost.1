@@ -123,6 +123,10 @@ same name keeps it and the context column becomes \fB_\fR\fINAME\fR;
 \fImeta.tsv\fR records which columns came from the context
 (\fBcontext_columns\fR, \fIkey\fB=\fIcolumn\fR,...). A capture held in
 \fBunsorted\fR is kept as it came.
+The \fB#\fR column is the store's: a data column of that name is filed as
+\fB#_2\fR (the first \fB#_\fR\fIK\fR the dataset does not already use),
+and \fImeta.tsv\fR records it
+(\fBrenamed_columns\fR, \fIdataset\fB:#=#_2\fR,...).
 Run with no arguments from a terminal (nothing piped in),
 .B provost
 prints its help instead of waiting on stdin.
