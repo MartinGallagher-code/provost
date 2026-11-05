@@ -76,6 +76,14 @@ bash tests/smoke.sh                 # end-to-end (604 checks)
 bash transform/tests/test_melt.sh   # transform unit test (70 checks)
 ```
 
+`tests/smoke.sh` and `extract/tests/run_tests.sh` run in parallel, as the corpus
+gate does: one job per CPU (`nproc`), each part's or file's output held and
+printed whole, in order. `PROVOST_TEST_JOBS=N` sets the job count, and
+`PROVOST_TEST_JOBS=1` runs them one at a time, as they used to (PV-018). A new
+smoke check goes inside an `if _part NAME; then ... fi` block: the one for its
+store, or `core` if it uses the default workspace `$WS`, since each part runs
+with a fresh one.
+
 When you change `src/provost_data/` (the PyPI launcher) or `pyproject.toml`, run
 `python -m pytest` — 100% line+branch coverage of `provost_data` is enforced
 (`--cov-fail-under=100`, CI `python-package` job).

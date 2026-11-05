@@ -58,6 +58,62 @@ _ns="$(readlink /proc/self/ns/pid 2>/dev/null || true)"; LOCK_HOST="$LOCK_HOST${
 # A pid that is certainly gone.
 dead_pid () { sleep 0 & local p=$!; wait "$p" 2>/dev/null || true; echo "$p"; }
 
+# --- parts: the checks run as independent groups, in parallel ---------------
+# Every check below sits in a part (`if _part NAME; then ... fi`). A part keeps
+# its own stores and reads nothing another part sets, except the default
+# workspace $WS, so every block that uses $WS is in the one part ("core").
+# With more than one job this script runs itself once per part
+# (PROVOST_SMOKE_PART=NAME), each with a fresh $WS and PROVOST_HOME, holds
+# each part's output, prints it whole in file order, and adds up the counts.
+# PROVOST_TEST_JOBS=1 runs every part in this one process, top to bottom.
+_part () { [[ -z "${PROVOST_SMOKE_PART:-}" || "$PROVOST_SMOKE_PART" == "$1" ]]; }
+export PROVOST_HOME="${WS%/.provost}/home"
+JOBS="${PROVOST_TEST_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
+if ! [[ "$JOBS" =~ ^[1-9][0-9]*$ ]]; then
+    echo "PROVOST_TEST_JOBS must be a positive integer (got '$JOBS')" >&2; exit 2
+fi
+if [[ -z "${PROVOST_SMOKE_PART:-}" && $JOBS -gt 1 ]]; then
+    # A check outside every part would run once per part: refuse that.
+    loose="$(awk '/^if _part /{d=1;next} d>0&&/^if /{d++} d>0&&/^fi$/{d--;next}
+                  d==0&&/^[[:space:]]*check(_not)? "/{printf " %d", NR}' "${BASH_SOURCE[0]}")"
+    if [[ -n "$loose" ]]; then
+        echo "smoke: checks outside an 'if _part NAME; then ... fi' block (lines$loose)" >&2; exit 2
+    fi
+    PARTS=()
+    while read -r p; do PARTS+=("$p"); done < <(sed -n 's/^if _part \([a-z0-9-]*\); then$/\1/p' "${BASH_SOURCE[0]}" | awk '!seen[$0]++')
+    PW="$(mktemp -d "${TMPDIR:-/tmp}/provost-smoke.XXXXXX")"
+    trap 'rm -rf "$PW"' EXIT
+    _has_wait_n=0
+    (( BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 3) )) && _has_wait_n=1
+    for i in "${!PARTS[@]}"; do
+        ( rc=0; t0=$SECONDS; PROVOST_SMOKE_PART="${PARTS[$i]}" bash "${BASH_SOURCE[0]}" > "$PW/$i.log" 2>&1 || rc=$?
+          echo "$((SECONDS - t0))" > "$PW/$i.t"
+          echo "$rc" > "$PW/$i.rc.tmp" && mv "$PW/$i.rc.tmp" "$PW/$i.rc" ) &
+        while [[ "$(jobs -rp | wc -l)" -ge "$JOBS" ]]; do
+            if [[ $_has_wait_n -eq 1 ]]; then wait -n 2>/dev/null || true; else sleep 0.1; fi
+        done
+    done
+    wait
+    slow=0
+    for i in "${!PARTS[@]}"; do
+        [[ "$(cat "$PW/$i.t")" -gt "$(cat "$PW/$slow.t")" ]] && slow=$i
+        grep -v '^smoke: [0-9]* passed, [0-9]* failed$' "$PW/$i.log" || true
+        line="$(grep '^smoke: [0-9]* passed, [0-9]* failed$' "$PW/$i.log" | tail -1 || true)"
+        if [[ -z "$line" ]]; then
+            # The part stopped before its summary (set -e, a crash): what it
+            # did not run cannot be counted, so the run fails.
+            echo "  FAIL part '${PARTS[$i]}' stopped early (exit $(cat "$PW/$i.rc"))"
+            fail=$((fail+1)); continue
+        fi
+        read -r _ p _ f _ <<< "$line"
+        pass=$((pass+p)); fail=$((fail+f))
+    done
+    echo "(${#PARTS[@]} parts on $JOBS jobs; the longest, ${PARTS[$slow]}, took $(cat "$PW/$slow.t")s)"
+    echo "smoke: $pass passed, $fail failed"
+    [[ $fail -eq 0 ]]; exit
+fi
+
+if _part core; then
 free_out="$(printf '              total        used        free      shared  buff/cache   available\nMem:           15943        2456        9876         123        3610       13234\nSwap:           2047           0        2047\n' | "$PROVOST" 2>&1)"
 check "free injects into 'free'" "dataset 'free'" "$free_out"
 check "first free sample gets row index #1" "#1.." "$free_out"
@@ -83,7 +139,9 @@ check "source #3 shows the 2nd sample's original input (used 3050)" "3050" "$src
 stats_out="$("$PROVOST" stats free 2>&1)"
 check "stats produces summary statistics" "Summary stats" "$stats_out"
 check "stats computes a mean over the column" "Mean" "$stats_out"
+fi
 
+if _part recon-unsorted; then
 # schema reconciliation: a trimmed same-type capture (>=60% column overlap)
 # unions into the base dataset instead of splitting to free.v2
 RWS="$(mktemp -d)/.recon"
@@ -109,7 +167,9 @@ check "triage decodes the raw input (readable)" "a=1;b=2" "$unsorted_triage"
 PROVOST_WORKSPACE="$UWS" "$PROVOST" --min-confidence 101 <<<$'p\tq\nsecond line' >/dev/null 2>&1
 check "unsorted decode escapes embedded tabs/newlines" 'p\tq\nsecond line' \
     "$(PROVOST_WORKSPACE="$UWS" "$PROVOST" show unsorted 2>&1)"
+fi
 
+if _part rm; then
 # rm: delete a dataset, prune its provenance rows, and (by default) purge the
 # captures that fed it — all committed, with the git history preserved.
 # --no-purge keeps the captures.
@@ -146,7 +206,9 @@ check "rm commits the deletion (history preserved)" "rm: deleted" \
 # c0003, never a reused c0002 (which would overwrite history/provenance)
 reuse_out="$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" run --name after printf 'x=1, y=2\n' 2>&1)"
 check "capture ids are never reused after an rm purge" "c0003:" "$reuse_out"
+fi
 
+if _part rm-capture; then
 # rm --capture: captures, and the rows they filed in every dataset they fed;
 # a dataset left with no rows goes too. One commit; their tags go; ids are
 # still never reused.
@@ -252,7 +314,12 @@ check "rm --capture killed while moving still completes, committed" "clean c0002
 # the lock) is skipped, not an error.
 rcu run --name w printf 'a b\n5 6\n' >/dev/null 2>&1   # c0003 -> w
 rcu run --name w printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> w
-gone_out="$( { rcu rm -f --no-purge w >/dev/null 2>&1; echo y; } | rcu rm --capture 3 2>&1 || true)"
+# The deletion waits for the prompt (up to 10 s): sent any earlier, it could
+# land while rm --capture is still reading the datasets, which under load
+# (the parts run in parallel) it did.
+gone_err="$(mktemp)"
+gone_out="$( { for _ in $(seq 100); do grep -q 'Proceed?' "$gone_err" && break; sleep 0.1; done
+               rcu rm -f --no-purge w >/dev/null 2>&1; echo y; } | rcu rm --capture 3 2>&1 | tee "$gone_err" || true)"
 check "rm --capture skips a dataset deleted while it waited" "deleted 1 capture(s) (c0003)" "$gone_out"
 check "rm --capture after a dataset went while it waited leaves the store clean" "clean" \
     "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean)"
@@ -469,7 +536,9 @@ check "rm --capture counts a row in a dataset without a final newline" "the 1 ro
 # The prompt counts the rows that will go, provenance or not.
 check "rm --capture's prompt counts rows found without provenance" "the 1 row(s) they filed" \
     "$(rm -f "$RCWS7/provenance.tsv"; tgit "$RCWS7" commit -qam 'drop provenance' >/dev/null 2>&1; echo n | rcv rm --capture 2 2>&1)"
+fi
 
+if _part async; then
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.
 DEFWS="$(mktemp -d)/.defasync"
@@ -533,7 +602,9 @@ check_not "warning stops once the failure has been seen" "background capture(s) 
     "$(PROVOST_WORKSPACE="$FWS" "$PROVOST" ls 2>&1)"
 check "failure log is not committed (gitignored)" "0" \
     "$(git -C "$FWS" ls-files | grep -c 'async-failures' || true)"
+fi
 
+if _part core; then
 # --- git core: run captures a command as a commit; restore brings it back ---
 check "workspace is a git repo" "true" "$([[ -d "$WS/.git" ]] && echo true)"
 
@@ -558,7 +629,9 @@ check "the refused capture exits non-zero" "1" "$(printf 'z=1\n' | rc_of "$PROVO
 latest_out="$("$PROVOST" restore latest 2>&1)"
 check "restore latest returns to the tip" "latest" "$latest_out"
 check "restore rejects a malformed capture id" "2" "$(rc_of "$PROVOST" restore ../../etc)"
+fi
 
+if _part concurrency; then
 # --- concurrency: parallel writers to a fresh shared store stay consistent ---
 CWS="$(mktemp -d)/shared"
 for i in 1 2 3 4 5 6; do ( PROVOST_WORKSPACE="$CWS" "$PROVOST" run printf "k=v$i\n" >/dev/null 2>&1 ) & done
@@ -570,7 +643,9 @@ check "no duplicate row indices under concurrency" "0" "$dup"
 check "6 concurrent captures got 6 distinct capture ids" "6" "$(find "$CWS/captures" -mindepth 1 -maxdepth 1 -type d -name 'c*' | wc -l | tr -d ' ')"
 check "the store lock is never committed" "0" "$(git -C "$CWS" ls-files | grep -c '^\.lock' || true)"
 check "the store has a .gitignore for runtime files" ".lock" "$(cat "$CWS/.gitignore" 2>&1)"
+fi
 
+if _part lock; then
 # --- store lock: stale-lock rules --------------------------------------------
 LWS="$(mktemp -d)/.lockt"
 printf 'a=1, b=2\n' | PROVOST_WORKSPACE="$LWS" "$PROVOST" >/dev/null 2>&1
@@ -603,7 +678,9 @@ mkdir "$LWS/.lock"; dead_pid > "$LWS/.lock/pid"
 check "a legacy pid-file lock whose pid is gone is broken" "0" \
     "$(printf 'a=6\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
 check "no lock is left behind after captures" "false" "$([[ -e "$LWS/.lock" ]] && echo true || echo false)"
+fi
 
+if _part control; then
 # --- Stage B: controlled directories route captures locally -----------------
 GH="$(mktemp -d)/global"
 PROJ="$(mktemp -d)/proj"; mkdir -p "$PROJ/sub"; echo hi > "$PROJ/file.txt"
@@ -663,7 +740,9 @@ PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" control "$RX/a.b" >/dev/null 
 PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" uncontrol "$RX/a.b" >/dev/null 2>&1
 check "uncontrol removes only its own directory (fixed-string match)" "$RX/aXb" "$(cat "$GH/instances.tsv")"
 check_not "uncontrol removed the released directory" "$RX/a.b	" "$(cat "$GH/instances.tsv")"
+fi
 
+if _part core; then
 # --- Stage C: export / import round-trip preserves datasets + provenance ----
 BUNDLE="$(mktemp -d)/store.bundle"
 exp_out="$("$PROVOST" export "$BUNDLE" 2>&1)"
@@ -833,7 +912,9 @@ if command -v python3 >/dev/null 2>&1; then
     rm -f "$COV_IN.small2"
 fi
 rm -f "$COV_IN"
+fi
 
+if _part llm; then
 # LLM TEMPLATES (--llm / PROVOST_LLM=1): a capture the gate holds is parsed by
 # a template Claude wrote for the tool, stored in the store or shipped with
 # provost; with an API key and no fitting template, Claude is asked to write
@@ -1007,7 +1088,9 @@ if command -v python3 >/dev/null 2>&1; then
     check "a record is built from several lines" "enp3s0	inet	10.20.30.7/24	global	85211sec	85211sec	10.20.30.255	dynamic,noprefixroute" "$(cat "$LTWS/datasets/ip-addr.addresses.tsv")"
     check "a parser that reaches outside the box is refused" "imports os" "$(printf '{"format": 2, "tool": "x", "detect": "^a", "parser": "import os\\ndef parse(l): return []"}' > "$LTD/bad.json"; python3 "$HERE/../extract/llm/template.py" apply "$LTD/bad.json" "$LTD/vol.txt" 2>&1)"
 fi
+fi
 
+if _part core; then
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a
 # .provostrc in the CWD cannot reconfigure a capture. A probe strategy records
 # what the engine process saw.
@@ -1094,7 +1177,9 @@ IFS=',' read -r -a mrm_rest <<< "${mrm_ds#*,}"
 PROVOST_WORKSPACE="$MRM" "$PROVOST" rm -f "${mrm_rest[@]}" >/dev/null 2>&1
 check "rm of the last datasets of a --multi capture purges it" "false" \
     "$([[ -d "$MRM/captures/c0001" ]] && echo true || echo false)"
+fi
 
+if _part hardening; then
 # ============================================================================
 # Hardening / regression checks
 # ============================================================================
@@ -1155,7 +1240,9 @@ check "--name refuses a path-traversal name" "invalid dataset name" \
     "$(printf 'a=1\n' | PROVOST_WORKSPACE="$TWS" "$PROVOST" --name ../../victim 2>&1 || true)"
 printf '99\tkv-pairs\t../../../etc\n' >> "$TWS/provenance.tsv"
 check "source refuses a tampered capture id" "invalid capture id" "$(PROVOST_WORKSPACE="$TWS" "$PROVOST" source 99 2>&1 || true)"
+fi
 
+if _part core; then
 # Code comes only from the install dir: engine/transform files planted in the
 # data store (writable by a shared store's other members) are never run.
 EH="$(mktemp -d)/evilhome"; mkdir -p "$EH/transform" "$EH/extract" "$EH/analyze"
@@ -1168,7 +1255,9 @@ env -u PROVOST_WORKSPACE PROVOST_HOME="$EH" "$PROVOST" stats kv-pairs >/dev/null
 check "a store-planted engine/transform is never executed" "none" \
     "$(ls "$MARK".* 2>/dev/null || echo none)"
 check "capture still works with the bundled engine" "dataset 'kv-pairs'" "$ev_out"
+fi
 
+if _part settings; then
 # Numeric settings are validated before any arithmetic touches them.
 NWS="$(mktemp -d)/.num"; PWN="$(mktemp -d)/pwned"
 check "PROVOST_MIN_CONFIDENCE with code is refused (exit 2)" "2" \
@@ -1213,7 +1302,9 @@ check "meta.tsv stays two columns per line with tabs in args" "0" "$(awk -F'\t' 
 check "meta command keeps argument boundaries (quoted)" "'two words'" "$(cat "$qmeta")"
 check "meta command escapes a tab" "\$'tab\\there'" "$(cat "$qmeta")"
 check "log shows the quoted command" "'two words'" "$(PROVOST_WORKSPACE="$QWS" "$PROVOST" log 2>/dev/null)"
+fi
 
+if _part core; then
 # Store paths with spaces and quotes.
 SPH="$(mktemp -d)/my st'ore"
 sp_out="$(env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" run --name sp printf 'a=1, b=2\n' 2>&1)"
@@ -1267,7 +1358,9 @@ while IFS= read -r v; do
     check "help documents $v" "$v" "$help_out"
     check "man page documents $v" "$v" "$(cat "$MAN")"
 done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)
+fi
 
+if _part store-formats; then
 # A store whose .git/config others can write must not smuggle in settings that
 # make git run programs (filters, pagers, includes…): safe.directory is lifted.
 T="$(mktemp -d)"
@@ -1345,7 +1438,9 @@ check "and the new rows carry theirs" "6	c0005	1	/dev/sdc1" "$(cat "$CWS/dataset
 check "migration names a clashing column _capture" "#	_capture	n	capture	value" "$(head -1 "$CWS/datasets/own.tsv")"
 check "migration covers the triage bucket" "5	c0004	" "$(cat "$CWS/datasets/unsorted.tsv")"
 check "the migrated format-2 store records format 4" "4" "$(cat "$CWS/.store_format")"
+fi
 
+if _part recapcol; then
 # PV-015: a reconcile keeps provost's capture column (column 2) the capture id
 # in every row when a capture brings a data column named `capture`, in either
 # order; the data column keeps its name. A format-3 store a reconcile got
@@ -1378,7 +1473,9 @@ check "migration puts a wrong capture column right" "$(printf '#\t_capture\tn\ta
 check "migration fills the mirror order's empty column 2" "$(printf '#\t_capture\tn\tcapture\ta\tb\n1\tc0001\t1\tzz\t1\t2\n2\tc0002\t1\t\t3\t4')" "$(cat "$RWS2/datasets/d.tsv")"
 check "migration leaves a dataset it cannot put right" "1	data	x" "$(cat "$RWS/datasets/odd.tsv")"
 check "the repaired store records format 4" "4" "$(cat "$RWS/.store_format")"
+fi
 
+if _part browse; then
 # Browsing runs: show --capture / --at, source by capture id, next / prev,
 # and log while restored. All read from git; the store stays where it is
 # except under next / prev / restore.
@@ -1473,7 +1570,9 @@ check "search --output finds a line of captured output" "c0004 1 a=1" "$(PROVOST
 check "-e takes a pattern that starts with a dash" "no dataset rows match '-x'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -e -x 2>&1)"
 check "search --files searches the latest run's files" "m.py:1:v = 2" "$(fr search --files 'v =')"
 check "--files --at searches that run's" "m.py:1:v = 1" "$(fr search --files 'v =' --at 1)"
+fi
 
+if _part listen; then
 # --show and listen: the output is shown as always and filed too.
 LWS2="$(mktemp -d)/.listen"; LCFG="$(mktemp -d)"; LBIN="$(mktemp -d)"
 printf '#!/bin/sh\necho "TEST STATUS"; echo "t1 PASS"; echo "t2 $1"; exit 3\n' > "$LBIN/mytest"; chmod +x "$LBIN/mytest"
@@ -1495,7 +1594,9 @@ check "keeps its exit status" "rc=3" "$bs"
 check "and is filed each time it runs" "t2 PASS" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1 | sq)"
 check "unlisten stops it" "stopped listening on: mytest" "$(lr unlisten mytest)"
 check "and the list is empty" "listening on nothing" "$(lr listen)"
+fi
 
+if _part batch; then
 # batch: many inputs, one commit, a capture each; and '#%' context as columns.
 BTWS="$(mktemp -d)/.batch"; BTD="$(mktemp -d)"
 for h in web01 web02 db01; do printf '#%% host=%s rack=r1 note\nName,Load\n%s,0.5\n' "$h" "$h" > "$BTD/$h.txt"; done
@@ -1582,6 +1683,7 @@ check "--llm parses one input at a time" "parses one input at a time" "$(bt batc
 check "batch with no files is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch)"
 check "batch refuses --async (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch --async "$BTD/web01.txt")"
 check "--jobs must be a number (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch -j x "$BTD/web01.txt")"
+fi
 
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

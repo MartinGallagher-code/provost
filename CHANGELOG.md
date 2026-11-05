@@ -1,5 +1,76 @@
 # provost — Changelog
 
+## 2026-11-04 — smoke and the extract suite run in parallel (PV-018)
+
+Most of the time a provost change took went to running the checks, one at a
+time, with the other cores idle. The two serial suites now use a job pool,
+as `tests/corpus/run.sh` already did. No product code changed, so no golden
+can move.
+
+- **`extract/tests/run_tests.sh`** runs its test files under a pool of one
+  job per CPU (`nproc`, else `getconf`). Each file's output goes to its own
+  log and is printed whole, in file order, as each finishes, so the report
+  reads as before; `--filter`, `--timing`, `--fail-fast`, the summary, the
+  failed-file list and the exit status are unchanged. The golden check
+  (`verify_strategy_outputs.sh --check`) starts first and is reported last,
+  and still runs after a `--fail-fast` stop, as it did. On a stop the tests
+  still running are sent TERM and waited for, so none is left behind.
+  bash 3.2 (macOS) has no `wait -n` and polls instead.
+- **`tests/smoke.sh`** groups its checks into 16 parts
+  (`if _part NAME; then ... fi`). Every block that uses the default
+  workspace `$WS` is in `core`; the rest each keep their own stores and read
+  nothing another part sets (checked by a scan of what each block assigns
+  and reads, and by every part passing alone). With more than one job the
+  script runs itself once per part (`PROVOST_SMOKE_PART`), each with a fresh
+  `$WS` and its own `PROVOST_HOME` (smoke used to leave `PROVOST_HOME` unset,
+  so `~/.provost` was the fallback), prints each part's output whole in file
+  order, adds up the counts, and says which part took longest. A part that
+  dies before its summary fails the run by name. A check outside every part
+  would run once per part, so the suite refuses one (exit 2).
+- **`PROVOST_TEST_JOBS=N`** sets the job count for both; `=1` runs them one at
+  a time, streaming, as before.
+- **Measured** in a 2-CPU Ubuntu 24.04 container (Docker on an M-series Mac;
+  mawk), main @ 6739c7c against this branch, one after another:
+
+  | suite | main | branch |
+  |---|---:|---:|
+  | `extract/tests/run_tests.sh` (73 files) | 272 s | 130 s |
+  | `tests/smoke.sh` (598 checks) | 161 s | 82 s |
+  | together | 7 min 13 s | 3 min 32 s |
+  | test_melt, ml/tests, analyze (mawk), corpus `--golden` (unchanged) | 229 s | 229 s |
+  | every suite a session runs | 11 min 2 s | 7 min 21 s |
+
+  (The ticket's 21 minutes was a 4-core container on an older main; this
+  machine is faster per core, so the before figures here are lower.)
+
+  The same counts on both: 73/73 files, 598 passed and 0 failed, and the
+  same check names at 2 and at 6 jobs. Six jobs on 2 CPUs is no faster
+  (85 s, 140 s), so the default stays at one per CPU. On 4 cores the
+  longest smoke part (`core`, 46 s here) and the longest extract file
+  (`test_big_input_paths.sh`, 36 s) set the floor; not measured, since this
+  machine's Docker has 2 CPUs.
+- **Shown failing:** a broken csv assertion and a broken smoke check are
+  each reported by name with their output, and exit 1; `--fail-fast` stops
+  after the file, still runs the golden check, and leaves nothing running.
+- **CI** before: run 41911978755 (main, #101's merge) took 8 min 43 s; its
+  critical path was the extract suite (519 s), then the corpus goldens
+  (475 s) and smoke (284 s). After, on this branch's
+  2-core runners: run 41924785744 (green) took 10 min 21 s, with smoke at
+  205 s and the extract suite at 440 s, but the corpus goldens (unchanged)
+  at 617 s; run 41922118164 (red on the race below, otherwise the same code)
+  took 7 min 47 s, with smoke at 210 s, the extract suite at 318 s and the
+  corpus at 463 s. So on 2 cores CI's smoke and extract jobs are about a
+  quarter to a third faster, and the corpus job, whose time varies most from
+  runner to runner, is now the whole critical path: sharding it (PV-018's
+  runner-up 2) is the CI-side fix.
+- **A race in one smoke check, fixed:** "rm --capture skips a dataset deleted
+  while it waited" deleted the dataset through a pipe with no wait, so under
+  load the delete could land while `rm --capture` was still reading the
+  datasets rather than at its prompt (it failed in run 41922118164). The
+  deleting side now waits for the prompt (up to 10 s). It passed 3 full runs
+  at 4 jobs on 2 CPUs with the extract suite alongside, and 10 runs of its
+  part alone.
+- **Docs:** `CLAUDE.md` (Testing), `HANDOFF.md` (0x).
 ## 2026-11-04 — `rm NAME` says what is true about getting deleted data back, and drops a purged capture's `files-<id>` tag (PV-016)
 
 `provost rm NAME` ended "History kept — 'provost log'/'restore' still reach

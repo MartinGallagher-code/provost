@@ -120,6 +120,14 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0x. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
+    One job per CPU, `PROVOST_TEST_JOBS=N` to change it, `=1` for the old
+    serial run; output is printed whole, per file or part, in order. Smoke's
+    checks sit in parts (`if _part NAME; then ... fi`); a new check goes in
+    one (`core` if it uses `$WS`), and the suite refuses a check outside one.
+    On 2 CPUs the two went from 7 min 13 s to 3 min 32 s, and every suite
+    from 11 min to 7 min 21 s. CHANGELOG has the measurements.
+
 0w. **2026-11-04: `rm NAME` no longer promises `restore`** (PV-016). Its
     message, the man page and `help advanced` now say git's history (the
     commit before the deletion) holds what was deleted, the same wording as
