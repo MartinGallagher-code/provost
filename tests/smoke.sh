@@ -49,7 +49,19 @@ sq () { tr -s ' \t' '  '; }
 rc_of () { local rc=0; "$@" >/dev/null 2>&1 || rc=$?; echo "$rc"; }
 # own_pg CMD... -- run CMD as a job in a process group of its own, as a shell at a
 # terminal would, so a signal to "its group" reaches it and not this suite
-own_pg () { ( set -m; "$@" 2>&3 & wait $! ) 3>&2 2>/dev/null; }
+# The job starts with SIGINT at its default, as a job at a terminal does: a
+# shell started with SIGINT ignored (as CI's runner has started this suite
+# since 2026-11-09) passes the ignore on, and a signal ignored when bash starts
+# cannot be trapped, so provost's own INT handling would go untested (PV-035).
+# GNU env's --default-signal does it; elsewhere, python3; else as it comes.
+if env --default-signal=INT true >/dev/null 2>&1; then
+    SIGDFL=(env --default-signal=INT)
+elif command -v python3 >/dev/null 2>&1; then
+    SIGDFL=(python3 -c 'import os, signal, sys; signal.signal(signal.SIGINT, signal.SIG_DFL); os.execvp(sys.argv[1], sys.argv[1:])')
+else
+    SIGDFL=()
+fi
+own_pg () { ( set -m; ${SIGDFL[@]+"${SIGDFL[@]}"} "$@" 2>&3 & wait $! ) 3>&2 2>/dev/null; }
 # git on a test store with a throwaway identity (the smoke's own git use).
 tgit () { git -C "$1" -c user.name=smoke -c user.email=smoke@localhost -c commit.gpgsign=false "${@:2}"; }
 # The lock owner "host" string provost writes for this machine.
