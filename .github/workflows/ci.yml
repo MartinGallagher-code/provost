@@ -58,6 +58,10 @@ jobs:
         run: python3 -m unittest discover -s ml/tests -v
       - name: REUSE licensing lint
         uses: fsfe/reuse-action@v5
+      # Every [project.urls] link PyPI shows must resolve (PV-034: the
+      # Documentation link was a 404 for a release before anyone noticed).
+      - name: project URLs resolve
+        run: python3 tools/check-project-urls.py
 
   corpus-goldens:
     # ~3,500 frozen tidy outputs of real tools: the only thing that catches a

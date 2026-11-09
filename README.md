@@ -203,6 +203,25 @@ python -m pytest                     # PyPI launcher (100% coverage enforced)
 
 All six run in CI (`.github/workflows/ci.yml`).
 
+## Versioning and support
+
+provost follows semantic versioning from 2.4.0 on. MAJOR.MINOR.PATCH:
+
+- **Covered by the promise** (a break needs a new major): the commands and their
+  options; exit statuses; the `PROVOST_*` environment variables; the store format
+  (a store written by 2.x is read by every later 2.x; a format change ships with
+  an automatic migration, as formats 2 and 3 did); the dataset layout (`#`,
+  `capture`, `n`, then the data columns) and `provost export` bundles.
+- **Not covered**: the exact tidy output provost gives for a particular tool's
+  output. Parsers improve in minor releases, so a re-capture can file a better
+  table than before; captures already filed never change. Help wording, and
+  files inside the store that are not documented, are not covered either.
+- **Deprecation**: a name or option is removed only in a major release, after at
+  least one minor release that still accepts it and warns. (Before 2.4 this was
+  not so: the legacy `ENVOY_*`/`MFE_*` names were dropped in 2.2.0.)
+- **Support**: the latest release only. Fixes ship in the next release; there are
+  no backports to older minors or majors.
+
 ## License
 
 Copyright (C) 2026 Martin J. Gallagher

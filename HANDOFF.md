@@ -120,6 +120,12 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0z. **2026-11-09: PyPI links fixed, versioning policy written** (PV-034). The
+    repo is public; Documentation points at docs/usage.md on GitHub until
+    the mkdocs site is imported on Read the Docs (then point it back and
+    `tools/check-project-urls.py` will confirm it). CI checks every
+    `[project.urls]` link. README states the versioning and support policy.
+
 0x. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
     One job per CPU, `PROVOST_TEST_JOBS=N` to change it, `=1` for the old
     serial run; output is printed whole, per file or part, in order. Smoke's

@@ -1,5 +1,21 @@
 # provost — Changelog
 
+## 2026-11-09 — PyPI's links resolve, and a written versioning policy (PV-034)
+
+- **`pyproject.toml`**: the Documentation link pointed at
+  `provost.readthedocs.io`, which is a 404 (the project was never imported on
+  Read the Docs). It now points at `docs/usage.md` on GitHub. The repository
+  went public on 2026-11-09, so the Homepage, Repository, Changelog and Issues
+  links (which had been 404s for anyone outside) resolve too. They show on
+  PyPI from the next release.
+- **`tools/check-project-urls.py`**, run by CI's quick checks: fetches every
+  `[project.urls]` entry and fails on one that does not resolve.
+- **README**: a "Versioning and support" section — semver from 2.4.0, what
+  the promise covers (commands, options, exit statuses, `PROVOST_*`, the
+  store format, the dataset layout, export bundles) and what it does not
+  (a tool's exact tidy output, help wording), deprecation, and support for
+  the latest release only.
+
 ## 2026-11-04 — smoke and the extract suite run in parallel (PV-018)
 
 Most of the time a provost change took went to running the checks, one at a
