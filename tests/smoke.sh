@@ -12,7 +12,8 @@ set -euo pipefail
 unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT \
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_CONTEXT_COLUMNS PROVOST_PLUGIN_DIR \
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
-      PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY
+      PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY \
+      PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -1709,6 +1710,82 @@ check "...and every row once, no duplicate row index" "12 12" \
     "$(awk -F'\t' 'NR > 1 { n++; if (!seen[$1]++) u++ } END { print n, u }' "$CBWS/datasets/cb.tsv")"
 check "...each batch its own commit" "2" "$(tgit "$CBWS" log --format=%s | grep -c '^batch: 6 capture(s)')"
 check "--jobs must be a number (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch -j x "$BTD/web01.txt")"
+fi
+
+if _part manifest; then
+echo "== run manifest (PV-020): profiles, --manifest, check-manifest, annotate =="
+MWS="$(mktemp -d)/.mws"; MD="$(mktemp -d)"
+mp () { PROVOST_WORKSPACE="$MWS" "$PROVOST" "$@" 2>&1; }
+printf '#%% req=REQ-12 test=stream test.version=5.10 build.commit=abc123 sut=node7\nName,Load\nx,1\n' > "$MD/full.txt"
+printf '#%% test=stream test.version=5.10 build.commit=abc123 sut=node7\nName,Load\nx,2\n' > "$MD/noreq.txt"
+printf 'Name,Load\nx,3\n' > "$MD/plain.txt"
+out="$(mp --name full --manifest-profile default "$MD/full.txt"; echo "rc=$?")"
+check_not "a full prologue passes the capture-time check" "warning" "$out"
+check "...and is filed" "rc=0" "$out"
+out="$(mp --name noreq --manifest-profile default "$MD/noreq.txt"; echo "rc=$?")"
+check "a prologue missing req warns" "lacks required key(s): req -- filed anyway" "$out"
+check "...and still files it (exit 0)" "rc=0" "$out"
+out="$(mp --name noreq --strict-manifest "$MD/noreq.txt"; echo "rc=$?")"
+check "--strict-manifest refuses a capture missing req" "not captured (--strict-manifest)" "$out"
+check "...with exit 1" "rc=1" "$out"
+check "...and files nothing" "c0002" "$(mp log | tail -n 1)"
+out="$(mp --name plain "$MD/plain.txt"; echo "rc=$?")"
+check_not "a capture without a prologue, with no profile asked for, says nothing new" "manifest" "$out"
+check_not "...and keeps no context" "context" "$(cat "$MWS/captures/c0003/meta.tsv")"
+# --manifest FILE: KEY=VALUE lines, a value with spaces, prepended as the prologue
+printf '# a comment\nreq=REQ-9\ntest=hpl\ntest.version=2.3\nbuild.commit=def456\nsut=cluster a\nbuild.toolchain=gcc 13.2, "x"\n' > "$MD/m.txt"
+out="$(mp --name mf --context-columns --manifest "$MD/m.txt" "$MD/plain.txt"; echo "rc=$?")"
+check_not "--manifest FILE with every required key passes" "warning" "$out"
+check "--manifest prepends the prologue (value quoted)" '#% build.toolchain="gcc 13.2, \"x\""' "$(cat "$MWS/captures/c0004/context.txt")"
+check "a quoted value with spaces is one context column" "cluster a" "$(mp show mf)"
+check "...unquoted again" 'gcc 13.2, "x"' "$(mp show mf)"
+printf 'not a key value\n' > "$MD/bad.txt"
+check "--manifest refuses a line that is not KEY=VALUE (exit 1)" "1" "$(PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" --manifest "$MD/bad.txt" "$MD/plain.txt")"
+check "--manifest names a missing file" "no such manifest file" "$(mp --manifest "$MD/nope.txt" "$MD/plain.txt")"
+check "an unknown profile is an error" "no manifest profile 'nope'" "$(mp --manifest-profile nope "$MD/plain.txt")"
+printf 'req\tlater\tyes\tx\n' > "$MD/badprof.tsv"
+check "a malformed profile names its line" "line 1: want KEY" "$(mp check-manifest --profile "$MD/badprof.tsv")"
+# check-manifest over the store
+out="$(mp check-manifest; echo "rc=$?")"
+check "check-manifest: a complete capture" "c0001 complete -" "$(sq <<< "$out")"
+check "check-manifest: the one missing req" "c0002 incomplete req" "$(sq <<< "$out")"
+check "check-manifest: no prologue lists every required key" "c0003 incomplete req,test,test.version,build.commit,sut" "$(sq <<< "$out")"
+check "check-manifest warns, exit 0, by default" "rc=0" "$out"
+check "check-manifest --strict exits 1 when one is incomplete" "1" "$(PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" check-manifest --strict)"
+check "check-manifest --strict exits 0 when all are complete" "0" "$(PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" check-manifest --strict c0001 mf)"
+check "check-manifest NAME checks the captures that fed it" "c0002 incomplete" "$(mp check-manifest noreq | sq)"
+check_not "...and only those" "c0001" "$(mp check-manifest noreq)"
+check "check-manifest --profile proposal uses that profile's names" "rvtm_id" "$(mp check-manifest --profile proposal c0001)"
+# a store's own profile, and PROVOST_MANIFEST_PROFILE
+printf 'host\trun\tyes\tthe host\n' > "$MWS/manifest-profile.tsv"
+check "the store's manifest-profile.tsv is used when none is named" "c0001 incomplete host" "$(mp check-manifest c0001 | sq)"
+check "PROVOST_MANIFEST_PROFILE wins over the store's" "c0001 complete" "$(PROVOST_MANIFEST_PROFILE=default mp check-manifest c0001 | sq)"
+rm -f "$MWS/manifest-profile.tsv"
+# post-run keys: never at capture time; annotate adds them; --post checks them
+check "check-manifest --post demands reviewer and disposition" "c0001 incomplete reviewer,disposition" "$(mp check-manifest --post c0001 | sq)"
+out="$(mp annotate c0001 reviewer="Jo Smith" disposition=retest; echo "rc=$?")"
+check "annotate adds post-run keys to a filed capture" "annotated (reviewer, disposition)" "$out"
+check "annotate commits" "annotate c0001: reviewer, disposition" "$(tgit "$MWS" log -1 --format=%s)"
+check "...without filing the capture again" "c0004" "$(mp log | tail -n 1)"
+mp annotate 1 disposition=pass >/dev/null
+check "annotating a key again replaces it" "1" "$(grep -c disposition "$MWS/captures/c0001/annotations.txt")"
+check "...with the new value" "#% disposition=pass" "$(cat "$MWS/captures/c0001/annotations.txt")"
+check "check-manifest --post sees the annotations" "c0001 complete" "$(mp check-manifest --post c0001 | sq)"
+mp annotate c0002 req=REQ-12 >/dev/null
+check "an annotation can supply a missing run-time key" "c0002 complete" "$(mp check-manifest c0002 | sq)"
+check "source shows the annotations" 'reviewer="Jo Smith"' "$(mp source c0001)"
+check "annotate refuses an unknown capture" "no such capture in the store: c0099" "$(mp annotate c0099 reviewer=x)"
+check "annotate wants KEY=VALUE (exit 2)" "2" "$(PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" annotate c0001 reviewer)"
+check "annotate refuses a bad key (exit 2)" "2" "$(PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" annotate c0001 '1x=y')"
+# run and batch take the same options
+out="$(mp run --name runm --manifest "$MD/m.txt" printf 'a,b\n1,2\n'; echo "rc=$?")"
+check "run --manifest files with the manifest" "#% req=REQ-9" "$(mp source "$(mp log | tail -n 1 | awk '{print $1}')")"
+out="$(mp batch --strict-manifest --name bm "$MD/full.txt" "$MD/noreq.txt"; echo "rc=$?")"
+check "batch --strict-manifest skips the input missing a key" "noreq.txt: the run manifest (profile default) lacks required key(s): req" "$out"
+check "...files the rest" "1 input(s)" "$out"
+check "...and exits 1" "rc=1" "$out"
+check "PROVOST_MANIFEST_STRICT must be 0 or 1 (exit 2)" "2" "$(PROVOST_MANIFEST_STRICT=x PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" ls)"
+check "check-manifest --help" "usage: provost check-manifest" "$(mp check-manifest --help)"
 fi
 
 echo "smoke: $pass passed, $fail failed"
