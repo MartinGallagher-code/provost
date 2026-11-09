@@ -1348,7 +1348,7 @@ check "help advanced exits 0" "0" "$(rc_of "$PROVOST" help advanced)"
 # so a checkout under a long path does not fail the check)
 check "no help line is wider than 79 columns" "0" "$(printf '%s\n%s\n' "$short_help" "$help_out" \
     | sed "s|$(cd "$HERE/.." && pwd)|/opt/provost|g" | awk 'length($0) > 79' | wc -l | tr -d ' ')"
-for v in run batch listen search source diff files prev next restore control export rm doctor; do
+for v in run batch listen search source diff files prev next restore control export rm doctor verify; do
     check "help advanced lists '$v'" "provost $v" "$help_out"
 done
 check_not "help no longer claims reconciliation is missing" "Not yet" "$help_out"
@@ -1710,6 +1710,97 @@ check "...and every row once, no duplicate row index" "12 12" \
     "$(awk -F'\t' 'NR > 1 { n++; if (!seen[$1]++) u++ } END { print n, u }' "$CBWS/datasets/cb.tsv")"
 check "...each batch its own commit" "2" "$(tgit "$CBWS" log --format=%s | grep -c '^batch: 6 capture(s)')"
 check "--jobs must be a number (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch -j x "$BTD/web01.txt")"
+fi
+
+if _part verify; then
+# verify (PV-026): input hashes at capture, and 'provost verify'.
+VWS="$(mktemp -d)/.verify"
+vp () { PROVOST_WORKSPACE="$VWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+vrc () { PROVOST_WORKSPACE="$VWS" PROVOST_ASYNC=0 rc_of "$PROVOST" "$@"; }
+vsha () { if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi | awk '{ print $1 }'; }
+printf 'a,b\r\n1,2\r\n' | vp --name t >/dev/null
+vmeta="$(cat "$VWS/captures/c0001/meta.tsv")"
+check "a capture records the sha256 of its input as received (CRs and all)" \
+    "input_sha256	$(printf 'a,b\r\n1,2\r\n' | vsha)" "$vmeta"
+check "...and its size in bytes" "input_bytes	10" "$vmeta"
+check "...and the sha256 of output.txt as stored" "output_sha256	$(vsha < "$VWS/captures/c0001/output.txt")" "$vmeta"
+check "the commit carries the hashes as trailers" "Output-SHA256: c0001 $(vsha < "$VWS/captures/c0001/output.txt")" \
+    "$(tgit "$VWS" log -1 --format=%B capture-c0001)"
+vp run printf 'k v\n1 2\n' >/dev/null
+printf 'x y\n1 2\n' > "$VWS/../in1"; printf 'x y\n3 4\n' > "$VWS/../in2"
+vp batch --name bt "$VWS/../in1" "$VWS/../in2" >/dev/null
+check "a batch commit carries every capture's trailer" "Output-SHA256: c0004" "$(tgit "$VWS" log -1 --format=%B)"
+check "run records the hash too" "input_sha256	$(printf 'k v\n1 2\n' | vsha)" "$(cat "$VWS/captures/c0002/meta.tsv")"
+vout="$(vp verify; echo "rc=$?")"
+check "a clean store verifies (exit 0)" "rc=0" "$vout"
+check "...after git fsck" "git fsck --full: clean" "$vout"
+check "...with every capture's hash checked" "checked all 4 capture(s): 4 of 4 hashed matching" "$vout"
+check "...and names the head commit to record" "main at $(tgit "$VWS" rev-parse HEAD)" "$vout"
+check "--capture checks just those" "checked 2 capture(s)" "$(vp verify --capture 1,c0003)"
+check "--capture refuses a malformed id (exit 2)" "2" "$(vrc verify --capture x1)"
+check "an unknown capture is a finding (exit 1)" "1" "$(vrc verify --capture 9)"
+check "verify takes no stray arguments (exit 2)" "2" "$(vrc verify extra)"
+# Tampering, outside provost.
+echo tampered >> "$VWS/captures/c0002/output.txt"
+check "an uncommitted edit is reported" "changed outside provost and not committed" "$(vp verify)"
+check "...exit 1" "1" "$(vrc verify)"
+tgit "$VWS" commit -qam tamper
+check "a committed edit is reported" "c0002: its output.txt was changed after it was filed" "$(vp verify)"
+tgit "$VWS" reset -q --hard HEAD~1
+# One byte changed, the meta.tsv made to match, the tag moved: the trailer gives it away.
+printf 'k v\n1 3\n' > "$VWS/captures/c0002/output.txt"
+sed "s/^output_sha256.*/output_sha256	$(vsha < "$VWS/captures/c0002/output.txt")/" "$VWS/captures/c0002/meta.tsv" > "$VWS/m" \
+    && mv "$VWS/m" "$VWS/captures/c0002/meta.tsv"
+tgit "$VWS" commit -qam tamper; tgit "$VWS" tag -f capture-c0002 >/dev/null
+check "a rewritten output, meta.tsv and tag is caught by the commit trailer" "c0002: its meta.tsv records a hash, but its commit carries no Output-SHA256 trailer" "$(vp verify)"
+tgit "$VWS" reset -q --hard HEAD~1; tgit "$VWS" tag -f capture-c0002 "$(tgit "$VWS" rev-list -1 --grep='^capture c0002' HEAD)" >/dev/null
+# The stored output changed under its tag, its record untouched.
+vbad="$(mktemp -d)/.vb"; cp -R "$VWS" "$vbad"
+printf 'k v\n1 3\n' > "$vbad/captures/c0002/output.txt"
+tgit "$vbad" commit -qam tamper; tgit "$vbad" tag -f capture-c0002 >/dev/null
+check "an output that no longer matches its recorded sha256 is reported" "c0002: output.txt hashes to" \
+    "$(PROVOST_WORKSPACE="$vbad" "$PROVOST" verify 2>&1)"
+check "the store is back to verifying clean" "0" "$(vrc verify)"
+# A missing object.
+vobj="$(mktemp -d)/.vo"; cp -R "$VWS" "$vobj"
+vb="$(tgit "$vobj" rev-parse capture-c0001:captures/c0001/output.txt)"
+if [[ -f "$vobj/.git/objects/${vb:0:2}/${vb:2}" ]]; then rm -f "$vobj/.git/objects/${vb:0:2}/${vb:2}"
+else for pk in "$vobj"/.git/objects/pack/*.pack; do mv "$pk" "$pk.x"; tgit "$vobj" unpack-objects -q < "$pk.x"; rm -f "$pk.x" "${pk%.pack}.idx"; done
+     rm -f "$vobj/.git/objects/${vb:0:2}/${vb:2}"; fi
+vout="$(PROVOST_WORKSPACE="$vobj" "$PROVOST" verify 2>&1; echo "rc=$?")"
+check "a deleted object fails fsck" "git fsck --full reports damage" "$vout"
+check "...and is reported, exit 1" "rc=1" "$vout"
+# rm purges are not failures.
+vp rm -f --capture c0002 >/dev/null
+vout="$(vp verify; echo "rc=$?")"
+check "a store with an rm-purged capture still verifies" "rc=0" "$vout"
+check "...and counts the removed id" "1 capture id(s) removed by rm" "$vout"
+# An id that never was in the history (a dropped commit) is a failure.
+vgap="$(mktemp -d)/.vg"; cp -R "$VWS" "$vgap"
+cp -R "$vgap/captures/c0004" "$vgap/captures/c0009"
+tgit "$vgap" add -A; tgit "$vgap" commit -qm forged; tgit "$vgap" tag capture-c0009
+vout="$(PROVOST_WORKSPACE="$vgap" "$PROVOST" verify 2>&1; echo "rc=$?")"
+check "ids missing from the whole history are reported" "4 capture id(s) never appear in the store's history" "$vout"
+check "...exit 1" "rc=1" "$vout"
+# A store made before hashes were recorded: no hash lines, no trailers.
+VOLD="$(mktemp -d)/.vold"
+printf 'a,b\n1,2\n' | PROVOST_WORKSPACE="$VOLD" PROVOST_ASYNC=0 "$PROVOST" --name t >/dev/null 2>&1
+grep -v 'sha256\|input_bytes' "$VOLD/captures/c0001/meta.tsv" > "$VOLD/m" && mv "$VOLD/m" "$VOLD/captures/c0001/meta.tsv"
+tgit "$VOLD" add -A; tgit "$VOLD" commit -q --amend -m "capture c0001: inject csv → t (#1..1)"; tgit "$VOLD" tag -f capture-c0001 >/dev/null
+vout="$(PROVOST_WORKSPACE="$VOLD" "$PROVOST" verify 2>&1; echo "rc=$?")"
+check "a pre-hash capture is reported as unhashed" "1 filed before hashes were recorded" "$vout"
+check "...and does not fail (exit 0)" "rc=0" "$vout"
+# A restored (detached) store, and a controlled directory's files-* tags.
+vp restore c0001 >/dev/null
+check "a store on a restored capture verifies its main branch" "rc=0" "$(vp verify; echo "rc=$?")"
+vp restore latest >/dev/null
+VPROJ="$(mktemp -d)"; echo one > "$VPROJ/f.txt"
+( cd "$VPROJ" && PROVOST_HOME="$(mktemp -d)" PROVOST_WORKSPACE="" "$PROVOST" control >/dev/null 2>&1
+  printf 'a,b\n1,2\n' | PROVOST_ASYNC=0 PROVOST_WORKSPACE="" "$PROVOST" --name t >/dev/null 2>&1 )
+check "a controlled directory's store (files-* tags off main) verifies" "rc=0" \
+    "$(cd "$VPROJ" && PROVOST_WORKSPACE="" "$PROVOST" verify 2>&1; echo "rc=$?")"
+check "verify --help says what it does not prove" "does NOT prove that the" "$(vp verify --help)"
+check "verify outside a store is a clean error" "nothing to verify" "$(PROVOST_WORKSPACE="$(mktemp -d)/none" "$PROVOST" verify 2>&1)"
 fi
 
 if _part manifest; then

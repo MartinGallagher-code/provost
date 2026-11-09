@@ -344,6 +344,48 @@ _commit () {
     }
 }
 
+# --- input hashes (PV-026) ---------------------------------------------------
+# _sha256 FILE — the file's sha256 as 64 hex digits, from whichever of
+# sha256sum (GNU), shasum -a 256 (macOS, BSD) or openssl is installed; prints
+# nothing when none is (the capture is then filed unhashed, as before).
+_sha256 () {
+    local h=""
+    if command -v sha256sum >/dev/null 2>&1; then h="$(sha256sum < "$1" 2>/dev/null)"
+    elif command -v shasum >/dev/null 2>&1; then h="$(shasum -a 256 < "$1" 2>/dev/null)"
+    elif command -v openssl >/dev/null 2>&1; then h="$(openssl dgst -sha256 -r < "$1" 2>/dev/null)"
+    fi
+    h="${h%% *}"; h="${h##*= }"
+    [[ "$h" =~ ^[0-9a-fA-F]{64}$ ]] && printf '%s\n' "$h" | tr 'A-F' 'a-f'
+    return 0
+}
+
+# _receive RAW IN — the input exactly as received (RAW, already bounded by
+# PROVOST_MAX_INPUT) becomes IN with its CRs stripped, as provost has always
+# stored it; the sha256 and size of RAW, before any change, are kept beside it
+# in IN.received ("sha256<TAB>bytes") for _ingest_store to record. RAW goes.
+_receive () {
+    local raw="$1" in="$2" h n
+    h="$(_sha256 "$raw")"
+    n="$(wc -c < "$raw")"; n="${n//[!0-9]/}"
+    printf '%s\t%s\n' "$h" "$n" > "$in.received"
+    tr -d '\r' < "$raw" > "$in"; rm -f "$raw"
+}
+
+# _hash_trailers ID... — the commit-message trailer for these captures: a
+# blank line, then "Input-SHA256: ID SHA256" and "Output-SHA256: ID SHA256"
+# per capture, from each one's meta.tsv (nothing for a hash not recorded).
+_hash_trailers () {
+    local id t=""
+    for id in "$@"; do
+        t="$t$(awk -F'\t' -v id="$id" '
+            $1 == "input_sha256"  { printf "\nInput-SHA256: %s %s", id, $2 }
+            $1 == "output_sha256" { printf "\nOutput-SHA256: %s %s", id, $2 }' \
+            "$(_cap_dir)/$id/meta.tsv" 2>/dev/null)"
+    done
+    [[ -n "$t" ]] && printf '\n%s' "$t"
+    return 0
+}
+
 # The branch captures are committed on: main (or master in a store created by
 # an older git without our rename).
 _main_branch () {
@@ -1829,6 +1871,11 @@ _ingest_store () {
     ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     cp "$in" "$capd/output.txt"
     if [[ -s "$ctxf" ]]; then cp "$ctxf" "$capd/context.txt"; fi
+    # The input's hashes (PV-026): as received (before CRs were stripped), and
+    # of output.txt as stored, which is what 'provost verify' re-hashes.
+    local in_sha="" in_bytes="" out_sha=""
+    if [[ -f "$in.received" ]]; then IFS=$'\t' read -r in_sha in_bytes < "$in.received" || true; fi
+    out_sha="$(_sha256 "$capd/output.txt")"
     local prov; prov="$(_prov_file)"
     [[ -f "$prov" ]] || printf '#\tdataset\tcapture\n' > "$prov"
 
@@ -1989,6 +2036,9 @@ _ingest_store () {
         if [[ -n "$ctx_map" ]]; then printf 'context_columns\t%s\n' "$ctx_map"; fi
         if [[ -n "$renamed" ]]; then printf 'renamed_columns\t%s\n' "$(_meta_safe "$renamed")"; fi
         if [[ -n "${detection:-}" ]]; then printf 'detection\t%s\n' "$(_meta_safe "$detection")"; fi
+        [[ "$in_sha" =~ ^[0-9a-f]{64}$ ]] && printf 'input_sha256\t%s\n' "$in_sha"
+        [[ "$in_bytes" =~ ^[0-9]+$ ]] && printf 'input_bytes\t%s\n' "$in_bytes"
+        [[ -n "$out_sha" ]] && printf 'output_sha256\t%s\n' "$out_sha"
     } > "$capd/meta.tsv"
     startid="$firstid"; nrows="$totalrows"; final="$all_names"; strategy="$all_strats"; conf="$all_confs"
 
@@ -2003,6 +2053,7 @@ _ingest_store () {
         fi
         local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
         [[ -n "$cmd" ]] && msg="$msg [$cmd]"
+        msg="$msg$(_hash_trailers "$id")"
         _commit "$msg"
         local out
         out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
@@ -2064,6 +2115,7 @@ _ingest_async () {
     spool="$(mktemp -d "$PROVOST_TEMP_DIR/provost-async.XXXXXX")" \
         || die "cannot create a spool dir in $PROVOST_TEMP_DIR (set TMPDIR)."
     cp "$in" "$spool/in.txt" || { rm -rf "$spool"; die "cannot spool the input to $spool"; }
+    if [[ -f "$in.received" ]]; then cp "$in.received" "$spool/in.txt.received" 2>/dev/null || true; fi
     (
         trap '' HUP                                   # survive the shell exiting
         _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()  # nothing of the parent's
@@ -2447,6 +2499,28 @@ EOF
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
         triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
         doctor) echo "usage: provost doctor    check the engines and the store; lists failed background captures" ;;
+        verify) cat <<'EOF'
+usage: provost verify [--capture ID[,ID...]]...
+  Check the store's integrity: git fsck --full; no tracked file changed and
+  left uncommitted; every capture-* tag names a commit on the store's history
+  (and every files-* tag a commit); each capture's output.txt is the one its tag filed and re-hashes
+  to the sha256 in its meta.tsv and its commit's Output-SHA256 trailer; and
+  capture ids have no gap the history cannot explain (an id 'rm' removed is
+  counted, not failed). Exit 0 with no findings, 1 with a list of them.
+  Captures filed before provost recorded hashes (2.3.0 and earlier) are
+  counted as unhashed, not failed.
+options:
+  --capture ID            check only these captures' tags and hashes (fsck
+                          and the id sequence still cover the whole store)
+what it proves:
+  That the store is internally consistent: nothing was edited, lost or
+  dropped without rewriting the history to match. It does NOT prove that the
+  history was never rewritten: anyone who can write the store can rebuild
+  every commit, hash and tag. To anchor it, record the head commit verify
+  prints (and the store's capture count) somewhere the store's writers
+  cannot change -- a test report, a ticket -- and check it later.
+EOF
+            ;;
         *) return 1 ;;
     esac
 }
@@ -2565,14 +2639,17 @@ cmd_inject () {
     _mktempd provost; local tmp="$_MKTEMPD"
     local in="$tmp/in.txt" size
     if [[ -n "$file" ]]; then
-        head -c "$((PROVOST_MAX_INPUT + 1))" < "$file" | tr -d '\r' > "$in"
+        head -c "$((PROVOST_MAX_INPUT + 1))" < "$file" > "$in.raw"
+        _receive "$in.raw" "$in"
         (( _O_SHOW )) && cat -- "$file"
     elif (( _O_SHOW )); then
         # --show: pass all of stdin through to stdout (a tee), keep the bound.
         tee "$tmp/full"
-        head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" | tr -d '\r' > "$in"; rm -f "$tmp/full"
+        head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" > "$in.raw"; rm -f "$tmp/full"
+        _receive "$in.raw" "$in"
     else
-        head -c "$((PROVOST_MAX_INPUT + 1))" | tr -d '\r' > "$in"
+        head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
+        _receive "$in.raw" "$in"
     fi
     [[ -s "$in" ]] || die "no input to provost (empty)."
     size="$(wc -c < "$in")"; size="${size//[!0-9]/}"
@@ -2617,7 +2694,7 @@ cmd_run () {
     if (( size > PROVOST_MAX_INPUT )); then
         die "command output too large (more than $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT) — nothing captured."
     fi
-    tr -d '\r' < "$in.raw" > "$in"; rm -f "$in.raw"
+    _receive "$in.raw" "$in"
     # The command as a shell-quoted, TSV-safe string (printf %q never emits a
     # raw tab or newline), so meta.tsv and 'provost log' show it faithfully.
     local cmd; cmd="$(_shell_quote "$@")"
@@ -2743,7 +2820,8 @@ cmd_batch () {
     # that printed nothing; an oversized one is an error for that input.
     for (( i = 0; i < ${#files[@]}; i++ )); do
         d="$broot/$i"; mkdir -p "$d"
-        head -c "$((PROVOST_MAX_INPUT + 1))" < "${files[i]}" | tr -d '\r' > "$d/in.txt"
+        head -c "$((PROVOST_MAX_INPUT + 1))" < "${files[i]}" > "$d/in.raw"
+        _receive "$d/in.raw" "$d/in.txt"
         if [[ ! -s "$d/in.txt" ]]; then
             info "${files[i]}: empty -- nothing captured."; skipped=$((skipped + 1)); continue
         fi
@@ -2865,7 +2943,7 @@ cmd_batch () {
                 || warn "could not snapshot the controlled directory's context."
         fi
         local range="$first..$last"; (( ${#ids[@]} == 1 )) && range="$first"
-        _commit "batch: ${#ids[@]} capture(s) $range ($((rows1 - rows0)) rows)"
+        _commit "batch: ${#ids[@]} capture(s) $range ($((rows1 - rows0)) rows)$(_hash_trailers "${ids[@]}")"
         local out
         for id in "${ids[@]}"; do
             out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "batch $first..$last was committed but $id could not be tagged capture-$id."; }
@@ -4259,6 +4337,169 @@ _rm_captures () {
     (( _rmsig == 0 )) || exit "$_rmsig"
 }
 
+# ---------------------------------------------------------------------------
+# verify — check the store's integrity (PV-026).
+#   provost verify [--capture ID[,ID...]]...
+# 1. git fsck --full on the store.
+# 2. No tracked file changed outside provost and left uncommitted.
+# 3. Every capture-* tag names a commit on the main branch's history, and
+#    every files-* tag a commit (those sit on their own chain, off main).
+# 4. Each capture on the main branch has its tag, its output.txt there is the
+#    one its tag filed, and that output re-hashes to the sha256 recorded in its
+#    meta.tsv and in its commit's Output-SHA256 trailer. A capture filed before
+#    hashes were recorded is counted as unhashed, not failed.
+# 5. Capture ids run c0001..the highest with no gap that the store's history
+#    cannot explain: an id 'rm' removed was committed once and is counted as
+#    removed; an id that never appears in the history is a failure.
+# Exit 0 when nothing failed, 1 with the findings. What this proves, and what
+# it cannot (anyone who can rewrite the store's history can rebuild all of it):
+# see 'provost help verify'.
+# ---------------------------------------------------------------------------
+cmd_verify () {
+    local -a want=()
+    local v
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help verify ;;
+            --capture) [[ $# -ge 2 ]] || usage_die "--capture needs an ID."
+                       IFS=',' read -r -a v <<< "$2"; want+=(${v[@]+"${v[@]}"}); shift 2 ;;
+            --capture=*) IFS=',' read -r -a v <<< "${1#--capture=}"; want+=(${v[@]+"${v[@]}"}); shift ;;
+            *) usage_die "verify: unknown argument: $1 (see 'provost help verify')." ;;
+        esac
+    done
+    local -a norm=()
+    for v in ${want[@]+"${want[@]}"}; do
+        norm+=("$(_capid_of "$v")") || usage_die "verify: not a capture id: $v (ids look like c0007, 7 or capture-c0007)."
+    done
+    want=(${norm[@]+"${norm[@]}"})
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no git-backed store at $PROVOST_WORKSPACE — nothing to verify."
+    _mktempd verify; local tmp="$_MKTEMPD"
+    local main tip nfail=0 out
+    main="$(_main_branch)"
+    tip="$(_git rev-parse -q --verify "refs/heads/$main^{commit}" 2>/dev/null)" \
+        || die "the store has no '$main' branch — nothing to verify."
+    _vfail () { printf '%sFAIL%s %s\n' "$C_ERR" "$C_RST" "$*"; nfail=$((nfail + 1)); }
+
+    # 1. the object store
+    if out="$(_git fsck --full --no-progress --no-dangling 2>&1)"; then
+        printf '%s ok%s git fsck --full: clean\n' "$C_OK" "$C_RST"
+    else
+        _vfail "git fsck --full reports damage:"
+        printf '%s\n' "$out" | awk 'NR <= 20 { print "     " $0 }'
+    fi
+
+    # 2. tracked files changed and not committed
+    out="$(_git status --porcelain --untracked-files=no 2>/dev/null | head -n 20)" || true
+    if [[ -n "$out" ]]; then
+        _vfail "tracked files were changed outside provost and not committed:"
+        printf '%s\n' "$out" | sed 's/^/     /'
+    fi
+
+    # 3 + 4. tags, and each capture's output against its recorded hash.
+    # The main branch's history, once, so ancestry is a lookup.
+    _git rev-list "$tip" > "$tmp/history"
+    # Every capture/files tag: name, object type, peeled type, commit.
+    _git for-each-ref --format='%(refname:short)%09%(objecttype)%09%(*objecttype)%09%(objectname)%09%(*objectname)' \
+        'refs/tags/capture-*' 'refs/tags/files-*' > "$tmp/tags"
+    awk -F'\t' 'NR == FNR { h[$1] = 1; next }
+        { c = ($2 == "commit") ? $4 : ($3 == "commit" ? $5 : "")
+          if (c == "") print $1 "\tdoes not name a commit (it names a " ($3 != "" ? $3 : $2) ")"
+          else if ($1 ~ /^capture-/ && !(c in h)) print $1 "\tnames commit " substr(c, 1, 12) ", which is not on the store'"'"'s history" }' \
+        "$tmp/history" "$tmp/tags" > "$tmp/badtags"
+    while IFS=$'\t' read -r v out; do _vfail "tag $v $out"; done < "$tmp/badtags"
+
+    # Captures on the main branch now.
+    _git ls-tree --name-only "$tip" captures/ 2>/dev/null | sed 's|^captures/||' \
+        | grep -E '^c[0-9]{4,12}$' > "$tmp/live" || true
+    local -a ids=()
+    if [[ ${#want[@]} -gt 0 ]]; then
+        for v in "${want[@]}"; do
+            if grep -qx -- "$v" "$tmp/live"; then ids+=("$v")
+            else _vfail "$v: not a capture on the store's '$main' branch"; fi
+        done
+    else
+        mapfile -t ids < "$tmp/live"
+    fi
+    # Each capture's commit-message trailers, in one git call.
+    _git for-each-ref --format='@@@ %(refname:short)%0a%(contents)' 'refs/tags/capture-*' \
+        | awk '/^@@@ capture-/ { next }
+               $1 == "Output-SHA256:" && $2 ~ /^c[0-9]+$/ { print $2 "\t" $3 }' > "$tmp/trailers"
+    # Each capture's meta.tsv as its tag filed it, in one git call.
+    local id
+    for id in ${ids[@]+"${ids[@]}"}; do
+        printf 'capture-%s:captures/%s/meta.tsv %s\n' "$id" "$id" "$id"
+    done | _git cat-file --batch='@@@ %(rest) %(objecttype)' 2>/dev/null \
+        | awk '/^@@@ c[0-9]+ / { id = $2; next }
+               / missing$/ { next }
+               $1 == "output_sha256" && id != "" { print id "\t" $2 }' > "$tmp/recorded"
+    local hashed=0 matched=0 unhashed=0 rec trl tblob mblob got
+    for id in ${ids[@]+"${ids[@]}"}; do
+        if ! tblob="$(_git rev-parse -q --verify "refs/tags/capture-$id^{commit}:captures/$id/output.txt" 2>/dev/null)"; then
+            if _git rev-parse -q --verify "refs/tags/capture-$id" >/dev/null 2>&1; then
+                _vfail "$id: its tag capture-$id has no captures/$id/output.txt"
+            else
+                _vfail "$id: on the '$main' branch but has no capture-$id tag"
+            fi
+            continue
+        fi
+        mblob="$(_git rev-parse -q --verify "$tip:captures/$id/output.txt" 2>/dev/null)" || mblob=""
+        if [[ -z "$mblob" ]]; then
+            _vfail "$id: its output.txt is gone from the '$main' branch"
+        elif [[ "$mblob" != "$tblob" ]]; then
+            _vfail "$id: its output.txt was changed after it was filed (it is no longer what capture-$id holds)"
+        fi
+        rec="$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$tmp/recorded")"
+        if [[ -z "$rec" ]]; then unhashed=$((unhashed + 1)); continue; fi
+        hashed=$((hashed + 1))
+        _git cat-file blob "$tblob" > "$tmp/out" 2>/dev/null || { _vfail "$id: cannot read its output.txt"; continue; }
+        got="$(_sha256 "$tmp/out")"
+        if [[ -z "$got" ]]; then
+            die "no sha256 tool (sha256sum, shasum or openssl) — cannot re-hash captures."
+        elif [[ "$got" != "$rec" ]]; then
+            _vfail "$id: output.txt hashes to ${got:0:16}…, but its meta.tsv records ${rec:0:16}…"
+        else
+            matched=$((matched + 1))
+        fi
+        trl="$(awk -F'\t' -v id="$id" '$1 == id { print $2; exit }' "$tmp/trailers")"
+        if [[ -z "$trl" ]]; then
+            _vfail "$id: its meta.tsv records a hash, but its commit carries no Output-SHA256 trailer"
+        elif [[ "$trl" != "$rec" ]]; then
+            _vfail "$id: its commit's Output-SHA256 trailer (${trl:0:16}…) is not the hash its meta.tsv records (${rec:0:16}…)"
+        fi
+    done
+
+    # 5. the id sequence (the whole store; not narrowed by --capture)
+    local removed=0 gaps=0 max
+    _git log "$tip" --format= --name-only --diff-filter=A -- 'captures/*/meta.tsv' 2>/dev/null \
+        | sed -n 's|^captures/\(c[0-9][0-9]*\)/meta.tsv$|\1|p' | sort -u > "$tmp/ever"
+    max="$(cat "$tmp/ever" "$tmp/live" | sed 's/^c//' | awk '$1 + 0 > m { m = $1 + 0 } END { print m + 0 }')"
+    read -r removed gaps < <(awk -v max="$max" '
+        FILENAME == ARGV[1] { ever[$1] = 1; next }
+        { live[$1] = 1 }
+        END { for (i = 1; i <= max; i++) {
+                  id = sprintf("c%04d", i)
+                  if (id in live) continue
+                  if (id in ever) r++; else { g++; print id > "/dev/stderr" } }
+              printf "%d %d\n", r, g }' "$tmp/ever" "$tmp/live" 2>"$tmp/gaps")
+    if (( gaps > 0 )); then
+        _vfail "$gaps capture id(s) never appear in the store's history (deleted by rewriting it?): $(head -n 8 "$tmp/gaps" | tr '\n' ' ')$( (( gaps > 8 )) && echo '…')"
+    fi
+
+    local scope="${#ids[@]} capture(s)"
+    [[ ${#want[@]} -gt 0 ]] || scope="all ${#ids[@]} capture(s)"
+    printf '   checked %s: %d of %d hashed matching their record' "$scope" "$matched" "$hashed"
+    (( unhashed > 0 )) && printf ', %d filed before hashes were recorded (no hash to check)' "$unhashed"
+    printf '\n'
+    (( removed > 0 )) && printf '   %d capture id(s) removed by rm (in the history, not on %s): not a failure\n' "$removed" "$main"
+    printf '   %s at %s\n' "$main" "$tip"
+    if (( nfail > 0 )); then
+        printf '%sverify: %d finding(s)%s\n' "$C_ERR" "$nfail" "$C_RST"
+        return 1
+    fi
+    printf '%s ok%s verify: no findings\n' "$C_OK" "$C_RST"
+    return 0
+}
+
 cmd_doctor () {
     case "${1:-}" in -h|--help) _cmd_help doctor ;; esac
     local engine rc=0
@@ -4436,6 +4677,9 @@ COMMANDS
         Delete captures, and the rows they filed in every dataset they fed
         (a dataset left with no rows goes too). One commit, as above.
     provost doctor                 check the engines and the store
+    provost verify [--capture ID]  check the store's integrity: git fsck, each
+                                   capture's output against its recorded
+                                   sha256, tags, and gaps in capture ids
     provost help [advanced]        the short help / this text
     provost COMMAND --help         one command's usage
 
@@ -4819,7 +5063,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -4850,7 +5094,7 @@ main () {
     # instead of silently waiting on stdin.
     if [[ $# -eq 0 && -t 0 ]]; then cmd_help; exit 0; fi
     case "$verb" in
-        doctor|log) ;;                            # these show the failures themselves
+        doctor|log|verify) ;;                     # these show the failures themselves / read only
         *) _warn_failures ;;
     esac
     case "$verb" in
@@ -4878,6 +5122,7 @@ main () {
         annotate)      shift; cmd_annotate "$@" ;;
         check-manifest) shift; cmd_check_manifest "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
+        verify)        shift; cmd_verify "$@" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
         ""|-*)         cmd_inject "$@" ;;          # default verb (options only)
         *)

@@ -73,6 +73,7 @@ $ provost instances              # list controlled directories
 $ provost export [<file>]        # bundle the store into a portable file
 $ provost import <file> [<dest>] # reconstitute a bundle elsewhere
 $ provost doctor                 # check engine + store
+$ provost verify                 # check the store's integrity (exit 1 on findings)
 ```
 
 Captures go to a **global git store** — `$PROVOST_HOME`, or `~/.provost` if
@@ -90,6 +91,50 @@ A shared store (a group-writable `PROVOST_HOME`) is supported: a lock serialises
 writers across users, and provost refuses a store whose `.git/config` others can
 write if it sets anything beyond git's own keys — filter drivers, pagers and
 includes can make git run programs as whoever captures next.
+
+## Verifying a store
+
+Every capture records three things about its input in `meta.tsv`:
+
+| Key | What it is |
+|---|---|
+| `input_sha256` | sha256 of the input exactly as provost received it, before CRs were stripped |
+| `input_bytes` | its size in bytes |
+| `output_sha256` | sha256 of `output.txt`, the input as stored (CRs stripped) |
+
+The capture's commit carries the same hashes as trailers
+(`Input-SHA256: c0007 …`, `Output-SHA256: c0007 …`; a `batch` commit has one
+pair per capture). The hash comes from `sha256sum`, `shasum -a 256` or
+`openssl`, whichever is installed; with none, the capture is filed unhashed.
+`input_sha256` is for comparing with a hash taken elsewhere (a test harness
+that hashed its own log); `output_sha256` is what `verify` re-checks.
+
+`provost verify [--capture ID]` checks:
+
+1. `git fsck --full` on the store.
+2. No tracked file was changed outside provost and left uncommitted.
+3. Every `capture-*` tag names a commit on the store's history (and every
+   `files-*` tag a commit).
+4. Each capture's `output.txt` on the main branch is the one its tag filed,
+   and it re-hashes to the `output_sha256` in its `meta.tsv` and in its
+   commit's trailer.
+5. Capture ids run from `c0001` to the highest with no gap the history cannot
+   explain. An id `rm` removed was committed once, so it is counted, not
+   failed; an id that never appears in the history is a failure.
+
+It exits 0 with no findings and 1 with a list of them. Captures filed before
+hashes were recorded (provost 2.3.0 and earlier) are counted as unhashed, not
+failed. `--capture` narrows steps 3–4 to those captures.
+
+**What it proves, and what it does not.** `verify` shows that the store is
+consistent with itself: nothing was edited, lost or dropped without the
+history being rewritten to match. It does not show that the history was
+never rewritten. Anyone who can write the store can rebuild every commit,
+hash and tag, and `verify` would pass. To make that detectable, record the
+head commit `verify` prints (`main at …`), with the capture count, somewhere
+the store's writers cannot change: a test report, a ticket. A later `verify`
+that prints a head which does not contain that commit means the history was
+rewritten. Signed commits are the stronger anchor (PV-027).
 
 ## Environment variables
 
