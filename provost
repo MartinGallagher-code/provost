@@ -108,6 +108,8 @@ PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any l
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 PROVOST_CONTEXT_COLUMNS="${PROVOST_CONTEXT_COLUMNS:-0}" # 1 = '#% key=value' context becomes row columns (--context-columns)
+PROVOST_MANIFEST_PROFILE="${PROVOST_MANIFEST_PROFILE:-}" # run-manifest profile: NAME or path ('' = the store's manifest-profile.tsv, else default)
+PROVOST_MANIFEST_STRICT="${PROVOST_MANIFEST_STRICT:-0}" # 1 = refuse to file a capture whose manifest lacks a required key (--strict-manifest)
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
@@ -171,6 +173,7 @@ _validate_settings () {
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_CONTEXT_COLUMNS" == 0 || "$PROVOST_CONTEXT_COLUMNS" == 1 ]] || usage_die "PROVOST_CONTEXT_COLUMNS must be 0 or 1 (got '$PROVOST_CONTEXT_COLUMNS')."
+    [[ "$PROVOST_MANIFEST_STRICT" == 0 || "$PROVOST_MANIFEST_STRICT" == 1 ]] || usage_die "PROVOST_MANIFEST_STRICT must be 0 or 1 (got '$PROVOST_MANIFEST_STRICT')."
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
@@ -918,6 +921,157 @@ _shell_quote () {
 
 # One-line, tab/newline-free rendering of a value for a meta.tsv field.
 _meta_safe () { local s="$1"; s="${s//$'\t'/\\t}"; s="${s//$'\n'/\\n}"; printf '%s' "$s"; }
+
+# ---------------------------------------------------------------------------
+# RUN MANIFEST (PV-020). A profile (extract/manifests/NAME.tsv) names the
+# reserved '#%' prologue keys a capture should carry -- requirement, test and
+# version, build commit, system under test, ... -- and which are required.
+# The check reads a capture's prologue (context.txt) and its later
+# annotations (annotations.txt, written by 'provost annotate'); nothing here
+# runs unless a profile is asked for, so a capture without a prologue files
+# exactly as before.
+# ---------------------------------------------------------------------------
+_MKEY_RE='^[A-Za-z_][A-Za-z0-9_.-]*$'
+# _prologue_kv FILE... -- every key=value word of '#%' lines as KEY<TAB>VALUE,
+# in order (a repeated key: the last one is the one that counts). A value may
+# be double-quoted to hold spaces -- key="gcc 13.2" -- with \" and \\ inside;
+# an unterminated quote is an ordinary word, as before quoting existed. Words
+# that are not key=value are skipped. A tab in a value becomes a space.
+_prologue_kv () {
+    (( $# > 0 )) || return 0
+    awk 'function emit(k, v) { gsub(/\t/, " ", v); print k "\t" v }
+        { line = $0; sub(/^#%[ \t]*/, "", line)
+          while (1) {
+              sub(/^[ \t]+/, "", line); if (line == "") break
+              if (match(line, /^[A-Za-z_][A-Za-z0-9_.-]*="/)) {
+                  k = substr(line, 1, RLENGTH - 2); rest = substr(line, RLENGTH + 1); v = ""; closed = 0
+                  while (rest != "") {
+                      c = substr(rest, 1, 1)
+                      if (c == "\\" && length(rest) > 1) { v = v substr(rest, 2, 1); rest = substr(rest, 3); continue }
+                      if (c == "\"") { rest = substr(rest, 2); closed = 1; break }
+                      v = v c; rest = substr(rest, 2)
+                  }
+                  if (closed && (rest == "" || rest ~ /^[ \t]/)) { emit(k, v); line = rest; continue }
+              }
+              match(line, /^[^ \t]+/); w = substr(line, 1, RLENGTH); line = substr(line, RLENGTH + 1)
+              e = index(w, "="); if (e < 2) continue
+              k = substr(w, 1, e - 1)
+              if (k !~ /^[A-Za-z_][A-Za-z0-9_.-]*$/) continue
+              emit(k, substr(w, e + 1))
+          } }' "$@"
+}
+# _prologue_word KEY VALUE -- one key=value word, the value quoted when it
+# holds a space or a tab or starts with a quote (so _prologue_kv reads it back).
+_prologue_word () {
+    local k="$1" v="$2"
+    if [[ "$v" == *[[:blank:]]* || "$v" == '"'* ]]; then
+        v="${v//\\/\\\\}"; v="${v//\"/\\\"}"; v="\"$v\""
+    fi
+    printf '%s=%s' "$k" "$v"
+}
+# _manifest_dirs -- where a profile NAME is looked for: the user's own first.
+_manifest_dirs () {
+    printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/provost/manifests" "$PROVOST_ROOT/extract/manifests"
+}
+# _manifest_profile [SPEC] -- the path of the profile to check against, and
+# vets it. SPEC is a NAME (default, proposal, or one of the user's own) or a
+# path; empty means PROVOST_MANIFEST_PROFILE, else the store's own
+# manifest-profile.tsv, else 'default'.
+_manifest_profile () {
+    local spec="${1:-${PROVOST_MANIFEST_PROFILE:-}}" d p=""
+    if [[ -z "$spec" ]]; then
+        if [[ -f "$PROVOST_WORKSPACE/manifest-profile.tsv" ]]; then spec="$PROVOST_WORKSPACE/manifest-profile.tsv"
+        else spec=default; fi
+    fi
+    if [[ "$spec" == */* || "$spec" == *.tsv ]]; then
+        [[ -f "$spec" ]] || die "manifest profile not found: $spec"
+        p="$(_abspath "$spec")"
+    else
+        _valid_name "$spec" || usage_die "invalid manifest profile name '$spec' (a NAME, or a path to a .tsv)."
+        while IFS= read -r d; do
+            if [[ -f "$d/$spec.tsv" ]]; then p="$d/$spec.tsv"; break; fi
+        done < <(_manifest_dirs)
+        [[ -n "$p" ]] || die "no manifest profile '$spec' (looked in: $(_manifest_dirs | paste -sd ' ' -))."
+    fi
+    local bad
+    bad="$(awk -F'\t' '/^#/ || /^[ \t]*$/ { next }
+        { n++ }
+        NF < 3 || $1 !~ /^[A-Za-z_][A-Za-z0-9_.-]*$/ || ($2 != "run" && $2 != "post") || ($3 != "yes" && $3 != "no") { print FNR; exit }
+        END { if (!n) print "0" }' "$p")"
+    if [[ "$bad" == 0 ]]; then die "manifest profile $p names no keys."; fi
+    [[ -z "$bad" ]] || die "manifest profile $p, line $bad: want KEY<TAB>run|post<TAB>yes|no<TAB>description."
+    printf '%s\n' "$p"
+}
+# _manifest_missing PROFILE PHASE [FILE...] -- the required keys the '#%'
+# FILEs lack (or hold empty), one a line, in the profile's order. PHASE run
+# checks the run-time keys; all adds the post-run ones (reviewer, ...).
+_manifest_missing () {
+    local prof="$1" phase="$2"; shift 2
+    local -a fs=()
+    local f
+    for f in "$@"; do [[ -f "$f" ]] && fs+=("$f"); done
+    PROF="$prof" PH="$phase" awk -F'\t' '
+        BEGIN { while ((getline l < ENVIRON["PROF"]) > 0) {
+                    if (l ~ /^#/ || l ~ /^[ \t]*$/) continue
+                    split(l, c, "\t")
+                    if (c[3] == "yes" && (ENVIRON["PH"] == "all" || c[2] == "run")) R[++n] = c[1]
+                } }
+        { V[$1] = $2 }
+        END { for (i = 1; i <= n; i++) if (!(R[i] in V) || V[R[i]] ~ /^[ \t]*$/) print R[i] }' \
+        < <(_prologue_kv ${fs[@]+"${fs[@]}"})
+}
+# _manifest_lines FILE -- a --manifest FILE (KEY=VALUE a line; the value is
+# the rest of the line, spaces and all; blank and '#' lines skipped) as '#%'
+# prologue lines, one key each. Dies on a line that is not KEY=VALUE.
+_manifest_lines () {
+    local f="$1" line k v n=0
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        n=$((n + 1)); line="${line%$'\r'}"
+        [[ "$line" =~ ^[[:blank:]]*$ || "$line" =~ ^[[:blank:]]*# ]] && continue
+        line="${line#"${line%%[![:blank:]]*}"}"
+        k="${line%%=*}"; v="${line#*=}"
+        [[ "$line" == *=* && "$k" =~ $_MKEY_RE ]] \
+            || die "$f, line $n: want KEY=VALUE (a key is letters, digits, '_', '.', '-'), got: $line"
+        printf '#%% %s\n' "$(_prologue_word "$k" "$v")"
+    done < "$f"
+}
+# _manifest_capture_setup -- vet the capture options --manifest FILE,
+# --manifest-profile and --strict-manifest before anything runs: the manifest
+# lines go to _O_MANIFEST_TEXT, and _O_MPROF_PATH is the profile to check
+# against ('' = no check was asked for).
+_manifest_capture_setup () {
+    _O_MANIFEST_TEXT=""; _O_MPROF_PATH=""
+    if [[ -n "$_O_MANIFEST" ]]; then
+        [[ -f "$_O_MANIFEST" ]] || die "no such manifest file: $_O_MANIFEST"
+        _O_MANIFEST_TEXT="$(_manifest_lines "$_O_MANIFEST")" || exit 1
+    fi
+    if [[ -n "$_O_MANIFEST" || -n "$_O_MPROFILE" || -n "${PROVOST_MANIFEST_PROFILE:-}" || "$PROVOST_MANIFEST_STRICT" == 1 ]]; then
+        _O_MPROF_PATH="$(_manifest_profile "$_O_MPROFILE")" || exit 1
+    fi
+    return 0
+}
+# _manifest_apply IN LABEL -- prepend the --manifest lines to the input IN,
+# then check its prologue against the profile. A missing required key is a
+# warning, or with --strict-manifest an error: return 1, and the input is
+# not to be filed.
+_manifest_apply () {
+    local in="$1" label="$2" missing
+    if [[ -n "$_O_MANIFEST_TEXT" ]]; then
+        { printf '%s\n' "$_O_MANIFEST_TEXT"; cat -- "$in"; } > "$in.manifest" && mv -- "$in.manifest" "$in"
+    fi
+    [[ -n "$_O_MPROF_PATH" ]] || return 0
+    awk '!/^#%/ { exit } { print }' "$in" > "$in.prologue"
+    missing="$(_manifest_missing "$_O_MPROF_PATH" run "$in.prologue" | paste -sd , - | sed 's/,/, /g')"
+    rm -f -- "$in.prologue"
+    [[ -n "$missing" ]] || return 0
+    local prof; prof="$(basename -- "$_O_MPROF_PATH" .tsv)"
+    if [[ "$PROVOST_MANIFEST_STRICT" == 1 ]]; then
+        warn "$label: the run manifest (profile $prof) lacks required key(s): $missing -- not captured (--strict-manifest)."
+        return 1
+    fi
+    warn "$label: the run manifest (profile $prof) lacks required key(s): $missing -- filed anyway; 'provost annotate ID KEY=VALUE' adds one later."
+    return 0
+}
 
 # Snapshot a controlled directory's contents as commit context: a manifest of
 # path/size/mtime/sha for each file (excluding the .provost instance and .git).
@@ -1727,7 +1881,8 @@ _ingest_store () {
 
     # CONTEXT COLUMNS (--context-columns, PROVOST_CONTEXT_COLUMNS=1): every
     # `key=value` word in the '#%' prologue becomes a column on each of this
-    # capture's rows, after `#` and `capture` -- so a wrapper that captures one
+    # capture's rows (a value may be double-quoted to hold spaces: see
+    # _prologue_kv), after `#` and `capture` -- so a wrapper that captures one
     # host's output can say `#% host=web03 rack=r2` and every row carries it.
     # The last value of a repeated key wins; words that are not `key=value`
     # stay context only. A data column of the same name keeps its name and the
@@ -1739,17 +1894,10 @@ _ingest_store () {
     # A held capture (`unsorted`) stays as it is: one raw column.
     local ctx_keys="" ctx_vals="" ctx_cols="" ctx_map=""
     if [[ "$PROVOST_CONTEXT_COLUMNS" == 1 && -s "$ctxf" ]]; then
-        { IFS= read -r ctx_keys; IFS= read -r ctx_vals; } < <(awk '
-            { sub(/^#%[ \t]*/, "")
-              for (i = 1; i <= NF; i++) {
-                  e = index($i, "="); if (e < 2) continue
-                  k = substr($i, 1, e - 1)
-                  if (k !~ /^[A-Za-z_][A-Za-z0-9_.-]*$/) continue
-                  if (!(k in V)) O[++n] = k
-                  V[k] = substr($i, e + 1)
-              } }
+        { IFS= read -r ctx_keys; IFS= read -r ctx_vals; } < <(_prologue_kv "$ctxf" | awk -F'\t' '
+            { k = $1; if (!(k in V)) O[++n] = k; V[k] = $2 }
             END { for (j = 1; j <= n; j++) { ks = ks (j > 1 ? "\t" : "") O[j]; vs = vs (j > 1 ? "\t" : "") V[O[j]] }
-                  print ks; print vs }' "$ctxf") || true
+                  print ks; print vs }') || true
         local -a ctx_files=(); local ci
         for (( ci=0; ci<${#ds_name[@]}; ci++ )); do
             [[ "${ds_name[ci]}" == unsorted ]] || ctx_files+=("${ds_file[ci]}")
@@ -2166,6 +2314,12 @@ options:
                           or holding the capture (sends the capture to the
                           Anthropic API; needs python3 and an API key; --no-llm:
                           don't, the default, PROVOST_LLM)
+  --manifest FILE         prepend FILE's KEY=VALUE lines as the '#%' run
+                          manifest, and check it against the profile
+  --manifest-profile P    check the run manifest against profile P (a NAME
+                          such as default or proposal, or a .tsv file)
+  --strict-manifest       refuse to file a capture whose manifest lacks a
+                          required key (PROVOST_MANIFEST_STRICT=1)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   --show                  show the command's output as it runs, as well
@@ -2202,6 +2356,12 @@ options:
   --context-columns       make each 'key=value' in a '#%' prologue a column
                           on every row (--no-context-columns: don't, the
                           default, PROVOST_CONTEXT_COLUMNS)
+  --manifest FILE         prepend FILE's KEY=VALUE lines as the '#%' run
+                          manifest, and check it against the profile
+  --manifest-profile P    check the run manifest against profile P (a NAME
+                          such as default or proposal, or a .tsv file)
+  --strict-manifest       refuse to file a capture whose manifest lacks a
+                          required key (PROVOST_MANIFEST_STRICT=1)
   -q, --silent            no progress output
 EOF
             ;;
@@ -2222,6 +2382,9 @@ options:
                           CPUs, at most 16; --llm parses one at a time)
   --context-columns       make each 'key=value' in a '#%' prologue a column
                           on every row (PROVOST_CONTEXT_COLUMNS)
+  --manifest FILE, --manifest-profile P, --strict-manifest
+                          as for piped input; under --strict-manifest an input
+                          lacking a required key is not captured
   --min-confidence N, --min-coverage N, --min-consistency N, --plugin-dir DIR,
   --multi, --no-auto-multi, --model, --llm, -q
                           as for piped input ('provost inject --help')
@@ -2309,6 +2472,30 @@ usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the cap
   the deletion is one commit, and git's history keeps what was there.
 EOF
             ;;
+        annotate) cat <<'EOF'
+usage: provost annotate ID KEY=VALUE...
+  Add run-manifest keys decided after the run (reviewer, disposition, ...) to
+  capture ID (c0007) without filing it again: they are kept beside it as
+  captures/ID/annotations.txt, setting a key again replaces it, and the
+  change is a commit of its own. A value may hold spaces (quote it for the
+  shell). 'provost source ID' shows them; 'provost check-manifest' counts them.
+EOF
+            ;;
+        check-manifest) cat <<'EOF'
+usage: provost check-manifest [--profile P] [--post] [--strict] [ID|NAME...]
+  Check each capture's run manifest -- its '#%' prologue and its annotations
+  -- against a profile, and list the required keys each one lacks or leaves
+  empty. No ID: every capture in the store; a dataset NAME: the captures that
+  fed it.
+options:
+  --profile P             the profile: a NAME (default, proposal, or one in
+                          ~/.config/provost/manifests) or a .tsv file
+                          (default: PROVOST_MANIFEST_PROFILE, else the store's
+                          manifest-profile.tsv, else 'default')
+  --post                  check the post-run keys (reviewer, disposition) too
+  --strict                exit 1 if any capture is incomplete (default: 0)
+EOF
+            ;;
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
         triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
         doctor) echo "usage: provost doctor    check the engines and the store; lists failed background captures" ;;
@@ -2386,6 +2573,16 @@ _capture_opt () {
         --no-llm) PROVOST_LLM=0 ;;
         --context-columns) PROVOST_CONTEXT_COLUMNS=1 ;;
         --no-context-columns) PROVOST_CONTEXT_COLUMNS=0 ;;
+        --manifest)
+            [[ $# -ge 2 ]] || usage_die "--manifest needs a file of KEY=VALUE lines."
+            _O_MANIFEST="$2"; _CO_N=2 ;;
+        --manifest=*) _O_MANIFEST="${1#*=}" ;;
+        --manifest-profile)
+            [[ $# -ge 2 ]] || usage_die "--manifest-profile needs a profile NAME or file."
+            _O_MPROFILE="$2"; _CO_N=2 ;;
+        --manifest-profile=*) _O_MPROFILE="${1#*=}" ;;
+        --strict-manifest) PROVOST_MANIFEST_STRICT=1 ;;
+        --no-strict-manifest) PROVOST_MANIFEST_STRICT=0 ;;
         --async) _O_ASYNC=1 ;;
         --sync|--wait) _O_ASYNC=0 ;;
         --show|--tee) _O_SHOW=1 ;;
@@ -2398,6 +2595,7 @@ _capture_opt () {
 _parse_capture_opts () {
     local verb="$1"; shift
     _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_SHOW=0; _O_REST=()
+    _O_MANIFEST=""; _O_MPROFILE=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --) shift; _O_REST=("$@"); return 0 ;;
@@ -2418,6 +2616,7 @@ _check_capture_opts () {
     if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
         die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
     fi
+    _manifest_capture_setup
     return 0
 }
 
@@ -2456,6 +2655,7 @@ cmd_inject () {
     size="$(wc -c < "$in")"; size="${size//[!0-9]/}"
     (( size <= PROVOST_MAX_INPUT )) \
         || die "input too large (max $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT)."
+    _manifest_apply "$in" "${file:-input}" || exit 1
 
     if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"
     else _ingest "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"; fi
@@ -2501,6 +2701,7 @@ cmd_run () {
     [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
     local name="$_O_NAME"
     [[ -n "$name" ]] || name="$(_run_name "$@")"
+    _manifest_apply "$in" "$1" || exit 1
     if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"
     else _ingest "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"; fi
     return "$rc"
@@ -2553,6 +2754,7 @@ _batch_first_done () {
 
 cmd_batch () {
     _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_SHOW=0
+    _O_MANIFEST=""; _O_MPROFILE=""
     local jobs="" line lname lpath
     local -a files=() names=()
     while [[ $# -gt 0 ]]; do
@@ -2600,6 +2802,7 @@ cmd_batch () {
     if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
         die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
     fi
+    _manifest_capture_setup
     [[ -n "$jobs" ]] || jobs="$(_ncpu)"
     # --llm may have Claude write a template from the first input that needs
     # one; parsed in parallel, every input would ask for the same template.
@@ -2627,6 +2830,7 @@ cmd_batch () {
             warn "${files[i]}: too large (max $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT) -- not captured."
             failed=$((failed + 1)); continue
         fi
+        if ! _manifest_apply "$d/in.txt" "${files[i]}"; then failed=$((failed + 1)); continue; fi
         todo+=("$i")
     done
 
@@ -3385,8 +3589,124 @@ _source_capture () {
     fi
     info "capture $id"
     if [[ -n "$meta" ]]; then echo; printf '%s\n' "$meta" | sed 's/\t/: /'; fi
+    if [[ -f "$capd/annotations.txt" ]]; then
+        echo; printf '%sannotations (added after the capture):%s\n' "$C_DIM" "$C_RST"; cat "$capd/annotations.txt"
+    fi
     echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$id" "$C_RST"
     cat "$out"
+}
+
+# ---------------------------------------------------------------------------
+# annotate / check-manifest — the run manifest (PV-020; see _prologue_kv).
+# ---------------------------------------------------------------------------
+# annotate ID KEY=VALUE... -- add keys decided after a run (reviewer,
+# disposition, ...) to a filed capture, without filing it again: they go to
+# captures/ID/annotations.txt as '#%' lines, one key each (setting a key again
+# replaces its value), in a commit of their own. check-manifest reads them
+# beside the capture's own prologue.
+cmd_annotate () {
+    case "${1:-}" in -h|--help) _cmd_help annotate ;; esac
+    [[ $# -ge 2 ]] || _cmd_usage_die annotate
+    local id kv k v
+    id="$(_capid_of "$1")" || usage_die "not a capture id: '$1' (c0007, 7 or capture-c0007)."
+    shift
+    local -a keys=() lines=()
+    for kv in "$@"; do
+        k="${kv%%=*}"; v="${kv#*=}"
+        [[ "$kv" == *=* && "$k" =~ $_MKEY_RE ]] \
+            || usage_die "want KEY=VALUE (a key is letters, digits, '_', '.', '-'), got: '$kv'."
+        [[ "$v" != *$'\n'* && "$v" != *$'\r'* ]] || usage_die "a value cannot hold a line break ($k)."
+        keys+=("$k"); lines+=("#% $(_prologue_word "$k" "$v")")
+    done
+    _ensure_workspace
+    _lock
+    _require_on_branch
+    local capd; capd="$(_cap_dir)/$id"
+    [[ -f "$capd/meta.tsv" ]] || { _unlock; die "no such capture in the store: $id (see 'provost log')."; }
+    local af="$capd/annotations.txt"
+    {
+        if [[ -f "$af" ]]; then
+            KS="$(printf '%s\n' "${keys[@]}")" awk 'BEGIN { n = split(ENVIRON["KS"], K, "\n"); for (i = 1; i <= n; i++) S[K[i]] = 1 }
+                { k = $0; sub(/^#%[ \t]*/, "", k); sub(/=.*/, "", k); if (k in S) next; print }' "$af"
+        fi
+        printf '%s\n' "${lines[@]}"
+    } > "$af.tmp" && mv -- "$af.tmp" "$af"
+    local list; list="$(printf '%s\n' "${keys[@]}" | awk '!s[$0]++' | paste -sd , - | sed 's/,/, /g')"
+    _commit "annotate $id: $list"
+    _unlock
+    ok "$id: annotated ($list)."
+}
+
+# check-manifest [--profile P] [--post] [--strict] [ID|NAME...] -- each
+# capture's run manifest against the profile: which required keys it lacks.
+# No ID: every capture in the store; a NAME: the captures that fed dataset
+# NAME. Prints capture, status (complete / incomplete) and the missing keys.
+cmd_check_manifest () {
+    local spec="" phase=run strict=0 a
+    local -a args=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help check-manifest ;;
+            --profile)
+                [[ $# -ge 2 ]] || usage_die "--profile needs a profile NAME or file."
+                spec="$2"; shift 2 ;;
+            --profile=*) spec="${1#*=}"; shift ;;
+            --post) phase=all; shift ;;
+            --strict) strict=1; shift ;;
+            --) shift; args+=("$@"); break ;;
+            -?*) usage_die "unknown option for 'check-manifest': $1 (see 'provost check-manifest --help')." ;;
+            *) args+=("$1"); shift ;;
+        esac
+    done
+    local prof; prof="$(_manifest_profile "$spec")" || exit 1
+    local capdir; capdir="$(_cap_dir)"
+    [[ -d "$capdir" ]] || die "no captures yet -- capture something first."
+    local -a ids=()
+    local id
+    if (( ${#args[@]} == 0 )); then
+        while IFS= read -r id; do ids+=("$id"); done < <(
+            for a in "$capdir"/c*; do [[ -d "$a" ]] && basename -- "$a"; done | sort -V)
+    else
+        local prov; prov="$(_prov_file)"
+        for a in "${args[@]}"; do
+            if id="$(_capid_of "$a")" && [[ "$a" =~ ^(capture-)?c[0-9]+$ ]]; then
+                [[ -d "$capdir/$id" ]] || die "no such capture in the store: $id (see 'provost log')."
+                ids+=("$id")
+            else
+                _require_name "$a"
+                local before=${#ids[@]}
+                if [[ -f "$prov" ]]; then
+                    while IFS= read -r id; do
+                        _valid_capid "$id" && [[ -d "$capdir/$id" ]] && ids+=("$id")
+                    done < <(awk -F'\t' -v n="$a" 'NR > 1 && $2 == n && !s[$3]++ { print $3 }' "$prov")
+                fi
+                (( ${#ids[@]} > before )) || die "no captures fed a dataset '$a' (see 'provost ls')."
+            fi
+        done
+    fi
+    (( ${#ids[@]} > 0 )) || die "no captures yet -- capture something first."
+    # (an id named twice, or by an ID and a NAME, is checked once)
+    local -A seen=(); local -a uniq=()
+    for id in "${ids[@]}"; do [[ -n "${seen[$id]+x}" ]] || { seen[$id]=1; uniq+=("$id"); }; done
+    ids=("${uniq[@]}")
+    local missing incomplete=0 tmp
+    _mktempd checkman; tmp="$_MKTEMPD/table.tsv"
+    {
+        printf 'capture\tstatus\tmissing\n'
+        for id in "${ids[@]}"; do
+            missing="$(_manifest_missing "$prof" "$phase" "$capdir/$id/context.txt" "$capdir/$id/annotations.txt" | paste -sd , -)"
+            if [[ -n "$missing" ]]; then
+                incomplete=$((incomplete + 1)); printf '%s\tincomplete\t%s\n' "$id" "$missing"
+            else
+                printf '%s\tcomplete\t-\n' "$id"
+            fi
+        done
+    } > "$tmp"
+    _table < "$tmp"
+    local what="the run-time keys"; [[ "$phase" == all ]] && what="every key, post-run ones too"
+    info "${#ids[@]} capture(s) checked against profile $(basename -- "$prof" .tsv) ($what): $(( ${#ids[@]} - incomplete )) complete, $incomplete incomplete."
+    if (( incomplete > 0 && strict )); then exit 1; fi
+    return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -4264,6 +4584,8 @@ LOOK
     provost files [ID]            a controlled directory's files at a capture
     provost stats NAME            statistics on a dataset
     provost triage                output provost could not file, and why
+    provost check-manifest        which captures lack run-manifest keys
+                                  (requirement, test, build, system)
 
 GO BACK
     provost prev / provost next   step the store back / forward one capture
@@ -4325,6 +4647,12 @@ COMMANDS
     provost stats NAME [ARGS]      statistics (ARGS go to the analyze engine;
                                    --all for every analysis)
     provost triage                 the 'unsorted' bucket: what was held, why
+    provost check-manifest [--profile P] [--post] [--strict] [ID|NAME...]
+        The captures whose run manifest lacks a required key (RUN MANIFEST
+        below).
+    provost annotate ID KEY=VALUE...
+        Add keys decided after the run (reviewer, disposition) to capture ID,
+        in a commit of its own.
   History
     provost log [--failed]         list captures (--failed: failed background)
     provost restore ID | latest    check out capture ID (read-only) / return to
@@ -4381,6 +4709,12 @@ CAPTURE OPTIONS (run, piped input, FILE)
     --context-columns, --no-context-columns
                             make a '#%' prologue's key=value words columns
                             (METADATA PROLOGUE below; default off)
+    --manifest FILE         prepend FILE's KEY=VALUE lines as the run
+                            manifest and check it (RUN MANIFEST below)
+    --manifest-profile P    check the run manifest against profile P
+    --strict-manifest, --no-strict-manifest
+                            refuse to file a capture whose manifest lacks a
+                            required key (default: file it, with a warning)
 
 THE STORE
     Captures go to a GLOBAL git store, so you can capture from any directory:
@@ -4597,6 +4931,39 @@ METADATA PROLOGUE
     ('context_columns', key=column,...). A capture held in 'unsorted' is
     kept as it came.
 
+    A value holding spaces is double-quoted: '#% build.toolchain="gcc 13.2"'
+    (\" and \\\\ inside the quotes stand for " and \\). An unterminated quote
+    is an ordinary word.
+
+RUN MANIFEST
+    A run manifest is a prologue with agreed key names, so that a result can
+    be traced to the requirement it tests, the build it measured and the run
+    that produced it. A profile names the keys: extract/manifests/default.tsv
+    (req, test, test.version, build.commit, build.sha256, build.toolchain,
+    sched.job, run.id, sut, operator, deviation, reviewer, disposition), or
+    proposal.tsv (the same keys under flat names: rvtm_id, code_commit,
+    system_id, ...). Each key says whether it is known at run time ('run')
+    or decided after it ('post'), and whether it is required.
+
+    Nothing is checked unless asked. 'provost check-manifest' lists every
+    capture (or ID..., or the captures that fed dataset NAME) with the
+    required run-time keys it lacks or leaves empty; --post checks the
+    post-run keys too, and --strict exits 1 if any capture is incomplete.
+    At capture time, --manifest FILE prepends FILE's KEY=VALUE lines (a
+    value is the rest of its line, spaces included) as the prologue, and
+    --manifest FILE or --manifest-profile P checks it as it is filed: a
+    missing key is a warning, or with --strict-manifest an error that files
+    nothing (exit 1). Post-run keys are never demanded at capture time:
+    'provost annotate ID reviewer=jo disposition=pass' adds them to the
+    capture later (captures/ID/annotations.txt, its own commit).
+
+    The profile is --profile / --manifest-profile P, else
+    PROVOST_MANIFEST_PROFILE, else the store's own manifest-profile.tsv (a
+    profile kept at the store's root, for a store with its own key names),
+    else 'default'. A NAME is looked up in ~/.config/provost/manifests,
+    then in provost's own extract/manifests; anything with a '/' or ending
+    .tsv is a file.
+
     '#' is the store's: a data column of that name (zypper's repo number, a
     template's row index) is filed as '#_2' (the first '#_K' the dataset
     does not already use), so the two never share a name, and meta.tsv
@@ -4638,6 +5005,10 @@ SETTINGS (environment)
     PROVOST_MULTI             1 = file every dataset an input holds (--multi)
     PROVOST_CONTEXT_COLUMNS   1 = a '#%' prologue's key=value words become row
                               columns (as --context-columns)
+    PROVOST_MANIFEST_PROFILE  the run-manifest profile, a NAME or a .tsv file
+                              (as --manifest-profile; asks for a check)
+    PROVOST_MANIFEST_STRICT   1 = refuse a capture lacking a required manifest
+                              key (as --strict-manifest; asks for a check)
     PROVOST_BATCH_REUSE       0 = batch detects every input from scratch
                               (default 1: the rest of a name's inputs try its
                               first one's strategy)
@@ -4692,7 +5063,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor verify help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -4748,6 +5119,8 @@ main () {
         rm|delete|drop) shift; cmd_rm "$@" ;;
         stats)         shift; cmd_stats "$@" ;;
         triage)        shift; cmd_triage "$@" ;;
+        annotate)      shift; cmd_annotate "$@" ;;
+        check-manifest) shift; cmd_check_manifest "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
         verify)        shift; cmd_verify "$@" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias

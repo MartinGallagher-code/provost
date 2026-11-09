@@ -88,6 +88,8 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then) |
 | `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
 | `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
+| `provost check-manifest [ID\|NAME...]` | which captures lack required run-manifest keys (`--post`, `--strict`, `--profile P`) |
+| `provost annotate ID KEY=VALUE...` | add post-run keys (reviewer, disposition) to a capture |
 | `provost diff [name] [A [B]]` | rows and run files that changed between two captures |
 | `provost log [--failed]` / `restore <id\|latest>` / `prev` / `next` | capture history / move the store to a capture and back |
 | `provost control [<dir>]` / `uncontrol` / `instances` | per-directory capture instances (each run keeps the directory's files) |
@@ -147,6 +149,12 @@ Wrappers that pipe into provost (e.g. deframe) get two hooks:
   follows), and the capture's `meta.tsv` records which columns came from the
   context (`context_columns  host=_host,rack=rack`); a capture held in
   `unsorted` is kept as it came.
+- **Run manifest**: agreed `#%` key names (`req`, `test`, `test.version`,
+  `build.commit`, `sut`, ... in `extract/manifests/default.tsv`) and a check.
+  `provost check-manifest` lists the captures missing a required key;
+  `--manifest FILE` prepends and checks one at capture time
+  (`--strict-manifest` refuses to file without it); `provost annotate`
+  adds the post-run `reviewer` and `disposition`. See `docs/usage.md`.
 - **`provost batch FILE... [--from LIST]`**: many inputs, one commit. Each file
   is a capture of its own — its own id, its own `provost source`, its own
   `capture-<id>` tag — but they are parsed in parallel (`-j N`, default the
@@ -175,6 +183,8 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_ASYNC` | unset | `1` always background, `0` always foreground; unset = background only at a terminal |
 | `PROVOST_MULTI` | `0` | file every dataset an input holds (same as `--multi`) |
 | `PROVOST_CONTEXT_COLUMNS` | `0` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) |
+| `PROVOST_MANIFEST_PROFILE` | unset | run-manifest profile (NAME or `.tsv`); when set, every capture is checked |
+| `PROVOST_MANIFEST_STRICT` | `0` | `1` = refuse a capture lacking a required manifest key (`--strict-manifest`) |
 | `PROVOST_AUTO_MULTI` | `1` | segment a parse the quality gate would hold, when the parts are clearly better (`0` = hold it; same as `--no-auto-multi`) |
 | `PROVOST_MODEL` | `0` | `1` = when the gate would still hold a parse, try the learned layout model and file its table if it passes the same gate (needs `python3`; same as `--model`) |
 | `PROVOST_LAYOUT_LM` | unset | the tiny LM `--model` labels with: a model directory, or unset for the installed `provost-model` package (`pip install provost[lm]`); `0` = the trees only |

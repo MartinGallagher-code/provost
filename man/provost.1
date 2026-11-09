@@ -64,6 +64,21 @@ column on each of the capture's rows, after \fB#\fR and \fBcapture\fR (or
 \fBPROVOST_CONTEXT_COLUMNS=1\fR; \fB--no-context-columns\fR, the default,
 doesn't). See \fBprovost batch\fR under \fBSUBCOMMANDS\fR.
 .TP
+.B --manifest \fIFILE\fR
+Prepend \fIFILE\fR's \fIKEY\fB=\fIVALUE\fR lines (a value is the rest of its
+line, spaces included; blank and \fB#\fR lines skipped) to the input as its
+\fB#%\fR run manifest, and check it against the manifest profile. See
+\fBRUN MANIFEST\fR.
+.TP
+.B --manifest-profile \fIP\fR
+Check the input's run manifest against profile \fIP\fR as it is filed (a
+\fINAME\fR such as \fBdefault\fR or \fBproposal\fR, or a \fI.tsv\fR file).
+A missing required key is a warning.
+.TP
+.BR --strict-manifest ", " --no-strict-manifest
+Refuse to file a capture whose run manifest lacks a required key (exit 1;
+in \fBbatch\fR, that input is not captured). Or \fBPROVOST_MANIFEST_STRICT=1\fR.
+.TP
 .BR --auto-multi ", " --no-auto-multi
 Before the quality gate holds a parse, try segmenting the input and file the
 parts when that is clearly better (the default, or
@@ -263,6 +278,17 @@ Statistics on a dataset (\fB--all\fR for every analysis).
 Show the low-confidence / unmatched bucket, raw input decoded to text
 (\fBprovost source #N\fR for the exact original bytes).
 .TP
+.B check-manifest \fR[\fB--profile\fR \fIP\fR] [\fB--post\fR] [\fB--strict\fR] [\fIID\fR|\fINAME\fR...]
+List each capture (every one, those named, or those that fed dataset
+\fINAME\fR) with the required run-manifest keys its prologue and annotations
+lack or leave empty. \fB--post\fR checks the post-run keys too;
+\fB--strict\fR exits 1 if any capture is incomplete. See \fBRUN MANIFEST\fR.
+.TP
+.B annotate \fIID\fR \fIKEY\fB=\fIVALUE\fR...
+Add keys decided after the run (reviewer, disposition) to capture \fIID\fR
+without filing it again: they go to \fIcaptures/ID/annotations.txt\fR as
+\fB#%\fR lines (setting a key again replaces it), in a commit of their own.
+.TP
 .B doctor
 Check the extract/analyze engines and the store; lists failed background
 captures.
@@ -282,6 +308,24 @@ record the head commit it prints somewhere the store's writers cannot change.
 Print the short help to stdout; \fBhelp advanced\fR prints every command,
 option and setting, and how a capture is filed. \fIsubcommand\fR \fB--help\fR
 prints that command's usage.
+.SH RUN MANIFEST
+A run manifest is a \fB#%\fR prologue with agreed key names, so a result can be
+traced to the requirement it tests, the build it measured and the run that
+produced it. A profile names the keys, one a line:
+\fIkey\fR, \fBrun\fR or \fBpost\fR (known at run time, or decided after it),
+\fByes\fR or \fBno\fR (required), and a description. provost ships
+\fIextract/manifests/default.tsv\fR (\fBreq\fR, \fBtest\fR,
+\fBtest.version\fR, \fBbuild.commit\fR, \fBbuild.sha256\fR,
+\fBbuild.toolchain\fR, \fBsched.job\fR, \fBrun.id\fR, \fBsut\fR,
+\fBoperator\fR, \fBdeviation\fR, \fBreviewer\fR, \fBdisposition\fR) and
+\fIproposal.tsv\fR (the same keys under flat names such as \fBrvtm_id\fR).
+The profile is the one named by \fB--profile\fR / \fB--manifest-profile\fR,
+else \fBPROVOST_MANIFEST_PROFILE\fR, else the store's own
+\fImanifest-profile.tsv\fR, else \fBdefault\fR; a \fINAME\fR is looked up in
+\fI~/.config/provost/manifests\fR and then in provost's own
+\fIextract/manifests\fR. A value holding spaces is double-quoted:
+\fB#% build.toolchain="gcc 13.2"\fR. Nothing is checked unless a profile is
+asked for.
 .SH DATASET NAMES
 .B provost run
 \fIcmd\fR ... files into a dataset named after \fIcmd\fR's basename, looking
@@ -481,6 +525,14 @@ File every dataset an input holds (default 0; same as \fB--multi\fR).
 \fB1\fR: every \fIkey\fB=\fIvalue\fR word of a \fB#%\fR prologue becomes
 a column on the capture's rows; \fB0\fR (the default): it is context only
 (same as \fB--context-columns\fR / \fB--no-context-columns\fR).
+.TP
+.B PROVOST_MANIFEST_PROFILE
+The run-manifest profile, a \fINAME\fR or a \fI.tsv\fR file (same as
+\fB--manifest-profile\fR); when set, every capture's manifest is checked.
+.TP
+.B PROVOST_MANIFEST_STRICT
+\fB1\fR: refuse to file a capture whose manifest lacks a required key (same
+as \fB--strict-manifest\fR); \fB0\fR, the default: warn.
 .TP
 .B PROVOST_BATCH_REUSE
 \fB0\fR: \fBprovost batch\fR detects every input's format from scratch.

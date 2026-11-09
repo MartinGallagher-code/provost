@@ -10,8 +10,8 @@ _provost_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor verify help"
-    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --show --async --sync --wait --silent --help"
+    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify help"
+    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --manifest --manifest-profile --strict-manifest --no-strict-manifest --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
     # First word: complete the verb (or a capture option / file for inject).
@@ -46,6 +46,15 @@ _provost_complete () {
             COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ) ;;
         log)
             COMPREPLY=( $(compgen -W "--failed --help" -- "$cur") ) ;;
+        annotate)
+            local caps
+            caps="$(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"
+            if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ); else COMPREPLY=(); fi ;;
+        check-manifest)
+            case "$prev" in --profile) COMPREPLY=( $(compgen -W "default proposal" -f -- "$cur") ); return ;; esac
+            local caps
+            caps="$(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null) $(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')"
+            COMPREPLY=( $(compgen -W "--profile --post --strict --help $caps" -- "$cur") ) ;;
         listen|unlisten)
             COMPREPLY=( $(compgen -c -- "$cur") ) ;;
         control|uncontrol|import|export)
@@ -53,6 +62,8 @@ _provost_complete () {
         run|inject|batch)
             case "$prev" in
                 --plugin-dir) COMPREPLY=( $(compgen -d -- "$cur") ); return ;;
+                --manifest) COMPREPLY=( $(compgen -f -- "$cur") ); return ;;
+                --manifest-profile) COMPREPLY=( $(compgen -W "default proposal" -f -- "$cur") ); return ;;
                 --name|--min-confidence|--jobs|-j) COMPREPLY=(); return ;;
                 --from) COMPREPLY=( $(compgen -f -- "$cur") ); return ;;
             esac
