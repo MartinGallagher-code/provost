@@ -120,6 +120,13 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0z. **2026-11-09: `batch`'s lock hold measured** (PV-024,
+    `docs/lock-2026-11-09-batch-hold.md`). About 50 ms per input; 200-input
+    chunks hold it ~10 s against the 30 s timeout. No change made; the doc
+    lists the cheap wins in order. `tests/perf/batch-lock-time.sh N` repeats
+    the measurement. quarterdeck's `filing.py:228` comment is right and can
+    cite the doc (a quarterdeck follow-up).
+
 0x. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
     One job per CPU, `PROVOST_TEST_JOBS=N` to change it, `=1` for the old
     serial run; output is printed whole, per file or part, in order. Smoke's
