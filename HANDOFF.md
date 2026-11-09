@@ -129,6 +129,13 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+1a. **2026-11-09: `batch`'s lock hold measured** (PV-024,
+    `docs/lock-2026-11-09-batch-hold.md`). About 50 ms per input; 200-input
+    chunks hold it ~10 s against the 30 s timeout. No change made; the doc
+    lists the cheap wins in order. `tests/perf/batch-lock-time.sh N` repeats
+    the measurement. quarterdeck's `filing.py:228` comment is right and can
+    cite the doc (a quarterdeck follow-up).
+
 0z. **2026-11-09: CI smoke green again** (PV-035). The runner now starts the
     suite with SIGINT ignored, which hid it from the two `rm --capture`
     interrupt checks; `own_pg` in `tests/smoke.sh` resets SIGINT to its
