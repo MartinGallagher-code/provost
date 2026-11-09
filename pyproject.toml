@@ -62,6 +62,7 @@ packages = ["src/provost_data"]
 "VERSION" = "provost_data/_bundle/VERSION"
 "extract/provost-extract" = "provost_data/_bundle/extract/provost-extract"
 "extract/hints.tsv" = "provost_data/_bundle/extract/hints.tsv"
+"extract/manifests" = "provost_data/_bundle/extract/manifests"
 "extract/lib" = "provost_data/_bundle/extract/lib"
 "extract/strategies" = "provost_data/_bundle/extract/strategies"
 "extract/model/layout_model.py" = "provost_data/_bundle/extract/model/layout_model.py"
