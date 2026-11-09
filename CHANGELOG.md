@@ -16,6 +16,43 @@
   (a tool's exact tidy output, help wording), deprecation, and support for
   the latest release only.
 
+## 2026-11-09 — how long `batch` holds the store lock, measured (PV-024)
+
+No product code changed: a measurement, a script to repeat it, and a test.
+
+- **`docs/lock-2026-11-09-batch-hold.md`**: `provost batch` holds the store
+  lock about 50 ms per input on 2.3.0 (48 ms at 200 inputs, 51 ms at 1,000,
+  64 ms at 5,000 as the store grows). The time is spread over a dozen-plus short
+  processes per capture, not one slow step; the final add, commit and tags are
+  about 10%. quarterdeck's 200-input chunks hold it about 10 s against the
+  30 s timeout, so nothing needs changing now; the doc lists the cheap wins
+  if it ever does (one `update-ref --stdin` for the tags, ids picked once per
+  batch, fewer command substitutions).
+- **`tests/perf/batch-lock-time.sh N [PROVOST]`**: the measurement, by polling
+  for the `.lock` directory. Not part of any gate.
+- **`tests/smoke.sh`** (`batch` part): two `batch` writers at once both finish,
+  each with its own commit, with no gap or duplicate in capture ids or row
+  indices (4 checks).
+
+## 2026-11-09 — smoke's two SIGINT checks pass on CI again (PV-035)
+
+From 2026-11-09 CI's smoke job failed on every pull request with the same two
+checks: `rm --capture interrupted in the commit is put back, exit 130` (got 1)
+and `... interrupted in the tag phase ... exits 130` (got 0). The cause is the
+runner, not provost: it now starts the suite with SIGINT ignored. A signal
+ignored when bash starts cannot be trapped, and an ignore passes down to
+every child, so the provost under test could not see the test's SIGINT.
+Running the suite with SIGINT ignored reproduces both failures exactly,
+with the same values; SIGTERM and SIGHUP, which the runner does not ignore,
+kept passing through the same process-group walk.
+
+- **`tests/smoke.sh`**: `own_pg` (which starts provost as a job in a process
+  group of its own, as a terminal does) now also starts it with SIGINT at
+  its default, as a terminal job has. It uses GNU `env --default-signal=INT`,
+  else python3, else runs it as before. The suite now passes with SIGINT
+  ignored at start (607/607) and without (607/607). With provost's INT trap
+  broken on purpose, both checks still fail. No product code changed.
+
 ## 2026-11-09 — a run manifest for the `#%` prologue (PV-020)
 
 The `#%` prologue could already carry context, and `--context-columns` put it
