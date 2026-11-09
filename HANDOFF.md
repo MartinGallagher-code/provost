@@ -129,6 +129,12 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+1b. **2026-11-09: PyPI links fixed, versioning policy written** (PV-034). The
+    repo is public; Documentation points at docs/usage.md on GitHub until
+    the mkdocs site is imported on Read the Docs (then point it back and
+    `tools/check-project-urls.py` will confirm it). CI checks every
+    `[project.urls]` link. README states the versioning and support policy.
+
 1a. **2026-11-09: `batch`'s lock hold measured** (PV-024,
     `docs/lock-2026-11-09-batch-hold.md`). About 50 ms per input; 200-input
     chunks hold it ~10 s against the 30 s timeout. No change made; the doc
