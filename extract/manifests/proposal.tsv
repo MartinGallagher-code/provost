@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+#
+# provost run-manifest profile: proposal (PV-020)
+#
+# The same manifest as default.tsv, under the key names a proposal's
+# traceability section uses (flat names with '_'), for stores that must match
+# that wording. Select it with --manifest-profile proposal,
+# PROVOST_MANIFEST_PROFILE=proposal, or by copying it to a store's
+# manifest-profile.tsv. The columns are described in default.tsv.
+#
+# key	when	required	description
+rvtm_id	run	yes	requirement this run gives evidence for (RVTM id)
+test	run	yes	the test or benchmark that was run
+test_version	run	yes	version of that test or benchmark
+code_commit	run	yes	source commit of the software under test
+binary_sha256	run	no	sha256 of the binary that ran
+toolchain	run	no	compiler and toolchain
+job_id	run	no	scheduler job id the run was part of
+run_id	run	no	id of the run, as the launcher gave it
+system_id	run	yes	system under test
+operator	run	no	who started the run
+deviation	run	no	a recorded departure from the test procedure ("none" if none)
+reviewer	post	yes	who reviewed the result
+disposition	post	yes	the review's verdict

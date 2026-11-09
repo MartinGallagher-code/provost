@@ -102,6 +102,8 @@ includes can make git run programs as whoever captures next.
 | `PROVOST_ASYNC` | `1` always background, `0` always foreground, unset = background only at a terminal | unset |
 | `PROVOST_MULTI` | file every dataset an input holds (same as `--multi`) | `0` |
 | `PROVOST_CONTEXT_COLUMNS` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) | `0` |
+| `PROVOST_MANIFEST_PROFILE` | run-manifest profile, NAME or `.tsv` file; when set every capture is checked (same as `--manifest-profile`) | unset |
+| `PROVOST_MANIFEST_STRICT` | `1` = refuse a capture lacking a required manifest key (same as `--strict-manifest`) | `0` |
 | `PROVOST_AUTO_MULTI` | `1` = segment a parse the quality gate would hold, when the parts are clearly better; `0` = hold it (same as `--no-auto-multi`) | `1` |
 | `PROVOST_MAX_INPUT` | max input bytes, for inject and `run` | `10485760` |
 | `PROVOST_LOCK_TIMEOUT` | seconds to wait for the store lock | `30` |
@@ -170,6 +172,63 @@ columns of every dataset it files (and `capture` itself), and recorded in its
 `meta.tsv` as `context_columns` (`host=_host,rack=rack`), so a reader can tell
 a context column from a data column of the same name. A capture held in
 `unsorted` is kept as it came, one raw column.
+
+A value holding spaces is double-quoted: `#% build.toolchain="gcc 13.2"`
+(`\"` and `\\` inside the quotes). An unterminated quote is an ordinary word.
+
+## Run manifest
+
+A run manifest is a prologue with agreed key names, so a result can be traced
+to the requirement it tests, the build it measured and the run that produced
+it. A **profile** names the keys: `extract/manifests/default.tsv` ships with
+provost, and `proposal.tsv` has the same keys under a proposal's flat names.
+
+| key | when | required | what |
+|---|---|---|---|
+| `req` | run | yes | requirement this run gives evidence for (RVTM id) |
+| `test` | run | yes | the test or benchmark that was run |
+| `test.version` | run | yes | its version |
+| `build.commit` | run | yes | source commit of the software under test |
+| `build.sha256` | run | no | sha256 of the binary that ran |
+| `build.toolchain` | run | no | compiler and toolchain |
+| `sched.job` | run | no | scheduler job id |
+| `run.id` | run | no | the launcher's id for the run |
+| `sut` | run | yes | system under test |
+| `operator` | run | no | who started the run |
+| `deviation` | run | no | a recorded departure from the procedure |
+| `reviewer` | post | yes | who reviewed the result |
+| `disposition` | post | yes | the review's verdict |
+
+Nothing is checked unless asked:
+
+```
+$ cat manifest.txt
+req=REQ-12
+test=stream
+test.version=5.10
+build.commit=abc123
+build.toolchain=gcc 13.2
+sut=node7
+$ provost run --manifest manifest.txt ./stream     # prepends it as '#%' lines, and checks it
+$ provost check-manifest                            # every capture: what each lacks
+capture  status      missing
+c0001    complete    -
+c0002    incomplete  req,sut
+$ provost annotate c0001 reviewer=jo disposition=pass   # post-run keys, later
+$ provost check-manifest --post --strict c0001          # exit 1 if any is incomplete
+```
+
+- `--manifest FILE` (run, piped input, FILE, batch): `KEY=VALUE` lines, the
+  value the rest of the line; prepended as the prologue and checked.
+- `--manifest-profile P` checks the input's own prologue as it is filed.
+- A missing required key is a warning; `--strict-manifest`
+  (`PROVOST_MANIFEST_STRICT=1`) files nothing and exits 1.
+- `post` keys are never demanded at capture time. `provost annotate` keeps
+  them beside the capture (`captures/ID/annotations.txt`, its own commit).
+- The profile: `--profile`/`--manifest-profile`, else
+  `PROVOST_MANIFEST_PROFILE`, else the store's own `manifest-profile.tsv`,
+  else `default`. A NAME is looked up in `~/.config/provost/manifests`, then
+  in provost's `extract/manifests`.
 
 ## Batch capture
 
