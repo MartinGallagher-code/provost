@@ -1695,6 +1695,20 @@ check "several names: ...and the first name's too" "reused (" "$(cat "$RMJ/captu
 check "--llm parses one input at a time" "parses one input at a time" "$(bt batch --llm -j 4 --name llmone "$BTD/web01.txt")"
 check "batch with no files is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch)"
 check "batch refuses --async (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch --async "$BTD/web01.txt")"
+# Two batch writers at once (PV-024): each takes the lock in turn; every
+# capture is filed, ids have no gap or duplicate, rows none either.
+CBWS="$(mktemp -d)/.cb"; CBD="$(mktemp -d)"
+for i in $(seq 1 12); do printf 'Name,Load\nh%02d,0.%d\n' "$i" "$i" > "$CBD/h$i.txt"; done
+printf 'a,b\n1,2\n' | PROVOST_WORKSPACE="$CBWS" PROVOST_ASYNC=0 "$PROVOST" --name warm >/dev/null 2>&1
+( PROVOST_WORKSPACE="$CBWS" "$PROVOST" batch --name cb "$CBD"/h{1,2,3,4,5,6}.txt >/dev/null 2>&1; echo "a=$?" > "$CBD/rc.a" ) &
+( PROVOST_WORKSPACE="$CBWS" "$PROVOST" batch --name cb "$CBD"/h{7,8,9,10,11,12}.txt >/dev/null 2>&1; echo "b=$?" > "$CBD/rc.b" ) &
+wait
+check "two concurrent batch writers both finish" "a=0 b=0" "$(cat "$CBD/rc.a") $(cat "$CBD/rc.b")"
+check "...with every capture filed, ids c0001..c0013 with no gap" "$(printf 'c%04d ' $(seq 1 13))" \
+    "$(ls "$CBWS/captures" | sort | tr '\n' ' ')"
+check "...and every row once, no duplicate row index" "12 12" \
+    "$(awk -F'\t' 'NR > 1 { n++; if (!seen[$1]++) u++ } END { print n, u }' "$CBWS/datasets/cb.tsv")"
+check "...each batch its own commit" "2" "$(tgit "$CBWS" log --format=%s | grep -c '^batch: 6 capture(s)')"
 check "--jobs must be a number (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch -j x "$BTD/web01.txt")"
 fi
 

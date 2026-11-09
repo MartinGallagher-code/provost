@@ -129,7 +129,7 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-0y. **2026-11-09: `provost verify` and input hashes** (PV-026). Every
+1c. **2026-11-09: `provost verify` and input hashes** (PV-026). Every
     capture records `input_sha256` (as received, before CRs are stripped),
     `input_bytes` and `output_sha256` (of `output.txt`) in `meta.tsv`, and
     the commit carries `Input-SHA256:`/`Output-SHA256:` trailers.
@@ -140,6 +140,25 @@ Suites (all CI-enforced):
     detect a rewritten history on its own: docs/usage.md "Verifying a store"
     says so, and PV-027 (signing) is the stronger anchor. Not done: a report
     file a test report can cite (the ticket's open question).
+
+1b. **2026-11-09: PyPI links fixed, versioning policy written** (PV-034). The
+    repo is public; Documentation points at docs/usage.md on GitHub until
+    the mkdocs site is imported on Read the Docs (then point it back and
+    `tools/check-project-urls.py` will confirm it). CI checks every
+    `[project.urls]` link. README states the versioning and support policy.
+
+1a. **2026-11-09: `batch`'s lock hold measured** (PV-024,
+    `docs/lock-2026-11-09-batch-hold.md`). About 50 ms per input; 200-input
+    chunks hold it ~10 s against the 30 s timeout. No change made; the doc
+    lists the cheap wins in order. `tests/perf/batch-lock-time.sh N` repeats
+    the measurement. quarterdeck's `filing.py:228` comment is right and can
+    cite the doc (a quarterdeck follow-up).
+
+0z. **2026-11-09: CI smoke green again** (PV-035). The runner now starts the
+    suite with SIGINT ignored, which hid it from the two `rm --capture`
+    interrupt checks; `own_pg` in `tests/smoke.sh` resets SIGINT to its
+    default for the job it starts. Reproduce the old failure with
+    `python3 -c 'import signal,os; signal.signal(signal.SIGINT, signal.SIG_IGN); os.execvp("bash", ["bash","tests/smoke.sh"])'`.
 
 0x. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
     One job per CPU, `PROVOST_TEST_JOBS=N` to change it, `=1` for the old

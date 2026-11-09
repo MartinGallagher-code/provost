@@ -30,7 +30,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/MartinGallagher-code/provost"
-Documentation = "https://provost.readthedocs.io"
+Documentation = "https://github.com/MartinGallagher-code/provost/blob/main/docs/usage.md"
 Repository = "https://github.com/MartinGallagher-code/provost"
 Changelog = "https://github.com/MartinGallagher-code/provost/blob/main/CHANGELOG.md"
 Issues = "https://github.com/MartinGallagher-code/provost/issues"
