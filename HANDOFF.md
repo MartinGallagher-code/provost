@@ -136,6 +136,12 @@ Suites (all CI-enforced):
     the measurement. quarterdeck's `filing.py:228` comment is right and can
     cite the doc (a quarterdeck follow-up).
 
+0z. **2026-11-09: CI smoke green again** (PV-035). The runner now starts the
+    suite with SIGINT ignored, which hid it from the two `rm --capture`
+    interrupt checks; `own_pg` in `tests/smoke.sh` resets SIGINT to its
+    default for the job it starts. Reproduce the old failure with
+    `python3 -c 'import signal,os; signal.signal(signal.SIGINT, signal.SIG_IGN); os.execvp("bash", ["bash","tests/smoke.sh"])'`.
+
 0x. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
     One job per CPU, `PROVOST_TEST_JOBS=N` to change it, `=1` for the old
     serial run; output is printed whole, per file or part, in order. Smoke's
