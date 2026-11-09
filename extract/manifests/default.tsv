@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+#
+# provost run-manifest profile: default (PV-020)
+#
+# The reserved '#%' prologue keys of a run manifest: what a capture should
+# carry so that a result can be traced to the requirement it tests, the build
+# it measured and the run that produced it. 'provost check-manifest' reports
+# the captures missing a required key; '--manifest FILE' and
+# '--manifest-profile NAME' check a capture as it is filed.
+#
+# One row a key, tab-separated:
+#   key          letters, digits, '_', '.', '-'; starts with a letter or '_'
+#   when         run  = known when the run happens: belongs in the prologue
+#                post = decided after the run (a review): added later with
+#                       'provost annotate ID KEY=VALUE', and checked only by
+#                       'provost check-manifest --post'
+#   required     yes = a capture without it (or with it empty) is reported
+#                no  = reserved name, documented, never demanded
+#   description  what the value is
+#
+# A store can use another profile (a copy of this file, edited) by keeping it
+# as manifest-profile.tsv at the store's root; PROVOST_MANIFEST_PROFILE or
+# --manifest-profile names one for a single run.
+#
+# key	when	required	description
+req	run	yes	requirement this run gives evidence for (an RVTM or requirement id)
+test	run	yes	the test or benchmark that was run
+test.version	run	yes	version of that test or benchmark
+build.commit	run	yes	source commit of the software under test
+build.sha256	run	no	sha256 of the binary that ran
+build.toolchain	run	no	compiler and toolchain (e.g. "gcc 13.2, glibc 2.39")
+sched.job	run	no	scheduler job id (Slurm, PBS, ...) the run was part of
+run.id	run	no	id of the run, as the launcher (e.g. quarterdeck) gave it
+sut	run	yes	system under test: the host, cluster or partition measured
+operator	run	no	who started the run
+deviation	run	no	a recorded departure from the test procedure ("none" if none)
+reviewer	post	yes	who reviewed the result
+disposition	post	yes	the review's verdict (e.g. pass, fail, retest, waived)

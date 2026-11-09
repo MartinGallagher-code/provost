@@ -16,6 +16,54 @@
   (a tool's exact tidy output, help wording), deprecation, and support for
   the latest release only.
 
+## 2026-11-09 — a run manifest for the `#%` prologue (PV-020)
+
+The `#%` prologue could already carry context, and `--context-columns` put it
+on every row, but nothing said which keys a run should carry or noticed when
+one was missing. A result's link to a requirement was a claim, not a check.
+Now there are agreed key names and a check. Nothing is checked unless asked,
+so a capture without a prologue files exactly as before.
+
+- **Profiles**, data rather than code, next to `hints.tsv`:
+  `extract/manifests/default.tsv` (`req`, `test`, `test.version`,
+  `build.commit`, `build.sha256`, `build.toolchain`, `sched.job`, `run.id`,
+  `sut`, `operator`, `deviation`, `reviewer`, `disposition`) and
+  `proposal.tsv` (the same keys under the proposal's flat names: `rvtm_id`,
+  `code_commit`, `system_id`, ...). Each row is key, `run` or `post` (known
+  at run time, or decided after a review), required `yes`/`no`, and a
+  description. A profile is chosen by `--profile`/`--manifest-profile`, else
+  `PROVOST_MANIFEST_PROFILE`, else a store's own `manifest-profile.tsv`, else
+  `default`; a NAME is looked up in `~/.config/provost/manifests` and then
+  in `extract/manifests` (shipped in the wheel too: `pyproject.toml`).
+- **`provost check-manifest [--profile P] [--post] [--strict] [ID|NAME...]`**
+  lists every capture (or those named, or those that fed a dataset) with the
+  required keys it lacks or leaves empty. It warns (exit 0) by default;
+  `--strict` exits 1. `--post` checks the post-run keys too. Old stores can
+  be audited as they are.
+- **At capture time** (`run`, piped input, FILE, `batch`): `--manifest FILE`
+  prepends a file of `KEY=VALUE` lines as the prologue, and `--manifest FILE`
+  or `--manifest-profile P` checks it as it is filed. A missing key is a
+  warning; `--strict-manifest` (`PROVOST_MANIFEST_STRICT=1`) files nothing
+  and exits 1 (in `batch`, that input is not captured). Post-run keys are
+  never demanded at capture time.
+- **`provost annotate ID KEY=VALUE...`** adds keys decided after the run
+  (reviewer, disposition) to a filed capture without filing it again:
+  `captures/ID/annotations.txt`, `#%` lines, a commit of its own. Setting a
+  key again replaces it. `check-manifest` reads them beside the prologue,
+  and `provost source ID` shows them.
+- **Quoted values.** A value with spaces is double-quoted:
+  `#% build.toolchain="gcc 13.2"` (`\"` and `\\` inside). The prologue
+  parser is now one function (`_prologue_kv`), used by `--context-columns`
+  too, so a quoted value is one context column. An unterminated quote is an
+  ordinary word, as before.
+- Docs: `provost help advanced` (RUN MANIFEST), each command's `--help`,
+  `man/provost.1`, `completions/provost.bash`. Tests: a new `manifest` part
+  in `tests/smoke.sh` (46 checks).
+- Not done here: quarterdeck filling the keys it knows (`sched.job`,
+  `run.id`, `operator`) is quarterdeck's follow-up; the owner's two open
+  questions (key names; warn or fail by default) were answered with the
+  ticket's own proposals, generic names and warn, and are easy to change.
+
 ## 2026-11-04 — smoke and the extract suite run in parallel (PV-018)
 
 Most of the time a provost change took went to running the checks, one at a

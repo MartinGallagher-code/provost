@@ -17,6 +17,15 @@ legacy names, store format 3, browsing and search, `batch`, the opt-in
 the first release with the rename, store format 2, line coverage and the
 2026-10-14 parser work.
 
+**Since 2.3.0 (unreleased): the run manifest (PV-020, 2026-11-09).** Profiles
+of reserved `#%` keys in `extract/manifests/` (`default`, `proposal`),
+`provost check-manifest`, `provost annotate`, and `--manifest FILE`,
+`--manifest-profile P` and `--strict-manifest` at capture time. Off unless
+asked for. Open: the owner's choice of key names (generic `default` or the
+proposal's flat names as the default profile) and whether a missing key
+should fail by default; quarterdeck filling `sched.job`, `run.id` and
+`operator` itself is its own follow-up.
+
 provost is one Bash entry point (`provost`) over:
 - the extract engine (`extract/provost-extract`, 268 strategies, ~116 generic)
 - the tidy melt (`transform/melt.sh`)
