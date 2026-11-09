@@ -10,7 +10,7 @@ _provost_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help"
+    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor verify help"
     local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 

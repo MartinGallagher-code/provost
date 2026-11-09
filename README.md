@@ -95,6 +95,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost export [<file>]` / `import <file> [<dest>]` | portable store bundle |
 | `provost triage` | low-confidence / unmatched bucket |
 | `provost doctor` | engine + store check |
+| `provost verify [--capture ID]` | store integrity: `git fsck`, each capture's output against its recorded sha256, tags, id gaps |
 | `provost help` / `help advanced` / `<command> --help` | short help / full reference / one command's usage |
 
 Every dataset row carries `#` (its number in the store), `capture` (the

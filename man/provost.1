@@ -267,6 +267,17 @@ Show the low-confidence / unmatched bucket, raw input decoded to text
 Check the extract/analyze engines and the store; lists failed background
 captures.
 .TP
+.B verify \fR[\fB--capture\fR \fIID\fR[,\fIID\fR...]]...
+Check the store's integrity: \fBgit fsck --full\fR; no tracked file changed
+and left uncommitted; every \fBcapture-\fR* tag on the store's history; each
+capture's \fBoutput.txt\fR is the one its tag filed and re-hashes to the
+sha256 recorded in its \fBmeta.tsv\fR (\fBoutput_sha256\fR) and its commit's
+\fBOutput-SHA256\fR trailer; and no capture id is missing from the history
+(an id \fBrm\fR removed is counted, not failed). Exits 0 with no findings, 1
+with them. Captures filed before hashes were recorded are counted as unhashed.
+It proves the store is consistent, not that its history was never rewritten:
+record the head commit it prints somewhere the store's writers cannot change.
+.TP
 .B help \fR[\fBadvanced\fR]
 Print the short help to stdout; \fBhelp advanced\fR prints every command,
 option and setting, and how a capture is filed. \fIsubcommand\fR \fB--help\fR

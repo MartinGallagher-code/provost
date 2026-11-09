@@ -120,6 +120,18 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0y. **2026-11-09: `provost verify` and input hashes** (PV-026). Every
+    capture records `input_sha256` (as received, before CRs are stripped),
+    `input_bytes` and `output_sha256` (of `output.txt`) in `meta.tsv`, and
+    the commit carries `Input-SHA256:`/`Output-SHA256:` trailers.
+    `provost verify` runs `git fsck --full`, flags uncommitted edits, checks
+    tags, re-hashes each capture's output against `meta.tsv` and the
+    trailer, and fails on capture ids that are not in the history (an `rm`
+    purge is counted, not failed); pre-2.4 captures are "unhashed". It cannot
+    detect a rewritten history on its own: docs/usage.md "Verifying a store"
+    says so, and PV-027 (signing) is the stronger anchor. Not done: a report
+    file a test report can cite (the ticket's open question).
+
 0x. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
     One job per CPU, `PROVOST_TEST_JOBS=N` to change it, `=1` for the old
     serial run; output is printed whole, per file or part, in order. Smoke's

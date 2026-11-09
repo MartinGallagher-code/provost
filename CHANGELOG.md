@@ -1,5 +1,40 @@
 # provost — Changelog
 
+## 2026-11-09 — `provost verify`, and every capture records its input's hash (PV-026)
+
+"Tamper-evident" is now a command. Nothing about parsing changed, so no tidy
+output or golden can move.
+
+- **At capture** (`run`, piped input, FILE, `batch`, `--async`), the input is
+  hashed exactly as received, before CRs are stripped, and `meta.tsv` gains
+  `input_sha256`, `input_bytes` and `output_sha256` (the sha256 of
+  `output.txt` as stored). The commit message carries them as trailers,
+  `Input-SHA256: ID HASH` and `Output-SHA256: ID HASH` (one pair per capture
+  in a `batch` commit). The hash comes from `sha256sum`, `shasum -a 256` or
+  `openssl`; with none installed the capture is filed unhashed, as before.
+  `_sha256`, `_receive` and `_hash_trailers` in `provost`.
+- **`provost verify [--capture ID[,ID...]]`** (`cmd_verify`): `git fsck
+  --full`; tracked files changed and left uncommitted; every `capture-*` tag
+  names a commit on the main branch's history (every `files-*` tag a
+  commit); each capture's `output.txt` is the blob its tag filed and
+  re-hashes to `output_sha256` in its `meta.tsv` and to its commit trailer;
+  capture ids from `c0001` up have no gap the history cannot explain (an id
+  `rm` removed is counted as removed, not failed). Exit 0 with no findings,
+  1 with them; it prints the main branch's head commit, which is what to
+  record outside the store. Captures filed before this change are counted as
+  unhashed, not failed. Read-only: it takes no lock and works on a store
+  that is on a restored capture.
+- **What it does not prove** is written down (`provost verify --help`, the
+  man page, docs/usage.md "Verifying a store"): anyone who can write the
+  store can rewrite its history and every hash with it; the anchor is the
+  head commit recorded somewhere else, or signed commits (PV-027).
+- Docs: help, `help advanced`, man page, completions, README, docs/usage.md,
+  HANDOFF. Tests: a new `verify` part in `tests/smoke.sh` (32 checks:
+  hashes and trailers for inject, run and batch; a clean store; uncommitted,
+  committed and rewritten-with-meta tampering; a changed output under its
+  tag; a deleted object; an `rm` purge; ids missing from the history; a
+  pre-hash store; a restored store; a controlled directory's `files-*` tags).
+
 ## 2026-11-04 — smoke and the extract suite run in parallel (PV-018)
 
 Most of the time a provost change took went to running the checks, one at a
