@@ -34,6 +34,13 @@ fine-tuned on provost's own labels. It comes as the
 package (85 MB) and runs on numpy, with no torch or GPU. Without it,
 `--model` uses the small decision trees provost ships.
 
+```bash
+pip install provost[pandas]
+```
+
+This adds pandas, for `provost_data.load_df` (below). `provost_data.load`
+needs only the standard library.
+
 ## Quick start
 
 ```bash
@@ -46,6 +53,40 @@ provost show df                  # present a dataset (leading #N = row index)
 provost source 5                 # the original input behind row #5
 provost stats df                 # statistics on the dataset
 ```
+
+## From Python and Jupyter
+
+The package also reads datasets back into Python, through
+`provost show NAME --tsv`, so a dataset reads the same as in the shell:
+
+```python
+import provost_data
+
+rows = provost_data.load("ior")          # a list of dicts, one per row
+rows[2]["access"], rows[2]["bw_mib_s"]   # ('remove', None): a blank cell is None
+
+df = provost_data.load_df("ior")         # a pandas DataFrame (pip install provost[pandas])
+df.groupby(["capture", "access"])["bw_mib_s"].mean()
+df[df.access != "remove"][["bw_mib_s", "iops", "latency_s"]].corr()
+```
+
+- `load(name, store=None, capture=None)` gives every value as the string
+  provost stored, or `None` for a blank cell. `load_df` takes the same
+  arguments: a blank cell is `NaN`, and a column whose every non-blank value is
+  a number becomes numeric. A blank is never read as 0.
+- The columns are those of `provost show`: `#` (the row's number, which
+  `provost source` takes), `capture`, `n`, then the data.
+- `store=` is a store directory or a controlled directory (its `.provost` is
+  used). By default it is the store `provost` would use where Python is
+  running: `PROVOST_WORKSPACE`, then a controlled directory, then the global
+  store.
+- `capture=` keeps only the rows one capture filed: `"c0007"` or `7`.
+- When provost refuses (no such dataset, no such store, a bad name),
+  `provost_data.ProvostError` carries its message and exit status. Without
+  pandas, `load_df` raises `ImportError` with the install command.
+
+Through `provost` a load costs about 40 ms more than reading the dataset's
+file would, and about 7% more at a million rows (`tests/perf/load-time.py`).
 
 ## What it does
 
@@ -88,7 +129,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `… --sync` / `--async` | foreground / background capture (default: background only at a terminal) |
 | `… --plugin-dir <dir>` | extra strategy dir for this capture (inject/run) |
 | `… --context-columns` | each `key=value` in a `#%` prologue becomes a column on every row (inject/batch) |
-| `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then) |
+| `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then; `--tsv`: tab-separated, for a program) |
 | `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
 | `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
 | `provost check-manifest [ID\|NAME...]` | which captures lack required run-manifest keys (`--post`, `--strict`, `--profile P`) |
@@ -212,7 +253,7 @@ bash transform/tests/test_melt.sh    # transform unit tests
 bash extract/tests/run_tests.sh      # extract strategies + engine
 bash analyze/tests/run_tests.sh      # analyze engine
 bash tests/corpus/run.sh --golden    # tidy output of ~3,500 real tools vs goldens
-python -m pytest                     # PyPI launcher (100% coverage enforced)
+python -m pytest                     # PyPI launcher and Python API (100% coverage enforced; needs pandas)
 bash tests/check_version.sh          # the version agrees everywhere (see below)
 ```
 

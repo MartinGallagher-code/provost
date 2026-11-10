@@ -31,7 +31,7 @@ _provost_complete () {
             # complete dataset names from the active store (rm also offers flags)
             case "$cur" in
                 -*) case "$verb" in
-                        show)   COMPREPLY=( $(compgen -W "--capture --at --help" -- "$cur") ) ;;
+                        show)   COMPREPLY=( $(compgen -W "--capture --at --tsv --help" -- "$cur") ) ;;
                         search) COMPREPLY=( $(compgen -W "-i -F -w -e --at --output --files --help" -- "$cur") ) ;;
                         diff)   COMPREPLY=( $(compgen -W "--help" -- "$cur") ) ;;
                         *)      COMPREPLY=( $(compgen -W "-f --yes --purge --no-purge --keep-captures --help" -- "$cur") ) ;;

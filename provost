@@ -2454,13 +2454,16 @@ EOF
         prev) echo "usage: provost prev    step the store back one capture (from the latest: the last capture)" ;;
         ls) echo "usage: provost ls    list datasets" ;;
         show) cat <<'EOF'
-usage: provost show NAME [--capture ID] [--at ID]
+usage: provost show NAME [--capture ID] [--at ID] [--tsv]
   Present a dataset as a table: '#' is each row's index in the store,
   'capture' the capture it came from, 'n' its record number in that capture.
 options:
   --capture ID            only the rows capture ID filed (c0007, or 7)
   --at ID                 the dataset as it stood just after capture ID, read
                           from git (the store stays where it is)
+  --tsv                   tab-separated, as stored, for a program to read: a
+                          blank cell stays blank, and no matching rows print
+                          the header alone (Python: provost_data.load)
 EOF
             ;;
         rm) cat <<'EOF'
@@ -3789,10 +3792,16 @@ _table () { if command -v column >/dev/null 2>&1; then column -t -s $'\t'; else 
 
 cmd_show () {
     [[ $# -ge 1 ]] || _cmd_usage_die show
-    local name="" at="" cap="" v
+    local name="" at="" cap="" v out=_table
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help) _cmd_help show ;;
+            # --tsv: the rows as tab-separated text, exactly as stored (the
+            # 'unsorted' raw column still decoded), never through column(1):
+            # in an aligned table a blank cell is only spaces, and whether
+            # the table has tabs or spaces depends on column(1) being
+            # installed. What a program reads (provost_data.load, PV-031).
+            --tsv) out=cat; shift ;;
             --at|--capture)
                 [[ $# -ge 2 ]] || usage_die "$1 needs a capture id (e.g. c0007)."
                 v="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
@@ -3828,10 +3837,13 @@ cmd_show () {
             FNR == 1 { col = ($1 == "#" && $2 ~ /^_*capture$/); print; next }
             (col ? $2 : pc[$1]) == C' "$prov" "$f" > "$only"
         f="$only"
-        [[ "$(wc -l < "$f")" -gt 1 ]] || { info "no rows in '$name' from capture $cap."; return 0; }
+        # None: a table says so; --tsv prints the header alone (no rows).
+        if [[ "$(wc -l < "$f")" -le 1 && "$out" == _table ]]; then
+            info "no rows in '$name' from capture $cap."; return 0
+        fi
     fi
-    if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | _table
-    else _table < "$f"; fi
+    if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | "$out"
+    else "$out" < "$f"; fi
 }
 
 cmd_triage () {

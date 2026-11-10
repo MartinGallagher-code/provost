@@ -5,16 +5,17 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.0` section at the top of CHANGELOG): 2.4.0 (BN-002) and the HPC
-benchmark outputs (PV-030, below). 2.4.0 added `provost
+**provost 2.6.0 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.6.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (2.5.0, PV-030, below) and the Python API (2.6.0, PV-031,
+below). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
-the top of CHANGELOG is always the version `main` is at. Neither 2.4.0 nor
-2.5.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.5.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
+the top of CHANGELOG is always the version `main` is at. Neither 2.4.0,
+2.5.0 nor 2.6.0 is published yet: run the "Release to PyPI" workflow on
+`main` (or a GitHub release tagged `v2.6.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
 faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
 added the quality gate and auto-multi, the engine fixes, removal of the
@@ -31,6 +32,20 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.6.0: a dataset from Python (PV-031, 2026-11-10; not published).**
+`provost_data.load(name, store=None, capture=None)` gives rows as dicts
+(standard library only), and `load_df` a pandas DataFrame
+(`pip install 'provost[pandas]'`). A blank cell is `None`/`NaN`, never 0. Both read
+through the new `provost show NAME --tsv`, not the store's files, so
+provost stays the one reader. `provost export` writes a git bundle, not rows,
+and plain `show` aligns with column(1) where it is installed. The subprocess
+costs ~40 ms plus ~7% at a million rows over a direct read
+(`tests/perf/load-time.py`). `src/provost_data/_dataset.py`; README "From
+Python and Jupyter". Open: quarterdeck's `store.py` reads the store itself
+and could use `load` (a quarterdeck follow-up). Whether `load`/`load_df` come
+under the versioning promise is the owner's call. The README's promise
+names commands and options, which covers `show --tsv`.
 
 **2.5.0: the HPC benchmark outputs (PV-030, 2026-11-10; not published).**
 OSU, IOR, mdtest, HPL, HPCG, STREAM's full printout, lnet_selftest `lst stat`,
@@ -66,7 +81,8 @@ provost is one Bash entry point (`provost`) over:
 - the analyze engine (`analyze/provost-analyze`)
 
 It has a git-backed store and ships as a thin Python launcher
-(`src/provost_data/`).
+(`src/provost_data/`), with a read-only Python API (`load`, `load_df`) that
+reads datasets through `provost show --tsv`.
 
 ### The honest picture: generalisation
 
@@ -163,6 +179,12 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1e. **2026-11-10: the Python API** (PV-031). `provost_data.load` /
+    `load_df` over `provost show NAME --tsv` (new). CI's `python-package`
+    job installs pandas (the `load_df` tests need it for the 100% gate) and
+    loads a dataset from the installed wheel. Follow-ups: quarterdeck's
+    `store.py` onto `load`, and whether the API joins the versioning promise.
 
 1d. **2026-11-10: every change moves the version** (shared_tools BN-002).
     2.3.0 → 2.4.0, numbering the twelve dated entries since 2.3.0 and this

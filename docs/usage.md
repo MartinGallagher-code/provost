@@ -46,6 +46,7 @@ $ provost ls                     # list datasets
 $ provost show NAME              # present a dataset ('#', 'capture', 'n' lead each row)
 $ provost show NAME --capture ID # only the rows capture ID filed
 $ provost show NAME --at ID      # the dataset as it stood just after capture ID
+$ provost show NAME --tsv        # tab-separated, as stored: what a program reads
 $ provost search PATTERN [NAME]  # git grep over the rows (--output, --files, --at ID)
 $ provost log [--failed]         # list captures (the git history) / failed background ones
 $ provost source <#N | ID>       # the original input behind row #N, or a capture

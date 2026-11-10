@@ -1,5 +1,70 @@
 # provost — Changelog
 
+## 2.6.0 — 2026-11-10 — read a dataset from Python: `provost_data.load` and `load_df` (PV-031)
+
+`VERSION` 2.5.0 → 2.6.0, and the `man/provost.1` header. Minor: a new
+`show` option and a new Python API. Nothing that worked before changes.
+
+The assessment asked for something like `provost.load("ior")` returning a
+DataFrame, so that analysing provost data in Jupyter is one line. The
+ticket said to read through `provost export` or a documented reader of the
+store (PV-022, not done), not a third parser of the store's files.
+`provost export` turned out to write a git bundle of the whole store, not
+rows. `provost show` reads the rows, but prints an aligned table where
+column(1) is installed (a blank cell is then only spaces) and tab-separated
+text where it is not. So `show` gains `--tsv`, and the Python API reads
+through that.
+
+- **`provost show NAME --tsv`**: the rows tab-separated, exactly as stored,
+  whether or not column(1) is installed. A blank cell stays an empty field.
+  With `--capture` and no matching rows it prints the header alone (the table
+  form still says "no rows"). `unsorted` is decoded as before. Works with
+  `--capture` and `--at`. In the usage text, the man page, the bash
+  completion, `docs/usage.md` and the README's command table.
+- **`provost_data.load(name, store=None, capture=None)`** (standard library
+  only): a list of dicts, one per row, in `provost show`'s column order (`#`,
+  `capture`, `n`, then the data). Every value is the string provost stored, or
+  `None` for a blank cell. A row shorter than the header is padded with `None`.
+  A longer one raises an error, because it means a damaged store.
+- **`provost_data.load_df(...)`**: the same rows as a pandas DataFrame. A blank
+  is `NaN`, and a column whose every non-blank value is a number becomes
+  numeric. A blank is never read as 0. Without pandas it raises `ImportError`
+  naming `pip install 'provost[pandas]'`, the new extra.
+- `store=` takes a store directory or a controlled directory (its `.provost`),
+  `~` expanded. With no `store=`, it reads whichever store `provost` itself
+  would use from the current directory. `capture=` takes `"c0007"` or `7`.
+- **`provost_data.ProvostError`**: raised when provost cannot be run or
+  refuses (no such dataset or store, a bad name). It carries provost's own
+  message, `returncode` and `stderr`. The API runs the wheel's bundled
+  provost under bash, or a `provost` on `PATH` in a git checkout.
+- **Speed, measured** (`tests/perf/load-time.py N`, 8 columns, best of 3, this
+  container): `load` takes 0.04 s at 1,000 rows, 0.09 s at 20,000, 0.31 s at
+  100,000 and 3.5 s at 1,000,000 (89 MB). Reading the dataset's file directly
+  instead of through provost saves the fixed ~40 ms and ~7% at a million rows,
+  so the subprocess stays. `load_df` takes 0.13 s at 20,000 rows and 5.8 s at
+  a million, most of it pandas converting strings to numbers. The garbage
+  collector is paused while rows are built (they hold only strings, so they
+  cannot form cycles). Its passes had been two thirds of the time at a
+  million rows.
+- Tests: `tests/python/test_dataset.py` (30 tests) reads a real store filed
+  by this checkout's provost: blanks mid-row and at the end of a row, a
+  capture filter as id, number and string, no rows, a controlled directory, a
+  `Path`, `~`, the default store, every error, the bundled-tree and PATH
+  routes, no pandas, undecodable bytes. `python -m pytest`: 39 passed, 100%
+  line and branch coverage of `provost_data`. Without pandas, the `load_df`
+  tests skip and the coverage gate fails, so CI's `python-package` job now
+  installs pandas. It also loads the `df` dataset from the installed wheel
+  through both calls. Smoke: seven `show --tsv` checks (`browse` and
+  `recon-unsorted` parts).
+- Files: `provost` (`cmd_show`, usage), `src/provost_data/_dataset.py` (new),
+  `src/provost_data/__init__.py`, `pyproject.toml` (the `pandas` extra),
+  `tests/python/test_dataset.py` (new), `tests/perf/load-time.py` (new),
+  `tests/smoke.sh`, `.github/workflows/ci.yml`, `man/provost.1`,
+  `completions/provost.bash`, `README.md` ("From Python and Jupyter"),
+  `docs/usage.md`, `HANDOFF.md`.
+- Not done: quarterdeck's `store.py` still reads the store's files itself.
+  Moving it onto `load` is the follow-up question the ticket names.
+
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new

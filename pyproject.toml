@@ -39,6 +39,8 @@ Issues = "https://github.com/MartinGallagher-code/provost/issues"
 # which live in their own package (github.com/MartinGallagher-code/provost_model).
 [project.optional-dependencies]
 lm = ["numpy", "provost-model"]
+# provost_data.load_df: a dataset as a pandas DataFrame (load needs nothing).
+pandas = ["pandas"]
 
 [project.scripts]
 provost = "provost_data:main"
