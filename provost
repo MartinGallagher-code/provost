@@ -4971,17 +4971,31 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     or an error between the rows is kept, never lost; only rules and box
     glyphs are dropped. A tab or newline inside a value becomes a space.
 
-    REPAIR: a template keeps the captures it was written from (its
+    SKIP AUDIT: a skipped line is not covered for free. One with no letter or
+    digit (a rule) is decoration; one that carries a word or a number counts
+    as unread until Claude has judged its kind decoration. When Claude writes
+    a template that sets such lines aside, it is shown their count and one
+    line of each kind, once, to read them or confirm them; the kinds it
+    confirms are kept in the template ("decoration").
+
+    REPAIR: a template keeps its first and latest captures (its
     "examples"). With a key, when a stored template meets a kind of line it
-    has not met before (one it leaves unread, or one a skip pattern drops),
-    provost sends the template, those captures and this one to Claude once,
-    to extend it. The extension is kept, with this capture added to its
-    examples, only if it still reads every line of the earlier captures the
-    template read and passes the same rules; otherwise the template is used
-    as it was. A capture whose lines the template has all met is never sent.
+    has not met before (one it leaves unread, or a set-aside one not judged,
+    or far more set-aside lines than before), provost sends the template,
+    those captures and this one to Claude once, to extend it. The extension
+    is kept, with this capture added to its examples, only if it still reads
+    every line the template read of every capture it was written from (the
+    store keeps them all) and passes the same rules; otherwise the template
+    is used as it was. A capture whose lines the template has all met is
+    never sent.
+
+    LEDGER: every capture a template files is recorded in the store's
+    llm-templates/NAME.seen.tsv (capture, how it was filed, line counts,
+    input hash), committed with the capture.
 
     meta.tsv records 'llm_template' (filed by which template, or declined and
-    why). PROVOST_LLM_LOG names a file that gets one JSON line per API reply.
+    why) and 'llm_skip_audit'. PROVOST_LLM_LOG names a file that gets one
+    JSON line per API reply.
     Needs python3 (no packages).
 
 MULTIPLE DATASETS (--multi)
