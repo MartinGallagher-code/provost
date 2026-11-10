@@ -23,6 +23,12 @@ which keeps every project's tickets as files and moves each one Backlog → In P
    <shared_tools clone>/scripts/ticket.py new provost "Imperative title" --request "the request, in the user's own words"
    ~~~
 
+**Every change moves the version**, however small: a pull request into `main` raises
+it in every place it is written and opens `CHANGELOG.md` with that version's own
+dated section, never an "Unreleased" heading left for later. CI fails a pull request
+whose version is not greater than its base branch's. This file's own section on the
+version says where it is written.
+
 The board: https://claude.ai/artifact/HrB3RpVpqGGQS7UZgZsMJm
 
 ## Repository layout
@@ -62,12 +68,42 @@ manual merge — not a routine sync.
 
 ## Documentation
 
-For every change, append a dated entry to `CHANGELOG.md` (root) noting what
-changed and which files. Keep `HANDOFF.md` current (rewrite to reflect the
-present state + next steps). These are the two required docs; a decision worth
-preserving can also go in `CHANGELOG.md`.
+For every change, add a section at the top of `CHANGELOG.md` (root), newest
+first, headed with the version the change moves to, the date, a summary and the
+ticket — `## X.Y.Z — YYYY-MM-DD — summary (PV-NNN)` — noting what changed and
+which files (see "Every change moves the version" below). Entries from before
+2.4.0 are headed by their date alone; leave them as they are. Keep `HANDOFF.md`
+current (rewrite to reflect the present state + next steps). These are the two
+required docs; a decision worth preserving can also go in `CHANGELOG.md`.
+
+## Every change moves the version
+
+The owner's rule (shared_tools BN-002): **whenever this project changes, its version
+changes with it**, however small the change: code, tests, docs or CI. A pull request
+into `main` carries its own bump and its own `CHANGELOG.md` section, never an
+"Unreleased" heading left for later.
+
+- Patch for fixes, docs, tests and CI; minor for anything new a user can use; major
+  only when something that worked stops working the way it did.
+- In the same pull request: `VERSION` (the one source: `pyproject.toml`, the wheel
+  and `provost --version` read it) and the `.TH` line of `man/provost.1` (the version,
+  and the date), and a `## X.Y.Z — YYYY-MM-DD — summary (PV-NNN)` section at the top
+  of `CHANGELOG.md`. `tests/check_version.sh` fails if any of them disagree.
+- The **version** job in CI fails a pull request whose version is not greater than its
+  base branch's, and a push to `main` whose version is not greater than what `main` had
+  before it. If `main` moves while a pull request is open, rebase and bump again.
+- Publishing is a separate step, and a person's call: run "Release to PyPI"
+  (`release.yml`) on `main`, or publish a GitHub release tagged `vX.Y.Z`, not both. A
+  number that is never published is fine; a change with no number is not.
 
 ## Testing (CI-enforced — see `.github/workflows/ci.yml`)
+
+Every change, of any kind (CI's `version` job; see "Every change moves the
+version"):
+
+```bash
+bash tests/check_version.sh origin/main   # bumped everywhere, and past main's
+```
 
 When you change `provost` or a first-party test, run and keep green:
 
