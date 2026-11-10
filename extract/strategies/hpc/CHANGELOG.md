@@ -1,5 +1,14 @@
 # Changelog -- HPC Strategies
 
+## 2026-11-10 (PV-030: HPC benchmark outputs)
+- Added `hpl.sh` -- one row per HPL test (tv, matrix_n, nb, p, q, time_s, gflops, residual, check; start/end time where printed); HPL 2.x and HPC Challenge's HPL section
+- Added `stream.sh` -- one row per STREAM kernel from the full printout (function, best_rate_mb_s, avg/min/max_time_s, array_size, threads, validation)
+- Added `ior.sh` -- one row per IOR Results row (test, access, bw_mib_s, iops, latency_s, block_kib, xfer_kib, open_s, wr_rd_s, close_s, total_s, iter); IOR 3.x and 4.x
+- Added `mdtest.sh` -- one row per mdtest SUMMARY operation (summary, operation, max, min, mean, std_dev, unit, iterations); mdtest 3.x (` :` after the name) and 4.x
+- Added `lst-stat.sh` -- one row per lnet_selftest `lst stat` sample, group, metric and direction (avg, min, max, unit)
+- Each is bespoke because no generic parser keeps its rows even when forced (see the strategy headers); OSU, ReFrame perflogs, JUnit XML, perfquery and ibstat go through generic parsers or a hint row instead
+- Samples: `samples/{hpl,stream,ior,mdtest,lst-stat}/`
+
 ## 2026-03-31 (2 new Kubernetes resource monitoring strategies)
 - Added `kubectl-top-nodes.sh` -- extracts node resource usage from `kubectl top nodes` (name, cpu_cores, cpu_pct, mem_bytes, mem_pct)
 - Added `kubectl-top-pods.sh` -- extracts pod resource usage from `kubectl top pods` (namespace, name, cpu, memory); supports both namespaced and non-namespaced output

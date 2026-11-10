@@ -29,9 +29,11 @@
 # "Begin of HPL section." ... "End of HPL section." markers.
 #
 # One record per test: tv (the encoded variant), matrix_n (N), nb, p, q, time_s, gflops,
-# then the residual and its PASSED/FAILED check from the residual line, and
-# the start and end times when this HPL prints them. Units go in the names
-# (time_s; gflops is the unit).
+# then the residual and its PASSED/FAILED check from the residual line, the
+# start and end times when this HPL prints them, and — under a FAILED check,
+# where HPL prints the norms it used (`||Ax-b||_oo  . . . =  0.001377`) —
+# norm_ax_b_oo, norm_a_oo, norm_a_1, norm_x_oo and norm_x_1. Units go in the
+# names (time_s; gflops is the unit).
 
 _hpl_is_num () { [[ "$1" =~ ^[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?$ ]]; }
 
@@ -77,12 +79,24 @@ strategy_extract () {
                 v="${line#HPL_pdgesv() end time }"; v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"
                 result+="entry${entry}.end_time ${v}"$'\n'
                 ;;
-            "||Ax-b||"*=*)
+            "||Ax-b||_oo/("*=*)
                 [[ $entry -gt 0 ]] || continue
                 { _fr_tok "${line#*=}"; t=("${_FR_TOK[@]}"); }
                 [[ ${#t[@]} -ge 1 ]] && result+="entry${entry}.residual ${t[0]}"$'\n'
                 [[ "${t[${#t[@]}-1]}" == PASSED || "${t[${#t[@]}-1]}" == FAILED ]] &&
                     result+="entry${entry}.check ${t[${#t[@]}-1]}"$'\n'
+                ;;
+            "||"*" . "*=*)
+                # a FAILED check is followed by the norms it was computed from
+                [[ $entry -gt 0 ]] || continue
+                v="${line##*=}"; v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"
+                case "${line%% *}" in
+                    "||Ax-b||_oo") result+="entry${entry}.norm_ax_b_oo ${v}"$'\n' ;;
+                    "||A||_oo")    result+="entry${entry}.norm_a_oo ${v}"$'\n' ;;
+                    "||A||_1")     result+="entry${entry}.norm_a_1 ${v}"$'\n' ;;
+                    "||x||_oo")    result+="entry${entry}.norm_x_oo ${v}"$'\n' ;;
+                    "||x||_1")     result+="entry${entry}.norm_x_1 ${v}"$'\n' ;;
+                esac
                 ;;
         esac
     done

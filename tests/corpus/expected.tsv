@@ -3734,3 +3734,5 @@ ior-v3	table	9	13
 ior-v4	table	6	13
 mdtest-v3	table	9	9
 mdtest-v4	table	10	9
+hpcg-v3.1	kv	-	90
+hpl-v2.3	table	4	17
