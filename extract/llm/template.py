@@ -642,6 +642,7 @@ def _shortfall(ct2, lines, cov0, exl, before, what):
 # reads the capture at least as well and still reads the earlier captures.
 JUDGE_ROWS = 40          # rows of each table shown to the judge
 MAX_FIXES = 5
+JUDGE_EFFORT = "high"
 JUDGE_ASK = ("Review what the template makes of the capture, on the checks in your instructions. Reply with "
              '{"verdict": "PASS"} or {"verdict": "FIX", "fixes": [...]} only.')
 REVISE_ASK = ("Revise the template to make these fixes, and keep what is right as it is. It must still read the "
@@ -722,8 +723,10 @@ def judge(t, lines, tool="", model="claude-opus-5-5"):
              f"The capture ({len(lines)} lines):", _numbered(lines, range(len(lines))),
              "The template:", json.dumps(_bare(t), indent=1, ensure_ascii=False),
              "What the template makes of the capture:", show(t, lines), JUDGE_ASK]
+    # a review is reasoning, not writing: at medium effort the model often
+    # answers without thinking at all
     text = call_claude(system, [{"role": "user", "content": "\n\n".join(parts) + "\n"}], model,
-                       purpose="judge", tool=tool)
+                       effort=JUDGE_EFFORT, purpose="judge", tool=tool)
     return _verdict(text)
 
 
