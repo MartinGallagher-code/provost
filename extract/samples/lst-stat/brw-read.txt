@@ -1,0 +1,36 @@
+[LNet Rates of servers]
+[R] Avg: 6028     RPC/s Min: 5981     RPC/s Max: 6074     RPC/s
+[W] Avg: 12055    RPC/s Min: 11963    RPC/s Max: 12148    RPC/s
+[LNet Bandwidth of servers]
+[R] Avg: 0.92     MiB/s Min: 0.91     MiB/s Max: 0.93     MiB/s 
+[W] Avg: 6028.36  MiB/s Min: 5982.13  MiB/s Max: 6074.59  MiB/s 
+[LNet Rates of clients]
+[R] Avg: 6028     RPC/s Min: 5963     RPC/s Max: 6095     RPC/s
+[W] Avg: 3014     RPC/s Min: 2982     RPC/s Max: 3048     RPC/s
+[LNet Bandwidth of clients]
+[R] Avg: 3014.18  MiB/s Min: 2982.06  MiB/s Max: 3047.98  MiB/s 
+[W] Avg: 0.46     MiB/s Min: 0.45     MiB/s Max: 0.47     MiB/s 
+[LNet Rates of servers]
+[R] Avg: 6045     RPC/s Min: 5994     RPC/s Max: 6096     RPC/s
+[W] Avg: 12090    RPC/s Min: 11989    RPC/s Max: 12192    RPC/s
+[LNet Bandwidth of servers]
+[R] Avg: 0.92     MiB/s Min: 0.91     MiB/s Max: 0.93     MiB/s 
+[W] Avg: 6046.04  MiB/s Min: 5995.12  MiB/s Max: 6096.95  MiB/s 
+[LNet Rates of clients]
+[R] Avg: 6045     RPC/s Min: 5974     RPC/s Max: 6098     RPC/s
+[W] Avg: 3023     RPC/s Min: 2987     RPC/s Max: 3049     RPC/s
+[LNet Bandwidth of clients]
+[R] Avg: 3022.99  MiB/s Min: 2987.45  MiB/s Max: 3049.42  MiB/s 
+[W] Avg: 0.46     MiB/s Min: 0.46     MiB/s Max: 0.47     MiB/s 
+[LNet Rates of servers]
+[R] Avg: 6059     RPC/s Min: 5992     RPC/s Max: 6126     RPC/s
+[W] Avg: 12118    RPC/s Min: 11984    RPC/s Max: 12252    RPC/s
+[LNet Bandwidth of servers]
+[R] Avg: 0.92     MiB/s Min: 0.91     MiB/s Max: 0.93     MiB/s 
+[W] Avg: 6059.94  MiB/s Min: 5992.92  MiB/s Max: 6126.96  MiB/s 
+[LNet Rates of clients]
+[R] Avg: 6059     RPC/s Min: 5924     RPC/s Max: 6206     RPC/s
+[W] Avg: 3030     RPC/s Min: 2962     RPC/s Max: 3103     RPC/s
+[LNet Bandwidth of clients]
+[R] Avg: 3029.96  MiB/s Min: 2962.28  MiB/s Max: 3103.49  MiB/s 
+[W] Avg: 0.46     MiB/s Min: 0.45     MiB/s Max: 0.47     MiB/s 

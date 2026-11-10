@@ -1,0 +1,33 @@
+entry1.A 2026-11-10T17:41:28
+entry1.B reframe 3.12.0
+entry1.C fio_randwrite_check @generic:default+builtin
+entry1.jobid 32426
+entry1.E_key write_bw
+entry1.E_value 826.0
+entry1.ref 150 (l=-0.2, u=null)
+entry1.G MiB/s
+entry2.A 2026-11-10T17:41:28
+entry2.B reframe 3.12.0
+entry2.C fio_randwrite_check @generic:default+builtin
+entry2.jobid 32426
+entry2.E_key write_iops
+entry2.E_value 212000.0
+entry2.ref 40000 (l=-0.2, u=null)
+entry2.G IOPS
+entry3.A 2026-11-10T17:41:32
+entry3.B reframe 3.12.0
+entry3.C fio_randwrite_check @generic:default+builtin
+entry3.jobid 32482
+entry3.E_key write_bw
+entry3.E_value 830.0
+entry3.ref 150 (l=-0.2, u=null)
+entry3.G MiB/s
+entry4.A 2026-11-10T17:41:32
+entry4.B reframe 3.12.0
+entry4.C fio_randwrite_check @generic:default+builtin
+entry4.jobid 32482
+entry4.E_key write_iops
+entry4.E_value 213000.0
+entry4.ref 40000 (l=-0.2, u=null)
+entry4.G IOPS
+total_entries 4

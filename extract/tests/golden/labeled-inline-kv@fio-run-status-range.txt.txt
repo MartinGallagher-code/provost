@@ -1,0 +1,11 @@
+entry1.name READ
+entry1.bw 96.1MiB/s (101MB/s)
+entry1.bw_range 96.1MiB/s-96.1MiB/s (101MB/s-101MB/s)
+entry1.io 288MiB (302MB)
+entry1.run 3001-3001msec
+entry2.name WRITE
+entry2.bw 41.0MiB/s (43.0MB/s)
+entry2.bw_range 41.0MiB/s-41.0MiB/s (43.0MB/s-43.0MB/s)
+entry2.io 123MiB (129MB)
+entry2.run 3001-3001msec
+total_entries 2

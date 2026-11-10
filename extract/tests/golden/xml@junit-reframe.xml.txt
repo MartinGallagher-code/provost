@@ -1,0 +1,14 @@
+entry1.classname /home/ci/fabric-checks/storage_checks.py
+entry1.name memcopy_check @generic:default+builtin
+entry1.time 0.4412782192230224609375
+entry1.testsuite.id 0
+entry1.testsuite.name ReFrame run 0
+entry1.failure.type failure
+entry1.failure.message performance
+entry1.failure performance: performance error: failed to meet references: copy_rate=44.6 GB/s, expected 10.0 (l=9.0, u=15.0)
+entry2.classname /home/ci/fabric-checks/storage_checks.py
+entry2.name fio_randwrite_check @generic:default+builtin
+entry2.time 3.7459657192230224609375
+entry2.testsuite.id 0
+entry2.testsuite.name ReFrame run 0
+total_entries 2

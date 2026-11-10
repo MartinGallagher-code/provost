@@ -1,0 +1,44 @@
+entry1.classname tests.test_fabric
+entry1.name test_bandwidth_meets_reference[1]
+entry1.time 0.000
+entry1.testsuite.name pytest
+entry2.classname tests.test_fabric
+entry2.name test_bandwidth_meets_reference[1024]
+entry2.time 0.000
+entry2.testsuite.name pytest
+entry3.classname tests.test_fabric
+entry3.name test_bandwidth_meets_reference[65536]
+entry3.time 0.000
+entry3.testsuite.name pytest
+entry4.classname tests.test_fabric
+entry4.name test_bandwidth_meets_reference[4194304]
+entry4.time 0.000
+entry4.testsuite.name pytest
+entry5.classname tests.test_fabric
+entry5.name test_latency_small_message
+entry5.time 0.000
+entry5.testsuite.name pytest
+entry6.classname tests.test_fabric
+entry6.name test_ib_link_rate
+entry6.time 0.000
+entry6.testsuite.name pytest
+entry6.skipped.type pytest.skip
+entry6.skipped.message no InfiniBand HCA on this node
+entry6.skipped /home/ci/fabric-checks/tests/test_fabric.py:14: no InfiniBand HCA on this node
+entry7.classname tests.test_fabric
+entry7.name test_mpi_launcher_present
+entry7.time 0.000
+entry7.testsuite.name pytest
+entry7.failure.message RuntimeError: mpirun not found on PATH
+entry7.failure def test_mpi_launcher_present(): > raise RuntimeError("mpirun not found on PATH") E RuntimeError: mpirun not found on PATH tests/test_fabric.py:19: RuntimeError
+entry8.classname tests.test_fabric.TestStorage
+entry8.name test_ior_write_bw
+entry8.time 0.000
+entry8.testsuite.name pytest
+entry9.classname tests.test_fabric.TestStorage
+entry9.name test_mdtest_stat_rate
+entry9.time 0.000
+entry9.testsuite.name pytest
+entry9.skipped.type pytest.xfail
+entry9.skipped.message mdtest stat rate regression, see PV-030
+total_entries 9

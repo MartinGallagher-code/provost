@@ -1,0 +1,4 @@
+2026-11-10T17:41:28|reframe 3.12.0|fio_randwrite_check @generic:default+builtin|jobid=32426|write_bw=826.0|ref=150 (l=-0.2, u=null)|MiB/s
+2026-11-10T17:41:28|reframe 3.12.0|fio_randwrite_check @generic:default+builtin|jobid=32426|write_iops=212000.0|ref=40000 (l=-0.2, u=null)|IOPS
+2026-11-10T17:41:32|reframe 3.12.0|fio_randwrite_check @generic:default+builtin|jobid=32482|write_bw=830.0|ref=150 (l=-0.2, u=null)|MiB/s
+2026-11-10T17:41:32|reframe 3.12.0|fio_randwrite_check @generic:default+builtin|jobid=32482|write_iops=213000.0|ref=40000 (l=-0.2, u=null)|IOPS
