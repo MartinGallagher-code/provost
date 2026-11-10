@@ -1,5 +1,66 @@
 # provost — Changelog
 
+## 2.6.0 — 2026-11-10 — a structural judge after --llm learn and repair (PV-009)
+
+`VERSION` 2.5.0 → 2.6.0, and the `man/provost.1` header. Minor: a new
+review step under `--llm`, on by default, and a setting to turn it off
+(`PROVOST_LLM_JUDGE`).
+
+**What it does.** After Claude writes a template (`learn`) or extends one
+(`repair`), one more call shows Claude the capture, the template and the
+tables it makes of the capture (`extract/llm/JUDGE.md`), and asks for PASS or
+up to five structural fixes. The checks are the faults HANDOFF 0k found
+behind round 4's PARTIALs, which a coverage check cannot see: a parent the
+rows do not keep (a section, a tree's parent, a trunk above its members), a
+record split across tables, a header half applied, a line kind misread, data
+set aside as decoration. A fix list goes back to the template's writer once
+(one more try if the revision is invalid or falls short). The revision is
+kept only if it reads the capture at least as well, still reads every line
+of the template's earlier captures it read, and passes provost's gate; if
+it fails the gate, the template as it was before the review is filed and
+kept (`template.py` writes it beside the revision as `NEW.before`). A
+review that fails (an API error, an unreadable verdict) costs nothing but
+the call. The verdict is stored in the template as `"judge"`, and the
+capture's report and `meta.tsv` say what it did ("a review passed it",
+"revised after a review asked for 2 fixes", ...). The judge runs at
+effort `high`: at `medium`, Opus 5.5 answered reviews without thinking.
+
+**Measured on round 5** (`tests/benchmark/round5/llm-judge/`). Round 5's
+first-contact templates (`round5/llm-templates-learn/`, the ones rated on
+2026-11-04) were reviewed on their own inputs with the new
+`tests/benchmark/judge_round.sh`: 100 reviews, 74 PASS, 26 fix lists, all
+26 revisions held and passed the gate. 126 calls, 515,599 input and 80,469
+output tokens, about $3.70. The 26 changed outputs were rated blind before
+and after by four subagent raters on round 5's `CRITERIA.md` (no rater saw
+both versions of an input): **before 17 PASS / 9 PARTIAL, after 25 PASS /
+1 PARTIAL; 9 better, 1 worse, 16 the same.** Of the four template-filed
+inputs rated PARTIAL on 2026-11-04 that the judge flagged, all four now
+rate PASS. The one worse: `postfix-qshape`, where the revision moved the
+TOTAL row to a table of its own without its label. On round 5's own
+ratings this puts `--llm` first contact at 99 / 6 / 2 (was 96 / 9 / 2).
+Caveats: round 5 had been rated before this change (it is a seen set, not
+an unseen one); the raters, the writer and the judge are one model family;
+and repair's review could not be measured, as round 5 has no second
+captures.
+
+- `extract/llm/template.py`: `judge`, `revise`, `review_template`,
+  `review_summary`, `show` (what a template makes of a capture, as the judge
+  reads it); `learn` and `repair` review by default (`review=False` to
+  skip); the shared check a changed template must meet is `_shortfall`;
+  `template.py judge TEMPLATE INPUT --out NEW`, and `--no-judge` on `learn`
+  and `repair`, which now print what happened and the review's line.
+- `extract/llm/JUDGE.md`: the judge's instructions, shipped in the wheel
+  (`pyproject.toml`).
+- `provost`: `PROVOST_LLM_JUDGE` (0 or 1, default 1), `_llm_reviewed`; help,
+  `man/provost.1` and README document it.
+- `tests/fake_anthropic.py` answers a JSON list of replies in order;
+  `tests/smoke.sh` gives every existing learn and repair a PASS verdict and
+  adds checks for a revision kept, a revision the gate refuses, and
+  `PROVOST_LLM_JUDGE=0` / `2`; `ml/tests/test_llm_template.py` adds 13
+  judge tests.
+- `tests/benchmark/judge_round.sh`; `tests/benchmark/round5/llm-judge/`
+  (`judge.tsv`, `llm-log.jsonl`, the 26 revised templates, `ratings.tsv`).
+
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new
