@@ -1,5 +1,29 @@
 # provost — Changelog
 
+## 2.5.1 — 2026-11-10 — a decision record on how provost should generalise (PV-006)
+
+`VERSION` 2.5.0 → 2.5.1, and the `man/provost.1` header. Patch: docs and a
+benchmark analysis script, no behaviour changed.
+
+- **`docs/0004-generalisation-approach.md`** weighs the four options HANDOFF
+  listed before another fix round (segment with `--multi` on weak signals;
+  let the quality signals decide more; narrow the claim and hold weak parses;
+  `--model` or `--llm` as the default fallback for held captures), plus
+  `--llm` first, against rounds 4 and 5. The findings:
+  - the signals cannot see 7–8 FAILs a round;
+  - no choice between the engine's own readers gets past 15–19 PASS of 107;
+  - `--model` adds nothing on held captures;
+  - `--llm` first is the only reader that changes the result (87 / 18 / 2 and
+    96 / 9 / 2).
+
+  It recommends that pick and narrowing the claim offline together. **The
+  owner's pick is pending.** When it is made, it gets its own version and
+  entry here, HANDOFF records it, and its follow-up tickets are filed.
+- **`tests/benchmark/what_if.py`** reproduces every figure in the note from
+  the rounds' rating sheets (stdlib, nothing re-run or re-rated).
+- `mkdocs.yml` lists the note under Design. HANDOFF "Next steps" 1 points to
+  it.
+
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new
