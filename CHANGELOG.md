@@ -33,7 +33,12 @@ however good the template.
   parsers are untouched.
 
 Round 4 with its stored templates (`tests/benchmark/llm_round.sh`), main
-against this branch: ROUND4_RESULT
+against this branch, on the first captures (`inputs/`) and the second
+(`variants/`): exactly 020 and 132 change in each (engine yaml → template;
+held → template), and every other capture's tidy files and meta are
+byte-identical but for the timestamp. First captures: 105 template / 1
+engine / 1 held → 107 template. Second captures: 101 / 5 / 1 → 103 / 4 / 0.
+Corpus gate: 3602 passed, 0 failed (no golden moved).
 
 Files: `provost` (`_am_frag_add`, `_AM_FRAG_MIN`, the LLM-first hook in
 `_ingest`, `provost help` AUTO-MULTI and LLM TEMPLATES), `man/provost.1`,
