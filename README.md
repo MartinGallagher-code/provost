@@ -133,7 +133,13 @@ edit the engines in place; run each tree's own test suite to keep it green.
 
 ## Integrating from another tool
 
-Wrappers that pipe into provost (e.g. deframe) get two hooks:
+**Running provost from a test framework?** [docs/integrations/index.md](docs/integrations/index.md)
+has worked recipes, each run in CI: a generic `provost-wrap -- CMD` wrapper
+for any harness, a ReFrame mixin and perflog filing, a pytest plugin and the
+JUnit XML route, and a GitLab CI job. Each files the run's context (test,
+system, job id, exit status) as columns on every row.
+
+Wrappers that pipe into provost (e.g. deframe) get these hooks:
 
 - **`--plugin-dir <dir>`** (or `PROVOST_PLUGIN_DIR`): an extra strategy directory
   that competes in format detection for that capture — no symlink into the

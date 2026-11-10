@@ -1,5 +1,48 @@
 # provost — Changelog
 
+## 2.6.0 — 2026-11-10 — worked recipes for running provost from test frameworks (PV-023)
+
+`VERSION` 2.5.0 → 2.6.0, and the `man/provost.1` header. Minor: new recipes a
+user can copy and run; provost itself is unchanged, and no corpus golden moved.
+
+The outside assessment (QD-006) said provost "runs alongside" ReFrame and
+other harnesses, and asked for worked examples. They are in
+`docs/integrations/` (a new "Test frameworks" section of the docs site, linked
+from the README and the docs home page), each file shown whole on its page and
+kept in `docs/integrations/examples/`:
+
+- **`provost-wrap [--name NAME] [KEY=VALUE ...] -- CMD`** (`wrapper.md`): runs
+  CMD with its output passed through, files that output with a `#%` prologue
+  of the KEY=VALUE words and `rc`, and exits with CMD's own status even when
+  provost is missing or refuses the output (`provost run`'s status is
+  provost's when the filing fails). `run-suite.sh` is a plain shell harness
+  built on it.
+- **ReFrame** (`reframe.md`): a `ProvostCapture` mixin whose post-run hook
+  files each test's stdout with `test`, `system`, `partition`, `environ`,
+  `sched.job` and `rc` as columns (and `provost_context` for more), and a
+  `--perflogdir` per run plus `provost batch --from -` for the perflogs.
+  Tested with ReFrame 4.7.4.
+- **pytest** (`pytest.md`): a `provost_pytest` plugin (`-p provost_pytest
+  --provost`) that files each test's printed output with its id, outcome and
+  duration, in one `provost batch` at the end of the session; and the JUnit
+  XML route (a row per test case, from 2.5.0's `xml` record mode).
+- **GitLab CI** (`gitlab-ci.md`): a job that calls the wrapper with the
+  pipeline, job, commit and runner as manifest keys and keeps the store as an
+  artifact.
+
+**Tested in CI.** `tests/integrations.sh` (new CI job `integrations`) runs
+every recipe against a stand-in benchmark and a throwaway store and checks
+the rows carry their context columns: a real ReFrame 4.7.4 run of the example
+check (and of a failing one, whose output is still filed), a real pytest
+session, and the GitLab job's `script:` run with GitLab's variables stood in.
+It also fails if a page's copy of a file differs from the file. ReFrame,
+pytest and PyYAML are installed in that job only, never as provost
+dependencies. `tests/smoke.sh` has a new `wrap` part (18 checks): the wrapper
+files a capture with its columns and keeps the wrapped command's exit status.
+
+Not done: recipes for **bstf** and **QB**, which the assessment named but
+nobody here could identify; they wait for the owner's description (PV-023).
+
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new

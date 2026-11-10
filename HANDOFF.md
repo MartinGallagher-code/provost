@@ -5,16 +5,28 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.0` section at the top of CHANGELOG): 2.4.0 (BN-002) and the HPC
-benchmark outputs (PV-030, below). 2.4.0 added `provost
+**provost 2.6.0 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.6.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (2.5.0, PV-030, below) and the test-framework recipes
+(2.6.0, PV-023, below). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
-the top of CHANGELOG is always the version `main` is at. Neither 2.4.0 nor
-2.5.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.5.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
+the top of CHANGELOG is always the version `main` is at. None of 2.4.0, 2.5.0
+and 2.6.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.6.0`, not both).
+
+**2.6.0: recipes for test frameworks (PV-023, 2026-11-10; not published).**
+`docs/integrations/`: `provost-wrap` (a generic wrapper that keeps the
+command's exit status), a ReFrame `ProvostCapture` mixin and perflog filing,
+a `provost_pytest` plugin and the JUnit XML route, and a GitLab CI job. The
+files live in `docs/integrations/examples/` and each page shows them whole;
+`tests/integrations.sh` (CI job `integrations`, ReFrame pinned at 4.7.4 there
+only) runs every recipe and fails if a page's copy differs from its file, so
+edit the file and the page together. The wrapper's checks are smoke part
+`wrap`. Open: recipes for bstf and QB wait for the owner to say what those
+are (PV-023). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
 faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
 added the quality gate and auto-multi, the engine fixes, removal of the
