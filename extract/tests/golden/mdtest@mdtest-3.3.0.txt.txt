@@ -1,0 +1,73 @@
+entry1.summary rate
+entry1.operation Directory creation
+entry1.max 34219.243
+entry1.min 28941.334
+entry1.mean 31678.979
+entry1.std_dev 2157.819
+entry1.unit ops/s
+entry1.iterations 3
+entry2.summary rate
+entry2.operation Directory stat
+entry2.max 167103.912
+entry2.min 141267.630
+entry2.mean 153574.948
+entry2.std_dev 10549.690
+entry2.unit ops/s
+entry2.iterations 3
+entry3.summary rate
+entry3.operation Directory removal
+entry3.max 41210.727
+entry3.min 35124.791
+entry3.mean 38249.415
+entry3.std_dev 2485.421
+entry3.unit ops/s
+entry3.iterations 3
+entry4.summary rate
+entry4.operation File creation
+entry4.max 51910.704
+entry4.min 42685.625
+entry4.mean 47304.188
+entry4.std_dev 3763.068
+entry4.unit ops/s
+entry4.iterations 3
+entry5.summary rate
+entry5.operation File stat
+entry5.max 171540.378
+entry5.min 149019.572
+entry5.mean 159755.246
+entry5.std_dev 9175.530
+entry5.unit ops/s
+entry5.iterations 3
+entry6.summary rate
+entry6.operation File read
+entry6.max 78264.728
+entry6.min 66828.443
+entry6.mean 72503.783
+entry6.std_dev 4662.613
+entry6.unit ops/s
+entry6.iterations 3
+entry7.summary rate
+entry7.operation File removal
+entry7.max 46396.268
+entry7.min 39515.491
+entry7.mean 43061.825
+entry7.std_dev 2810.676
+entry7.unit ops/s
+entry7.iterations 3
+entry8.summary rate
+entry8.operation Tree creation
+entry8.max 703.928
+entry8.min 482.789
+entry8.mean 599.846
+entry8.std_dev 90.745
+entry8.unit ops/s
+entry8.iterations 3
+entry9.summary rate
+entry9.operation Tree removal
+entry9.max 362.345
+entry9.min 287.018
+entry9.mean 330.115
+entry9.std_dev 31.698
+entry9.unit ops/s
+entry9.iterations 3
+total_entries 9
