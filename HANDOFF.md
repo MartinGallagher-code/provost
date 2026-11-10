@@ -5,19 +5,24 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.3.0 is everything through 2026-11-04** (`VERSION`, man header,
-the release entry at the top of CHANGELOG; PV-003). It adds `rm --capture`,
+**provost 2.4.0 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.4.0` section at the top of CHANGELOG; BN-002). It adds `provost
+verify` and input hashes (PV-026), the run manifest (PV-020) and the
+2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
+the version** (`CLAUDE.md`, "Every change moves the version";
+`tests/check_version.sh` and CI's `version` job enforce it), so the version at
+the top of CHANGELOG is always the version `main` is at. 2.4.0 is not published yet:
+run the "Release to PyPI" workflow on `main` (or a GitHub release tagged
+`v2.4.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
-faster `batch` to 2.2.0. It is published by running the "Release to PyPI"
-workflow on `main` (or a GitHub release tagged `v2.3.0`, not both); PyPI's
-provost page says whether that has happened. 2.2.0 (2026-10-30, on PyPI)
+faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
 added the quality gate and auto-multi, the engine fixes, removal of the
 legacy names, store format 3, browsing and search, `batch`, the opt-in
 `--llm` and `--model`, and the 2026-10-29 readers. 2.1.0 (2026-10-16) was
 the first release with the rename, store format 2, line coverage and the
 2026-10-14 parser work.
 
-**Since 2.3.0 (unreleased): the run manifest (PV-020, 2026-11-09).** Profiles
+**In 2.4.0: the run manifest (PV-020, 2026-11-09).** Profiles
 of reserved `#%` keys in `extract/manifests/` (`default`, `proposal`),
 `provost check-manifest`, `provost annotate`, and `--manifest FILE`,
 `--manifest-profile P` and `--strict-manifest` at capture time. Off unless
@@ -124,10 +129,19 @@ Suites (all CI-enforced):
 - `analyze/tests/run_tests.sh` (mawk and gawk)
 - `tests/corpus/run.sh --golden`
 - `python -m pytest`
+- `tests/check_version.sh` (the version job, BN-002)
 
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1d. **2026-11-10: every change moves the version** (shared_tools BN-002).
+    2.3.0 → 2.4.0, numbering the twelve dated entries since 2.3.0 and this
+    change; CHANGELOG's next section is `## X.Y.Z — YYYY-MM-DD — summary
+    (PV-NNN)`. `tests/check_version.sh` (shared_tools' template; places:
+    `VERSION`, the `man/provost.1` header) and CI's `version` job fail a pull
+    request that does not bump past its base. Publishing 2.4.0 is the
+    owner's call.
 
 1c. **2026-11-09: `provost verify` and input hashes** (PV-026). Every
     capture records `input_sha256` (as received, before CRs are stripped),
