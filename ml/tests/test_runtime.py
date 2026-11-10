@@ -5,8 +5,10 @@
     python3 -m unittest discover -s ml/tests -v
 """
 import io
+import json
 import os
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 
@@ -132,6 +134,127 @@ class Arbiter(unittest.TestCase):
     def test_shipped_coefficients_load(self):
         m = arbitrate.load()
         self.assertEqual(len(m["coef"]), 13)
+
+
+class LMArbiter(unittest.TestCase):
+    """The tiny LM's own arbiter (PV-012): which coefficients apply to which
+    model, the switch threshold, and the capture-time wiring."""
+    ALWAYS_ENGINE = {"coef": [0.0] * 13, "intercept": 5.0}
+
+    def model_dir(self, d, payload=b"weights"):
+        with open(os.path.join(d, "config.json"), "w", encoding="utf-8") as fh:
+            json.dump({"format": "provost-lm-numpy/1", "shards": ["weights-1.npz"]}, fh)
+        with open(os.path.join(d, "weights-1.npz"), "wb") as fh:
+            fh.write(payload)
+        return d
+
+    def write(self, path, obj):
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(obj, fh)
+        return path
+
+    def test_threshold_decides_the_switch(self):
+        m = {"coef": [0.0] * 13, "intercept": 1.0}           # p(engine) = 0.73
+        self.assertTrue(arbitrate.prefer_engine(m, [0.0] * 13))
+        self.assertFalse(arbitrate.prefer_engine(dict(m, threshold=0.8), [0.0] * 13))
+        self.assertAlmostEqual(arbitrate.p_engine(m, [0.0] * 13), 0.7311, places=4)
+
+    def test_fingerprint_follows_the_weights(self):
+        with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+            self.model_dir(a)
+            self.model_dir(b)
+            self.assertEqual(arbitrate.fingerprint(a), arbitrate.fingerprint(b))
+            self.model_dir(b, b"weightz")                     # retrained: same shapes, other values
+            self.assertNotEqual(arbitrate.fingerprint(a), arbitrate.fingerprint(b))
+            self.assertRegex(arbitrate.fingerprint(a), "^[0-9a-f]{16}$")
+
+    def test_the_models_own_arbiter_wins(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as t:
+            self.model_dir(d)
+            own = dict(self.ALWAYS_ENGINE, threshold=0.7)
+            self.write(os.path.join(d, "arbiter.json"), own)
+            other = self.write(os.path.join(t, "lm.json"), dict(self.ALWAYS_ENGINE, model="0" * 16))
+            self.assertEqual(arbitrate.load_for_lm(d, other), own)
+
+    def test_provosts_arbiter_applies_to_its_model_only(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as t:
+            self.model_dir(d)
+            fitted = dict(self.ALWAYS_ENGINE, model=arbitrate.fingerprint(d))
+            path = self.write(os.path.join(t, "lm.json"), fitted)
+            self.assertEqual(arbitrate.load_for_lm(d, path), fitted)
+            self.model_dir(d, b"another model")
+            self.assertIsNone(arbitrate.load_for_lm(d, path))
+            self.write(path, self.ALWAYS_ENGINE)              # names no model: never applies
+            self.assertIsNone(arbitrate.load_for_lm(d, path))
+
+    def test_no_model_or_a_broken_file_means_no_arbiter(self):
+        self.assertIsNone(arbitrate.load_for_lm(""))
+        with tempfile.TemporaryDirectory() as d:
+            self.model_dir(d)
+            with open(os.path.join(d, "arbiter.json"), "w", encoding="utf-8") as fh:
+                fh.write("{not json")
+            self.assertIsNone(arbitrate.load_for_lm(d))
+        self.assertIsNone(arbitrate.load_for_lm("/nonexistent/model"))
+
+    def test_shipped_lm_arbiter_names_its_model(self):
+        m = arbitrate.load(arbitrate.LM_COEFFS)
+        self.assertEqual(len(m["coef"]), 13)
+        self.assertRegex(m["model"], "^[0-9a-f]{16}$")
+        self.assertTrue(0.5 <= m["threshold"] < 1)
+        self.assertTrue(m["for"].startswith("provost-model "))
+
+    def test_lm_dir(self):
+        self.assertEqual(LM.lm_dir({"PROVOST_LAYOUT_LM": "0"}), "")
+        self.assertEqual(LM.lm_dir({"PROVOST_LAYOUT_LM": "/some/model"}), "/some/model")
+
+    def test_no_coefficients_leaves_the_split(self):
+        with tempfile.TemporaryDirectory() as t:
+            wide = os.path.join(t, "wide.tsv")
+            with open(wide, "w", encoding="utf-8") as fh:
+                fh.write("entry1.A\tentry1.B\tentry2.A\tentry2.B\nweb\tup\tdb\tdown\n")
+            env = {"PROVOST_LM_ENGINE_WIDE": wide, "PROVOST_LM_ENGINE_META": "aligned-columns\t60\t100\t100"}
+            lines, roles = ["web   up", "db    down"], ["row", "row"]
+            starts = [[0, 3, 6], [0, 6]]
+            probs = [{0: .9, 3: .6, 6: .9}, {0: .9, 6: .9}]
+            self.assertEqual(LM.arbitrate_with_engine(lines, roles, starts, probs, env, coeffs=""), (starts, 0))
+            self.assertEqual(LM.arbitrate_with_engine(lines, roles, starts, probs, env, coeffs=self.ALWAYS_ENGINE),
+                             ([[0, 6], [0, 6]], 1))
+
+    def test_main_arbitrates_the_lms_labels(self):
+        """layout_model.main with the LM labelling: the LM's arbiter (here one
+        that always prefers the engine) keeps the engine's split where the
+        two differ, and none is used when the LM has no arbiter: there the
+        LM's own cut files the names as two columns."""
+        lines = ["NAME    STATE", "web 1   up", "db 2    down", "mq 3    up"]
+        lm_starts = [[0, 8], [0, 4, 8], [0, 3, 8], [0, 3, 8]]       # the LM cuts the names in two
+        probs = [{0: .9, 8: .9}] + [{0: .9, k: .6, 8: .9} for k in (4, 3, 3)]
+        saved = (LM.load_lm, LM.label_lm, dict(os.environ))
+        try:
+            LM.load_lm = lambda env=os.environ: ("model", "encoder")
+            LM.label_lm = lambda lm, ls: (["header", "row", "row", "row"], [list(s) for s in lm_starts], probs)
+            with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as t:
+                self.model_dir(d)
+                src = os.path.join(t, "in.txt")
+                with open(src, "w", encoding="utf-8") as fh:
+                    fh.write("\n".join(lines) + "\n")
+                wide = os.path.join(t, "wide.tsv")
+                with open(wide, "w", encoding="utf-8") as fh:
+                    fh.write("entry1.NAME\tentry1.STATE\tentry2.NAME\tentry2.STATE\tentry3.NAME\tentry3.STATE\n"
+                         "web 1\tup\tdb 2\tdown\tmq 3\tup\n")
+                os.environ.update(PROVOST_LAYOUT_LM=d, PROVOST_LM_ENGINE_WIDE=wide,
+                                  PROVOST_LM_ENGINE_META="aligned-columns\t60\t100\t100")
+                rc, plain = run(src)                    # no arbiter for this LM: its own cut
+                self.assertEqual(rc, 0)
+                self.assertIn("entry1.NAME web\nentry1.B 1\n", plain)
+                self.write(os.path.join(d, "arbiter.json"), self.ALWAYS_ENGINE)
+                rc, arbitrated = run(src)
+                self.assertEqual(rc, 0)
+                self.assertIn("entry1.NAME web 1\n", arbitrated)
+                self.assertIn("entry2.STATE down\n", arbitrated)
+        finally:
+            LM.load_lm, LM.label_lm = saved[0], saved[1]
+            os.environ.clear()
+            os.environ.update(saved[2])
 
 
 if __name__ == "__main__":
