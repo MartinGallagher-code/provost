@@ -1,0 +1,22 @@
+# Port counters: Lid 12 port 1 (CapMask: 0x5A00)
+PortSelect:......................1
+CounterSelect:...................0x0000
+SymbolErrorCounter:..............0
+LinkErrorRecoveryCounter:........0
+LinkDownedCounter:...............1
+PortRcvErrors:...................0
+PortRcvRemotePhysicalErrors:.....0
+PortRcvSwitchRelayErrors:........0
+PortXmitDiscards:................0
+PortXmitConstraintErrors:........0
+PortRcvConstraintErrors:.........0
+CounterSelect2:..................0x00
+LocalLinkIntegrityErrors:........0
+ExcessiveBufferOverrunErrors:....0
+QP1Dropped:......................0
+VL15Dropped:.....................0
+PortXmitData:....................4294967295
+PortRcvData:.....................4294967295
+PortXmitPkts:....................3790315284
+PortRcvPkts:.....................4294967295
+PortXmitWait:....................18342791

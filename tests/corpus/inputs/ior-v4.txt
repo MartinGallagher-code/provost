@@ -1,0 +1,43 @@
+IOR-4.0.0: MPI Coordinated Test of Parallel I/O
+Began               : Mon Nov  9 10:32:05 2026
+Command line        : ior -a POSIX -t 1m -b 1g -F -i 3 -w -r -e -C -o /lustre/scratch/ior/testfile
+Machine             : Linux node001
+TestID              : 0
+StartTime           : Mon Nov  9 10:32:05 2026
+Path                : /lustre/scratch/ior/testfile.00000000
+FS                  : 1843.6 TiB   Used FS: 61.4%   Inodes: 2605.4 Mi   Used Inodes: 23.7%
+
+Options: 
+api                 : POSIX
+apiVersion          : 
+test filename       : /lustre/scratch/ior/testfile
+access              : file-per-process
+type                : independent
+segments            : 1
+ordering in a file  : sequential
+ordering inter file : constant task offset
+task offset         : 1
+nodes               : 2
+tasks               : 16
+clients per node    : 8
+repetitions         : 3
+xfersize            : 1 MiB
+blocksize           : 1 GiB
+aggregate filesize  : 16 GiB
+
+Results: 
+
+access    bw(MiB/s)  IOPS       Latency(s)  block(KiB) xfer(KiB)  open(s)    wr/rd(s)   close(s)   total(s)   iter
+------    ---------  ----       ----------  ---------- ---------  --------   --------   --------   --------   ----
+write     10494      10511      0.001462    1048576    1024.00    0.005515   1.56       0.107362   1.56       0   
+read      13218      13231      0.001137    1048576    1024.00    0.003161   1.24       0.028540   1.24       0   
+write     9696       9714       0.001606    1048576    1024.00    0.007662   1.69       0.064965   1.69       1   
+read      13844      13853      0.001080    1048576    1024.00    0.002292   1.18       0.026098   1.18       1   
+write     10107      10127      0.001556    1048576    1024.00    0.006886   1.62       0.114309   1.62       2   
+read      12680      12686      0.001236    1048576    1024.00    0.001897   1.29       0.038310   1.29       2   
+
+Summary of all tests:
+Operation   Max(MiB)   Min(MiB)  Mean(MiB)     StdDev   Max(OPs)   Min(OPs)  Mean(OPs)     StdDev    Mean(s) Stonewall(s) Stonewall(MiB) Test# #Tasks tPN reps fPP reord reordoff reordrand seed segcnt   blksiz    xsize aggs(MiB)   API RefNum
+write       10493.69    9696.32   10098.84     325.57   10493.69    9696.32   10098.84     325.57    1.62405         NA            NA     0     16   8    3   1     1        1         0    0      1 1073741824  1048576   16384.0 POSIX      0
+read        13843.68   12679.59   13247.19     475.68   13843.68   12679.59   13247.19     475.68    1.23838         NA            NA     0     16   8    3   1     1        1         0    0      1 1073741824  1048576   16384.0 POSIX      0
+Finished            : Mon Nov  9 10:32:14 2026

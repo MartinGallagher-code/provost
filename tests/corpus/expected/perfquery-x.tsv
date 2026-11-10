@@ -1,0 +1,11 @@
+n	key	value
+1	PortSelect	1
+2	CounterSelect	0x0000
+3	PortXmitData	3925168827131
+4	PortRcvData	4410262915322
+5	PortXmitPkts	3790361097
+6	PortRcvPkts	4791284466
+7	PortUnicastXmitPkts	3790339253
+8	PortUnicastRcvPkts	4790200549
+9	PortMulticastXmitPkts	21844
+10	PortMulticastRcvPkts	1083917

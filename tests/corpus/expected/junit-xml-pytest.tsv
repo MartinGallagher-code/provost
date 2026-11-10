@@ -1,0 +1,10 @@
+n	classname	name	time	testsuite.name	skipped.type	skipped.message	skipped	failure.message	failure
+1	tests.test_fabric	test_bandwidth_meets_reference[1]	0.000	pytest					
+2	tests.test_fabric	test_bandwidth_meets_reference[1024]	0.000	pytest					
+3	tests.test_fabric	test_bandwidth_meets_reference[65536]	0.000	pytest					
+4	tests.test_fabric	test_bandwidth_meets_reference[4194304]	0.000	pytest					
+5	tests.test_fabric	test_latency_small_message	0.000	pytest					
+6	tests.test_fabric	test_ib_link_rate	0.000	pytest	pytest.skip	no InfiniBand HCA on this node	/home/ci/fabric-checks/tests/test_fabric.py:14: no InfiniBand HCA on this node		
+7	tests.test_fabric	test_mpi_launcher_present	0.000	pytest				RuntimeError: mpirun not found on PATH	def test_mpi_launcher_present(): > raise RuntimeError("mpirun not found on PATH") E RuntimeError: mpirun not found on PATH tests/test_fabric.py:19: RuntimeError
+8	tests.test_fabric.TestStorage	test_ior_write_bw	0.000	pytest					
+9	tests.test_fabric.TestStorage	test_mdtest_stat_rate	0.000	pytest	pytest.xfail	mdtest stat rate regression, see PV-030			

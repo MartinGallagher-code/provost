@@ -1,0 +1,6 @@
+n	name	classname	time	status	testsuite.name	system-out	failure.message
+1	osu_bw_smoke	osu_bw_smoke	0.00197934	run	(empty)	# Size Bandwidth (MB/s) 4194304 24397.05	
+2	ior_write_smoke	ior_write_smoke	0.00136786	run	(empty)	write 9876.54 MiB/s	
+3	hpl_residual	hpl_residual	0.00186072	fail	(empty)	residual check FAILED	Failed
+4	mdtest_stat_rate	mdtest_stat_rate	0	disabled	(empty)	Disabled	
+5	lnet_selftest_timeout	lnet_selftest_timeout	1.0061	fail	(empty)		Timeout
