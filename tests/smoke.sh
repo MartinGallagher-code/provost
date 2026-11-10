@@ -1261,6 +1261,7 @@ if _part core; then
 EH="$(mktemp -d)/evilhome"; mkdir -p "$EH/transform" "$EH/extract" "$EH/analyze"
 MARK="$(mktemp -d)/pwned"
 printf 'touch %q\n' "$MARK.transform" > "$EH/transform/melt.sh"
+printf 'touch %q\n' "$MARK.units" > "$EH/transform/units.sh"
 printf 'touch %q\n' "$MARK.extract" > "$EH/extract/provost-extract"
 printf 'touch %q\n' "$MARK.analyze" > "$EH/analyze/provost-analyze"
 ev_out="$(printf 'a=1, b=2\n' | env -u PROVOST_WORKSPACE PROVOST_HOME="$EH" "$PROVOST" 2>&1)"
@@ -1710,6 +1711,73 @@ check "...and every row once, no duplicate row index" "12 12" \
     "$(awk -F'\t' 'NR > 1 { n++; if (!seen[$1]++) u++ } END { print n, u }' "$CBWS/datasets/cb.tsv")"
 check "...each batch its own commit" "2" "$(tgit "$CBWS" log --format=%s | grep -c '^batch: 6 capture(s)')"
 check "--jobs must be a number (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch -j x "$BTD/web01.txt")"
+fi
+
+if _part units; then
+# --units base (PV-032): a NAME[UNIT] column in base units beside each column
+# whose unit can be read; off by default, so tidy output does not change.
+UWS="$(mktemp -d)/.units"; UD="$(mktemp -d)"
+up () { PROVOST_WORKSPACE="$UWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+printf '# OSU MPI Bandwidth Test v7.4\n# Size        Bandwidth (MB/s)\n1                         3.26\n2                         6.55\n4                        13.30\n' > "$UD/osu.txt"
+up --name plain "$UD/osu.txt" >/dev/null
+check "without --units the dataset is as before" "# capture n A Bandwidth_(MB/s) 1 c0001 1 1 3.26" "$(up show plain | sq | tr '\n' ' ')"
+check_not "...no NAME[UNIT] column" "[B/s]" "$(up show plain)"
+check_not "...no units line in meta.tsv" "units" "$(cat "$UWS/captures/c0001/meta.tsv")"
+check "...and no units.tsv" "none" "$(ls "$UWS/captures/c0001/units.tsv" 2>/dev/null || echo none)"
+up --units base --name osu "$UD/osu.txt" >/dev/null
+check "--units base adds NAME[UNIT] right after the column" "# capture n A Bandwidth_(MB/s) Bandwidth_(MB/s)[B/s]" "$(up show osu | sq | head -1)"
+check "...in base units, exactly" "1 3.26 3260000" "$(up show osu | sq)"
+check "...and 13.30 MB/s is 13300000 B/s" "4 13.30 13300000" "$(up show osu | sq)"
+umeta="$(cat "$UWS/captures/c0002/meta.tsv")"
+check "meta.tsv records the mode" "units	base" "$umeta"
+check "...and where the record is" "units_columns	units.tsv" "$umeta"
+check "units.tsv records each column: dataset, column, new column, base, from, read" \
+    "osu	Bandwidth_(MB/s)	Bandwidth_(MB/s)[B/s]	B/s	name	MB/s=10^6" "$(cat "$UWS/captures/c0002/units.tsv")"
+check "...under a header" "dataset	column	unit_column	base	from	read" "$(head -1 "$UWS/captures/c0002/units.tsv")"
+check "source still gives the input verbatim" "13.30" "$(up source c0002)"
+up --units=base --name osu "$UD/osu.txt" >/dev/null
+check "--units=base is the same option" "7 c0003 1 1 3.26 3260000" "$(up show osu | sq)"
+up --name osu "$UD/osu.txt" >/dev/null
+check "a later capture without --units joins the dataset" "10 c0004 1 1 3.26" "$(up show osu | sq)"
+check_not "...its unit cells empty" "10 c0004 1 1 3.26 3260000" "$(up show osu | sq)"
+check_not "...not a variant" "osu.v2" "$(up ls)"
+PROVOST_UNITS=base up --name envu "$UD/osu.txt" >/dev/null
+check "PROVOST_UNITS=base is the option" "Bandwidth_(MB/s)[B/s]" "$(up show envu | head -1)"
+PROVOST_UNITS=base up --units off --name offu "$UD/osu.txt" >/dev/null
+check_not "--units off wins over PROVOST_UNITS=base" "[B/s]" "$(up show offu)"
+cp "$HERE/../extract/samples/iperf3-intervals/basic.txt" "$UD/iperf3.txt"
+up run --units base -- cat "$UD/iperf3.txt" >/dev/null
+ishow="$(up show cat | sq)"
+check "a NAME_unit column: each row in its unit (iperf's MBytes are 2^20)" "112 MBytes 117440512" "$ishow"
+check "...its Mbits/sec are 10^6 bits" "940 Mbits/sec 940000000" "$ishow"
+check "...and KBytes 2^10" "412 KBytes 421888" "$ishow"
+check "...as units.tsv says" "MBytes=2^20 (iperf)" "$(cat "$UWS"/captures/c0007/units.tsv)"
+printf 'name,bw,io\nREAD,482MiB/s (505MB/s),28.2GiB (30.3GB)\nWRITE,344MiB/s (361MB/s),20.2GiB (21.7GB)\n' > "$UD/fio.csv"
+up --units base --name fio "$UD/fio.csv" >/dev/null
+fshow="$(up show fio)"
+check "units in the cells (fio): bw" "482MiB/s (505MB/s)	505413632" "$fshow"
+check "...io, a fraction of a GiB, exactly" "28.2GiB (30.3GB)	30279519436.8" "$fshow"
+printf 'host,total\nweb01,7.8Gi\n' > "$UD/free.csv"
+up --units base --name freeh "$UD/free.csv" >/dev/null
+check_not "a bare multiplier (Gi) is not read: no column added" "[B]" "$(up show freeh)"
+check "...the mode is still recorded" "units	base" "$(cat "$UWS"/captures/c0009/meta.tsv)"
+check_not "...with no record of columns" "units_columns" "$(cat "$UWS"/captures/c0009/meta.tsv)"
+up --units base --min-confidence 101 "$UD/osu.txt" >/dev/null
+check "a held capture stays one raw column" "# capture raw" "$(up show unsorted | sq | head -1)"
+check_not "...with no units line" "units" "$(cat "$UWS"/captures/c0010/meta.tsv)"
+PROVOST_WORKSPACE="$UWS" "$PROVOST" batch -q --units base --name bat "$UD/osu.txt" "$UD/osu.txt" >/dev/null 2>&1 || true
+check "batch takes --units base" "Bandwidth_(MB/s)[B/s]" "$(up show bat | head -1)"
+check "...a units.tsv for each capture" "2" "$(ls "$UWS"/captures/c001[12]/units.tsv 2>/dev/null | wc -l | tr -d ' ')"
+check "verify is clean with units.tsv in the captures" "0" "$(PROVOST_WORKSPACE="$UWS" rc_of "$PROVOST" verify)"
+check "--units with a bad mode is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$UWS" rc_of "$PROVOST" --units si "$UD/osu.txt")"
+check "...and says what it takes" "--units must be base or off (got 'si')" "$(up --units si "$UD/osu.txt" || true)"
+check "--units with no mode is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$UWS" rc_of "$PROVOST" run --units)"
+check "PROVOST_UNITS must be off or base (exit 2)" "2" "$(PROVOST_WORKSPACE="$UWS" PROVOST_UNITS=yes rc_of "$PROVOST" ls)"
+check "inject --help lists --units" "--units MODE" "$("$PROVOST" inject --help)"
+check "run --help lists --units" "--units MODE" "$("$PROVOST" run --help)"
+check "batch --help lists --units" "--units MODE" "$("$PROVOST" batch --help)"
+check "help advanced has a UNITS section" "UNITS" "$("$PROVOST" help advanced)"
+check "help advanced lists PROVOST_UNITS" "PROVOST_UNITS" "$("$PROVOST" help advanced)"
 fi
 
 if _part verify; then

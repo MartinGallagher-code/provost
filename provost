@@ -2359,6 +2359,10 @@ options:
                           or holding the capture (sends the capture to the
                           Anthropic API; needs python3 and an API key; --no-llm:
                           don't, the default, PROVOST_LLM)
+  --units MODE            base: after each column whose unit can be read, a
+                          NAME[UNIT] column of the same values in base units
+                          (B, B/s, bit, bit/s, s); off: none, the default
+                          (PROVOST_UNITS; 'provost help advanced', UNITS)
   --manifest FILE         prepend FILE's KEY=VALUE lines as the '#%' run
                           manifest, and check it against the profile
   --manifest-profile P    check the run manifest against profile P (a NAME
@@ -2401,6 +2405,10 @@ options:
   --context-columns       make each 'key=value' in a '#%' prologue a column
                           on every row (--no-context-columns: don't, the
                           default, PROVOST_CONTEXT_COLUMNS)
+  --units MODE            base: after each column whose unit can be read, a
+                          NAME[UNIT] column of the same values in base units
+                          (B, B/s, bit, bit/s, s); off: none, the default
+                          (PROVOST_UNITS; 'provost help advanced', UNITS)
   --manifest FILE         prepend FILE's KEY=VALUE lines as the '#%' run
                           manifest, and check it against the profile
   --manifest-profile P    check the run manifest against profile P (a NAME
@@ -2427,6 +2435,8 @@ options:
                           CPUs, at most 16; --llm parses one at a time)
   --context-columns       make each 'key=value' in a '#%' prologue a column
                           on every row (PROVOST_CONTEXT_COLUMNS)
+  --units MODE            base: add NAME[UNIT] columns in base units, as for
+                          piped input (PROVOST_UNITS; default off)
   --manifest FILE, --manifest-profile P, --strict-manifest
                           as for piped input; under --strict-manifest an input
                           lacking a required key is not captured
@@ -4767,6 +4777,9 @@ CAPTURE OPTIONS (run, piped input, FILE)
     --context-columns, --no-context-columns
                             make a '#%' prologue's key=value words columns
                             (METADATA PROLOGUE below; default off)
+    --units MODE            base: a NAME[UNIT] column in base units after
+                            each column with a readable unit (UNITS below;
+                            off, the default, adds none)
     --manifest FILE         prepend FILE's KEY=VALUE lines as the run
                             manifest and check it (RUN MANIFEST below)
     --manifest-profile P    check the run manifest against profile P
@@ -5046,6 +5059,31 @@ BATCH CAPTURE (provost batch)
     meta.tsv says 'detection  reused (...)' where it was. Off with
     PROVOST_BATCH_REUSE=0, and under --multi, --model and --llm.
 
+UNITS (--units base)
+    By default a unit stays where the tool printed it: in a column's name
+    (Bandwidth_(MB/s)), in each cell (482MiB/s), or in a column beside the
+    number (transfer + transfer_unit). Nothing is converted unasked.
+    With --units base (PROVOST_UNITS=base) each column whose unit can be
+    read exactly gains a column right after it, NAME[UNIT], with the same
+    values as plain numbers in a base unit: B, B/s, bit, bit/s or s. The
+    original column is kept. 9.4 GB/s and 9400 MB/s both become 9400000000
+    in a [B/s] column; 940 Mbits/sec is 940000000 in a [bit/s] one. Bits
+    are never turned into bytes, nor bytes into bits.
+    Units are read by the letter: B and Byte(s) are bytes, b and bit(s)
+    bits; k, K, M, G, T, P, E are powers of 1000, and Ki, Mi, Gi, Ti, Pi, Ei
+    powers of 1024; times are ns, us (or µs), ms and s. A bare multiplier
+    (7.8Gi, 1.2G, as free -h and df -h print) names no quantity, so it is
+    not read; nor is a unit glued to a word in a column name (rxkB/s). The
+    one exception: iperf prints its powers of 1024 as KBytes, MBytes and
+    GBytes (its own source says so), so those are read as KiB, MiB and GiB
+    in a dataset its parser filed, or one named iperf or iperf3.
+    A column is converted only when every cell holding a digit can be read,
+    and the arithmetic is done on the decimal digits, never in floating
+    point, so the result is exact. meta.tsv says 'units  base', and the
+    capture's units.tsv lists each column added: dataset, column,
+    unit_column, base, from (name, cells or column NAME_unit) and read (each
+    unit with its exact factor: MB/s=10^6, MiB/s=2^20, ms=10^-3).
+
 SETTINGS (environment)
     PROVOST_HOME              the global store (default: ~/.provost)
     PROVOST_WORKSPACE         use this store, whatever the directory
@@ -5063,6 +5101,8 @@ SETTINGS (environment)
     PROVOST_MULTI             1 = file every dataset an input holds (--multi)
     PROVOST_CONTEXT_COLUMNS   1 = a '#%' prologue's key=value words become row
                               columns (as --context-columns)
+    PROVOST_UNITS             base = add NAME[UNIT] columns in base units (as
+                              --units base); off = none (the default)
     PROVOST_MANIFEST_PROFILE  the run-manifest profile, a NAME or a .tsv file
                               (as --manifest-profile; asks for a check)
     PROVOST_MANIFEST_STRICT   1 = refuse a capture lacking a required manifest

@@ -64,6 +64,13 @@ column on each of the capture's rows, after \fB#\fR and \fBcapture\fR (or
 \fBPROVOST_CONTEXT_COLUMNS=1\fR; \fB--no-context-columns\fR, the default,
 doesn't). See \fBprovost batch\fR under \fBSUBCOMMANDS\fR.
 .TP
+.B --units \fIMODE\fR
+\fBbase\fR: after each column whose unit can be read, add a column
+\fINAME\fB[\fIUNIT\fB]\fR holding the same values as plain numbers in a
+base unit (\fBB\fR, \fBB/s\fR, \fBbit\fR, \fBbit/s\fR, \fBs\fR); the
+original column is kept. \fBoff\fR, the default: add none (or
+\fBPROVOST_UNITS\fR). See \fBUNITS\fR.
+.TP
 .B --manifest \fIFILE\fR
 Prepend \fIFILE\fR's \fIKEY\fB=\fIVALUE\fR lines (a value is the rest of its
 line, spaces included; blank and \fB#\fR lines skipped) to the input as its
@@ -446,6 +453,29 @@ the extension is kept, with this capture added to its examples, only if it
 still reads every line of the earlier captures the template read and passes
 the same rules. A capture whose lines the template has all met before is
 never sent. \fImeta.tsv\fR records \fBllm_template\fR.
+.SH UNITS
+By default a unit stays where the tool printed it: in a column's name
+(\fBBandwidth_(MB/s)\fR), in each cell (\fB482MiB/s\fR), or in a column
+beside the number (\fBtransfer\fR and \fBtransfer_unit\fR); nothing is
+converted unasked. With \fB--units base\fR each column whose unit can be read
+exactly gains a column right after it, \fINAME\fB[\fIUNIT\fB]\fR, with the
+same values as plain numbers in a base unit: \fBB\fR, \fBB/s\fR,
+\fBbit\fR, \fBbit/s\fR or \fBs\fR. \fB9.4 GB/s\fR and \fB9400 MB/s\fR
+both become \fB9400000000\fR in a \fB[B/s]\fR column. Bits are never turned
+into bytes, nor bytes into bits.
+.PP
+Units are read by the letter: \fBB\fR and \fBByte(s)\fR are bytes,
+\fBb\fR and \fBbit(s)\fR bits; \fBk K M G T P E\fR are powers of 1000,
+\fBKi Mi Gi Ti Pi Ei\fR powers of 1024; times are \fBns\fR, \fBus\fR,
+\fBms\fR and \fBs\fR. A bare multiplier (\fB7.8Gi\fR, \fB1.2G\fR, as
+\fBfree -h\fR and \fBdf -h\fR print) names no quantity and is not read.
+iperf's \fBKBytes\fR, \fBMBytes\fR and \fBGBytes\fR are powers of 1024 (its
+source says so), and are read so in a dataset its parser filed or one named
+\fBiperf\fR or \fBiperf3\fR. A column is converted only when every cell
+holding a digit can be read, and the arithmetic is exact (on the decimal
+digits, never in floating point). \fImeta.tsv\fR records \fBunits base\fR, and
+the capture's \fIunits.tsv\fR lists each column added, with the units read
+and their exact factors.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -525,6 +555,10 @@ File every dataset an input holds (default 0; same as \fB--multi\fR).
 \fB1\fR: every \fIkey\fB=\fIvalue\fR word of a \fB#%\fR prologue becomes
 a column on the capture's rows; \fB0\fR (the default): it is context only
 (same as \fB--context-columns\fR / \fB--no-context-columns\fR).
+.TP
+.B PROVOST_UNITS
+\fBbase\fR: add \fINAME\fB[\fIUNIT\fB]\fR columns in base units;
+\fBoff\fR (the default): none (same as \fB--units\fR).
 .TP
 .B PROVOST_MANIFEST_PROFILE
 The run-manifest profile, a \fINAME\fR or a \fI.tsv\fR file (same as
