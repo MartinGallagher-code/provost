@@ -220,6 +220,75 @@ class LMArbiter(unittest.TestCase):
             self.assertEqual(LM.arbitrate_with_engine(lines, roles, starts, probs, env, coeffs=self.ALWAYS_ENGINE),
                              ([[0, 6], [0, 6]], 1))
 
+    QHOST = ["HOSTNAME   ARCH      NCPU", "----------------------------",
+             "global     -         -", "node01     lx-amd64  32", "node02     lx-amd64  64",
+             "node03     lx-amd64  16"]
+
+    def test_role_features_see_a_second_header(self):
+        eng = ["header", "skip", "row", "row", "row", "row"]
+        mod = ["header", "skip", "header", "row", "row", "row"]
+        rp = [None, None, {"header": 0.8, "row": 0.1}, None, None, None]
+        f = arbitrate.role_features(self.QHOST, eng, mod, rp, 2, [80, 100, 100], "vertical-line")
+        self.assertEqual(len(f), 12)
+        self.assertEqual(f[2:5], [1.0, 1.0, 0.0])          # the model's header, one above it, not first
+        self.assertAlmostEqual(f[5], 2 / 3)                # "-" and "-" look like values, "global" not
+        self.assertEqual(f[6:8], [2.0, 1.0])               # headers: the model's two, the engine's one
+        self.assertTrue(arbitrate.role_contested(eng, mod, rp, 2))
+        self.assertFalse(arbitrate.role_contested(eng, mod, rp, 0))
+        self.assertFalse(arbitrate.role_contested(eng, mod, [None] * 6, 2))
+
+    def test_choose_roles(self):
+        eng = ["header", "skip", "row", "row", "row", "row"]
+        mod = ["header", "skip", "header", "row", "row", "row"]
+        rp = [None, None, {"header": 0.8, "row": 0.1}, None, None, None]
+        with_roles = dict(self.ALWAYS_ENGINE, roles={"coef": [0.0] * 12, "intercept": 5.0})
+        self.assertEqual(arbitrate.choose_roles(with_roles, self.QHOST, eng, mod, rp, [80, 100, 100], "x"),
+                         (eng, 1))
+        self.assertEqual(arbitrate.choose_roles(self.ALWAYS_ENGINE, self.QHOST, eng, mod, rp, [80, 100, 100], "x"),
+                         (mod, 0))                       # no roles part: the model's roles stand
+
+    def test_main_puts_a_data_line_back_under_the_header(self):
+        """sge-qhost's case (round 4, 2026-10-30): the LM calls the `global`
+        line a second header, which renames every column; the roles part
+        keeps the engine's reading of it as a row."""
+        lines = self.QHOST
+        roles = ["header", "skip", "header", "row", "row", "row"]
+        starts = [[0, 11, 21], None] + [[0, 11, 21]] * 4
+        probs = [{0: .9, 11: .9, 21: .9}, None] + [{0: .9, 11: .9, 21: .9}] * 4
+        rprobs = [{"header": 1.0}, {"skip": 1.0}, {"header": 0.83, "row": 0.02}] + [{"row": 1.0}] * 3
+        saved = (LM.load_lm, LM.label_lm, dict(os.environ))
+        try:
+            LM.load_lm = lambda env=os.environ: ("model", "encoder")
+            LM.label_lm = lambda lm, ls, role_probs=False: (list(roles), [None if x is None else list(x) for x in starts],
+                                                            probs, rprobs)
+            with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as t:
+                self.model_dir(d)
+                src = os.path.join(t, "in.txt")
+                with open(src, "w", encoding="utf-8") as fh:
+                    fh.write("\n".join(lines) + "\n")
+                wide = os.path.join(t, "wide.tsv")
+                with open(wide, "w", encoding="utf-8") as fh:
+                    fh.write("entry1.HOSTNAME\tentry1.ARCH\tentry1.NCPU\tentry2.HOSTNAME\tentry2.ARCH\tentry2.NCPU\t"
+                             "entry3.HOSTNAME\tentry3.ARCH\tentry3.NCPU\tentry4.HOSTNAME\tentry4.ARCH\tentry4.NCPU\n"
+                             "global\t-\t-\tnode01\tlx-amd64\t32\tnode02\tlx-amd64\t64\tnode03\tlx-amd64\t16\n")
+                os.environ.update(PROVOST_LAYOUT_LM=d, PROVOST_LM_ENGINE_WIDE=wide,
+                                  PROVOST_LM_ENGINE_META="vertical-line\t80\t100\t100")
+                self.write(os.path.join(d, "arbiter.json"),
+                           {"coef": [0.0] * 13, "intercept": -5.0})        # splits: the model's
+                rc, plain = run(src)
+                self.assertEqual(rc, 0)
+                self.assertIn("entry1.global node01\n", plain)
+                self.write(os.path.join(d, "arbiter.json"),
+                           {"coef": [0.0] * 13, "intercept": -5.0, "roles": {"coef": [0.0] * 12, "intercept": 5.0}})
+                rc, fixed = run(src)
+                self.assertEqual(rc, 0)
+                self.assertIn("entry1.HOSTNAME global\n", fixed)
+                self.assertIn("entry2.HOSTNAME node01\n", fixed)
+        finally:
+            LM.load_lm, LM.label_lm = saved[0], saved[1]
+            os.environ.clear()
+            os.environ.update(saved[2])
+
     def test_main_arbitrates_the_lms_labels(self):
         """layout_model.main with the LM labelling: the LM's arbiter (here one
         that always prefers the engine) keeps the engine's split where the
@@ -231,7 +300,8 @@ class LMArbiter(unittest.TestCase):
         saved = (LM.load_lm, LM.label_lm, dict(os.environ))
         try:
             LM.load_lm = lambda env=os.environ: ("model", "encoder")
-            LM.label_lm = lambda lm, ls: (["header", "row", "row", "row"], [list(s) for s in lm_starts], probs)
+            LM.label_lm = lambda lm, ls, role_probs=False: (["header", "row", "row", "row"],
+                                                            [list(s) for s in lm_starts], probs, [None] * 4)
             with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as t:
                 self.model_dir(d)
                 src = os.path.join(t, "in.txt")

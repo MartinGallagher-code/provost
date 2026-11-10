@@ -121,6 +121,47 @@ class Score(unittest.TestCase):
         self.assertEqual(AR.score(dict(unsure, threshold=0.7), d, set(d.cv))["switched"], 0)
 
 
+QHOST = ["HOST    NCPU", "global  -", "node01  32", "node02  64"]
+
+
+def qhost_doc(name, model_header=True, label_header=False):
+    """The model calls `global` a header (or a row); the engine always reads
+    it as a row; the LLM label says which is right."""
+    corp = {"name": name, "strategy": "aligned-columns", "lines": QHOST,
+            "roles": ["header", "row", "row", "row"], "starts": [[0, 8]] * 4}
+    sure = 0.95 if label_header == model_header else 0.6       # unsure where it is wrong
+    p_header = sure if model_header else 1 - sure
+    cv = {"name": name, "roles": ["header", "header" if model_header else "row", "row", "row"],
+          "starts": [[0, 8]] * 4, "probs": [[[0, 0.9], [8, 0.9]]] * 4,
+          "rprobs": [{"header": 1.0, "row": 0.0}, {"header": p_header, "row": 1 - p_header},
+                     {"header": 0.0, "row": 1.0}, {"header": 0.0, "row": 1.0}]}
+    llm = {"name": name, "lines": QHOST, "starts": [[0, 8]] * 4,
+           "roles": ["header", "header" if label_header else "row", "row", "row"]}
+    return corp, cv, llm
+
+
+class Roles(unittest.TestCase):
+    def test_role_rows_are_header_row_disputes_one_reader_gets_right(self):
+        d = data([qhost_doc(name_in_fold(0, 0)), qhost_doc(name_in_fold(0, 1), label_header=True),
+                  qhost_doc(name_in_fold(0, 2), model_header=False)])
+        X, y = AR.role_rows(d, set(d.cv))
+        self.assertEqual(sorted(y), [0, 1])            # the third agrees: no dispute
+        self.assertEqual(len(X[0]), 12)
+        self.assertTrue(d.has_roles())
+
+    def test_score_counts_role_switches(self):
+        d = data([qhost_doc(name_in_fold(0, 0))])
+        always = {"coef": [0.0] * 13, "intercept": -5.0, "roles": {"coef": [0.0] * 12, "intercept": 5.0}}
+        s = AR.score(always, d, set(d.cv))
+        self.assertEqual((s["role_disputes"], s["role_engine"], s["role_model"], s["role_arbiter"]), (1, 1, 0, 1))
+        self.assertEqual((s["role_switched_right"], s["role_rescued_names"]), (1, [name_in_fold(0, 0)]))
+        self.assertEqual(AR.score(None, d, set(d.cv))["role_arbiter"], 0)
+
+    def test_too_few_disputes_leave_the_roles_part_out(self):
+        d = data([qhost_doc(name_in_fold(k, 0), label_header=bool(k % 2)) for k in range(5)])
+        self.assertIsNone(AR.fit_roles(d, set(d.cv), "0.5", range(5)))
+
+
 @unittest.skipUnless(HAVE_SKLEARN, "needs numpy and scikit-learn")
 class Fit(unittest.TestCase):
     def corpus(self):
@@ -144,6 +185,17 @@ class Fit(unittest.TestCase):
         self.assertGreater(tot["arbiter"], tot["model"])
         self.assertGreater(tot["arbiter"], tot["engine"])
         self.assertEqual(tot["hurt"], 0)
+
+    def test_roles_part_is_fitted_and_used_out_of_fold(self):
+        docs = [qhost_doc(name_in_fold(k, i), label_header=bool(i % 3 == 0)) for k in range(5) for i in range(6)]
+        d = data(docs)
+        tot, _ = AR.nested(d, "llm", "0.5")
+        self.assertEqual(tot["role_disputes"], 30)
+        self.assertEqual(tot["role_model"], 10)
+        self.assertGreater(tot["role_arbiter"], tot["role_model"])
+        rm = AR.fit_roles(d, set(d.cv), "auto", range(5))
+        self.assertEqual(len(rm["coef"]), 12)
+        self.assertIn(rm["threshold"], AR.THRESHOLDS)
 
     def test_auto_threshold_is_one_of_the_choices(self):
         d = self.corpus()

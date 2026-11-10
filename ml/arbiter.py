@@ -16,6 +16,13 @@ per line. Inputs (extract/model/arbitrate.py, shared with capture time):
     the capture (--emit-meta), whether it was aligned-columns, and
     whether the line is key/value.
 
+With the LM's role probabilities in the fold files (fold_eval.py --out
+keeps them), a second part is fitted the same way, always to the LLM labels
+(the hand labels are splits only): "roles", for lines one reader calls a
+header and the other a data row (a data line taken as the header renames
+every column after it). It is left out when the folds give fewer than
+MIN_ROLE_ROWS lines to fit it on.
+
 It is fitted on out-of-fold predictions: each document's probabilities come
 from a model that never trained on its family, so they are as sure of
 themselves as the shipped model is on a capture it has never seen. Two
@@ -55,11 +62,13 @@ import dataset as D  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 THRESHOLDS = (0.5, 0.6, 0.7, 0.8, 0.9)
+MIN_ROLE_ROWS = 20
 
 
 # The feature code is shared with the capture-time runtime, so training and
 # use can't drift apart.
-from arbitrate import features, loglik, p_engine, prefer_engine  # noqa: E402,F401
+from arbitrate import (features, loglik, p_engine, prefer_engine,  # noqa: E402,F401
+                       role_contested, role_features)
 
 
 def read_meta(meta_dir, name):
@@ -124,6 +133,23 @@ class Data:
         ms = [s or [] for s in c["starts"]]
         return features(es, ms, self.probs(name), j, self.meta(name), e["strategy"], e["roles"][j])
 
+    def has_roles(self):
+        return any(c.get("rprobs") for c in self.cv.values())
+
+    def role_contested(self, name, j):
+        e, c = self.corp[name], self.cv[name]
+        rp = c.get("rprobs") or [None] * len(c["roles"])
+        return role_contested(e["roles"], c["roles"], rp, j)
+
+    def role_row(self, name, j):
+        e, c = self.corp[name], self.cv[name]
+        return role_features(e["lines"], e["roles"], c["roles"], c["rprobs"], j, self.meta(name), e["strategy"])
+
+    def llm_roles(self, name):
+        """The LLM label's roles, or None when its lines differ."""
+        e, L = self.corp[name], self.llm.get(name)
+        return L.get("roles") if L and L["lines"] == e["lines"] else None
+
     def llm_lines(self, name):
         """[(j, wanted canon)] for the lines the fold_eval.py yardstick counts:
         both the engine and the LLM label see fields."""
@@ -163,6 +189,33 @@ def training_rows(data, names, target):
     return X, y
 
 
+def role_rows(data, names, target=None):
+    """(X, y) for the roles part: y = 1 where the engine's role is the LLM
+    label's, on the header/row disputes where exactly one reader's is."""
+    X, y = [], []
+    for n in sorted(names):
+        want = data.llm_roles(n)
+        if not want:
+            continue
+        e, c = data.corp[n], data.cv[n]
+        for j in range(len(e["lines"])):
+            if not data.role_contested(n, j):
+                continue
+            re_, rm = e["roles"][j] == want[j], c["roles"][j] == want[j]
+            if re_ != rm:
+                X.append(data.role_row(n, j))
+                y.append(int(re_))
+    return X, y
+
+
+NEVER = {"coef": [0.0] * 13, "intercept": -30.0}     # a split part with nothing to learn from: no switch
+
+
+def fit_splits(X, y):
+    """The split part, or NEVER when the lines hold only one answer."""
+    return fit_lr(X, y) if len(set(y)) == 2 else dict(NEVER)
+
+
 def fit_lr(X, y, C=0.5):
     import numpy as np
     from sklearn.linear_model import LogisticRegression
@@ -170,23 +223,46 @@ def fit_lr(X, y, C=0.5):
     return {"coef": [float(w) for w in m.coef_[0]], "intercept": float(m.intercept_[0])}
 
 
-def choose_threshold(data, names, target, folds):
+def choose_threshold(data, names, target, folds, rows=None):
     """The threshold that keeps the most lines right on these documents,
     each scored by an arbiter fitted on the others (an inner fold split).
-    Ties go to the higher threshold: fewer switches."""
+    Ties go to the higher threshold: fewer switches. rows: training_rows
+    (the splits) or role_rows."""
+    rows = rows or training_rows
     gain = {t: 0 for t in THRESHOLDS}
     for k in folds:
-        X, y = training_rows(data, {n for n in names if data.fold(n) != k}, target)
+        X, y = rows(data, {n for n in names if data.fold(n) != k}, target)
         if len(set(y)) < 2:
             continue
         m = fit_lr(X, y)
-        Xt, yt = training_rows(data, {n for n in names if data.fold(n) == k}, target)
+        Xt, yt = rows(data, {n for n in names if data.fold(n) == k}, target)
         for f, want_engine in zip(Xt, yt):
             p = p_engine(m, f)
             for t in THRESHOLDS:
                 if p > t:
                     gain[t] += 1 if want_engine else -1
     return max(THRESHOLDS, key=lambda t: (gain[t], t))
+
+
+def fit_roles(data, names, threshold, folds):
+    """The roles part fitted on these documents, or None when there are too
+    few disputes to fit it on."""
+    X, y = role_rows(data, names)
+    if len(y) < MIN_ROLE_ROWS or len(set(y)) < 2:
+        return None
+    m = fit_lr(X, y)
+    m["threshold"] = (choose_threshold(data, names, None, folds, role_rows)
+                      if threshold == "auto" else float(threshold))
+    return m
+
+
+def pick_role(model, data, n, j):
+    """The role the arbiter keeps for line j of document n."""
+    e, c = data.corp[n], data.cv[n]
+    rm = model.get("roles") if model else None
+    if rm and data.role_contested(n, j) and prefer_engine(rm, data.role_row(n, j)):
+        return e["roles"][j]
+    return c["roles"][j]
 
 
 def pick(model, data, n, j):
@@ -207,8 +283,27 @@ def score(model, data, names):
     or worse than the model alone."""
     out = {k: 0 for k in ("lines", "engine", "model", "arbiter", "gold", "gold_engine", "gold_model",
                           "gold_arbiter", "switched", "switched_right", "switched_wrong",
-                          "docs", "engine_better", "rescued", "helped", "hurt")}
-    out["rescued_names"], out["hurt_names"] = [], []
+                          "docs", "engine_better", "rescued", "helped", "hurt",
+                          "role_disputes", "role_engine", "role_model", "role_arbiter",
+                          "role_switched", "role_switched_right", "role_switched_wrong")}
+    out["rescued_names"], out["hurt_names"], out["role_rescued_names"] = [], [], []
+    for n in sorted(names):
+        want = data.llm_roles(n)
+        if want:
+            for j in range(len(want)):
+                if not data.role_contested(n, j):
+                    continue
+                e_r, m_r, a_r = data.corp[n]["roles"][j], data.cv[n]["roles"][j], pick_role(model, data, n, j)
+                out["role_disputes"] += 1
+                out["role_engine"] += e_r == want[j]
+                out["role_model"] += m_r == want[j]
+                out["role_arbiter"] += a_r == want[j]
+                if a_r != m_r:
+                    out["role_switched"] += 1
+                    out["role_switched_right"] += a_r == want[j]
+                    out["role_switched_wrong"] += m_r == want[j]
+                    if a_r == want[j] and n not in out["role_rescued_names"]:
+                        out["role_rescued_names"].append(n)
     for n in sorted(names):
         e, c = data.corp[n], data.cv[n]
         lines = data.llm_lines(n)
@@ -265,11 +360,11 @@ def nested(data, target, threshold):
         tr = {n for n in names if data.fold(n) != k}
         te = {n for n in names if data.fold(n) == k}
         X, y = training_rows(data, tr, target)
-        if len(set(y)) < 2:
-            raise SystemExit(f"fold {k}: too few contested lines to fit ({len(y)})")
-        m = fit_lr(X, y)
+        m = fit_splits(X, y)
         m["threshold"] = (choose_threshold(data, tr, target, [f for f in folds if f != k])
                           if threshold == "auto" else float(threshold))
+        if data.has_roles():
+            m["roles"] = fit_roles(data, tr, threshold, [f for f in folds if f != k])
         s = score(m, data, te)
         per.append((k, m["threshold"], len(y), s))
         add(tot, s)
@@ -284,7 +379,10 @@ def report(name, s):
             f"  hand labels {s['gold']}: engine {s['gold_engine']}  model {s['gold_model']}  "
             f"arbiter {s['gold_arbiter']}\n"
             f"  captures {s['docs']}: engine-better {s['engine_better']}, rescued {s['rescued']}; "
-            f"arbiter better than the model on {s['helped']}, worse on {s['hurt']}")
+            f"arbiter better than the model on {s['helped']}, worse on {s['hurt']}\n"
+            f"  header/row disputes {s['role_disputes']}: engine {s['role_engine']}  model {s['role_model']}  "
+            f"arbiter {s['role_arbiter']}; switched {s['role_switched']} ({s['role_switched_right']} made right, "
+            f"{s['role_switched_wrong']} made wrong)")
 
 
 def main(argv=None):
@@ -317,12 +415,22 @@ def main(argv=None):
     if a.show:
         print("  rescued: " + " ".join(tot["rescued_names"][: a.show]))
         print("  worse:   " + " ".join(tot["hurt_names"][: a.show]))
+        print("  header/row put right: " + " ".join(tot["role_rescued_names"][: a.show]))
     X, y = training_rows(data, set(data.cv), a.target)
-    final = fit_lr(X, y)
+    final = fit_splits(X, y)
     final["threshold"] = (choose_threshold(data, set(data.cv), a.target, sorted({data.fold(n) for n in data.cv}))
                           if a.threshold == "auto" else float(a.threshold))
     print(f"final arbiter: fitted on {len(y)} lines where exactly one of engine/model is right; "
           f"threshold {final['threshold']}")
+    if data.has_roles():
+        folds = sorted({data.fold(n) for n in data.cv})
+        rm = fit_roles(data, set(data.cv), a.threshold, folds)
+        if rm:
+            final["roles"] = rm
+            print(f"  roles part: fitted on {len(role_rows(data, set(data.cv))[1])} header/row disputes; "
+                  f"threshold {rm['threshold']}")
+        else:
+            print(f"  roles part: left out (fewer than {MIN_ROLE_ROWS} header/row disputes to fit on)")
     if a.save:
         if a.for_model == "provost-model":
             import arbitrate
@@ -334,7 +442,8 @@ def main(argv=None):
         final["fitted"] = {"target": a.target, "lines": len(y), "documents": len(data.cv),
                            "out_of_fold": {k: tot[k] for k in (
                                "lines", "engine", "model", "arbiter", "gold", "gold_engine", "gold_model",
-                               "gold_arbiter", "docs", "engine_better", "rescued", "helped", "hurt")}}
+                               "gold_arbiter", "docs", "engine_better", "rescued", "helped", "hurt",
+                               "role_disputes", "role_engine", "role_model", "role_arbiter")}}
         with open(a.save, "w", encoding="utf-8") as fh:
             json.dump(final, fh, indent=1)
             fh.write("\n")

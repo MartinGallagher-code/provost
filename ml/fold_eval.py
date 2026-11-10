@@ -23,7 +23,8 @@ hand-labelled test set is not read.
 
 --out FILE keeps the held-out predictions, one JSON line per document in
 crossval.py --out's shape (name, roles, decoded starts, start probabilities
-as [offset, p] pairs per line): the learner's own (lm, grid, or the trees
+as [offset, p] pairs per line, and for the LM each line's role
+probabilities, rprobs): the learner's own (lm, grid, or the trees
 for --learner trees/both). Five folds' files together are out-of-fold
 predictions for the whole corpus, which is what ml/arbiter.py is fitted on.
 
@@ -135,7 +136,7 @@ def predict(k, a, eng, tr, extra):
     else:
         lm, enc = LM.fit(tr, a.lm_epochs, base=a.lm_base or LM.BASE, extra=extra,
                          log=lambda m: print("  lm: " + m, file=sys.stderr))
-    return {n: LM.predict_doc(lm, enc, e) for n, e in eng.items()}
+    return {n: LM.predict_doc(lm, enc, e, role_probs=True) for n, e in eng.items()}
 
 
 def out_learner(a):
@@ -147,10 +148,13 @@ def write_out(path, eng, preds, out, k):
     """One JSON line per held-out document: crossval.py --out's shape."""
     with open(path, "w", encoding="utf-8") as fh:
         for n in eng:
-            roles, _, probs = preds[k][n]
+            roles, _, probs = preds[k][n][:3]
             pr = [None if q is None else sorted([int(c), float(p)] for c, p in q.items()) for q in probs]
             st = [None if s is None else sorted(s) for s in out[k][n]]
-            fh.write(json.dumps({"name": n, "roles": roles, "starts": st, "probs": pr}) + "\n")
+            row = {"name": n, "roles": roles, "starts": st, "probs": pr}
+            if len(preds[k][n]) > 3:                    # the LM's role probabilities
+                row["rprobs"] = preds[k][n][3]
+            fh.write(json.dumps(row) + "\n")
 
 
 def main(argv=None):
@@ -184,7 +188,7 @@ def main(argv=None):
 
     out = {}
     for k, P in preds.items():
-        out[k] = {n: starts_from(eng[n]["lines"], r, pr) for n, (r, _, pr) in P.items()}
+        out[k] = {n: starts_from(eng[n]["lines"], v[0], v[2]) for n, v in P.items()}
     pair = ("grid" if "grid" in preds else "lm") if "trees" in preds else None
     if pair in preds:
         out["avg"] = {}
