@@ -180,17 +180,22 @@ class Store(unittest.TestCase):
 
 class FakeAPI:
     def setUp(self):
-        self.calls, self._orig = [], T.call_claude
+        self.calls, self.purposes, self._orig = [], [], T.call_claude
 
     def tearDown(self):
         T.call_claude = self._orig
 
     def fake(self, *replies):
+        """Each call gets the next reply; an exception is raised instead."""
         replies = list(replies)
 
         def call(system, messages, model, **kw):
             self.calls.append([dict(m) for m in messages])
-            return replies.pop(0)
+            self.purposes.append(kw.get("purpose"))
+            r = replies.pop(0)
+            if isinstance(r, Exception):
+                raise r
+            return r
         T.call_claude = call
 
 
@@ -199,10 +204,10 @@ class Learn(FakeAPI, unittest.TestCase):
     def test_a_template_that_misses_lines_gets_one_more_try(self):
         poor = dict(TPL, blocks=TPL["blocks"][:1])         # no status block: 4/7
         good = dict(TPL, skip=TPL["skip"] + ["^free text"])
-        self.fake(json.dumps(poor), "```json\n" + json.dumps(good) + "\n```")
+        self.fake(json.dumps(poor), "```json\n" + json.dumps(good) + "\n```", json.dumps(good))
         t = T.learn(LINES, "disks")
         self.assertEqual(t["blocks"][1]["name"], "status")
-        self.assertEqual(len(self.calls), 2)
+        self.assertEqual(self.purposes, ["learn", "learn", "audit"])   # the third: its skip audit
         self.assertIn("These lines match no skip, header or line pattern", self.calls[1][-1]["content"])
         self.assertIn("0 |Status: ok", self.calls[1][-1]["content"])
 
@@ -230,7 +235,8 @@ class Learn(FakeAPI, unittest.TestCase):
             os.environ.update(env)
 
     def test_a_learned_template_keeps_its_capture(self):
-        self.fake(json.dumps(dict(TPL, skip=TPL["skip"] + ["^free text"])))
+        good = json.dumps(dict(TPL, skip=TPL["skip"] + ["^free text"]))
+        self.fake(good, good)
         self.assertEqual(T.learn(LINES, "disks")["examples"], ["\n".join(LINES)])
 
 
@@ -327,9 +333,13 @@ class Repair(FakeAPI, unittest.TestCase):
         # a skip rule that swallows a new kind of line is a miss too...
         swallow = dict(self.STORED, skip=self.STORED["skip"] + ["^sdb"])
         self.assertEqual(T.misses(swallow, self.NEW), ([], [7]))
-        # ...but only against examples: with none, every skip is new, and
-        # only unread lines count
-        self.assertEqual(T.misses(dict(swallow, examples=[]), self.NEW), ([], []))
+        # a template from before the skip audit, with no examples: nothing it
+        # sets aside has been judged, so every line it sets aside that
+        # carries words is a miss (the rule line, decoration, never is)
+        self.assertEqual(T.misses(dict(swallow, examples=[]), self.NEW), ([], [7, 9]))
+        # judged decoration, a kind is not a miss again
+        judged = dict(swallow, examples=[], decoration=[T._kind("free text no one matches")])
+        self.assertEqual(T.misses(judged, self.NEW), ([], [7]))
 
     def test_an_extension_that_reads_the_new_lines_is_kept_with_the_capture(self):
         self.fake(json.dumps({k: v for k, v in self.WIDER.items() if k != "examples"}))
@@ -362,6 +372,168 @@ class Repair(FakeAPI, unittest.TestCase):
         ex = T.repair(t, self.NEW, "disks")["examples"]
         self.assertEqual(ex, ["a", "c", "\n".join(self.NEW)])
 
+
+class SkipAudit(FakeAPI, unittest.TestCase):
+    """A skipped line is not covered for free: one with no letter or digit
+    is decoration; one that carries a word or a number is set aside, and
+    covered only once Claude has judged its kind decoration."""
+    # skips the status lines and the stray prose; reads the disks table
+    ASIDE = dict(TPL, skip=["^-+$", "^[A-Z][a-z]+:", "^free text"], blocks=TPL["blocks"][:1])
+    READ_STATUS = dict(TPL, skip=["^-+$", "^free text"])     # what a good audit reply looks like
+
+    def test_a_skipped_line_is_decoration_judged_or_not(self):
+        a = T.audit(dict(self.ASIDE, decoration=[]), LINES)
+        self.assertEqual((sorted(a["decoration"]), sorted(a["judged"]), sorted(a["unjudged"])), ([4], [], [0, 1, 7]))
+        self.assertAlmostEqual(T.coverage(a), 4 / 7)          # header, two rows and the rule
+        judged = dict(self.ASIDE, decoration=[T._kind("free text no one matches")])
+        a = T.audit(judged, LINES)
+        self.assertEqual((sorted(a["judged"]), sorted(a["unjudged"])), ([7], [0, 1]))
+        self.assertAlmostEqual(T.coverage(a), 5 / 7)
+
+    def test_a_template_from_before_the_audit_trusts_what_its_examples_set_aside(self):
+        legacy = dict(self.ASIDE, examples=["\n".join(LINES)])   # no "decoration" record
+        self.assertEqual(T.audit(legacy, LINES)["unjudged"], set())
+        self.assertEqual(T.misses(legacy, LINES), ([], []))
+        # ...but not a kind its examples never set aside
+        self.assertEqual(T.misses(legacy, LINES + ["Health: degraded"]), ([], [8]))
+
+    def test_find_does_not_count_set_aside_lines_as_covered(self):
+        with tempfile.TemporaryDirectory() as d:
+            for name, t in (("a-skips.json", dict(self.ASIDE, decoration=[])),
+                            ("b-reads.json", dict(self.READ_STATUS, decoration=[]))):
+                with open(os.path.join(d, name), "w") as fh:
+                    json.dump(t, fh)
+            # both "cover" 100% if a skipped line counted; only b reads the status
+            path, score = T.find(LINES, [d])
+        self.assertEqual(os.path.basename(path), "b-reads.json")
+        self.assertAlmostEqual(score, 6 / 7)
+
+    def test_learn_shows_what_it_sets_aside_once_and_keeps_a_reply_that_reads_it(self):
+        self.fake(json.dumps(self.ASIDE), json.dumps(self.READ_STATUS))
+        t = T.learn(LINES, "disks")
+        self.assertEqual(self.purposes, ["learn", "audit"])
+        ask = self.calls[1][-1]["content"]
+        self.assertIn("sets aside 3 line(s) that carry words or numbers, as decoration (skip): 3 kind(s)", ask)
+        self.assertIn("0 |Status: ok\n    (1 line of this kind)", ask)       # one line per kind, with a count
+        self.assertIn("7 |free text no one matches\n    (1 line of this kind)", ask)
+        self.assertEqual([b["name"] for b in t["blocks"]], ["disks", "status"])
+        self.assertEqual(t["decoration"], [T._kind("free text no one matches")])   # judged: shown, still skipped
+        self.assertEqual(T.audit(t, LINES)["unjudged"], set())
+
+    def test_an_audit_reply_that_reads_less_is_not_kept_and_nothing_is_judged(self):
+        worse = dict(self.ASIDE, skip=self.ASIDE["skip"] + ["^sda"])          # now skips a data row
+        self.fake(json.dumps(self.ASIDE), json.dumps(worse))
+        t = T.learn(LINES, "disks")
+        self.assertEqual(t["skip"], self.ASIDE["skip"])
+        self.assertEqual(t["decoration"], [])
+        self.assertEqual(sorted(T.audit(t, LINES)["unjudged"]), [0, 1, 7])     # counted as unread
+
+    def test_an_audit_that_cannot_be_had_leaves_the_template_unjudged(self):
+        self.fake(json.dumps(self.ASIDE), T.TemplateError("the API answered 529"))
+        t = T.learn(LINES, "disks")
+        self.assertEqual((t["decoration"], t["examples"]), ([], ["\n".join(LINES)]))
+
+    def test_a_template_that_sets_nothing_aside_is_not_audited(self):
+        self.fake(json.dumps(TPL))                                            # skips only the rule
+        t = T.learn(LINES[:7], "disks")                                       # no prose line
+        self.assertEqual((self.purposes, t["decoration"]), (["learn"], []))
+
+    def test_many_lines_of_one_kind_are_shown_once_with_their_count(self):
+        lines = LINES[:7] + [f"note {i}: kept for reference" for i in range(5)]
+        self.fake(json.dumps(dict(TPL, skip=["^-+$", "^note "])), json.dumps(dict(TPL, skip=["^-+$", "^note "])))
+        t = T.learn(lines, "disks")
+        ask = self.calls[1][-1]["content"]
+        self.assertIn("7 |note 0: kept for reference\n    (5 lines of this kind)", ask)
+        self.assertNotIn("8 |note 1", ask)
+        self.assertEqual(t["decoration"], [T._kind("note 0: kept for reference")])
+
+    def test_a_new_kind_set_aside_is_a_miss_and_repair_judges_it(self):
+        stored = dict(TPL, skip=["^-+$", "^free text", "^Health:"], decoration=[T._kind("free text no one matches")],
+                      examples=["\n".join(LINES)])
+        new = LINES + ["Health:  degraded"]
+        self.assertEqual(T.misses(stored, new), ([], [8]))
+        self.fake(json.dumps(T._bare(stored)))                                # unchanged: decoration after all
+        t = T.repair(stored, new, "disks")
+        ask = self.calls[0][-1]["content"]
+        self.assertIn("8 |Health:  degraded\n    (1 line of this kind)", ask)
+        self.assertNotIn('"decoration"', ask)                                 # provost's record, not a pattern
+        self.assertIn(T._kind("Health:  degraded"), t["decoration"])
+        self.assertEqual(T.misses(t, new), ([], []))
+
+    def test_a_skip_share_far_above_the_earlier_captures_is_a_miss(self):
+        stored = dict(TPL, skip=["^-+$", "^free text"], decoration=[T._kind("free text no one matches")],
+                      examples=["\n".join(LINES)])                            # 1 of 7 set aside
+        flood = LINES[:7] + ["free text no one matches"] * 5                  # 5 of 11
+        self.assertEqual(T.misses(stored, flood)[1], [7, 8, 9, 10, 11])
+        self.assertEqual(T.misses(stored, LINES[:7] + ["free text no one matches"] * 2)[1], [])   # under the floor
+
+    def test_apply_prints_the_audit(self):
+        import contextlib
+        import io
+        with tempfile.TemporaryDirectory() as d:
+            tp, ip = os.path.join(d, "t.json"), os.path.join(d, "in.txt")
+            with open(tp, "w") as fh:
+                json.dump(dict(self.ASIDE, decoration=[T._kind("free text no one matches")]), fh)
+            with open(ip, "w") as fh:
+                fh.write("\n".join(LINES) + "\n")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertEqual(T.main(["apply", tp, ip]), 0)
+            # blocks, coverage, skipped, decoration, judged, not judged, read, unread
+            self.assertEqual(out.getvalue().split(), ["1", "71", "4", "1", "1", "2", "3", "0"])
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                T.main(["audit", tp, ip])
+        self.assertIn("4 skipped: 1 decoration, 1 set aside of a kind judged decoration, 2 set aside of a kind not "
+                      "judged (counted as unread); coverage 71%", out.getvalue())
+        self.assertIn("0 |Status: ok\n    (1 line of this kind)", out.getvalue())
+
+
+class EarlierCaptures(FakeAPI, unittest.TestCase):
+    """An extension must still read every capture the template was written
+    from, not only the examples it keeps (the first and the latest)."""
+    NEW = Repair.NEW
+    WIDER = Repair.WIDER
+
+    def test_an_extension_is_checked_against_captures_beyond_its_examples(self):
+        stored = dict(Repair.STORED, examples=["\n".join(LINES)])
+        # a capture it was written from, no longer among its examples, with
+        # a mount on a path with a space: WIDER's mount pattern reads it, a
+        # narrower one would not
+        older = "\n".join(LINES[:5] + ["sdc1    10G    /mnt/old disk"])
+        narrow = dict(self.WIDER, blocks=[dict(self.WIDER["blocks"][0],
+                                               line="^(?P<name>\\S+)\\s+(?P<size>[\\d.]+[KMGT])\\s+(?P<mount>/\\S*|-)$"),
+                                          self.WIDER["blocks"][1]])
+        self.fake(json.dumps(T._bare(narrow)), json.dumps(T._bare(narrow)))
+        with self.assertRaises(T.TemplateError) as cm:
+            T.repair(stored, self.NEW, "disks", earlier=[older])
+        self.assertIn("another capture it was written from (1 of 1, not shown above) it no longer reads",
+                      str(cm.exception))
+        self.assertNotIn("/mnt/old disk", self.calls[0][-1]["content"])       # checked, not sent
+        self.assertIn("5 |sdc1    10G    /mnt/old disk", self.calls[1][-1]["content"])   # but named when lost
+        # the wider extension reads it: kept, the capture added to its examples
+        self.fake(json.dumps(T._bare(self.WIDER)))
+        t = T.repair(stored, self.NEW, "disks", earlier=[older, "\n".join(LINES)])
+        self.assertEqual(t["examples"], ["\n".join(LINES), "\n".join(self.NEW)])
+
+    def test_the_cli_reads_them_from_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            paths = {k: os.path.join(d, k) for k in ("t.json", "new.txt", "older.txt", "out.json")}
+            with open(paths["t.json"], "w") as fh:
+                json.dump(Repair.STORED, fh)
+            with open(paths["new.txt"], "w") as fh:
+                fh.write("\n".join(self.NEW) + "\n")
+            with open(paths["older.txt"], "w") as fh:
+                fh.write("\n".join(LINES[:5] + ["sdc1    10G    /mnt/old disk"]) + "\n")
+            self.fake(json.dumps(T._bare(self.WIDER)))
+            import contextlib
+            import io
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                rc = T.main(["repair", paths["t.json"], paths["new.txt"], "--out", paths["out.json"],
+                             "--earlier", paths["older.txt"]])
+            self.assertEqual((rc, out.getvalue()), (0, "extended\n"))
+            self.assertEqual(len(T.load(paths["out.json"])["examples"]), 2)
 
 if __name__ == "__main__":
     unittest.main()

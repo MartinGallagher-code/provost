@@ -1449,16 +1449,26 @@ _llm_table () {
 # the engine on that block's own lines and must pass the per-part checks
 # (_am_part_check); the blocks are not fragments; and together they keep at
 # least _AM_GAIN points more of the input than the held parse (and the gate's
-# minimum), the lines the template marks as decoration not counted. One block
-# replaces the held parse (wide.tsv); several are filed as the capture's
-# datasets, named NAME.<block>. Otherwise 1, the reason in llm_note.
+# minimum), the lines the template marks as decoration not counted — as the
+# SKIP AUDIT allows (template.py audit): a skipped line with no letter or
+# digit, or one of a kind Claude has judged decoration. A skipped line that
+# carries a word or a number and has not been judged counts as unread. One
+# block replaces the held parse (wide.tsv); several are filed as the
+# capture's datasets, named NAME.<block>. Otherwise 1, the reason in
+# llm_note; llm_audit holds the counts (skipped decoration judged unjudged
+# read unread).
 _llm_file () {
     local t="$1" py="$PROVOST_ROOT/extract/llm/template.py" bd="$tmp/llmblk" out n=0 skipped=0 i f bname
     local dstrat dconf dcov dcons dlines tot=0 sub=0 covl=0 alll jcov need
-    llm_notes=""; rm -rf "$bd"
+    local _ab _ac a_deco=0 a_judged=0 a_unj=0 a_read=0 a_unread=0 _v
+    llm_notes=""; llm_audit=""; rm -rf "$bd"
     out="$(python3 "$py" apply "$t" "$body" --out "$bd" 2>/dev/null)" \
         || { llm_note="it matches nothing in the input"; return 1; }
-    skipped="${out##*$'\t'}"; [[ "$skipped" =~ ^[0-9]{1,9}$ ]] || skipped=0
+    IFS=$'\t' read -r _ab _ac skipped a_deco a_judged a_unj a_read a_unread <<< "$out" || true
+    for _v in skipped a_deco a_judged a_unj a_read a_unread; do
+        [[ "${!_v}" =~ ^[0-9]{1,9}$ ]] || printf -v "$_v" 0
+    done
+    llm_audit="$skipped $a_deco $a_judged $a_unj $a_read $a_unread"
     while [[ -f "$bd/blk.$((n + 1)).rec" ]]; do n=$((n + 1)); done
     (( n >= 1 )) || { llm_note="it matches nothing in the input"; return 1; }
     # a nameless capture's datasets are named after the template's tool
@@ -1493,15 +1503,18 @@ _llm_file () {
         llm_note="its blocks are fragments ($sub of $tot lines in blocks of $_AM_FRAG_LINES+ lines)"; return 1
     fi
     alll=$(grep -c '[^[:space:]]' "$body" || true)
-    # the lines a template marks as decoration are not counted against it:
-    # none is lost, since every one that carries a word or a number is filed
-    # in its NAME.notes (template.py notes) and the rest are rules and box
-    # glyphs. Against a CATCH-ALL parse the gate passed (text-lines,
-    # line-records: the engine's own lossless readings, _FR_COV_CATCHALL)
-    # it may trail by _LLM_CATCHALL_SLACK points rather than _AM_GAIN.
+    # the lines a template marks as decoration are not counted against it
+    # when the skip audit allows: rules and box glyphs, and set-aside lines of
+    # a kind Claude has judged decoration. None is lost: every skipped line
+    # that carries a word or a number is filed in its NAME.notes (template.py
+    # notes). A set-aside line not judged counts as unread (PV-008: a skip
+    # pattern that swallowed a diff once read as 100%). Against a CATCH-ALL
+    # parse the gate passed (text-lines, line-records: the engine's own
+    # lossless readings, _FR_COV_CATCHALL) it may trail by
+    # _LLM_CATCHALL_SLACK points rather than _AM_GAIN.
     local catchall=0
     case " $strategy " in *" text-lines "*|*" line-records "*) [[ "$llm_floor" == match ]] && catchall=1 ;; esac
-    alll=$(( alll - skipped ))
+    alll=$(( alll - a_deco - a_judged ))
     (( alll > 0 )) || { llm_note="it keeps none of the input's data lines"; return 1; }
     jcov=$(( covl / alll ))
     # against a held parse the template must gain _AM_GAIN points; against a
@@ -1544,10 +1557,13 @@ _llm_file () {
 # new or extended template is kept only when what it yields passes the same
 # rules. Every later capture of the tool is then parsed offline. With LEARN=0
 # Claude is never asked (only a stored template can fit). Otherwise 1, the
-# reason in llm_note.
+# reason in llm_note. On 0, llm_seen_how (learned, extended, checked or read)
+# and llm_seen_tpl (the template file) say how, for the template's ledger
+# (_llm_seen, written with the capture).
 _llm_template () {
     local learn="${1:-1}" py="$PROVOST_ROOT/extract/llm/template.py" tdir="$PROVOST_WORKSPACE/llm-templates"
     local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev
+    llm_seen_how=""; llm_seen_tpl=""
     command -v python3 >/dev/null 2>&1 || { llm_note="python3 is not installed"; return 1; }
     [[ -z "$tool" && -n "$cmd" ]] && { tool="${cmd%% *}"; tool="${tool##*/}"; }
     kf="$(python3 "$py" key "$body" --name "$tool" 2>/dev/null)" || { llm_note="the input could not be read"; return 1; }
@@ -1568,17 +1584,31 @@ _llm_template () {
         local miss="" rnote="" rstat=""
         if (( learn )) && [[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] \
             && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
-            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>"$tmp/llm-repair.err")"; then
+            # every other capture the template was written from that the store
+            # still has (its ledger names them): the extension must still read
+            # them too, though only its examples are sent
+            local -a earlier=(); local _c _h _r
+            if [[ -f "$tdir/$(_llm_seen_stem "$tpl").seen.tsv" ]]; then
+                while IFS=$'\t' read -r _c _h _r; do
+                    case "$_h" in learned|extended|checked) ;; *) continue ;; esac
+                    [[ "$_c" =~ ^c[0-9]{4,}$ && -f "$(_cap_dir)/$_c/output.txt" ]] \
+                        && earlier+=(--earlier "$(_cap_dir)/$_c/output.txt")
+                done < "$tdir/$(_llm_seen_stem "$tpl").seen.tsv"
+            fi
+            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" \
+                    ${earlier[@]+"${earlier[@]}"} 2>"$tmp/llm-repair.err")"; then
                 if _llm_file "$new"; then
                     # kept even when unchanged: it now holds this capture, so
                     # these lines are not sent again
                     mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
                     if [[ "$rstat" == unchanged ]]; then
                         llm_how="template ${tpl##*/}, which Claude checked for $miss and left as it was (llm-templates/$kf)"
+                        llm_seen_how=checked
                     else
                         llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)"
+                        llm_seen_how=extended
                     fi
-                    llm_learned="llm-templates/$kf"
+                    llm_learned="llm-templates/$kf"; llm_seen_tpl="$tdir/$kf"
                     return 0
                 fi
                 rnote="the template Claude extended for $miss fails the gate: $llm_note"
@@ -1587,7 +1617,10 @@ _llm_template () {
                 rnote="Claude could not extend it for $miss: ${err#template: }"
             fi
         fi
-        if _llm_file "$tpl"; then llm_how="template ${tpl##*/}${rnote:+ ($rnote)}"; return 0; fi
+        if _llm_file "$tpl"; then
+            llm_how="template ${tpl##*/}${rnote:+ ($rnote)}"; llm_seen_how=read; llm_seen_tpl="$tpl"
+            return 0
+        fi
         llm_note="template ${tpl##*/} does not fit: $llm_note${rnote:+; $rnote}"
         # a repair was tried: don't also have Claude start the tool's template over
         [[ -z "$rnote" ]] || return 1
@@ -1606,7 +1639,45 @@ _llm_template () {
     fi
     mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
     llm_how="a new template Claude wrote (llm-templates/$kf)"; llm_learned="llm-templates/$kf"
+    llm_seen_how=learned; llm_seen_tpl="$tdir/$kf"
     return 0
+}
+
+# THE LEDGER: every capture an LLM template files is recorded beside the
+# store's templates, in llm-templates/NAME.seen.tsv (NAME: the template's file
+# name without .json, whichever directory it came from), one row a capture:
+#   capture  how  template  read  unread  skipped  unjudged  input_sha256
+# how: learned (Claude wrote it from this capture), extended or checked (a
+# repair: Claude saw this capture and changed the template, or left it as it
+# was), read (filed by it as it was). template: llm-templates/NAME.json, or
+# shipped:NAME.json, or the library path it came from. The counts are its
+# lines on this capture (template.py audit): read, left unread, skipped, and
+# of the skipped those set aside unjudged (counted as unread). A repair reads
+# it for the captures the template was written from (learned, extended,
+# checked) and checks the extension against every one the store still has.
+# Written by _ingest_store under the store lock, with the capture's id;
+# committed with the capture. A capture `rm --capture` purges keeps its row
+# (as its commit keeps its Input-SHA256 trailer); a repair skips it.
+_llm_seen_stem () { local b="${1##*/}"; printf '%s\n' "${b%.json}"; }
+
+# _llm_seen ID — append this capture's row to its template's ledger.
+_llm_seen () {
+    local cid="$1" tdir="$PROVOST_WORKSPACE/llm-templates" led src
+    [[ -n "${llm_seen_how:-}" && -n "${llm_seen_tpl:-}" ]] || return 0
+    led="$tdir/$(_llm_seen_stem "$llm_seen_tpl").seen.tsv"
+    case "$llm_seen_tpl" in
+        "$tdir"/*) src="llm-templates/${llm_seen_tpl##*/}" ;;
+        "$PROVOST_ROOT/extract/llm/templates"/*) src="shipped:${llm_seen_tpl##*/}" ;;
+        *) src="$llm_seen_tpl" ;;
+    esac
+    src="${src//[$'\t\r\n']/ }"
+    local _s _d _j _u _r _n
+    read -r _s _d _j _u _r _n <<< "${llm_audit:-}" || true
+    mkdir -p "$tdir"
+    [[ -s "$led" ]] || printf 'capture\thow\ttemplate\tread\tunread\tskipped\tunjudged\tinput_sha256\n' > "$led"
+    local sha="${in_sha:-}"; [[ "$sha" =~ ^[0-9a-f]{64}$ ]] || sha=""
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$cid" "$llm_seen_how" "$src" \
+        "${_r:-}" "${_n:-}" "${_s:-}" "${_u:-}" "$sha" >> "$led"
 }
 
 # Core ingest pipeline shared by `inject` (pipe/file), `run` (a command) and
@@ -1691,6 +1762,7 @@ _ingest_parse () {
     # was declined; single_cov / single_cons = the held parse's measures.
     local lm_reason="" lm_note="" single_cov="" single_cons="" mm_note=""
     local llm_reason="" llm_note="" llm_how="" llm_learned="" llm_multi=0 llm_floor=gain llm_notes="" llm_notes_base=""
+    local llm_audit="" llm_seen_how="" llm_seen_tpl=""
 
     if [[ "$PROVOST_MULTI" == 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
@@ -1848,7 +1920,7 @@ _ingest_parse () {
     declare -p ds_name ds_strategy ds_conf ds_file ds_cov ds_cons reason \
         strategy conf cov tcons am_reason am_note am_cov am_kind am_model \
         single_strategy single_conf single_cov single_cons lm_reason lm_note \
-        llm_reason llm_note llm_how llm_learned ctxf detection > "$tmp/state.sh"
+        llm_reason llm_note llm_how llm_learned llm_audit llm_seen_how llm_seen_tpl ctxf detection > "$tmp/state.sh"
 }
 
 # _ingest_store IN SOURCE CMD RC WORKDIR COMMIT — the store half of a capture
@@ -2014,6 +2086,14 @@ _ingest_store () {
         [[ -n "$lm_note" ]] && printf 'layout_model\t%s\n' "$(_meta_safe "declined: $lm_note")"
         if [[ -n "$llm_how" ]]; then
             printf 'llm_template\t%s\n' "$(_meta_safe "filed by $llm_how")"
+            # the skip audit: what the template skipped, and how much of it
+            # counted against it (set aside, of a kind not judged decoration)
+            if [[ -n "${llm_audit:-}" ]]; then
+                local _as _ad _aj _au _ar _an
+                read -r _as _ad _aj _au _ar _an <<< "$llm_audit" || true
+                printf 'llm_skip_audit\t%s skipped: %s decoration, %s judged decoration, %s not judged (counted as unread)\n' \
+                    "${_as:-0}" "${_ad:-0}" "${_aj:-0}" "${_au:-0}"
+            fi
             if [[ -n "$llm_reason" ]]; then
                 printf 'single_strategy\t%s\n' "$(_meta_safe "$single_strategy")"
                 printf 'single_confidence\t%s\n' "$single_conf"
@@ -2040,6 +2120,8 @@ _ingest_store () {
         [[ "$in_bytes" =~ ^[0-9]+$ ]] && printf 'input_bytes\t%s\n' "$in_bytes"
         [[ -n "$out_sha" ]] && printf 'output_sha256\t%s\n' "$out_sha"
     } > "$capd/meta.tsv"
+    # the template that filed it records the capture (its ledger)
+    [[ -n "$llm_how" ]] && _llm_seen "$id"
     startid="$firstid"; nrows="$totalrows"; final="$all_names"; strategy="$all_strats"; conf="$all_confs"
 
     if (( commit )); then

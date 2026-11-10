@@ -969,7 +969,17 @@ if command -v python3 >/dev/null 2>&1; then
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
         "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
     check "the next capture uses the stored template, offline" "read by template cmake-cache.json" "$lt_out"
-    check "the API was called once in all" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    # SKIP AUDIT: the template sets aside lines that carry words (`-- ...`,
+    # `// ...`), so learn showed Claude their count and a sample once; the
+    # kinds it left in skip are recorded as judged decoration
+    check "the API was called twice in all: learn, then its skip audit" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the audit shows what the template sets aside" "carry words or numbers, as decoration (skip)" "$(sed -n 2p "$LTD/log")"
+    check "the kinds Claude left in skip are judged decoration" ", 0 set aside of a kind not judged" "$(python3 "$HERE/../extract/llm/template.py" audit "$LTWS/llm-templates/cmake-cache.json" "$LT_IN")"
+    check "meta records the skip audit" "judged decoration, 0 not judged (counted as unread)" "$(grep '^llm_skip_audit' "$LTWS/captures/c0003/meta.tsv")"
+    # THE LEDGER: the template records each capture it files, and how
+    check "the template's ledger records the captures it filed" "c0003 learned llm-templates/cmake-cache.json;c0004 read llm-templates/cmake-cache.json;" "$(tail -n +2 "$LTWS/llm-templates/cmake-cache.seen.tsv" | cut -f1-3 | tr '\t\n' ' ;')"
+    check "the ledger is committed with the capture" "llm-templates/cmake-cache.seen.tsv" "$(git -C "$LTWS" show --stat HEAD 2>&1)"
+    check "a shipped template's captures go in the store's ledger" "c0001	read	shipped:mcstatus.json" "$(cat "$LTWS/llm-templates/mcstatus.seen.tsv")"
     # a refusal: held, with the category
     printf '%s' '{"id":"msg_2","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"refusal","stop_details":{"type":"refusal","category":"cyber","explanation":"x"},"usage":{"input_tokens":1,"output_tokens":0},"content":[]}' > "$LTD/reply.json"
     rm -f "$LTD/port"
@@ -996,7 +1006,7 @@ if command -v python3 >/dev/null 2>&1; then
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
         "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
     kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
-    check "a generic parse the gate passed is offered to Claude first" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "a generic parse the gate passed is offered to Claude first (learn, then its skip audit)" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
     check "the template Claude wrote wins over the heuristic" "was passed over (the engine read it as aligned-columns, coverage 100%): a template Claude wrote for this tool fits; read by a new template Claude wrote (llm-templates/volumes.json)" "$lt_out"
     check "the template's rows are filed" "backup	2T	1.5T	/srv/backup" "$(cat "$LTWS/datasets/volumes.tsv")"
     check "meta records the template over the heuristic" "llm_template	filed by a new template Claude wrote (llm-templates/volumes.json)" "$(cat "$LTWS/captures/c0006/meta.tsv")"
@@ -1059,6 +1069,24 @@ if command -v python3 >/dev/null 2>&1; then
     check "an unchanged reply is said to be one" "read by template volumes.json, which Claude checked for 1 unread line(s) of a kind it has not met and left as it was" "$lt_out"
     check "and the capture is remembered" "3" "$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))["examples"]))' "$LTWS/llm-templates/volumes.json")"
     check "so it is not sent again" "[]" "[$(python3 "$HERE/../extract/llm/template.py" misses "$LTWS/llm-templates/volumes.json" "$LTD/vol4.txt")]"
+    check "the ledger says how each capture was filed" "c0006 learned;c0007 read;c0008 extended;c0009 read;c0010 read;c0011 checked;" "$(tail -n +2 "$LTWS/llm-templates/volumes.seen.tsv" | cut -f1-2 | tr '\t\n' ' ;')"
+    # EVERY CAPTURE IT WAS WRITTEN FROM: a template keeps only its first and
+    # latest captures as examples (what Claude is shown); the ledger names the
+    # rest, and an extension that no longer reads one of them is refused too.
+    # Here vol2's capture (the swap line) is no longer among the examples.
+    python3 -c 'import json, sys; p = sys.argv[1]; t = json.load(open(p)); t["examples"] = [e for e in t["examples"] if "[SWAP]" not in e]; json.dump(t, open(p, "w"), indent=1)' "$LTWS/llm-templates/volumes.json"
+    { printf 'NAME     SIZE   USED   MOUNT\n'; for i in 1 2 3 4 5 6 7 8 9 10; do printf 'd%s       %sG    1G     /srv/d%s\n' "$i" "$i" "$i"; done; printf 'nfs      1T     200G   server:/export\n'; } > "$LTD/vol5.txt"
+    printf '%s' '{"id":"msg_8","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?)\\\\s+(?P<mount>/\\\\S*|\\\\S+:/\\\\S*)$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port" "$LTD/log"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol5.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "an extension that loses a capture beyond the examples is refused" "on another capture it was written from (1 of 1, not shown above) it no longer reads 1 line(s) the template read" "$lt_out"
+    check "that capture is checked, not sent" "0" "$(head -n 1 "$LTD/log" | grep -c '/var/log')"
+    check "the stored template is used as it was, after one more try" "2 read by template volumes.json (Claude could not extend it" "$(wc -l < "$LTD/log" | tr -d ' ') $(printf '%s\n' "$lt_out" | grep -o 'read by template volumes.json (Claude could not extend it')"
     # without --llm the heuristic is filed as before
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --name volumes "$LTD/vol.txt" 2>&1)"
     check "without --llm the heuristic is filed" "strategy aligned-columns" "$lt_out"
@@ -1093,6 +1121,23 @@ if command -v python3 >/dev/null 2>&1; then
     check "a template that reads too little does not replace text-lines" "strategy text-lines" "$lt_out"
     check "meta says how much it read" "Claude's template does not fit this capture (it covers 30% of the lines)" "$(cat "$LTD/.fresh2/captures/c0001/meta.tsv")"
     check_not "such a template is not kept" "moorings" "$(ls "$LTD/.fresh2/llm-templates" 2>/dev/null)"
+    # SKIP AUDIT, in the gate: a skipped line that carries words is not
+    # covered for free. A template (here from a library, no key) whose skip
+    # lines no one has judged counts them as unread; once their kind is
+    # judged decoration (its "decoration" record) they are not counted.
+    printf 'Note: inventory taken nightly\nNote: sizes in GB\nNAME   SIZE\nalpha  10\nbeta   20\ngamma  30\n' > "$LTD/inv.txt"
+    mkdir -p "$LTD/lib"
+    printf '%s' '{"format": 1, "tool": "inventory", "detect": "^NAME\\s+SIZE$", "skip": ["^Note: "], "blocks": [{"name": "items", "kind": "table", "header": "^NAME\\s+SIZE$", "line": "^(?P<name>[a-z]+)\\s+(?P<size>\\d+)$"}]}' > "$LTD/lib/inventory.json"
+    check "template.py audit counts and samples what it sets aside" "2 skipped: 0 decoration, 0 set aside of a kind judged decoration, 2 set aside of a kind not judged (counted as unread); coverage 67%
+0 |Note: inventory taken nightly
+    (2 lines of this kind)" "$(python3 "$HERE/../extract/llm/template.py" audit "$LTD/lib/inventory.json" "$LTD/inv.txt")"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.inv" PROVOST_LLM_TEMPLATE_DIRS="$LTD/lib" "$PROVOST" --sync --llm --name inventory "$LTD/inv.txt" 2>&1)"
+    check "set-aside lines not judged count as unread" "template inventory.json does not fit: its 1 block(s) keep 66% of the input's data lines" "$(cat "$LTD/.inv/captures/c0001/meta.tsv")"
+    python3 -c 'import json, sys; p = sys.argv[1]; t = json.load(open(p)); t["decoration"] = ["Note: a"]; json.dump(t, open(p, "w"))' "$LTD/lib/inventory.json"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.inv" PROVOST_LLM_TEMPLATE_DIRS="$LTD/lib" "$PROVOST" --sync --llm --name inventory "$LTD/inv.txt" 2>&1)"
+    check "judged decoration, they are not counted" "read by template inventory.json." "$lt_out"
+    check "and meta says so" "llm_skip_audit	2 skipped: 0 decoration, 2 judged decoration, 0 not judged (counted as unread)" "$(cat "$LTD/.inv/captures/c0002/meta.tsv")"
+    check "a library template's captures go in the store's ledger" "c0002	read	$LTD/lib/inventory.json	4	0	2	0	" "$(cat "$LTD/.inv/llm-templates/inventory.seen.tsv")"
     # FORMAT 2: a template that is a small Python parser, for records that
     # span lines (ip-addr.json ships with provost), run in the sandbox
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$HERE/../extract/samples/llm-template/nested.txt" 2>&1)"

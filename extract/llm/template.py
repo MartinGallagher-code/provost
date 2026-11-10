@@ -40,7 +40,17 @@ builtins and imports, a CPU and memory limit, no files and no network.
     python3 template.py learn INPUT --out TEMPLATE [--tool NAME]   # ask Claude (needs a key)
     python3 template.py key INPUT [--name NAME]            # the template file name for INPUT
     python3 template.py misses TEMPLATE INPUT              # line kinds in INPUT the template has not met
-    python3 template.py repair TEMPLATE INPUT --out NEW [--tool NAME]   # ask Claude to extend it
+    python3 template.py audit TEMPLATE INPUT               # the skip audit: what it sets aside, and why
+    python3 template.py repair TEMPLATE INPUT --out NEW [--tool NAME] [--earlier FILE ...]   # ask Claude to extend it
+
+The SKIP AUDIT: a skipped line is not covered for free. One with no letter
+or digit (a rule, box glyphs) is decoration; one that carries a word or a
+number is covered only when its kind (_kind) has been judged decoration by
+Claude, recorded in the template as "decoration". `learn` shows Claude the
+count and a sample of the lines its template sets aside, once, to read into
+a block or confirm; `repair` shows those of a kind not yet judged. Until a
+kind is judged its lines count as unread, and a capture that shows them, or
+far more set-aside lines than the template's earlier captures, is a miss.
 
 `learn` and `repair` send the capture's text (and repair, the captures a
 template was written from: its "examples") to the Anthropic API: provost only
@@ -291,7 +301,8 @@ def load(path):
 
 def find(lines, dirs):
     """The stored template that covers most of these lines (its detect regex
-    must match one of them): (path, coverage) or (None, 0)."""
+    must match one of them; a skipped line covered only as the skip audit
+    allows): (path, coverage) or (None, 0)."""
     best = (None, 0.0)
     for d in dirs:
         if not d or not os.path.isdir(d):
@@ -301,13 +312,17 @@ def find(lines, dirs):
                 continue
             path = os.path.join(d, f)
             try:
-                ct = compile_template(load(path))
+                t = load(path)
+                ct = compile_template(t)
             except (OSError, ValueError, TemplateError):
                 continue
             if ct["detect"] is None or not any(ct["detect"].search(ln) for ln in lines[:200]):
                 continue
-            blocks, cov, nb, _ = apply(ct, lines)
-            score = cov / nb if nb and blocks else 0.0
+            try:
+                blocks, classified = _measure(ct, lines)
+                score = coverage(audit(t, lines, ct, classified)) if blocks else 0.0
+            except TemplateError:
+                continue
             if score > best[1]:
                 best = (path, score)
     return best
@@ -440,6 +455,122 @@ def _report(lines, t):
     return _cover(read, skip, unread), sorted(unread)
 
 
+def _measure(ct, lines):
+    """-> (blocks, (read, skipped, unread)) with one run of a format-2 parser."""
+    if ct["format"] == 2:
+        blocks, used, skip, nonblank = _run_parser(ct, lines)
+        return blocks, (used, skip, nonblank - used - skip)
+    return apply(ct, lines)[0], _classify(ct, lines)
+
+
+# -- the skip audit ----------------------------------------------------------
+# A skip pattern is the template writer's word that a line is decoration, and
+# first-contact templates read "lines that carry no data go in skip"
+# generously: a version banner, a summary count, a test's duration. So a
+# skipped line is not covered for free. One with no letter or digit (a rule,
+# box glyphs) is decoration. One that carries a word or a number is SET ASIDE,
+# and covered only when its kind has been judged decoration: shown to Claude
+# (a count and a sample, one line per kind) and left in skip. The kinds judged
+# are kept in the template as "decoration"; a set-aside line of any other kind
+# counts as unread, and a capture that shows one is a miss (repair).
+SKIP_RISE = 0.25         # a set-aside share this far above the earlier captures' is a miss
+SKIP_RISE_MIN = 3        # ... when it is at least this many lines
+AUDIT_ASK = (
+    "Your template sets aside {n} line(s) that carry words or numbers, as decoration (skip): {k} kind(s) of "
+    "line. The first line of each kind, and how many lines of that kind the capture has:\n\n{sample}\n\n"
+    "A line that carries data (a version, a count, a size, a duration, a date, a status, a summary, a "
+    "warning or an error) is data, not decoration: read it with a kv or table block (or your parser's "
+    "blocks) instead of skipping it. Keep in skip only lines that carry nothing worth a column: rules, "
+    "repeated banners, prompts, prose. It must still read every line it reads now. Reply with the complete "
+    "template JSON only, unchanged if every kind listed is decoration.")
+
+
+def _judged(t, ct=None):
+    """The kinds of set-aside line judged decoration for this template: its
+    "decoration" list. A template from before the audit has none; for it, the
+    kinds its examples set aside count as judged (the flow it came through
+    accepted them), so an old store's templates read its captures as they
+    did."""
+    if isinstance(t.get("decoration"), list):
+        return {k for k in t["decoration"] if isinstance(k, str)}
+    ct = ct or compile_template(t)
+    out = set()
+    for el in (_split(e) for e in _examples(t)):
+        _, s, _ = _classify(ct, el)
+        out |= {_kind(el[j]) for j in s if _WORD.search(el[j])}
+    return out
+
+
+def audit(t, lines, ct=None, classified=None, judged=None):
+    """The skip audit of template T on LINES. -> a dict of line-index sets:
+    read, unread, skipped, and the skipped split three ways: decoration (no
+    letter or digit), judged (set aside, of a kind judged decoration) and
+    unjudged (set aside, of a kind not judged: counted as unread)."""
+    ct = ct or compile_template(t)
+    read, skip, unread = classified or _classify(ct, lines)
+    judged = _judged(t, ct) if judged is None else judged
+    deco = {j for j in skip if not _WORD.search(lines[j])}
+    ok = {j for j in set(skip) - deco if _kind(lines[j]) in judged}
+    return {"read": set(read), "unread": set(unread), "skipped": set(skip),
+            "decoration": deco, "judged": ok, "unjudged": set(skip) - deco - ok}
+
+
+def coverage(a):
+    """The share of the non-blank lines an audited template covers: what it
+    reads, decoration, and set-aside lines of a kind judged decoration."""
+    nb = len(a["read"]) + len(a["skipped"]) + len(a["unread"])
+    return (len(a["read"]) + len(a["decoration"]) + len(a["judged"])) / max(1, nb)
+
+
+def _by_kind(lines, idx):
+    """[(kind, first index, count)] of these lines, in order of first appearance."""
+    first, count = {}, {}
+    for j in sorted(idx):
+        k = _kind(lines[j])
+        first.setdefault(k, j)
+        count[k] = count.get(k, 0) + 1
+    return [(k, first[k], count[k]) for k in sorted(first, key=first.get)]
+
+
+def _sample(lines, kinds):
+    """One line per kind, numbered, and how many lines of that kind there are."""
+    return "\n".join(f"{j} |{lines[j]}\n    ({n} line{'' if n == 1 else 's'} of this kind)" for _, j, n in kinds)
+
+
+def _audit_learned(t, lines, messages, text, system, tool, model):
+    """learn's skip audit: when template T sets aside lines that carry words
+    or numbers, Claude sees their count and a sample (one line per kind) once,
+    in the conversation that wrote T, to read them into a block or confirm
+    them as decoration. The reply is kept only if it still reads every line T
+    read and covers the capture; otherwise T stands with nothing judged (its
+    set-aside lines count as unread until a repair shows them again). The
+    kinds shown and still skipped are recorded as "decoration". -> the
+    template."""
+    ct = compile_template(t)
+    a = audit(t, lines, ct, judged=set())
+    if not a["unjudged"]:
+        return dict(t, decoration=[])
+    kinds = _by_kind(lines, a["unjudged"])
+    shown = kinds[:SHOW]
+    ask = AUDIT_ASK.format(n=len(a["unjudged"]), k=len(kinds), sample=_sample(lines, shown)
+                           + (f"\n\n... and {len(kinds) - SHOW} more kind(s)" if len(kinds) > SHOW else ""))
+    messages = messages + [{"role": "assistant", "content": text}, {"role": "user", "content": ask}]
+    try:
+        t2 = _parse(call_claude(system, messages, model, purpose="audit", tool=tool))
+        if not isinstance(t2, dict):
+            raise TemplateError("not a format-1 or format-2 template")
+        t2 = {k: v for k, v in t2.items() if k not in ("examples", "decoration")}
+        r2, s2, u2 = _classify(compile_template(t2), lines)
+        if a["read"] - r2 or _cover(r2, s2, u2) < MIN_COVERAGE:
+            raise TemplateError("the reply reads less of the capture")
+    except TemplateError:
+        return dict(t, decoration=[])
+    t2.setdefault("tool", t.get("tool") or tool)
+    still = {_kind(lines[j]) for j in s2 if _WORD.search(lines[j])}
+    t2["decoration"] = sorted({k for k, _, _ in shown} & still)
+    return t2
+
+
 def _too_large(lines):
     if len(lines) > MAX_LINES or sum(len(ln) + 1 for ln in lines) > MAX_BYTES:
         raise TemplateError(f"the capture is too large to send (over {MAX_LINES} lines or {MAX_BYTES // 1024} KB)")
@@ -451,7 +582,9 @@ def _numbered(lines, idx):
 
 def learn(lines, tool="", model="claude-opus-5-5"):
     """Ask Claude for a template for this capture, check it on the capture,
-    and give it one more try with the lines it missed. -> template dict."""
+    and give it one more try with the lines it missed; then the skip audit
+    (one more call when it sets aside lines that carry words or numbers).
+    -> template dict."""
     _too_large(lines)
     with open(GUIDE, encoding="utf-8") as fh:
         system = fh.read()
@@ -469,7 +602,9 @@ def learn(lines, tool="", model="claude-opus-5-5"):
                          {"role": "user", "content": f"That template is invalid: {exc}. Reply with the corrected JSON only."}]
             continue
         if cov >= MIN_COVERAGE:
+            t = {k: v for k, v in t.items() if k not in ("examples", "decoration")}
             t.setdefault("tool", tool)
+            t = _audit_learned(t, lines, messages, text, system, tool, model)
             # the capture it was written from: repair checks a changed
             # template still reads it
             t["examples"] = ["\n".join(lines)]
@@ -489,9 +624,13 @@ def learn(lines, tool="", model="claude-opus-5-5"):
 # leaves it unread or, worse, a skip pattern drops it while coverage reads
 # 100%. Repair sends the template, the captures it was written from and the
 # new capture to Claude once, to be extended; the extension is kept only if
-# it still reads every line of the earlier captures the template read.
+# it still reads every line of the earlier captures the template read: the
+# examples it keeps (the first and the latest, MAX_EXAMPLES, which are what
+# Claude is shown) and every other capture it was written from that the
+# caller can still give it (--earlier: provost's store keeps them all, and
+# names them in the template's ledger, llm-templates/NAME.seen.tsv).
 MAX_EXAMPLES = 3         # captures a template keeps: the first and the latest
-SHOW = 60                # lines listed in a repair request
+SHOW = 60                # lines (or kinds of line) listed in a request
 _SIG_RUN = re.compile(r"([^\w\s])\1+")
 REPAIR_ASK = (
     "Extend the template so that it reads the new capture as correctly as the earlier ones: a new kind "
@@ -499,6 +638,7 @@ REPAIR_ASK = (
     "It must still read every line of the earlier captures that it reads now. If the lines listed are only "
     "decoration, return the template unchanged. Reply with the complete template JSON only (format 1 or 2), "
     "without the earlier captures.")
+_KEPT = ("examples", "decoration")    # what provost keeps in a template beside its patterns
 
 
 def _kind(ln):
@@ -523,53 +663,80 @@ def _examples(t):
     return [e for e in t.get("examples") or [] if isinstance(e, str)]
 
 
+def _bare(t):
+    """The template's patterns: without what provost keeps beside them."""
+    return {k: v for k, v in t.items() if k not in _KEPT}
+
+
 def misses(t, lines):
     """What a stored template meets in this capture that it has not met
-    before: the non-blank lines it leaves unread, and the lines its skip
-    patterns drop, of a kind (_kind) it neither left unread nor skipped on the
-    captures it was written from (its examples). With no examples, only
-    unread lines count. -> (unread, skipped) line indexes."""
+    before. Unread: the non-blank lines it leaves unread of a kind (_kind) it
+    did not leave unread on the captures it was written from (its examples).
+    Skipped (the skip audit): the lines it sets aside (skipped, carrying a
+    word or a number) of a kind not judged decoration; and all of them when
+    they are at least SKIP_RISE_MIN lines and their share of the capture is
+    SKIP_RISE above the largest share on its examples (a skip pattern that
+    swallows a block of lines it used to meet a few of).
+    -> (unread, skipped) line indexes."""
     ct = compile_template(t)
-    read, skip, unread = _classify(ct, lines)
-    known_u, known_s = set(), set()
+    known_u, shares = set(), []
     exl = [_split(e) for e in _examples(t)]
     for el in exl:
-        _, s, u = _classify(ct, el)
+        r, s, u = _classify(ct, el)
         known_u |= {_kind(el[j]) for j in u}
-        known_s |= {_kind(el[j]) for j in s}
-    return (sorted(j for j in unread if _kind(lines[j]) not in known_u),
-            sorted(j for j in skip if exl and _kind(lines[j]) not in known_s))
+        shares.append(sum(1 for j in s if _WORD.search(el[j])) / max(1, len(r) + len(s) + len(u)))
+    a = audit(t, lines, ct)
+    new_s = a["unjudged"]
+    aside = a["judged"] | a["unjudged"]
+    nb = len(a["read"]) + len(a["skipped"]) + len(a["unread"])
+    if shares and len(aside) >= SKIP_RISE_MIN and len(aside) / max(1, nb) >= max(shares) + SKIP_RISE:
+        new_s = aside
+    return (sorted(j for j in a["unread"] if _kind(lines[j]) not in known_u), sorted(new_s))
 
 
-def repair(t, lines, tool="", model="claude-opus-5-5"):
+def repair(t, lines, tool="", model="claude-opus-5-5", earlier=()):
     """Ask Claude to extend a stored template for what this capture shows
     that it has not met before (misses), and check the extension: it must
     cover this capture at least as well as the template did (and 80%), and
-    still read every line of its examples that the template read. One more
-    try with what fell short. -> the extended (or unchanged) template, with
+    still read every line the template read of its examples and of EARLIER
+    (texts of the other captures it was written from: checked, not sent).
+    One more try with what fell short. The set-aside kinds shown and left in
+    skip are judged decoration. -> the extended (or unchanged) template, with
     this capture added to its examples."""
     _too_large(lines)
     ct = compile_template(t)
     new_u, new_s = misses(t, lines)
     examples = _examples(t)
     exl = [_split(e) for e in examples]
-    before = [_classify(ct, el)[0] for el in exl]
-    cov0 = _cover(*_classify(ct, lines))
+    more = []
+    for e in earlier:
+        el = _split(e)
+        if el not in exl and el not in more:
+            more.append(el)
+    checks = exl + more
+    before = [_classify(ct, el)[0] for el in checks]
+    judged = _judged(t, ct)
+    cov0 = coverage(audit(t, lines, ct, judged=judged))
     with open(GUIDE, encoding="utf-8") as fh:
         system = fh.read()
-    bare = {k: v for k, v in t.items() if k != "examples"}
     parts = [f"Tool: {tool or t.get('tool') or '(unnamed)'}",
              "This template was written from earlier captures of the tool:",
-             json.dumps(bare, indent=1, ensure_ascii=False)]
+             json.dumps(_bare(t), indent=1, ensure_ascii=False)]
     for n, el in enumerate(exl, 1):
         parts += [f"Earlier capture {n} ({len(el)} lines):", _numbered(el, range(len(el)))]
     parts += [f"A new capture of the same tool ({len(lines)} lines):", _numbered(lines, range(len(lines)))]
     if new_u:
         parts += ["On the new capture the template leaves these lines unread (no skip, header or line "
                   "pattern takes them):", _numbered(lines, new_u[:SHOW])]
+    shown_kinds = set()
     if new_s:
-        parts += ["Its skip patterns drop these lines of the new capture, a kind the earlier captures "
-                  "never showed:", _numbered(lines, new_s[:SHOW])]
+        kinds = _by_kind(lines, new_s)
+        shown_kinds = {k for k, _, _ in kinds[:SHOW]}
+        parts += [f"Its skip patterns set aside {len(new_s)} line(s) of the new capture that carry words or "
+                  f"numbers, of {len(kinds)} kind(s) not yet judged decoration (or far more of them than the "
+                  "earlier captures had). The first line of each kind, and how many lines of that kind the "
+                  "capture has:", _sample(lines, kinds[:SHOW])
+                  + (f"\n\n... and {len(kinds) - SHOW} more kind(s)" if len(kinds) > SHOW else "")]
     messages = [{"role": "user", "content": "\n\n".join(parts + [REPAIR_ASK]) + "\n"}]
     for attempt in range(2):
         text = call_claude(system, messages, model, purpose="repair", tool=tool)
@@ -577,18 +744,23 @@ def repair(t, lines, tool="", model="claude-opus-5-5"):
             t2 = _parse(text)
             if not isinstance(t2, dict):
                 raise TemplateError("not a format-1 or format-2 template")
-            t2.pop("examples", None)
+            t2 = _bare(t2)
             ct2 = compile_template(t2)
             short, shown = [], []
-            cov = _cover(*_classify(ct2, lines))
+            r2, s2, u2 = _classify(ct2, lines)
+            judged2 = judged | (shown_kinds & {_kind(lines[j]) for j in s2 if _WORD.search(lines[j])})
+            cov = coverage(audit(t2, lines, ct2, (r2, s2, u2), judged2))
             if cov < min(cov0, 1.0) - 1e-9 or cov < MIN_COVERAGE:
                 short.append(f"it covers {cov:.0%} of the new capture's non-blank lines "
                              f"(the template covered {cov0:.0%}; at least {max(cov0, MIN_COVERAGE):.0%} is needed)")
-            for n, (el, was) in enumerate(zip(exl, before), 1):
+            for n, (el, was) in enumerate(zip(checks, before), 1):
                 lost = sorted(was - _classify(ct2, el)[0])
-                if lost:
-                    short.append(f"on earlier capture {n} it no longer reads {len(lost)} line(s) the template read")
-                    shown.append(f"Earlier capture {n}, lines it no longer reads:\n" + _numbered(el, lost[:SHOW]))
+                if not lost:
+                    continue
+                what = (f"earlier capture {n}" if n <= len(exl)
+                        else f"another capture it was written from ({n - len(exl)} of {len(more)}, not shown above)")
+                short.append(f"on {what} it no longer reads {len(lost)} line(s) the template read")
+                shown.append(f"{what[0].upper() + what[1:]}, lines it no longer reads:\n" + _numbered(el, lost[:SHOW]))
         except TemplateError as exc:
             last = f"the template is invalid: {exc}"
             messages += [{"role": "assistant", "content": text},
@@ -596,6 +768,7 @@ def repair(t, lines, tool="", model="claude-opus-5-5"):
             continue
         if not short:
             t2.setdefault("tool", t.get("tool") or tool)
+            t2["decoration"] = sorted(judged2)
             keep = examples if len(examples) < MAX_EXAMPLES else examples[:1] + examples[len(examples) - MAX_EXAMPLES + 2:]
             t2["examples"] = keep + ["\n".join(lines)]
             return t2
@@ -604,6 +777,19 @@ def repair(t, lines, tool="", model="claude-opus-5-5"):
                      {"role": "user", "content": "That template falls short: " + last + ".\n\n" + "\n\n".join(shown)
                       + "\n\nReply with the corrected complete template JSON only."}]
     raise TemplateError(f"Claude's extension of the template does not hold ({last})")
+
+
+def audit_report(t, lines):
+    """`template.py audit`: the skip audit of T on LINES, for a person: the
+    counts, then each set-aside kind not judged decoration (a sample line and
+    how many), which count as unread."""
+    a = audit(t, lines)
+    out = [f"{len(a['skipped'])} skipped: {len(a['decoration'])} decoration, {len(a['judged'])} set aside of a kind "
+           f"judged decoration, {len(a['unjudged'])} set aside of a kind not judged (counted as unread); "
+           f"coverage {coverage(a):.0%}"]
+    if a["unjudged"]:
+        out.append(_sample(lines, _by_kind(lines, a["unjudged"])))
+    return "\n".join(out)
 
 
 def main(argv=None):
@@ -628,12 +814,17 @@ def main(argv=None):
     p = sub.add_parser("misses")
     p.add_argument("template")
     p.add_argument("input")
+    p = sub.add_parser("audit")
+    p.add_argument("template")
+    p.add_argument("input")
     p = sub.add_parser("repair")
     p.add_argument("template")
     p.add_argument("input")
     p.add_argument("--out", required=True)
     p.add_argument("--tool", default="")
     p.add_argument("--model", default=os.environ.get("PROVOST_LLM_MODEL") or "claude-opus-5-5")
+    p.add_argument("--earlier", action="append", default=[], metavar="FILE",
+                   help="another capture the template was written from: the extension must still read it")
     a = ap.parse_args(argv)
     lines = read_lines(a.input)
     try:
@@ -648,13 +839,7 @@ def main(argv=None):
         elif a.cmd == "apply":
             t = load(a.template)
             ct = compile_template(t)
-            classified = None
-            if ct["format"] == 2:      # one run of the boxed parser for both
-                blocks, used, skip, nonblank = _run_parser(ct, lines)
-                cov, nb, skipped = len(used | skip), len(nonblank), len(skip)
-                classified = (used, skip, nonblank - used - skip)
-            else:
-                blocks, cov, nb, skipped = apply(ct, lines)
+            blocks, classified = _measure(ct, lines)    # one run of a boxed parser for all of it
             if not blocks:
                 return 1
             if a.out:
@@ -662,19 +847,31 @@ def main(argv=None):
             if a.records:
                 print("\n".join(flat_records(blocks[0])))
             else:
-                print(f"{len(blocks)}\t{cov * 100 // max(1, nb)}\t{skipped}")
+                # blocks, coverage % (skip audit), then line counts: skipped,
+                # of them decoration / judged decoration / not judged (counted
+                # as unread), read, unread
+                au = audit(t, lines, ct, classified)
+                print("\t".join(str(x) for x in (
+                    len(blocks), int(coverage(au) * 100), len(au["skipped"]), len(au["decoration"]),
+                    len(au["judged"]), len(au["unjudged"]), len(au["read"]), len(au["unread"]))))
         elif a.cmd == "misses":
             u, sk = misses(load(a.template), lines)
             if u or sk:
-                print(" and ".join(x for x in (u and f"{len(u)} unread line(s)", sk and f"{len(sk)} skipped line(s)") if x)
-                      + " of a kind it has not met")
+                print(" and ".join(x for x in (u and f"{len(u)} unread line(s) of a kind it has not met",
+                                               sk and f"{len(sk)} skipped line(s) not judged decoration") if x))
+        elif a.cmd == "audit":
+            print(audit_report(load(a.template), lines))
         elif a.cmd in ("learn", "repair"):
             if a.cmd == "learn":
                 t = learn(lines, a.tool, a.model)
             else:
                 old = load(a.template)
-                t = repair(old, lines, a.tool, a.model)
-                bare = lambda x: {k: v for k, v in x.items() if k not in ("examples", "tool")}  # noqa: E731
+                earlier = []
+                for f in a.earlier:
+                    with open(f, encoding="utf-8", errors="replace") as fh:
+                        earlier.append(fh.read())
+                t = repair(old, lines, a.tool, a.model, earlier)
+                bare = lambda x: {k: v for k, v in _bare(x).items() if k != "tool"}  # noqa: E731
                 print("unchanged" if bare(t) == bare(old) else "extended")
             tmp = a.out + ".tmp"
             with open(tmp, "w", encoding="utf-8") as fh:
