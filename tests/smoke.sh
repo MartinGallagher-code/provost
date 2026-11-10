@@ -881,6 +881,27 @@ printf 'Region: eu-west-1\nZone: a\n\nID    STATE\ni-1   running\n\nMODE=fast\nR
 am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$COV_IN.frag" 2>&1)"
 check "a split into fragments is declined and held" "segmenting it did not help: the parts are fragments" "$am_out"
 rm -f "$COV_IN.frag"
+# PV-013, on spent benchmark inputs: a tool-specific parser reading a part
+# must keep the gate's coverage of it (round 4's 048 was filed wrong when
+# git-annex-list read a pytest rule line at 50%); a positional table is filed
+# when nothing shows a lost header (137: 'Speed : 259,207 Bytes/sec.' rows),
+# and declined for box chrome (round 2's 102), a header-like line right above
+# it (round 3's 115: the header sat over a rule line) or rows shredded into
+# words (round 4's 031).
+BR="$HERE/benchmark"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/048-pytest-ra-report.txt" 2>&1)"
+check "a tool-specific parser under the gate's coverage sinks the split" \
+    "git-annex-list, a tool-specific parser) keeps 50% of its lines" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/137-windows-robocopy-log.txt" 2>&1)"
+check "a headerless positional part no longer sinks the split" "→ 6 datasets" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round2/inputs/102-aws-ec2-describe-key-pairs-table.txt" 2>&1)"
+check "a positional part of box chrome is still declined" "positional columns only: box chrome read as cells" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round3/inputs/115-cisco-show-spanning-tree-vlan.txt" 2>&1)"
+check "a positional part under a cut-off header is still declined" \
+    "positional columns only: a header-like line sits right above it" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/031-jstack-thread-dump.txt" 2>&1)"
+check "a positional part of prose split into words is still declined" \
+    "positional columns only: its cells are mostly empty" "$am_out"
 
 # LAYOUT MODEL (--model / PROVOST_MODEL=1): a capture the gate still holds
 # after AUTO-MULTI gets the learned layout model's table, filed only when that
