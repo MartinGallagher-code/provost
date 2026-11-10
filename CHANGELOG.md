@@ -1,5 +1,88 @@
 # provost — Changelog
 
+## 2.6.0 — 2026-11-10 — units as data, `--units base` (PV-032)
+
+`VERSION` 2.5.0 → 2.6.0, and the `man/provost.1` header. Minor: a new
+capture option. Without it nothing changes: no golden moved, and a capture
+filed without `--units` is byte for byte what 2.5.0 filed.
+
+From the outside assessment's second batch (QD-006, "Normalize units"): a
+value of `9.4 GB/s` in one tool and `9400` under `MB/s` in another are
+different strings and different numbers, so comparing them is a silent error.
+
+**Where a unit lives (the documented convention, `docs/usage.md`, "Units").**
+By default provost leaves a unit where the tool printed it: in the column's
+name (`Bandwidth_(MB/s)`), in each cell (`482MiB/s (505MB/s)`), or in a
+`NAME_unit` column beside the number (`transfer` + `transfer_unit`). With
+`--units base` (`PROVOST_UNITS=base`; piped input, `run` and `batch`), each
+column whose unit can be read exactly gains a column right after it named
+`NAME[UNIT]`, holding the same values as plain numbers in a base unit: `B`,
+`B/s`, `bit`, `bit/s` or `s`. The original column is kept. A column whose
+name ends in `[UNIT]` is the convention a consumer (qd check, qd compare) can
+rely on: plain numbers, in that unit.
+
+**Read by the letter, never guessed.** `B`/`Byte(s)` are bytes and `b`/`bit(s)`
+bits (a bare `b` is not read); `k K M G T P E` are powers of 1000 and
+`Ki Mi Gi Ti Pi Ei` powers of 1024; rates are `/s`, `/sec` or `ps`; times
+ns/us/µs/ms/s. Bits are never turned into bytes. A bare multiplier
+(`7.8Gi` from `free -h`, `1.2G` from `df -h`, whose `G` is 1024^3) names no
+quantity and is not read. The one exception is iperf2/iperf3, whose `KBytes`,
+`MBytes`, `GBytes` are powers of 1024 (iperf3 `src/units.c`, iperf2
+`src/stdio.c`): read so in a dataset the `iperf3-intervals` parser filed or one
+named `iperf`/`iperf3`. A tool that prints `kB` for 1024 bytes
+(`/proc/meminfo`) is converted as printed; its original column says what it
+said.
+
+**Which columns.** The unit comes from the name (a trailing `(UNIT)`/`[UNIT]`,
+the whole name, or a last word with a prefix or rate: `Best_Rate_MB/s`,
+`rtt_ms`; not `kb_read_s`, `requests_per_ms`, `Error(s)`), then a `NAME_unit`
+column, then each cell (number, optional space or `_`, unit; fio's
+`value (same value in another unit)` reads the first). A column is converted
+only when every cell holding a digit can be read and all are one quantity.
+
+**Exact.** Every factor is a power of 10 or 1024, so the conversion is done on
+the decimal digits (mawk-safe awk, no floating point) and printed in full:
+`28.2GiB` → `30279519436.8`, `1 EiB` → `1152921504606846976`, `0.041 ms` →
+`0.000041`.
+
+**The record.** A capture filed with `--units base` says `units  base` in
+`meta.tsv`, and `units_columns  units.tsv` when it added a column: a TSV of
+dataset, column, unit_column, base, from (`name`, `cells`, `column NAME_unit`)
+and read (each unit with its factor: `MB/s=10^6`, `MBytes=2^20 (iperf)`).
+
+**Checked by hand** (`--units base` over the corpus's fio, iperf and OSU
+inputs, full mode as provost files them): fio run-status `482MiB/s` →
+505413632 B/s and `28.2GiB` → 30279519436.8 B (fio's own decimal figures,
+505 MB/s and 30.3 GB, agree); fio's latency `2.3456e+04` ns → 0.000023456 s;
+iperf3 `112 MBytes` → 117440512 B (112 × 2^20), `412 KBytes` → 421888 B,
+`940 Mbits/sec` → 940000000 bit/s; OSU `3.26` under `Bandwidth (MB/s)` →
+3260000 B/s and `3.14` under `Avg Latency(us)` → 0.00000314 s; vnstat
+`42.18_GiB` and `158.72_kbit/s`. Over the whole corpus (3,733 inputs) the
+columns converted were reviewed for false readings; see HANDOFF.
+
+**Not read, and why** (follow-ups, not changed here because each would change
+default tidy output): the PV-030 HPC strategies name their units in lower
+case (`bw_mib_s`, `latency_s`, `block_kib`, `best_rate_mb_s`), which loses
+MiB against Mib, and `lst-stat`/`mdtest` give one long-form `unit` column for
+several value columns and mixed quantities per row; `nvidia-smi dmon`'s units
+row (`MB/s`) is dropped by the generic parse; fio's JSON and terse outputs
+carry no unit at all (KiB/s by documentation). A piped `iperf3` server report
+parsed generically reads `MBytes` by the letter (10^6), as no tool name is
+known; `provost run iperf3 …` reads it as iperf does.
+
+Tests: `transform/tests/test_units.sh` (79 checks: the conversion table,
+name, `NAME_unit` and cell rules, what is left alone, exactness past 2^53),
+run under mawk and gawk, and in CI's quick-checks job; a `units` part in
+`tests/smoke.sh` (41 checks: default unchanged, the option, the variable,
+the record, `run`, `batch`, a held capture, errors, help). The corpus gate
+is green without the option.
+
+Files: `transform/units.sh` (new), `provost` (`--units`, `PROVOST_UNITS`, the
+parse and store halves, help), `transform/tests/test_units.sh` (new),
+`tests/smoke.sh`, `.github/workflows/ci.yml`, `pyproject.toml` (the wheel
+carries `transform/units.sh`), `completions/provost.bash`, `man/provost.1`,
+`docs/usage.md`, README, HANDOFF, CLAUDE.md, `VERSION`.
+
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new
