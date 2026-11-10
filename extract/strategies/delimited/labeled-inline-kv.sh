@@ -22,6 +22,19 @@
 # `key: value` per line): this needs a colon-label AND >=2 comma-separated
 # `key=value` pairs after it.
 
+# Is $1 (one comma-separated part) a bare RANGE: `lo-hi`, optionally followed by
+# a parenthesised second unit's `(lo-hi)`, with no `=`? fio 3.x prints one after
+# each group bandwidth — the slowest and fastest job's:
+#
+#   READ: bw=96.1MiB/s (101MB/s), 96.1MiB/s-96.1MiB/s (101MB/s-101MB/s), io=…
+#
+# It belongs to the k=v before it, so it becomes that key's `_range` column.
+_lik_is_range () {
+    local p="$1"
+    p="${p#"${p%%[![:space:]]*}"}"; p="${p%"${p##*[![:space:]]}"}"
+    [[ "$p" =~ ^[0-9][^[:space:]=]*-[0-9][^[:space:]=]*( \([0-9][^[:space:]=]*-[0-9][^[:space:]=]*\))?$ ]]
+}
+
 # Echo the k=v part after the first colon of $1, or nothing if it isn't a record.
 # A record: after the first ": " there are >=2 comma-separated parts each with '='.
 _lik_kvpart () {
@@ -37,16 +50,22 @@ _lik_kvpart () {
     local rest="${line#*:}"
     rest="${rest#"${rest%%[![:space:]]*}"}"
     [[ "$rest" == *=* ]] || return 1
-    # split on comma; need >=2 parts, each containing '='
-    local n=0 ok=1 part _oi="$IFS"
+    # split on comma; need >=2 parts, each containing '=' — or, right after a
+    # k=v part, a bare range of it (see _lik_is_range)
+    local n=0 ok=1 part prev=0 _oi="$IFS"
     IFS=','
     # shellcheck disable=SC2086
     set -- $rest
     IFS="$_oi"
     for part in "$@"; do
         [[ "${part}" != *[![:space:]]* ]] && continue
-        n=$((n + 1))
-        [[ "$part" == *=* ]] || { ok=0; break; }
+        if [[ "$part" == *=* ]]; then
+            n=$((n + 1)); prev=1
+        elif [[ $prev -eq 1 ]] && _lik_is_range "$part"; then
+            prev=0
+        else
+            ok=0; break
+        fi
     done
     [[ $ok -eq 1 && $n -ge 2 ]] || return 1
     printf '%s' "$rest"
@@ -99,16 +118,24 @@ strategy_extract () {
         # shellcheck disable=SC2086
         set -- $kv
         IFS="$_oi"
+        local lastkey=""
         for part in "$@"; do
             part="${part#"${part%%[![:space:]]*}"}"; part="${part%"${part##*[![:space:]]}"}"
-            [[ "$part" == *=* ]] || continue
+            if [[ "$part" != *=* ]]; then
+                # a bare range right after a k=v: that key's _range column
+                [[ -n "$lastkey" && -n "$part" ]] && _lik_is_range "$part" &&
+                    result+="entry${entry}.${lastkey}_range ${part}"$'\n'
+                lastkey=""
+                continue
+            fi
             # Split on the LAST '=' so a key that itself contains '=' survives
             # (fio's `>=64=99.9%` → key `>=64`, value `99.9%`); single-'=' pairs
             # (`ios=7411882/0`) are unaffected.
             key="$(_lik_sanitize "${part%=*}")"; val="${part##*=}"
             val="${val#"${val%%[![:space:]]*}"}"; val="${val%"${val##*[![:space:]]}"}"
-            [[ -z "$key" || -z "$val" ]] && continue
+            [[ -z "$key" || -z "$val" ]] && { lastkey=""; continue; }
             result+="entry${entry}.${key} ${val}"$'\n'
+            lastkey="$key"
         done
     done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'

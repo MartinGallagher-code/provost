@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf8'?>
+<testsuites>
+  <testsuite errors="0" failures="1" hostname="vm" id="0" name="ReFrame run 0" package="reframe" tests="2" time="3.7781717777252197" timestamp="2026-11-10T17:38:46">
+    <properties/>
+    <testcase classname="/home/ci/fabric-checks/storage_checks.py" name="memcopy_check @generic:default+builtin" time="0.4412782192230224609375">
+      <failure type="failure" message="performance">performance: performance error: failed to meet references: copy_rate=44.6 GB/s, expected 10.0 (l=9.0, u=15.0)</failure>
+    </testcase>
+    <testcase classname="/home/ci/fabric-checks/storage_checks.py" name="fio_randwrite_check @generic:default+builtin" time="3.7459657192230224609375"/>
+    <system-out></system-out>
+    <system-err></system-err>
+  </testsuite>
+</testsuites>

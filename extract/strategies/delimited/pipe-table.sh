@@ -73,6 +73,32 @@ _pt_split_bare () {
     _pt_trim "$cell"; _PT_CELLS+=("$_PT_TRIM")
 }
 
+# Slurm's --parsable dialect (`sacct -p`, `sacctmgr -p`, `sreport -p`, `sshare
+# -p`) ends EVERY line with the delimiter, the header included:
+#
+#   JobID|JobName|State|ExitCode|
+#   1|osu_bw|COMPLETED|0:0|
+#
+# That terminating bar is not a cell. Set _PT_TERM=1 when every non-blank,
+# non-rule line ends in `|` and none starts with one (a leading bar is the
+# markdown/box dialects'); the bare paths then drop one trailing bar per line.
+# A header ending in `|` is the signal: in `-P` output (no terminator) only a
+# data row with an empty last cell ends in a bar, never the header.
+_pt_term_shape () {
+    local text="$1" _line _n=0
+    _PT_TERM=0
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
+        _pt_is_rule "$_line" && continue
+        _pt_trim "$_line"; _line="$_PT_TRIM"
+        [[ "$_line" == "|"* || "$_line" != *"|" ]] && return 0
+        _n=$((_n + 1))
+    done
+    [[ $_n -ge 2 ]] && _PT_TERM=1
+    return 0
+}
+
 # Is this text a bare pipe table? Yes only when EVERY non-blank line: does not
 # start or end with '|' (that's the markdown/box dialects' territory), contains
 # no `---+---` rule (psql-table's anchor), and splits (escape/quote-aware) into
@@ -80,6 +106,7 @@ _pt_split_bare () {
 _pt_bare_shape () {
     local text="$1" _line lines=0 want=-1 _c
     _PT_BARE_COLS=0
+    _pt_term_shape "$text"
     _fr_lines "$text"
     for _line in "${_FR_LINES[@]}"; do
         [[ "${_line}" != *[![:space:]]* ]] && continue
@@ -89,11 +116,14 @@ _pt_bare_shape () {
         # (a result-set footer under the rows — `(3 rows)` — is no row)
         [[ $lines -ge 2 && "$_line" != *"|"* ]] && _fr_is_footer "$_line" && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
+        # (Slurm --parsable: every line's terminating bar is no cell)
+        [[ $_PT_TERM -eq 1 ]] && _line="${_line%|}"
         [[ "$_line" == "|"* ]] && return 1
-        # A trailing `|` on a DATA row is an empty last cell (`sacct -p`'s
+        # A trailing `|` on a DATA row is an empty last cell (`sacct -P`'s
         # `…|02:14:33|` with no MaxRSS) — still the header's cell count, so
         # the count check below decides. Only the header may not end in one
-        # (with no leading bar, a bar-terminated header is no table shape).
+        # (with no leading bar, a bar-terminated header is no table shape) —
+        # unless EVERY line does, which is `sacct -p` (see _pt_term_shape).
         [[ $want -lt 0 && "$_line" == *"|" ]] && return 1
         [[ "$_line" == *"---+---"* ]] && return 1
         _pt_split_bare "$_line"
@@ -158,13 +188,16 @@ strategy_detect () {
 # list where every line is data), in which case synthesize A,B,C… names.
 _pt_extract_bare () {
     local text="$1" result="" entry=0 _line
-    local col_names=() have_header=0 _c name i val first=1
+    local col_names=() have_header=0 _c name i val first=1 _hl=0
+    _PT_HROWS=()
+    _pt_term_shape "$text"
     _fr_lines "$text"
     for _line in "${_FR_LINES[@]}"; do
         [[ "${_line}" != *[![:space:]]* ]] && continue
         _pt_is_rule "$_line" && continue
         [[ $entry -ge 1 && "$_line" != *"|"* ]] && _fr_is_footer "$_line" && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
+        [[ $_PT_TERM -eq 1 ]] && _line="${_line%|}"
         _pt_split_bare "$_line"
         if [[ $first -eq 1 ]]; then
             first=0
@@ -189,14 +222,71 @@ _pt_extract_bare () {
             have_header=1; continue
         fi
         entry=$((entry + 1))
+        if [[ $_hl -eq 1 ]]; then
+            # headerless: hold the row, names are settled after the last one
+            local _row="" _sep=$'\x1f'
+            for ((i = 0; i < ${#col_names[@]}; i++)); do _row+="${_PT_CELLS[$i]:-}${_sep}"; done
+            _PT_HROWS+=("$_row")
+            continue
+        fi
         for ((i = 0; i < ${#col_names[@]}; i++)); do
             val="${_PT_CELLS[$i]:-}"
             [[ -z "$val" ]] && continue
             result+="entry${entry}.${col_names[$i]} ${val}"$'\n'
         done
     done
+    [[ ${_hl:-0} -eq 1 ]] && result+="$(_pt_headerless_kv "${col_names[@]}")"$'\n'
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
+}
+
+# A headerless table's letter-named column whose every cell is `key=value`
+# names itself. ReFrame 3.x's perflog is the case in point:
+#
+#   2026-11-10T17:41:28|reframe 3.12.0|fio_check @sys:part+env|jobid=32426|write_bw=826.0|ref=150 (l=-0.2, u=null)|MiB/s
+#
+# One key in every cell (`jobid=`, `ref=`): the key becomes the column name and
+# the cells keep only their values. Several keys (`write_bw=`, `write_iops=`:
+# one row per measured variable): the column splits into `<col>_key` and
+# `<col>_value`. A column with any cell that is not `key=value`, or a table of
+# fewer than two rows, keeps its letter. Reads _PT_HROWS (rows of cells joined
+# by \x1f); echoes the `entryN.col value` lines.
+_pt_headerless_kv () {
+    local names=("$@") ncol=$# i r cell key out="" nrows=${#_PT_HROWS[@]}
+    local -a mode=() kname=() _cells=()
+    local _sep=$'\x1f' _re='^([A-Za-z_][A-Za-z0-9_.-]*)=(.*)$'
+    for ((i = 0; i < ncol; i++)); do
+        mode[i]=0; kname[i]=""
+        [[ $nrows -ge 2 ]] || continue
+        local first="" same=1 any=0 ok=1
+        for ((r = 0; r < nrows; r++)); do
+            IFS="$_sep" read -r -a _cells <<< "${_PT_HROWS[$r]}"
+            cell="${_cells[$i]:-}"
+            [[ -z "$cell" ]] && continue
+            [[ "$cell" =~ $_re ]] || { ok=0; break; }
+            key="${BASH_REMATCH[1]}"; any=1
+            if [[ -z "$first" ]]; then first="$key"; elif [[ "$key" != "$first" ]]; then same=0; fi
+        done
+        [[ $ok -eq 1 && $any -eq 1 ]] || continue
+        if [[ $same -eq 1 ]]; then mode[i]=1; kname[i]="$first"; else mode[i]=2; fi
+    done
+    for ((r = 0; r < nrows; r++)); do
+        IFS="$_sep" read -r -a _cells <<< "${_PT_HROWS[$r]}"
+        for ((i = 0; i < ncol; i++)); do
+            cell="${_cells[$i]:-}"
+            [[ -z "$cell" ]] && continue
+            case "${mode[i]}" in
+                1) [[ "$cell" =~ $_re ]]; [[ -n "${BASH_REMATCH[2]}" ]] &&
+                       out+="entry$((r + 1)).${kname[i]} ${BASH_REMATCH[2]}"$'\n' ;;
+                2) [[ "$cell" =~ $_re ]]
+                   out+="entry$((r + 1)).${names[i]}_key ${BASH_REMATCH[1]}"$'\n'
+                   [[ -n "${BASH_REMATCH[2]}" ]] &&
+                       out+="entry$((r + 1)).${names[i]}_value ${BASH_REMATCH[2]}"$'\n' ;;
+                *) out+="entry$((r + 1)).${names[i]} ${cell}"$'\n' ;;
+            esac
+        done
+    done
+    printf '%s' "$out"
 }
 
 strategy_extract () {

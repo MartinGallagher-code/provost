@@ -1,0 +1,5 @@
+n	A	B	C	jobid	E_key	E_value	ref	G
+1	2026-11-10T17:41:28	reframe 3.12.0	fio_randwrite_check @generic:default+builtin	32426	write_bw	826.0	150 (l=-0.2, u=null)	MiB/s
+2	2026-11-10T17:41:28	reframe 3.12.0	fio_randwrite_check @generic:default+builtin	32426	write_iops	212000.0	40000 (l=-0.2, u=null)	IOPS
+3	2026-11-10T17:41:32	reframe 3.12.0	fio_randwrite_check @generic:default+builtin	32482	write_bw	830.0	150 (l=-0.2, u=null)	MiB/s
+4	2026-11-10T17:41:32	reframe 3.12.0	fio_randwrite_check @generic:default+builtin	32482	write_iops	213000.0	40000 (l=-0.2, u=null)	IOPS

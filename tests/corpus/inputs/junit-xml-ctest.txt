@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="5"
+	failures="2"
+	disabled="1"
+	skipped="0"
+	hostname=""
+	time="1"
+	timestamp="2026-11-10T18:01:04"
+	>
+	<testcase name="osu_bw_smoke" classname="osu_bw_smoke" time="0.00197934" status="run">
+		<properties/>
+		<system-out># Size      Bandwidth (MB/s)
+4194304          24397.05
+</system-out>
+	</testcase>
+	<testcase name="ior_write_smoke" classname="ior_write_smoke" time="0.00136786" status="run">
+		<properties/>
+		<system-out>write 9876.54 MiB/s
+</system-out>
+	</testcase>
+	<testcase name="hpl_residual" classname="hpl_residual" time="0.00186072" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>residual check FAILED
+</system-out>
+	</testcase>
+	<testcase name="mdtest_stat_rate" classname="mdtest_stat_rate" time="0" status="disabled">
+		<properties/>
+		<system-out>Disabled</system-out>
+	</testcase>
+	<testcase name="lnet_selftest_timeout" classname="lnet_selftest_timeout" time="1.0061" status="fail">
+		<failure message="Timeout"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+</testsuite>

@@ -43,7 +43,8 @@ inputs.)
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3582 tidy (124 format gaps ⏳)** — after two +500
+**3732 tools tested; 3602 tidy under `--generic`, 3705 with the bespoke
+strategies too (27 format gaps ⏳; counts as of 2026-11-10, PV-030)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -265,3 +266,46 @@ output for the same tool (`free`/`free -h`, `df -h`/`df -i`, `ps aux`/`ps -ef`).
 The corpus makes coverage measurable and regression-proof: `run.sh --golden`
 diffs each tool's tidy output against a frozen golden, and the full extract
 suite (`extract/tests/run_tests.sh`) is kept green through every parser change.
+
+## HPC benchmark set (PV-030, 2026-11-10)
+
+The benchmark and fabric outputs an HPC proposal names, added in provost's
+order: a generic parser first, then a hint row, then a strategy. **Real**
+inputs were captured in a cloud container from signed distribution packages
+or PyPI. **Source** inputs were written from the tool's own print statements
+(every printed literal traced to its upstream file and line, the numbers
+chosen to be internally consistent), because building the benchmarks from
+their source tarballs was refused by the session's safety check and the
+container has no InfiniBand or Lustre. A real site capture should replace a
+source input when one is available: same name, then `run.sh --golden` and a
+review of the diff.
+
+| input | tool, version | how it was made | parsed by |
+|---|---|---|---|
+| `osu-bw-v7`, `osu-latency-v7`, `osu-allreduce-full-v7` | OSU OMB 7.4 `osu_bw`, `osu_latency`, `osu_allreduce -f` | source | `aligned-columns` |
+| `osu-bw-v5`, `osu-latency-v5`, `osu-mbw-mr-v5` | OSU OMB 5.9 `osu_bw`, `osu_latency`, `osu_mbw_mr` | source | `aligned-columns` |
+| `ior-v3`, `ior-v4` | IOR 3.3.0, 4.0.0 (`-a POSIX -F -i 3 -w -r -e -C`, 16 tasks) | source | `ior` (bespoke) |
+| `mdtest-v3`, `mdtest-v4` | mdtest from IOR 3.3.0, 4.0.0 (`-n 1000 -i 3 -u`) | source | `mdtest` (bespoke) |
+| `hpl-hpcc` | HPL 2.0 as embedded in HPC Challenge 1.5.0 (`mpirun -np 4 hpcc`, Ubuntu's `hpcc` package) | real | `hpl` (bespoke) |
+| `hpl-v2.3` | HPL 2.3 `xhpl` stdout, 16 ranks, one test FAILED (with the norms HPL then prints) | source | `hpl` (bespoke) |
+| `hpcg-v3.1` | HPCG 3.1 results file (`HPCG-Benchmark_3.1_*.txt`), 16 ranks, VALID | source | `hpcg` (bespoke) |
+| `stream-full-omp` | STREAM 5.10, the whole printout (OpenMP build) | source | `stream` (bespoke) |
+| `lst-stat` | Lustre `lst stat servers clients`, 1M brw read | source | `lst-stat` (bespoke) |
+| `ibstat` | `ibstat`, rdma-core 50.0, two ConnectX-6 HCAs | source | `kv-report` via hint row |
+| `perfquery`, `perfquery-x` | `perfquery`, `perfquery -x`, rdma-core 50.0 | source | `dot-leader-kv` |
+| `reframe-perflog` | ReFrame 4.7.4 default perflog (one local fio check, 3 runs) | real | `pipe-table` |
+| `reframe-perflog-v3` | ReFrame 3.12.0 default perflog | real | `pipe-table` (headerless `key=value` columns) |
+| `junit-xml-pytest` | pytest 7.4.4 `--junitxml` (xunit2, one line) | real | `xml` (record mode) |
+| `junit-xml-reframe` | ReFrame 4.7.4 `--report-junit` | real | `xml` (record mode) |
+| `junit-xml-ctest` | CMake/ctest 3.28.3 `--output-junit` | real | `xml` (record mode) |
+| `sacct-steps` | Slurm 23.11.4 `sacct -a --format=…` (steps, FAILED, TIMEOUT, CANCELLED) | real | `fixed-width` |
+| `sacct-parsable` | Slurm 23.11.4 `sacct -a -p` (a `\|` ends every line) | real | `pipe-table` |
+| `sinfo-reasons` | Slurm 23.11.4 `sinfo -R` | real | `aligned-columns` |
+| `fio-run-status-range` | fio 3.36 run-status block (each group's job-bandwidth range) | real | `labeled-inline-kv` |
+
+The bespoke ones have no golden in `expected/` (the gate runs `--generic`);
+their goldens are the strategies' own fixtures, `extract/tests/golden/<strategy>*.txt`
+over `extract/samples/<strategy>/`. Not added: `sinfo -N -l` (real, 23.11),
+whose `AVAIL_FE REASON` header pair is one space apart over cells that hold
+spaces, so `aligned-columns` merges the two columns; a golden would freeze
+that.

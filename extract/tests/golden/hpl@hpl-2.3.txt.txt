@@ -1,0 +1,51 @@
+entry1.tv WR00L2L2
+entry1.matrix_n 40000
+entry1.nb 192
+entry1.p 4
+entry1.q 4
+entry1.time_s 62.47
+entry1.gflops 6.8301e+02
+entry1.start_time Mon Nov  9 14:02:09 2026
+entry1.end_time Mon Nov  9 14:03:11 2026
+entry1.residual 3.07514862e-03
+entry1.check PASSED
+entry2.tv WR00L2L2
+entry2.matrix_n 40000
+entry2.nb 256
+entry2.p 4
+entry2.q 4
+entry2.time_s 61.03
+entry2.gflops 6.9914e+02
+entry2.start_time Mon Nov  9 14:03:18 2026
+entry2.end_time Mon Nov  9 14:04:19 2026
+entry2.residual 4.55432296e+03
+entry2.check FAILED
+entry2.norm_ax_b_oo 0.001377
+entry2.norm_a_oo 10111.437278
+entry2.norm_a_1 10118.477896
+entry2.norm_x_oo 6.734018
+entry2.norm_x_1 41582.917463
+entry2.norm_b_oo 0.499997
+entry3.tv WR00L2L2
+entry3.matrix_n 60000
+entry3.nb 192
+entry3.p 4
+entry3.q 4
+entry3.time_s 199.73
+entry3.gflops 7.2099e+02
+entry3.start_time Mon Nov  9 14:04:29 2026
+entry3.end_time Mon Nov  9 14:07:49 2026
+entry3.residual 2.65813297e-03
+entry3.check PASSED
+entry4.tv WR00L2L2
+entry4.matrix_n 60000
+entry4.nb 256
+entry4.p 4
+entry4.q 4
+entry4.time_s 196.05
+entry4.gflops 7.3453e+02
+entry4.start_time Mon Nov  9 14:08:03 2026
+entry4.end_time Mon Nov  9 14:11:19 2026
+entry4.residual 2.80927553e-03
+entry4.check PASSED
+total_entries 4

@@ -5,15 +5,16 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.4.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.4.0` section at the top of CHANGELOG; BN-002). It adds `provost
+**provost 2.5.0 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.5.0` section at the top of CHANGELOG): 2.4.0 (BN-002) and the HPC
+benchmark outputs (PV-030, below). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
-the top of CHANGELOG is always the version `main` is at. 2.4.0 is not published yet:
-run the "Release to PyPI" workflow on `main` (or a GitHub release tagged
-`v2.4.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
+the top of CHANGELOG is always the version `main` is at. Neither 2.4.0 nor
+2.5.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.5.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
 faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
 added the quality gate and auto-multi, the engine fixes, removal of the
@@ -31,8 +32,36 @@ proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
 
+**2.5.0: the HPC benchmark outputs (PV-030, 2026-11-10; not published).**
+OSU, IOR, mdtest, HPL, HPCG, STREAM's full printout, lnet_selftest `lst stat`,
+`ibstat`, `perfquery`, ReFrame perflogs (4.x and 3.x), JUnit XML, `sacct -p`
+and the fio 3.x run-status range all tidy, with units in the column names.
+Generic first: `xml` record mode (JUnit), `pipe-table` (Slurm `--parsable`,
+headerless `key=value` columns), `labeled-inline-kv` (fio's range), a hint
+row for `ibstat`; then six bespoke strategies in `extract/strategies/hpc/`
+(`hpl`, `hpcg`, `ior`, `mdtest`, `stream`, `lst-stat`), each where no generic
+parser keeps the rows (PV-006 may want to weigh them). 27 corpus inputs; the
+"HPC benchmark set" table in `tests/corpus/README.md` says which are real
+captures and which were written from the tools' source (OSU, IOR, mdtest,
+HPCG, HPL 2.3, ibstat, perfquery, lst, STREAM). Open:
+- **Real site captures** should replace the source-derived inputs (same
+  name, `run.sh --golden`, review the diff); the owner was asked for
+  sanitised outputs in PV-030.
+- `sinfo -N -l` merges `AVAIL_FE` and `REASON` (one space apart over cells
+  with spaces); not in the corpus.
+- `ibstat` goes to `kv-report`, which drops the `Port N:` level: fine for one
+  port per CA (mlx5), not for a two-port mlx4 CA.
+- `equals` drops keys over 50 characters (why HPCG needed a strategy);
+  `fixed-width` runs past a table's end into the next block (why IOR and
+  mdtest did). Either fix would let those go generic, but both parsers sit
+  under many goldens.
+- nvidia-smi not re-checked against a current driver (no GPU).
+- Units are kept in names, not normalised: PV-032.
+- `ml/gen/tools/sci_ior.py` and `sci_osu_latency.py` were removed (their families
+  are in the corpus now); the layout model's next retrain drops them.
+
 provost is one Bash entry point (`provost`) over:
-- the extract engine (`extract/provost-extract`, 268 strategies, ~116 generic)
+- the extract engine (`extract/provost-extract`, 274 strategies, ~118 generic)
 - the tidy melt (`transform/melt.sh`)
 - the analyze engine (`analyze/provost-analyze`)
 

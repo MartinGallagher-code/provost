@@ -1,0 +1,3 @@
+n	name	bw	bw_range	io	run
+1	READ	96.1MiB/s (101MB/s)	96.1MiB/s-96.1MiB/s (101MB/s-101MB/s)	288MiB (302MB)	3001-3001msec
+2	WRITE	41.0MiB/s (43.0MB/s)	41.0MiB/s-41.0MiB/s (43.0MB/s-43.0MB/s)	123MiB (129MB)	3001-3001msec

@@ -131,3 +131,4 @@ powertop-devices	regex	^Usage +Device name	aligned-columns
 bazel-query-graph	prefix	digraph mygraph {	brace-groups
 rsync-itemize	regex	[<>ch.*][fdLDSp][.+?cstpoguaxn]{9} [^ ]	first-word-kv
 smartctl-scan	regex	/dev/[^ ]+ (-d [a-z0-9,+]+ )?# /dev/	first-word-kv
+ibstat	regex	^CA '[^']+'[[:space:]]+CA type: 	kv-report

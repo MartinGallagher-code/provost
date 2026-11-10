@@ -1,0 +1,24 @@
+-- started at 11/09/2026 10:47:51 --
+
+mdtest-3.3.0 was launched with 16 total task(s) on 2 node(s)
+Command line used: mdtest '-n' '1000' '-i' '3' '-u' '-d' '/lustre/scratch/mdtest'
+Path: /lustre/scratch
+FS: 1843.6 TiB   Used FS: 61.4%   Inodes: 2605.4 Mi   Used Inodes: 23.7%
+
+Nodemap: 1111111100000000
+16 tasks, 16000 files/directories
+
+SUMMARY rate: (of 3 iterations)
+   Operation                      Max            Min           Mean        Std Dev
+   ---------                      ---            ---           ----        -------
+   Directory creation        :      34219.243      28941.334      31678.979       2157.819
+   Directory stat            :     167103.912     141267.630     153574.948      10549.690
+   Directory removal         :      41210.727      35124.791      38249.415       2485.421
+   File creation             :      51910.704      42685.625      47304.188       3763.068
+   File stat                 :     171540.378     149019.572     159755.246       9175.530
+   File read                 :      78264.728      66828.443      72503.783       4662.613
+   File removal              :      46396.268      39515.491      43061.825       2810.676
+   Tree creation             :        703.928        482.789        599.846         90.745
+   Tree removal              :        362.345        287.018        330.115         31.698
+-- finished at 11/09/2026 10:47:57 --
+

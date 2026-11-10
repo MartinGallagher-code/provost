@@ -1,0 +1,17 @@
+JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|MaxRSS|
+1|osu_bw|debug|physics|2|COMPLETED|0:0|00:00:07||
+1.batch|batch||physics|2|COMPLETED|0:0|00:00:07|10892K|
+1.0|hostname||physics|2|COMPLETED|0:0|00:00:00||
+1.1|sleep||physics|2|COMPLETED|0:0|00:00:02||
+2|ior_write|debug|physics|4|COMPLETED|0:0|00:00:01||
+2.batch|batch||physics|4|COMPLETED|0:0|00:00:01||
+2.0|dd||physics|4|COMPLETED|0:0|00:00:00|2636K|
+3|hpl_n40k|debug|chem|1|FAILED|3:0|00:00:00||
+3.batch|batch||chem|1|FAILED|3:0|00:00:00||
+4|mdtest|debug|chem|1|TIMEOUT|0:0|00:01:06||
+4.batch|batch||chem|1|CANCELLED|0:15|00:01:06|3372K|
+5|hpcg|debug|physics|1|CANCELLED by 0|0:0|00:00:05||
+5.batch|batch||physics|1|CANCELLED|0:15|00:00:05|3372K|
+6|stream_triad|batch|physics|2|RUNNING|0:0|00:01:24||
+6.batch|batch||physics|2|RUNNING|0:0|00:01:24||
+6.0|sleep||physics|2|CANCELLED|0:98|00:00:00||

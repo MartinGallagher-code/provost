@@ -3707,3 +3707,32 @@ exo-slurm-squeue	table	6	8
 exo-gromacs-mdrun-log	text	-	2
 exo-openmetrics-exposition	text	-	2
 exo-bpftool-prog-dump-xlated	text	-	2
+# PV-030 (2026-11-10): HPC benchmark outputs. Real captures and source-derived
+# outputs; README.md "HPC benchmark set" says which is which and how each was made.
+fio-run-status-range	table	2	6
+junit-xml-pytest	table	9	10
+junit-xml-reframe	table	2	9
+junit-xml-ctest	table	5	8
+reframe-perflog	table	3	34
+reframe-perflog-v3	table	4	9
+sacct-parsable	table	16	10
+sacct-steps	table	16	11
+sinfo-reasons	table	2	5
+osu-bw-v7	table	23	3
+osu-bw-v5	table	23	3
+osu-latency-v7	table	23	3
+osu-latency-v5	table	24	3
+osu-allreduce-full-v7	table	21	6
+osu-mbw-mr-v5	table	23	4
+ibstat	kv	-	4
+perfquery	kv	-	3
+perfquery-x	kv	-	3
+hpl-hpcc	table	8	10
+stream-full-omp	table	4	9
+lst-stat	table	24	9
+ior-v3	table	9	13
+ior-v4	table	6	13
+mdtest-v3	table	9	9
+mdtest-v4	table	10	9
+hpcg-v3.1	kv	-	90
+hpl-v2.3	table	4	18
