@@ -73,14 +73,21 @@ outputs; a controlled directory's own files (`files-*` tags) are left out.
 
 Not done: `archive --redact` (there is no `archive` yet: PV-029); MAC
 addresses; prefix-preserving address pseudonyms (a subnet's addresses do not
-share a prefix); dataset column names are pseudonymised like any text.
+share a prefix); dataset column names are pseudonymised like any text. Not
+scrubbed at capture: a controlled directory's own files (the `files-*`
+snapshots, kept as they are so `provost files --to` gives them back exactly;
+its `.gitignore` keeps a file out) and `annotate` values.
+
+The scrub costs little: a line with none of its trigger words (password,
+token, key, bearer, `://`, ...) skips every rule, so a 10 MB input of
+ordinary output takes about 0.1 s.
 
 Files: `provost` (`_receive`, `_scrub`, `_scrub_text`, `_redacted_summary`,
 `_manifest_apply`, `_ingest_store`, `_ingest_async`, `cmd_run`,
 `_capture_opt`, `_validate_settings`, `cmd_doctor`, `cmd_export`,
 `_redact_policy`, `_redact_key`, `_sha256_many`, `_export_redacted`, the help
 texts), `lib/provost_redact.awk`, `lib/provost_pseudo.awk`,
-`tests/smoke.sh` (part `redact`, 91 checks), `tests/corpus/scrubbed.tsv`,
+`tests/smoke.sh` (part `redact`, 92 checks), `tests/corpus/scrubbed.tsv`,
 `tests/corpus/scrub-survey.awk`, `tests/corpus/README.md`, `docs/usage.md`,
 `man/provost.1`, `README.md`, `HANDOFF.md`.
 

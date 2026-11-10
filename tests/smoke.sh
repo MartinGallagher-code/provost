@@ -1904,46 +1904,51 @@ check "output_sha256 is of output.txt as stored" "output_sha256	$(rsha < "$RWS/c
 check "source shows the scrubbed input" "[REDACTED:password]" "$(rp source c0001)"
 check_not "the store's history holds no secret" "hunter2x" "$(tgit "$RWS" log --all -p)"
 check "a scrubbed store verifies" "rc=0" "$(rp verify; echo "rc=$?")"
+# A key inside a JSON string, after another key (a cloud service account).
+printf '{"type": "service_account", "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\\n-----END PRIVATE KEY-----\\n", "client_email": "svc@proj.example"}\n' > "$RD/sa.json"
+rp --name sa "$RD/sa.json" >/dev/null
+check "a private key inside a JSON string is scrubbed, the rest kept" '"private_key": "[REDACTED:private-key]\n", "client_email": "svc@proj.example"}' \
+    "$(cat "$RWS/captures/c0002/output.txt")"
 # run: the command line is scrubbed too.
 out="$(rp run echo mysql --password=Pw0rd5x -h db1)"
-check "run scrubs its command line" "command	echo mysql --password=[REDACTED:password] -h db1" "$(cat "$RWS/captures/c0002/meta.tsv")"
+check "run scrubs its command line" "command	echo mysql --password=[REDACTED:password] -h db1" "$(cat "$RWS/captures/c0003/meta.tsv")"
 check_not "...in the commit message too" "Pw0rd5x" "$(tgit "$RWS" log -1 --format=%B)"
-check_not "...and the output" "Pw0rd5x" "$(cat "$RWS/captures/c0002/output.txt")"
-check "...and counts both" "redacted	password=2" "$(cat "$RWS/captures/c0002/meta.tsv")"
+check_not "...and the output" "Pw0rd5x" "$(cat "$RWS/captures/c0003/output.txt")"
+check "...and counts both" "redacted	password=2" "$(cat "$RWS/captures/c0003/meta.tsv")"
 # Nothing to scrub: byte for byte as it came, a missing last newline included.
 printf 'a,b\n1,2' | rp --name plain >/dev/null
-check "an input with no secret records 'none'" "redacted	none" "$(cat "$RWS/captures/c0003/meta.tsv")"
-check "...and is stored byte for byte" "same" "$(cmp -s <(printf 'a,b\n1,2') "$RWS/captures/c0003/output.txt" && echo same)"
+check "an input with no secret records 'none'" "redacted	none" "$(cat "$RWS/captures/c0004/meta.tsv")"
+check "...and is stored byte for byte" "same" "$(cmp -s <(printf 'a,b\n1,2') "$RWS/captures/c0004/output.txt" && echo same)"
 printf 'k v\nx 1\ntoken=Xy12345678' | rp --name nolf >/dev/null
-check "a scrubbed input keeps a missing last newline missing" "$(printf 'k v\nx 1\ntoken=[REDACTED:token]' | od -An -c)" "$(od -An -c < "$RWS/captures/c0004/output.txt")"
+check "a scrubbed input keeps a missing last newline missing" "$(printf 'k v\nx 1\ntoken=[REDACTED:token]' | od -An -c)" "$(od -An -c < "$RWS/captures/c0005/output.txt")"
 # Look-alikes stay.
 printf 'Last password change          : Nov 01, 2026\nPassword expires              : never\npasswd:         files systemd\nPWD=/home/u\ntokens: 5\nerror: unexpected token: expected\npassword: yes\n  -W, --password           force password prompt\nnetmask 255.255.255.0 inet 10.0.0.7\n' > "$RD/alike.txt"
 rp --name alike "$RD/alike.txt" >/dev/null
-check "look-alikes are left alone (redacted none)" "redacted	none" "$(cat "$RWS/captures/c0005/meta.tsv")"
-check "...byte for byte" "same" "$(cmp -s "$RD/alike.txt" "$RWS/captures/c0005/output.txt" && echo same)"
+check "look-alikes are left alone (redacted none)" "redacted	none" "$(cat "$RWS/captures/c0006/meta.tsv")"
+check "...byte for byte" "same" "$(cmp -s "$RD/alike.txt" "$RWS/captures/c0006/output.txt" && echo same)"
 # --no-redact and PROVOST_REDACT.
 rp --name off --no-redact "$RD/secrets.txt" >/dev/null
-check "--no-redact stores the input as it comes" "hunter2x" "$(cat "$RWS/captures/c0006/output.txt")"
-check "...and records 'off'" "redacted	off" "$(cat "$RWS/captures/c0006/meta.tsv")"
+check "--no-redact stores the input as it comes" "hunter2x" "$(cat "$RWS/captures/c0007/output.txt")"
+check "...and records 'off'" "redacted	off" "$(cat "$RWS/captures/c0007/meta.tsv")"
 PROVOST_REDACT=0 PROVOST_WORKSPACE="$RWS" "$PROVOST" --name off "$RD/secrets.txt" >/dev/null 2>&1
-check "PROVOST_REDACT=0 does the same" "redacted	off" "$(cat "$RWS/captures/c0007/meta.tsv")"
+check "PROVOST_REDACT=0 does the same" "redacted	off" "$(cat "$RWS/captures/c0008/meta.tsv")"
 PROVOST_REDACT=0 PROVOST_WORKSPACE="$RWS" "$PROVOST" --name on --redact "$RD/secrets.txt" >/dev/null 2>&1
-check "--redact turns it back on" "redacted	authorization=1" "$(cat "$RWS/captures/c0008/meta.tsv")"
+check "--redact turns it back on" "redacted	authorization=1" "$(cat "$RWS/captures/c0009/meta.tsv")"
 check "PROVOST_REDACT must be 0 or 1 (exit 2)" "2" "$(PROVOST_REDACT=x PROVOST_WORKSPACE="$RWS" rc_of "$PROVOST" ls)"
 check "doctor says the scrub is on" "secret scrub: on" "$(rp doctor)"
 # batch, --manifest and the background path.
 printf 'k,v\npassword,"x"\napi_key=Ab12345678\n' > "$RD/b1.txt"; printf 'k,v\nsecret=Zz98765432\n' > "$RD/b2.txt"
 rp batch --name bt "$RD/b1.txt" "$RD/b2.txt" >/dev/null
-check "batch scrubs each input" "redacted	api-key=1" "$(cat "$RWS/captures/c0009/meta.tsv")"
-check "...and records each one's own" "redacted	secret=1" "$(cat "$RWS/captures/c0010/meta.tsv")"
+check "batch scrubs each input" "redacted	api-key=1" "$(cat "$RWS/captures/c0010/meta.tsv")"
+check "...and records each one's own" "redacted	secret=1" "$(cat "$RWS/captures/c0011/meta.tsv")"
 printf 'sut=node7\ntoken=Tk0123456789\n' > "$RD/m.txt"
 rp --name man --manifest "$RD/m.txt" "$RD/b2.txt" >/dev/null
-check "--manifest lines are scrubbed too" "#% token=[REDACTED:token]" "$(cat "$RWS/captures/c0011/output.txt")"
-check "...and counted" "redacted	secret=1,token=1" "$(cat "$RWS/captures/c0011/meta.tsv")"
+check "--manifest lines are scrubbed too" "#% token=[REDACTED:token]" "$(cat "$RWS/captures/c0012/output.txt")"
+check "...and counted" "redacted	secret=1,token=1" "$(cat "$RWS/captures/c0012/meta.tsv")"
 printf 'k v\nx 1\npassword=AsyncPw9\n' | PROVOST_WORKSPACE="$RWS" "$PROVOST" --async --name bg >/dev/null 2>&1
-for _ in $(seq 1 100); do [[ -f "$RWS/captures/c0012/meta.tsv" ]] && break; sleep 0.1; done
-check "a background capture is scrubbed and records it" "redacted	password=1" "$(cat "$RWS/captures/c0012/meta.tsv" 2>/dev/null)"
-check_not "...and stores no secret" "AsyncPw9" "$(cat "$RWS/captures/c0012/output.txt" 2>/dev/null)"
+for _ in $(seq 1 100); do [[ -f "$RWS/captures/c0013/meta.tsv" ]] && break; sleep 0.1; done
+check "a background capture is scrubbed and records it" "redacted	password=1" "$(cat "$RWS/captures/c0013/meta.tsv" 2>/dev/null)"
+check_not "...and stores no secret" "AsyncPw9" "$(cat "$RWS/captures/c0013/output.txt" 2>/dev/null)"
 # The corpus: the scrub changes exactly the reviewed inputs (each a real secret).
 check "the scrub changes exactly the corpus inputs in tests/corpus/scrubbed.tsv" "$(cat "$HERE/corpus/scrubbed.tsv")" \
     "$(LC_ALL=C awk -f "$HERE/../lib/provost_redact.awk" -f "$HERE/corpus/scrub-survey.awk" "$HERE"/corpus/inputs/*)"

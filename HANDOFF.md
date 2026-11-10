@@ -48,6 +48,10 @@ is frozen in `tests/corpus/scrubbed.tsv` (11 inputs, all real secrets). Open:
   old behaviour).
 - `input_sha256` of a scrubbed capture lets a guess at a weak password be
   checked; documented, not changed (the ticket asked for the received hash).
+- Not scrubbed: a controlled directory's own files (`files-*` snapshots,
+  kept exact so `provost files --to` restores them; a `.env` there is
+  committed unless the directory's `.gitignore` names it) and `annotate`
+  values. Whether to scrub snapshots too is the owner's call.
 - Not done: `archive --redact` (no `archive` until PV-029), MAC addresses,
   prefix-preserving address pseudonyms. PV-028's `--env` capture should use
   the same scrub (`_scrub`).

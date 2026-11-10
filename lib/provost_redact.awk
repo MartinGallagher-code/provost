@@ -58,6 +58,9 @@ function redact_init() {
     RX_KV = "[a-z0-9_.-]*(password|passphrase|secret|private[_-]?key|credentials?|token|api[_-]?key|apikey|access[_-]?key)[\"']?[ \t]*[:=][ \t]*"
     RX_FLAG = "--?[a-z0-9_.-]*(password|passphrase|secret|private[_-]?key|credentials?|token|api[_-]?key|apikey|access[_-]?key)[ \t]+"
     RX_STOP = "[ \t,;&\"'`<>(){}|]"
+    # A line (lower-cased) with none of these in it has nothing to scrub: most
+    # lines, so they skip every rule below.
+    RX_ANY = "authorization|bearer|://|akia|asia|abia|acca|gh[pousr]_|github_pat_|xox[abposr]-|hv[sbr][.]|eyj|pass|secret|token|key|credential"
 }
 
 # The kind a key=value secret is counted as, from its (lower-case) key.
@@ -107,6 +110,7 @@ function _vend(s, pos, q,    rest, i) {
 # scrub(S): S (one line, or what is left of one) with every secret replaced.
 function scrub(s,    out, ls, pre, st, q, ve, v, k, t, i, m) {
     redact_init()
+    if (tolower(s) !~ RX_ANY) return s
     # Authorization headers: the whole value.
     out = ""
     for (;;) {
@@ -217,7 +221,7 @@ function scrub(s,    out, ls, pre, st, q, ve, v, k, t, i, m) {
 # began inside a private key block and left nothing after its END. Call
 # scrub_reset() between documents.
 function scrub_reset() { IN_PEM = 0 }
-function scrub_line(line,    out, was) {
+function scrub_line(line,    out, was, st, m) {
     redact_init()
     out = ""; was = IN_PEM
     for (;;) {
@@ -225,10 +229,11 @@ function scrub_line(line,    out, was) {
             if (match(line, RX_PEM_END)) { line = substr(line, RSTART + RLENGTH); IN_PEM = 0; continue }
             line = ""; break
         }
-        if (match(line, RX_PEM_BEGIN)) {
-            out = out scrub(substr(line, 1, RSTART - 1)) "[REDACTED:private-key]"
+        if (index(line, "-----BEGIN") && match(line, RX_PEM_BEGIN)) {
+            st = RSTART; m = RLENGTH               # (scrub() below runs match() too)
+            out = out scrub(substr(line, 1, st - 1)) "[REDACTED:private-key]"
             RC["private-key"]++
-            line = substr(line, RSTART + RLENGTH); IN_PEM = 1
+            line = substr(line, st + m); IN_PEM = 1
             continue
         }
         out = out scrub(line); break
