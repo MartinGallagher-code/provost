@@ -5069,9 +5069,10 @@ UNITS (--units base)
     original column is kept. 9.4 GB/s and 9400 MB/s both become 9400000000
     in a [B/s] column; 940 Mbits/sec is 940000000 in a [bit/s] one. Bits
     are never turned into bytes, nor bytes into bits.
-    Units are read by the letter: B and Byte(s) are bytes, b and bit(s)
-    bits; k, K, M, G, T, P, E are powers of 1000, and Ki, Mi, Gi, Ti, Pi, Ei
-    powers of 1024; times are ns, us (or µs), ms and s. A bare multiplier
+    Units are read by the letter: B and Byte(s) are bytes, bit(s) bits, and
+    a short b bits only in a rate (Mb/s, Gbps); k, K, M, G, T, P, E are
+    powers of 1000, Ki, Mi, Gi, Ti, Pi, Ei powers of 1024; times are ns,
+    us (or µs), ms and s. A bare multiplier
     (7.8Gi, 1.2G, as free -h and df -h print) names no quantity, so it is
     not read; nor is a unit glued to a word in a column name (rxkB/s). The
     one exception: iperf prints its powers of 1024 as KBytes, MBytes and

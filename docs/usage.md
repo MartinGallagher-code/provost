@@ -233,8 +233,12 @@ Bits are never turned into bytes, nor bytes into bits: a `[B/s]` column and a
 
 **How a unit is read: by the letter.**
 
-- `B`, `Byte`, `Bytes` are bytes; `bit`, `bits` and a prefixed `b` (`Mb`,
-  `Gbps`) are bits. A bare `b` is not read.
+- `B`, `Byte`, `Bytes` are bytes; `bit`, `bits` are bits. A short `b` is
+  bits only in a rate (`Mb/s`, `Gbps`): as a size it means bytes about as
+  often (tc prints a 15 KiB burst as `15Kb`; sysfs has `read_ahead_kb`), so
+  `Kb`, `Mb` or `kb` alone are not read. A bare `B` glued to its number
+  (`8.0B`) is not read either, as it is as often a count (8 billion
+  parameters); `3600 B` is.
 - `k`, `K`, `M`, `G`, `T`, `P`, `E` are powers of 1000; `Ki`, `Mi`, `Gi`,
   `Ti`, `Pi`, `Ei` are powers of 1024. A tool that prints `kB` for 1024 bytes
   (`/proc/meminfo`) is converted as printed: the original column still says
@@ -255,7 +259,8 @@ Bits are never turned into bytes, nor bytes into bits: a `[B/s]` column and a
 
 1. the column's name: a trailing `(UNIT)` or `[UNIT]` (`Latency (us)`,
    `bw(MiB/s)`; a one-letter unit only after a space or `_`, so `Error(s)` is
-   a plural, not seconds), the whole name (`MB/s`), or its last `_`- or
+   a plural, not seconds), the whole name when it is a size or a rate
+   (`MB/s`; never a bare time: vmstat's `us` is user CPU), or its last `_`- or
    space-separated word when that carries a prefix or a rate
    (`Best_Rate_MB/s`, `rtt_ms`; not `kb_read_s` or `requests_per_ms`). Each
    cell must then be a plain number.
@@ -282,6 +287,11 @@ of `dataset`, `column`, `unit_column`, `base`, `from` (`name`, `cells`, or
 dataset  column            unit_column            base  from  read
 osu      Bandwidth_(MB/s)  Bandwidth_(MB/s)[B/s]  B/s   name  MB/s=10^6
 ```
+
+Run over every corpus input as provost files it (3,733), `--units base`
+converted 466 columns in 276 of them; each was checked for a false reading,
+and the three found (vmstat's `us`, sysfs `read_ahead_kb`, llama-bench's
+`8.0B` parameters) are the rules above that refuse them.
 
 A dataset fed by captures with and without `--units base` keeps one table
 (the earlier rows' `[UNIT]` cells are empty), unless the added columns take

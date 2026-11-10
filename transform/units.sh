@@ -26,8 +26,10 @@
 # units, so a consumer comparing `B/s` with `bit/s` sees that they differ.
 #
 # HOW A UNIT IS READ: by the letter.
-#   * `B`, `Byte(s)` are bytes; `b`, `bit(s)` are bits (a bare `b` with no
-#     prefix is not read: too many other meanings).
+#   * `B`, `Byte(s)` are bytes; `bit(s)` are bits. A short `b` is bits only
+#     in a rate (`Mb/s`, `Gbps`): as a size it means bytes as often as bits
+#     (tc's burst `15Kb`, sysfs `read_ahead_kb`), so `Kb`, `Mb`, `b` alone
+#     are not read.
 #   * Decimal prefixes k, K, M, G, T, P, E are powers of 1000; binary prefixes
 #     Ki, Mi, Gi, Ti, Pi, Ei are powers of 1024. A tool that prints `kB` for
 #     1024 bytes (/proc/meminfo) is converted as printed; the original column
@@ -50,7 +52,8 @@
 # cell. Where the unit comes from, in this order:
 #   1. its name: a trailing `(UNIT)` or `[UNIT]` (`Latency (us)`,
 #      `bw(MiB/s)`; a one-letter unit only after a space or `_`: `Time_(s)`,
-#      never the plural in `Error(s)`); the whole name (`MB/s`); or the last
+#      never the plural in `Error(s)`); the whole name when it is a size or a
+#      rate (`MB/s`; not a time: the us of vmstat is user CPU); or the last
 #      `_`- or space-separated word when it carries a prefix or a rate
 #      (`Best_Rate_MB/s`, `rtt_ms`; not `kb_read_s`, `requests_per_ms`, or a
 #      bare `s` or `bytes`). Every digit-bearing cell must then be a plain
@@ -58,7 +61,8 @@
 #   2. a column named NAME_unit beside it: each row's number is read in that
 #      row's unit.
 #   3. each cell: a number, then optionally spaces or one `_`, then a unit
-#      (`482MiB/s`, `1.19 MBytes`, `42.18_GiB`), optionally followed by the
+#      (`482MiB/s`, `1.19 MBytes`, `42.18_GiB`; a bare `B` only after a
+#      space, since `8.0B` is as often a count), optionally followed by the
 #      same quantity in another unit in parentheses (fio's
 #      `482MiB/s (505MB/s)`: the first is used).
 # All of a column's units must be the same quantity (sizes, or byte rates, or
@@ -87,13 +91,13 @@ function _u_init(   si, se, iec, n, i, j, p, s, bsfx, nb, bisfx, nbi, rr, t, too
     n = split("k K M G T P E", si, " "); split("1 1 2 3 4 5 6", se, " ")
     split("Ki Mi Gi Ti Pi Ei", iec, " ")
     nb = split("B Byte Bytes", bsfx, " ")
-    nbi = split("bit bits Bit Bits b", bisfx, " ")
+    nbi = split("bit bits Bit Bits", bisfx, " ")
     # bytes
     split("B Byte Bytes byte bytes", t, " ")
     for (j = 1; j <= 5; j++) _u_def(t[j], "B", 0, 0)
     for (i = 1; i <= n; i++) for (j = 1; j <= nb; j++) _u_def(si[i] bsfx[j], "B", 3 * se[i], 0)
     for (i = 1; i <= 6; i++) _u_def(iec[i] "B", "B", 0, i)
-    # bits (a bare `b` is not a unit here; a prefixed one is)
+    # bits, spelled out (a short `b` is read only in a rate: below)
     split("bit bits Bit Bits", t, " ")
     for (j = 1; j <= 4; j++) _u_def(t[j], "bit", 0, 0)
     for (i = 1; i <= n; i++) for (j = 1; j <= nbi; j++) _u_def(si[i] bisfx[j], "bit", 3 * se[i], 0)
@@ -105,7 +109,15 @@ function _u_init(   si, se, iec, n, i, j, p, s, bsfx, nb, bisfx, nbi, rr, t, too
         if (k ~ /^([kKMGTPE]|[KMGTPE]i)?[Bb]$/) rr[k "ps"] = k
     }
     for (k in rr) _u_def(k, DIM[rr[k]] "/s", E10[rr[k]], N2[rr[k]])
+    # a short `b` after a prefix is bits only in a rate (Mb/s, Gbps, as
+    # ethtool and ffmpeg print): as a size it is bytes as often (the burst
+    # 15Kb that tc prints, sysfs read_ahead_kb), so Kb, Mb, kb are not read
     _u_def("bps", "bit/s", 0, 0); _u_def("b/s", "bit/s", 0, 0)
+    for (i = 1; i <= n; i++) {
+        _u_def(si[i] "b/s", "bit/s", 3 * se[i], 0); _u_def(si[i] "b/sec", "bit/s", 3 * se[i], 0)
+        _u_def(si[i] "bps", "bit/s", 3 * se[i], 0)
+    }
+    for (i = 1; i <= 6; i++) { _u_def(iec[i] "b/s", "bit/s", 0, i); _u_def(iec[i] "bps", "bit/s", 0, i) }
     # times
     split("ns nsec nsecs", t, " ");                 for (j = 1; j <= 3; j++) _u_def(t[j], "s", -9, 0)
     split("us usec usecs \302\265s \316\274s", t, " "); for (j = 1; j <= 5; j++) _u_def(t[j], "s", -6, 0)
@@ -160,6 +172,8 @@ function _u_cell(s,   num, rest, alt, i, u, au) {
         if (!(_u_map(u) in DIM) || DIM[_u_map(u)] != DIM[_u_map(au)]) return 0
     } else u = rest
     if (u == "b" || !(_u_map(u) in DIM)) return 0
+    # a bare B glued to the number is a count as often (8.0B parameters)
+    if (u == "B" && substr(s, length(num) + 1, 1) == "B") return 0
     _UV = num; _UU = u
     return 1
 }
@@ -178,7 +192,8 @@ function _u_hdr(h,   n, c, o, p, u, q, pre) {
         q = substr(h, p - 1, 1)
         return (q == " " || q == "_") ? u : ""
     }
-    if (!(h in BARE) && h != "b" && (_u_map(h) in DIM)) return h
+    # the whole name: a size or a rate, never a bare time (vmstat us is user CPU)
+    if (!(h in BARE) && h != "b" && (_u_map(h) in DIM) && DIM[_u_map(h)] != "s") return h
     p = _u_last(h, "_"); q = _u_last(h, " "); if (q > p) p = q
     if (p < 2) return ""
     u = substr(h, p + 1); pre = substr(h, 1, p - 1)

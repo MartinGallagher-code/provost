@@ -21,8 +21,9 @@ column whose unit can be read exactly gains a column right after it named
 name ends in `[UNIT]` is the convention a consumer (qd check, qd compare) can
 rely on: plain numbers, in that unit.
 
-**Read by the letter, never guessed.** `B`/`Byte(s)` are bytes and `b`/`bit(s)`
-bits (a bare `b` is not read); `k K M G T P E` are powers of 1000 and
+**Read by the letter, never guessed.** `B`/`Byte(s)` are bytes and `bit(s)`
+bits; a short `b` is bits only in a rate (`Mb/s`, `Gbps`), since as a size
+it means bytes as often (tc's `15Kb` burst, sysfs `read_ahead_kb`); `k K M G T P E` are powers of 1000 and
 `Ki Mi Gi Ti Pi Ei` powers of 1024; rates are `/s`, `/sec` or `ps`; times
 ns/us/µs/ms/s. Bits are never turned into bytes. A bare multiplier
 (`7.8Gi` from `free -h`, `1.2G` from `df -h`, whose `G` is 1024^3) names no
@@ -58,7 +59,11 @@ iperf3 `112 MBytes` → 117440512 B (112 × 2^20), `412 KBytes` → 421888 B,
 `940 Mbits/sec` → 940000000 bit/s; OSU `3.26` under `Bandwidth (MB/s)` →
 3260000 B/s and `3.14` under `Avg Latency(us)` → 0.00000314 s; vnstat
 `42.18_GiB` and `158.72_kbit/s`. Over the whole corpus (3,733 inputs) the
-columns converted were reviewed for false readings; see HANDOFF.
+columns converted (466, in 276 inputs) were each checked for a false reading;
+the three found are now refused: vmstat's `us` (user CPU, as a whole column
+name: a bare time is no longer read so), sysfs `read_ahead_kb` (a short-`b`
+size), and llama-bench's `8.0B` (billions: a `B` glued to its number is not
+read; `3600 B` is).
 
 **Not read, and why** (follow-ups, not changed here because each would change
 default tidy output): the PV-030 HPC strategies name their units in lower
@@ -70,7 +75,7 @@ carry no unit at all (KiB/s by documentation). A piped `iperf3` server report
 parsed generically reads `MBytes` by the letter (10^6), as no tool name is
 known; `provost run iperf3 …` reads it as iperf does.
 
-Tests: `transform/tests/test_units.sh` (79 checks: the conversion table,
+Tests: `transform/tests/test_units.sh` (86 checks: the conversion table,
 name, `NAME_unit` and cell rules, what is left alone, exactness past 2^53),
 run under mawk and gawk, and in CI's quick-checks job; a `units` part in
 `tests/smoke.sh` (41 checks: default unchanged, the option, the variable,

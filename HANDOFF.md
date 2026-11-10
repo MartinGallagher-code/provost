@@ -188,7 +188,7 @@ Behaviour worth knowing:
 Suites (all CI-enforced):
 - `tests/smoke.sh` (737, with the `units` part's 41)
 - `transform/tests/test_melt.sh` (70)
-- `transform/tests/test_units.sh` (79; mawk and gawk)
+- `transform/tests/test_units.sh` (86; mawk and gawk)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
 - `tests/corpus/run.sh --golden`
