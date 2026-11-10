@@ -57,6 +57,8 @@ HPCG, HPL 2.3, ibstat, perfquery, lst, STREAM). Open:
   under many goldens.
 - nvidia-smi not re-checked against a current driver (no GPU).
 - Units are kept in names, not normalised: PV-032.
+- `ml/gen/tools/sci_ior.py` and `sci_osu_latency.py` were removed (their families
+  are in the corpus now); the layout model's next retrain drops them.
 
 provost is one Bash entry point (`provost`) over:
 - the extract engine (`extract/provost-extract`, 274 strategies, ~118 generic)

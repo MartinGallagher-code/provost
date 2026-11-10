@@ -61,6 +61,14 @@ moved):
   real fio 3.36 run-status output fell to `indented-hierarchy`. It is now the
   `bw_range` column.
 
+**Two training generators removed:** `ml/gen/tools/sci_ior.py` and
+`sci_osu_latency.py`. The generators must imitate tool families the corpus
+does not hold (the corpus families are what the layout model's
+cross-validation is scored on; `ml/tests/test_gen.py` enforces it), and IOR
+and OSU are corpus families now. 295 generators remain (`ml/README.md`).
+The shipped model is not retrained here; until it is, its cross-validation on
+the `ior` and `osu` families is optimistic.
+
 **Hint row:** `ibstat` → `kv-report` (one row per HCA attribute, the HCA as
 `section`; a CA with several ports lists them without the port number, which
 is fine for today's one-port-per-CA cards and not for mlx4).
@@ -119,7 +127,8 @@ Files: `extract/strategies/structured/xml.sh`,
 `extract/strategies/hpc/{hpl,hpcg,ior,mdtest,stream,lst-stat}.sh` (and its CHANGELOG), `extract/hints.tsv`,
 samples and goldens under `extract/samples/` and `extract/tests/golden/`,
 the corpus inputs, `expected.tsv` rows and goldens, `tests/corpus/README.md`,
-`COVERAGE.md`, README, HANDOFF.
+`COVERAGE.md`, README, HANDOFF; `ml/gen/tools/sci_ior.py` and
+`sci_osu_latency.py` removed, `ml/README.md`.
 
 ## 2.4.0 — 2026-11-10 — every change moves the version (BN-002)
 
