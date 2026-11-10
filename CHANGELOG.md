@@ -1,5 +1,120 @@
 # provost — Changelog
 
+## 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
+
+The assessment asked for first-class parsing of OSU, IOR, mdtest, HPCG, HPL,
+lnet_selftest, ibstat/perfquery, ReFrame perflogs and JUnit XML, and a
+re-check of STREAM, fio, iperf3, sacct, sinfo and nvidia-smi. In provost's
+order: generic parsers first, then a hint row, then a strategy.
+
+27 corpus inputs, 18 with generic goldens; the 9 that need a strategy have
+fixture goldens under `extract/tests/golden/` instead. Every input has a
+hand check that one known number lands in the right row and column.
+
+**Where the inputs came from.** Real captures where the tool could run in a
+cloud container from signed distribution packages or PyPI; for the rest,
+outputs written from the tool's own print statements (each file traced to the
+upstream source lines, values chosen to be consistent). Building the
+benchmarks from their source tarballs was refused by the session's safety
+check, and there is no InfiniBand or Lustre here. `tests/corpus/README.md`
+("HPC benchmark set") lists every input and how it was made, so real site
+captures can replace the source-derived ones.
+
+- Real: HPL 2.0 (from HPC Challenge 1.5.0, `mpirun -np 4 hpcc`), JUnit XML
+  from pytest 7.4, ReFrame 4.7 and ctest 3.28, ReFrame 4.7.4 and 3.12.0
+  perflogs, fio 3.36, iperf3 3.16, Slurm 23.11 `sacct` / `sacct -p` /
+  `sinfo -R`.
+- From source: OSU OMB 5.9 and 7.4 (`osu_bw`, `osu_latency`,
+  `osu_allreduce -f`, `osu_mbw_mr`), IOR and mdtest 3.3.0 and 4.0.0,
+  HPCG 3.1, HPL 2.3 (with a FAILED test), `ibstat`, `perfquery`,
+  `perfquery -x` (rdma-core 50.0),
+  `lst stat` (Lustre lnet/utils/lst.c), STREAM 5.10's full printout.
+
+**Generic parser changes** (each fires on the new shape only; no other golden
+moved):
+
+- `xml` (structured): **record mode.** An element that occurs twice or more,
+  always at one depth, with two or more attributes each, is a record: one row
+  per occurrence with its attributes, the parent's `name`/`id`, and every
+  descendant's attributes and text (`failure.message`, `failure`,
+  `skipped.message`, `system-out`). Text is entity-decoded and CDATA-safe.
+  JUnit XML from pytest, ReFrame and ctest now gives one row per test case
+  (it was one wide row of `testcase.name`, `testcase.name_2`, …). Spring
+  bean configs and HTML keep the flat passes (their repeated elements nest at
+  several depths or carry one attribute).
+- `pipe-table` (delimited): **Slurm's `--parsable`** dialect, a `|` ending
+  every line including the header (`sacct -p`, `sacctmgr -p`, `sreport -p`),
+  is a table again; it went to `colon-fields` and split `0:0` and
+  `00:00:07` apart. **Headerless `key=value` columns** name themselves: one
+  key in every cell becomes the column name (`jobid`, `ref`), several keys
+  split into `<col>_key` / `<col>_value` (ReFrame 3.x perflogs, one row per
+  measured variable).
+- `labeled-inline-kv` (delimited): fio 3.x prints each group's job-bandwidth
+  range bare, after the bandwidth (`bw=96.1MiB/s (101MB/s), 96.1MiB/s-96.1MiB/s
+  (101MB/s-101MB/s), io=…`); that part made the whole block a non-record, so
+  real fio 3.36 run-status output fell to `indented-hierarchy`. It is now the
+  `bw_range` column.
+
+**Hint row:** `ibstat` → `kv-report` (one row per HCA attribute, the HCA as
+`section`; a CA with several ports lists them without the port number, which
+is fine for today's one-port-per-CA cards and not for mlx4).
+
+**Already tidy, nothing changed:** OSU (`aligned-columns`, units kept in the
+names: `Bandwidth_(MB/s)`, `Avg_Latency(us)`), `perfquery` and `perfquery -x`
+(`dot-leader-kv`), ReFrame 4.x perflogs (`pipe-table`), `sinfo -R`.
+
+**Bespoke strategies, in the empty `extract/strategies/hpc/`** — only where
+no generic parser keeps the rows even when forced (each was tried with
+`--strategy` against every generic parser). PV-006, the approach to
+generalisation, may want to weigh these six:
+
+- `hpl`: one row per test (tv, matrix_n, nb, p, q, time_s, gflops, residual,
+  check; start/end time where HPL 2.1+ prints them, and the norms HPL prints
+  under a FAILED check). The column header is re-printed above every row and
+  the residual is on its own line.
+- `stream`: one row per kernel from the full printout (function,
+  best_rate_mb_s, avg/min/max_time_s, array_size, threads, validation). The
+  corpus's `stream-benchmark` is only the table, which `aligned-columns`
+  tidies; the printout around it reads as prose to every generic parser.
+- `ior`: one row per Results row (test, access, bw_mib_s, iops, latency_s,
+  block_kib, xfer_kib, open_s, wr_rd_s, close_s, total_s, iter), IOR 3.x and
+  4.x. The generic fixed-width parse takes that table but runs on into the
+  summary header, its rows and the Finished line.
+- `mdtest`: one row per SUMMARY operation (summary, operation, max, min,
+  mean, std_dev, unit, iterations), mdtest 3.x (` :` after the name) and 4.x.
+  fixed-width kept the colon in the Max column.
+- `hpcg`: an HPCG 3.x results file as one wide record, every key kept
+  (`equals` drops keys over 50 characters, the rating line among them), the
+  coarse-grid levels as `level_N`, the verdict as `final_summary.result` and
+  `final_summary.gflops_rating`.
+- `lst-stat`: one row per sample, group, metric and direction (avg, min, max,
+  unit).
+
+**Re-check of the existing goldens** against current output:
+
+- STREAM: `stream-benchmark`'s table matches today's `stream.c` (5.10)
+  byte for byte. It is only the table, though; the whole printout needed
+  `stream`.
+- fio 3.36 (real): normal and terse output parse as the goldens do. The
+  corpus's run-status input was hand-made without the range fio 3.x always
+  prints, which hid the `labeled-inline-kv` gap.
+- iperf3 3.16 (real): parses identically through `iperf3-intervals`. It is
+  bespoke-only, so the generic gate holds no golden for it, as before.
+- Slurm 23.11 (real): `sacct` prints a `----` rule under its header that
+  `sacct-jobs` lacks; both forms tidy (`sacct-steps` is the real one).
+  `sinfo` matches. `sacct -p` needed the `pipe-table` fix. `sinfo -N -l` does
+  not tidy (two columns merge) and was not added: a follow-up.
+- nvidia-smi: not re-checked, as there is no GPU here. The corpus's captures
+  are drivers 545 and 550.
+
+Files: `extract/strategies/structured/xml.sh`,
+`extract/strategies/delimited/pipe-table.sh`,
+`extract/strategies/delimited/labeled-inline-kv.sh`,
+`extract/strategies/hpc/{hpl,hpcg,ior,mdtest,stream,lst-stat}.sh` (and its CHANGELOG), `extract/hints.tsv`,
+samples and goldens under `extract/samples/` and `extract/tests/golden/`,
+the corpus inputs, `expected.tsv` rows and goldens, `tests/corpus/README.md`,
+`COVERAGE.md`, README, HANDOFF.
+
 ## 2026-11-09 — `provost verify`, and every capture records its input's hash (PV-026)
 
 "Tamper-evident" is now a command. Nothing about parsing changed, so no tidy

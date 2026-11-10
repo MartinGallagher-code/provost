@@ -1081,6 +1081,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | fio-latency-scientific | ✅ | aligned-columns |
 | fio-multijob | ✅ | yaml |
 | fio-normal-full | ✅ | key-value |
+| fio-run-status-range | ✅ | labeled-inline-kv |
 | fio-run-status | ✅ | labeled-inline-kv |
 | fio-run | ✅ | indented-hierarchy |
 | fio-status-line | ✅ | yaml |
@@ -1427,6 +1428,9 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | host_ns | ✅ | aligned-columns |
 | hostnamectl-json | ✅ | json |
 | hostnamectl | ✅ | colons |
+| hpcg-v3.1 | ✅ᵇ | hpcg (bespoke) |
+| hpl-hpcc | ✅ᵇ | hpl (bespoke) |
+| hpl-v2.3 | ✅ᵇ | hpl (bespoke) |
 | html-indented-dom | ✅ | xml |
 | htop-rows-color | ✅ | aligned-columns |
 | htop-snapshot | ✅ | aligned-columns |
@@ -1454,6 +1458,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ib-read-lat | ⏳ | — |
 | ib-write-bw | ✅ | aligned-columns |
 | ibmcloud-resource-service-instances | ✅ | aligned-columns |
+| ibstat | ✅ʰ | kv-report (hint: ibstat) |
 | icalendar-vevent-schedule | ✅ | block-records |
 | icalendar-vtodo-tasks | ✅ | block-records |
 | iceberg-snapshots | ✅ | aligned-columns |
@@ -1479,6 +1484,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | intel-gpu-top | ✅ | aligned-columns |
 | inxi-full | ✅ | yaml |
 | ioping-run | ✅ | text-lines |
+| ior-v3 | ✅ᵇ | ior (bespoke) |
+| ior-v4 | ✅ᵇ | ior (bespoke) |
 | iostat-cx | ✅ʰ | embedded-table (hint: iostat) |
 | iostat-d | ✅ | iostat-d |
 | iostat-throughput-si | ✅ | iostat-d |
@@ -1557,7 +1564,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | jekyll-build | ✅ | indented-hierarchy |
 | jest-summary | ✅ | colons |
 | jj-log | ✅ᵇ | jj-log (bespoke) |
-| jless-navigate | ⏳ | — |
+| jless-navigate | ✅ | text-lines |
 | jmap-histo | ✅ᵇ | jmap-histo (bespoke) |
 | jmh-run | ✅ | aligned-columns |
 | john-benchmark | ✅ | block-records |
@@ -1584,6 +1591,9 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | julia-pkg-status | ✅ | bracket-log |
 | julia-status | ✅ | bracket-log |
 | julia-versioninfo | ✅ | indented-hierarchy |
+| junit-xml-ctest | ✅ | xml |
+| junit-xml-pytest | ✅ | xml |
+| junit-xml-reframe | ✅ | xml |
 | jupyter-kernelspec-list | ✅ | aligned-columns |
 | jupyter-server-list | ✅ | aligned-columns |
 | just-list | ✅ʰ | section-name-value (hint: just-list) |
@@ -1827,6 +1837,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | lspci | ✅ʰ | lspci-line (hint: lspci) |
 | lsscsi-size | ✅ | bracket-log |
 | lsscsi | ✅ | bracket-log |
+| lst-stat | ✅ᵇ | lst-stat (bespoke) |
 | lstopo-no-graphics | ✅ | lstopo-no-graphics |
 | lstopo-text | ✅ | lstopo-no-graphics |
 | lsusb-s | ✅ʰ | indented-hierarchy (hint: lsusb-verbose) |
@@ -1889,6 +1900,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | mdadm-resync-progress | ✅ | kv-report |
 | mdcat-github-table | ✅ | box-table |
 | mdcat-table-unicode | ✅ | box-table |
+| mdtest-v3 | ✅ᵇ | mdtest (bespoke) |
+| mdtest-v4 | ✅ᵇ | mdtest (bespoke) |
 | media-star-ratings | ✅ | aligned-columns |
 | mediainfo-summary | ✅ | block-records |
 | megacli-pdlist | ✅ | block-records |
@@ -2360,6 +2373,12 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | os-release | ✅ | equals |
 | osqueryi-query | ✅ | psql-table |
 | ostree-refs-tree | ✅ | tree-view |
+| osu-allreduce-full-v7 | ✅ | aligned-columns |
+| osu-bw-v5 | ✅ | aligned-columns |
+| osu-bw-v7 | ✅ | aligned-columns |
+| osu-latency-v5 | ✅ | aligned-columns |
+| osu-latency-v7 | ✅ | aligned-columns |
+| osu-mbw-mr-v5 | ✅ | aligned-columns |
 | osv-scanner | ✅ | box-table |
 | otelcol-components | ✅ | yaml |
 | otelcol-metrics | ✅ | exposition-format |
@@ -2416,6 +2435,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | perf-stat | ✅ᵇ | perf-counters (bespoke) |
 | perf-top | ✅ | perf-top |
 | perf-trace | ✅ᵇ | perf-trace (bespoke) |
+| perfquery-x | ✅ | dot-leader-kv |
+| perfquery | ✅ | dot-leader-kv |
 | perftest-write-bw | ⏳ | — |
 | perl-V-short | ✅ | line-records |
 | perl-v | ✅ | indented-colon-groups |
@@ -2806,6 +2827,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | redis-info | ✅ | block-records |
 | redis-keys | ✅ | line-records |
 | redis-server-version | ✅ | inline-kv |
+| reframe-perflog-v3 | ✅ | pipe-table |
+| reframe-perflog | ✅ | pipe-table |
 | regctl-image-inspect | ✅ | json |
 | rekor-cli-get | ✅ | yaml |
 | rekor-cli-loginfo | ✅ | colons |
@@ -2897,6 +2920,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | s5cmd-du | ✅ | aligned-columns |
 | s5cmd-ls | ✅ | aligned-columns |
 | sacct-jobs | ✅ | aligned-columns |
+| sacct-parsable | ✅ | pipe-table |
+| sacct-steps | ✅ | fixed-width |
 | sage-version | ✅ | line-records |
 | salmon-quant-log | ✅ | tsv |
 | salt-key-list | ✅ | aligned-columns |
@@ -2978,6 +3003,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | signoz-alerts | ✅ | aligned-columns |
 | signoz-services | ✅ | aligned-columns |
 | sinfo-nodes | ✅ | aligned-columns |
+| sinfo-reasons | ✅ | aligned-columns |
 | size | ✅ | tsv |
 | skaffold-version | ✅ | text-lines |
 | skopeo-copy-log | ✅ | aligned-columns |
@@ -3094,6 +3120,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | strace-summary | ✅ | fixed-width |
 | stratis-pool-list | ✅ | aligned-columns |
 | stream-benchmark | ✅ | aligned-columns |
+| stream-full-omp | ✅ᵇ | stream (bespoke) |
 | stress-ng-cpu-cache | ✅ | labeled-records |
 | stress-ng-metrics | ✅ | labeled-records |
 | strings-count | ✅ | text-lines |
@@ -3221,7 +3248,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | tbl-benchmark-group-header | ✅ | aligned-columns |
 | tbl-blank-groups-firewall | ✅ | aligned-columns |
 | tbl-blank-separator-disks | ✅ | aligned-columns |
-| tbl-dash-rule-single-space | ✅ | aligned-columns |
+| tbl-dash-rule-single-space | ✅ | vertical-line |
 | tbl-decimal-align-shift | ✅ | aligned-columns |
 | tbl-df-total-footer | ✅ | aligned-columns |
 | tbl-df-wrapped-device | ✅ | aligned-columns |
@@ -3713,5 +3740,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 3677 / 3705** — ✅ 3426 via a generic parser, ✅ʰ 157 via a hint row, ✅ᵇ 94 via a bespoke strategy.
-⏳ not yet tidy: ansible-inventory-list apachectl-S cargo-nextest-run corefreq-topology cron-d-file-comments datadog-ci-junit-upload delta-diff-color dstat-cdngy exo-rados-df-pools ib-read-lat jless-navigate kdiskmark-run lzbench-run nix-why-depends nst-mdadm-detail-devices numastat-p nvidia-smi-dashboard nvidia-smi-full perftest-write-bw poetry-show-outdated ss-i ss-socket-info ss-tcp-info storcli-show tbl-header-spacing-off tiptop-view vnstat-hourly who-a-ragged
+**Coverage: 3705 / 3732** — ✅ 3444 via a generic parser, ✅ʰ 158 via a hint row, ✅ᵇ 103 via a bespoke strategy.
+⏳ not yet tidy: ansible-inventory-list apachectl-S cargo-nextest-run corefreq-topology cron-d-file-comments datadog-ci-junit-upload delta-diff-color dstat-cdngy exo-rados-df-pools ib-read-lat kdiskmark-run lzbench-run nix-why-depends nst-mdadm-detail-devices numastat-p nvidia-smi-dashboard nvidia-smi-full perftest-write-bw poetry-show-outdated ss-i ss-socket-info ss-tcp-info storcli-show tbl-header-spacing-off tiptop-view vnstat-hourly who-a-ragged

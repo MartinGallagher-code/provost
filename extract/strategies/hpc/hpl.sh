@@ -32,7 +32,7 @@
 # then the residual and its PASSED/FAILED check from the residual line, the
 # start and end times when this HPL prints them, and — under a FAILED check,
 # where HPL prints the norms it used (`||Ax-b||_oo  . . . =  0.001377`) —
-# norm_ax_b_oo, norm_a_oo, norm_a_1, norm_x_oo and norm_x_1. Units go in the
+# norm_ax_b_oo, norm_a_oo, norm_a_1, norm_x_oo, norm_x_1 and norm_b_oo. Units go in the
 # names (time_s; gflops is the unit).
 
 _hpl_is_num () { [[ "$1" =~ ^[0-9]+(\.[0-9]*)?([eE][-+]?[0-9]+)?$ ]]; }
@@ -96,6 +96,7 @@ strategy_extract () {
                     "||A||_1")     result+="entry${entry}.norm_a_1 ${v}"$'\n' ;;
                     "||x||_oo")    result+="entry${entry}.norm_x_oo ${v}"$'\n' ;;
                     "||x||_1")     result+="entry${entry}.norm_x_1 ${v}"$'\n' ;;
+                    "||b||_oo")    result+="entry${entry}.norm_b_oo ${v}"$'\n' ;;
                 esac
                 ;;
         esac

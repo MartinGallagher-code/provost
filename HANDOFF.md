@@ -26,8 +26,34 @@ proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
 
+**Since 2.3.0 (unreleased): the HPC benchmark outputs (PV-030, 2026-11-10).**
+OSU, IOR, mdtest, HPL, HPCG, STREAM's full printout, lnet_selftest `lst stat`,
+`ibstat`, `perfquery`, ReFrame perflogs (4.x and 3.x), JUnit XML, `sacct -p`
+and the fio 3.x run-status range all tidy, with units in the column names.
+Generic first: `xml` record mode (JUnit), `pipe-table` (Slurm `--parsable`,
+headerless `key=value` columns), `labeled-inline-kv` (fio's range), a hint
+row for `ibstat`; then six bespoke strategies in `extract/strategies/hpc/`
+(`hpl`, `hpcg`, `ior`, `mdtest`, `stream`, `lst-stat`), each where no generic
+parser keeps the rows (PV-006 may want to weigh them). 27 corpus inputs; the
+"HPC benchmark set" table in `tests/corpus/README.md` says which are real
+captures and which were written from the tools' source (OSU, IOR, mdtest,
+HPCG, HPL 2.3, ibstat, perfquery, lst, STREAM). Open:
+- **Real site captures** should replace the source-derived inputs (same
+  name, `run.sh --golden`, review the diff); the owner was asked for
+  sanitised outputs in PV-030.
+- `sinfo -N -l` merges `AVAIL_FE` and `REASON` (one space apart over cells
+  with spaces); not in the corpus.
+- `ibstat` goes to `kv-report`, which drops the `Port N:` level: fine for one
+  port per CA (mlx5), not for a two-port mlx4 CA.
+- `equals` drops keys over 50 characters (why HPCG needed a strategy);
+  `fixed-width` runs past a table's end into the next block (why IOR and
+  mdtest did). Either fix would let those go generic, but both parsers sit
+  under many goldens.
+- nvidia-smi not re-checked against a current driver (no GPU).
+- Units are kept in names, not normalised: PV-032.
+
 provost is one Bash entry point (`provost`) over:
-- the extract engine (`extract/provost-extract`, 268 strategies, ~116 generic)
+- the extract engine (`extract/provost-extract`, 274 strategies, ~118 generic)
 - the tidy melt (`transform/melt.sh`)
 - the analyze engine (`analyze/provost-analyze`)
 

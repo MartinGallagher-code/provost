@@ -43,7 +43,8 @@ inputs.)
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3582 tidy (124 format gaps ⏳)** — after two +500
+**3732 tools tested; 3602 tidy under `--generic`, 3705 with the bespoke
+strategies too (27 format gaps ⏳; counts as of 2026-11-10, PV-030)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -286,6 +287,8 @@ review of the diff.
 | `ior-v3`, `ior-v4` | IOR 3.3.0, 4.0.0 (`-a POSIX -F -i 3 -w -r -e -C`, 16 tasks) | source | `ior` (bespoke) |
 | `mdtest-v3`, `mdtest-v4` | mdtest from IOR 3.3.0, 4.0.0 (`-n 1000 -i 3 -u`) | source | `mdtest` (bespoke) |
 | `hpl-hpcc` | HPL 2.0 as embedded in HPC Challenge 1.5.0 (`mpirun -np 4 hpcc`, Ubuntu's `hpcc` package) | real | `hpl` (bespoke) |
+| `hpl-v2.3` | HPL 2.3 `xhpl` stdout, 16 ranks, one test FAILED (with the norms HPL then prints) | source | `hpl` (bespoke) |
+| `hpcg-v3.1` | HPCG 3.1 results file (`HPCG-Benchmark_3.1_*.txt`), 16 ranks, VALID | source | `hpcg` (bespoke) |
 | `stream-full-omp` | STREAM 5.10, the whole printout (OpenMP build) | source | `stream` (bespoke) |
 | `lst-stat` | Lustre `lst stat servers clients`, 1M brw read | source | `lst-stat` (bespoke) |
 | `ibstat` | `ibstat`, rdma-core 50.0, two ConnectX-6 HCAs | source | `kv-report` via hint row |

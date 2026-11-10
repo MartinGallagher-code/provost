@@ -53,10 +53,13 @@ provost stats df                 # statistics on the dataset
 run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →  git-backed store
 ```
 
-- **Auto-capture format** — ~110 generic format parsers (delimited and
-  structured), a declarative hints table, and ~145 tool-specific strategies
+- **Auto-capture format** — ~118 generic format parsers (delimited and
+  structured), a declarative hints table, and ~155 tool-specific strategies
   recognise JSON, tables, logs, and system-tool output (`df`, `ps aux`,
-  `free`, `mount`, `docker`, …).
+  `free`, `mount`, `docker`, …), HPC benchmark and fabric output (OSU, IOR,
+  mdtest, HPL, HPCG, STREAM, fio, iperf3, lnet_selftest, ibstat, perfquery),
+  Slurm (`sacct`, `sacct -p`, `sinfo`, `squeue`), ReFrame perflogs and JUnit
+  XML.
 - **Named datasets** — `provost run CMD` files into a dataset named after the
   command (looking through `sudo`, `env`, `timeout`, …); piped input is named
   after the parser that recognised it; `--name NAME` overrides either.
@@ -111,7 +114,7 @@ the capture's `meta.tsv` says so (`renamed_columns  NAME:#=#_2`).
 ```
 provost/
 ├── provost               # the single entry point
-├── extract/            # extract engine, 268 strategies (~116 generic), hints.tsv
+├── extract/            # extract engine, 274 strategies (~118 generic), hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries
