@@ -108,6 +108,7 @@ PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any l
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 PROVOST_CONTEXT_COLUMNS="${PROVOST_CONTEXT_COLUMNS:-0}" # 1 = '#% key=value' context becomes row columns (--context-columns)
+PROVOST_UNITS="${PROVOST_UNITS:-off}"                # base = add a NAME[UNIT] column in base units beside each column with a readable unit (--units)
 PROVOST_MANIFEST_PROFILE="${PROVOST_MANIFEST_PROFILE:-}" # run-manifest profile: NAME or path ('' = the store's manifest-profile.tsv, else default)
 PROVOST_MANIFEST_STRICT="${PROVOST_MANIFEST_STRICT:-0}" # 1 = refuse to file a capture whose manifest lacks a required key (--strict-manifest)
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
@@ -173,6 +174,7 @@ _validate_settings () {
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_CONTEXT_COLUMNS" == 0 || "$PROVOST_CONTEXT_COLUMNS" == 1 ]] || usage_die "PROVOST_CONTEXT_COLUMNS must be 0 or 1 (got '$PROVOST_CONTEXT_COLUMNS')."
+    [[ "$PROVOST_UNITS" == off || "$PROVOST_UNITS" == base ]] || usage_die "PROVOST_UNITS must be off or base (got '$PROVOST_UNITS')."
     [[ "$PROVOST_MANIFEST_STRICT" == 0 || "$PROVOST_MANIFEST_STRICT" == 1 ]] || usage_die "PROVOST_MANIFEST_STRICT must be 0 or 1 (got '$PROVOST_MANIFEST_STRICT')."
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
@@ -263,6 +265,13 @@ if [[ -r "$PROVOST_ROOT/transform/melt.sh" ]]; then
     source "$PROVOST_ROOT/transform/melt.sh"
 else
     die "transform module not found (expected at $PROVOST_ROOT/transform/melt.sh)."
+fi
+# Units as data (`--units base`, `_core_units_base`): transform/units.sh.
+if [[ -r "$PROVOST_ROOT/transform/units.sh" ]]; then
+    # shellcheck source=transform/units.sh
+    source "$PROVOST_ROOT/transform/units.sh"
+else
+    die "transform module not found (expected at $PROVOST_ROOT/transform/units.sh)."
 fi
 
 _ds_dir ()  { printf '%s/datasets\n' "$PROVOST_WORKSPACE"; }
@@ -1841,6 +1850,32 @@ _ingest_parse () {
         ds_file[nk]="$llm_notes"; ds_cov[nk]="-"; ds_cons[nk]="-"
     fi
 
+    # UNITS (--units base, PROVOST_UNITS=base; transform/units.sh): beside
+    # each column whose unit can be read exactly (from its name, from a
+    # NAME_unit column, or from its cells), a NAME[UNIT] column of the same
+    # values as plain numbers in a base unit (B, B/s, bit, bit/s, s); the
+    # original column is kept as it was. Off by default: tidy output does not
+    # change unasked. A held capture (`unsorted`) and an LLM template's notes
+    # are left as they are. Each dataset's record (ds_units[k], a file of
+    # column, unit_column, base, from, read) becomes the capture's units.tsv.
+    local -a ds_units=(); local units_mode=off uk
+    if [[ "$PROVOST_UNITS" == base && -z "$reason" ]]; then
+        units_mode=base
+        for (( uk=0; uk<${#ds_file[@]}; uk++ )); do
+            ds_units[uk]=""
+            [[ "${ds_name[uk]}" == unsorted ]] && continue
+            [[ -n "$llm_notes" && "${ds_file[uk]}" == "$llm_notes" ]] && continue
+            if _core_units_base "${ds_file[uk]}" "${ds_file[uk]}.u" "${ds_file[uk]}.units" \
+                "${ds_strategy[uk]}" "${ds_name[uk]%%.*}" ${name:+"$name"}; then
+                mv "${ds_file[uk]}.u" "${ds_file[uk]}"
+                [[ -s "${ds_file[uk]}.units" ]] && ds_units[uk]="${ds_file[uk]}.units"
+            else
+                rm -f "${ds_file[uk]}.u"
+                warn "could not read the units of dataset ${ds_name[uk]}; it is filed without NAME[UNIT] columns."
+            fi
+        done
+    fi
+
     # The verdict, for the store half: every variable it reads, as `declare -p`
     # (sourced inside _ingest_store, each comes back as a local there).
     local detection=""
@@ -1848,7 +1883,8 @@ _ingest_parse () {
     declare -p ds_name ds_strategy ds_conf ds_file ds_cov ds_cons reason \
         strategy conf cov tcons am_reason am_note am_cov am_kind am_model \
         single_strategy single_conf single_cov single_cons lm_reason lm_note \
-        llm_reason llm_note llm_how llm_learned ctxf detection > "$tmp/state.sh"
+        llm_reason llm_note llm_how llm_learned ctxf detection \
+        ds_units units_mode > "$tmp/state.sh"
 }
 
 # _ingest_store IN SOURCE CMD RC WORKDIR COMMIT — the store half of a capture
@@ -1954,6 +1990,11 @@ _ingest_store () {
         _store_append "${ds_name[k]}" "$tmp/id.tsv"
         final="$_SA_TARGET"
         out_names+=("$final")
+        # the columns --units base added, as units.tsv (see _ingest_parse)
+        if [[ -n "${ds_units[k]:-}" && -s "${ds_units[k]}" ]]; then
+            [[ -f "$capd/units.tsv" ]] || printf 'dataset\tcolumn\tunit_column\tbase\tfrom\tread\n' > "$capd/units.tsv"
+            DS="$final" awk 'BEGIN { ds = ENVIRON["DS"] } { print ds "\t" $0 }' "${ds_units[k]}" >> "$capd/units.tsv"
+        fi
         if (( nrows > 0 )); then out_ranges+=("#${startid}..$((startid+nrows-1))"); else out_ranges+=("none"); fi
         # a data column the melt renamed off the row id (`#` -> `#_2`, see
         # transform/melt.sh): recorded as DATASET:old=new,...
@@ -2034,6 +2075,10 @@ _ingest_store () {
         fi
         if [[ -s "$ctxf" ]]; then printf 'context\tcontext.txt\n'; fi
         if [[ -n "$ctx_map" ]]; then printf 'context_columns\t%s\n' "$ctx_map"; fi
+        if [[ "${units_mode:-off}" == base ]]; then
+            printf 'units\tbase\n'
+            [[ -f "$capd/units.tsv" ]] && printf 'units_columns\tunits.tsv\n'
+        fi
         if [[ -n "$renamed" ]]; then printf 'renamed_columns\t%s\n' "$(_meta_safe "$renamed")"; fi
         if [[ -n "${detection:-}" ]]; then printf 'detection\t%s\n' "$(_meta_safe "$detection")"; fi
         [[ "$in_sha" =~ ^[0-9a-f]{64}$ ]] && printf 'input_sha256\t%s\n' "$in_sha"
@@ -2573,6 +2618,10 @@ _capture_opt () {
         --no-llm) PROVOST_LLM=0 ;;
         --context-columns) PROVOST_CONTEXT_COLUMNS=1 ;;
         --no-context-columns) PROVOST_CONTEXT_COLUMNS=0 ;;
+        --units)
+            [[ $# -ge 2 ]] || usage_die "--units needs a mode: base or off."
+            _units_mode "$2"; _CO_N=2 ;;
+        --units=*) _units_mode "${1#*=}" ;;
         --manifest)
             [[ $# -ge 2 ]] || usage_die "--manifest needs a file of KEY=VALUE lines."
             _O_MANIFEST="$2"; _CO_N=2 ;;
@@ -2590,6 +2639,15 @@ _capture_opt () {
         *) _CO_N=0 ;;
     esac
     return 0
+}
+
+# --units MODE: base (a NAME[UNIT] column in base units beside each column
+# whose unit can be read; transform/units.sh) or off (the default).
+_units_mode () {
+    case "$1" in
+        base|off) PROVOST_UNITS="$1" ;;
+        *) usage_die "--units must be base or off (got '$1')." ;;
+    esac
 }
 
 _parse_capture_opts () {
