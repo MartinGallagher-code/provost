@@ -11,6 +11,14 @@
 # now MartinGallagher-code/provost). Update the publisher on PyPI to match.
 # Then publishing a GitHub release (or dispatching this workflow) uploads the
 # sdist + wheel built from the tagged commit.
+#
+# After the upload, the `bundle` job builds the offline install bundle from
+# the same wheel and sdist (PV-025, docs/offline-install.md): a CycloneDX
+# SBOM, SHA256SUMS and a Sigstore bundle per file, installed with networking
+# off before it is attached to the GitHub release for vX.Y.Z. A dispatched
+# run has no release, so the job creates one, tagging the commit it built.
+# A release made with the workflow's own token starts no workflow, so this
+# does not publish twice.
 name: Release to PyPI
 
 on:
@@ -55,3 +63,65 @@ jobs:
           name: dist
           path: dist/
       - uses: pypa/gh-action-pypi-publish@release/v1
+
+  bundle:
+    name: offline bundle (attached to the GitHub release)
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write   # create the release and attach the bundle
+      id-token: write   # Sigstore signs with this run's GitHub identity
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # the very files the publish job uploaded to PyPI
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - run: python -m pip install "sigstore==4.5.1" "cyclonedx-python-lib[json-validation]==11.12.0"
+      - name: build the bundle
+        run: |
+          dir="$(python tools/offline_bundle.py build --dist dist --out "$RUNNER_TEMP/bundle")"
+          echo "BUNDLE=$dir" >> "$GITHUB_ENV"
+          echo "VERSION=$(cat VERSION)" >> "$GITHUB_ENV"
+      - name: SHA256SUMS, SBOM coverage and the CycloneDX 1.5 schema
+        run: python tools/offline_bundle.py check --schema "$BUNDLE"
+      - name: sign every file, pack, sign the tarball, verify all of it
+        env:
+          IDENTITY: https://github.com/${{ github.workflow_ref }}
+        run: |
+          python -m sigstore sign "$BUNDLE"/*
+          python tools/offline_bundle.py check "$BUNDLE"
+          tgz="$(python tools/offline_bundle.py pack "$BUNDLE")"
+          python -m sigstore sign "$tgz"
+          for f in "$BUNDLE"/* "$tgz"; do
+              case "$f" in *.sigstore.json) continue ;; esac
+              python -m sigstore verify identity --cert-identity "$IDENTITY" \
+                  --cert-oidc-issuer https://token.actions.githubusercontent.com "$f"
+          done
+          echo "TARBALL=$tgz" >> "$GITHUB_ENV"
+      - name: install with networking off (Python 3.8, the floor)
+        run: bash tools/offline-install-test.sh "$BUNDLE" python:3.8-slim
+      - name: install with networking off (RHEL 9 UBI)
+        run: bash tools/offline-install-test.sh "$BUNDLE" registry.access.redhat.com/ubi9/ubi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-bundle
+          path: ${{ runner.temp }}/bundle/
+      - name: attach to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          tag="${EVENT_TAG:-v$VERSION}"
+          if ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+                  --title "provost $VERSION" \
+                  --notes "provost $VERSION, as published to PyPI. The offline install bundle for air-gapped hosts is attached: see docs/offline-install.md. Changes: CHANGELOG.md."
+          fi
+          gh release upload "$tag" --repo "$GITHUB_REPOSITORY" --clobber \
+              "$TARBALL" "$TARBALL.sigstore.json" "$BUNDLE"/*
