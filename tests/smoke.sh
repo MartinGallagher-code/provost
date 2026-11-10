@@ -1754,9 +1754,9 @@ check "...and KBytes 2^10" "412 KBytes 421888" "$ishow"
 check "...as units.tsv says" "MBytes=2^20 (iperf)" "$(cat "$UWS"/captures/c0007/units.tsv)"
 printf 'name,bw,io\nREAD,482MiB/s (505MB/s),28.2GiB (30.3GB)\nWRITE,344MiB/s (361MB/s),20.2GiB (21.7GB)\n' > "$UD/fio.csv"
 up --units base --name fio "$UD/fio.csv" >/dev/null
-fshow="$(up show fio)"
-check "units in the cells (fio): bw" "482MiB/s (505MB/s)	505413632" "$fshow"
-check "...io, a fraction of a GiB, exactly" "28.2GiB (30.3GB)	30279519436.8" "$fshow"
+fshow="$(up show fio | sq)"
+check "units in the cells (fio): bw" "482MiB/s (505MB/s) 505413632" "$fshow"
+check "...io, a fraction of a GiB, exactly" "28.2GiB (30.3GB) 30279519436.8" "$fshow"
 printf 'host,total\nweb01,7.8Gi\n' > "$UD/free.csv"
 up --units base --name freeh "$UD/free.csv" >/dev/null
 check_not "a bare multiplier (Gi) is not read: no column added" "[B]" "$(up show freeh)"
