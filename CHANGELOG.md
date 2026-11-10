@@ -1,6 +1,12 @@
 # provost — Changelog
 
-## 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
+## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
+
+`VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new
+parsing a user can use (six strategies, three generic parser abilities).
+No corpus golden moved. XML with a repeated record element (JUnit) now
+gives a row per record where it gave one wide row: a different tidy output,
+which the versioning policy (README) does not promise, and not a break.
 
 The assessment asked for first-class parsing of OSU, IOR, mdtest, HPCG, HPL,
 lnet_selftest, ibstat/perfquery, ReFrame perflogs and JUnit XML, and a
@@ -115,7 +121,36 @@ samples and goldens under `extract/samples/` and `extract/tests/golden/`,
 the corpus inputs, `expected.tsv` rows and goldens, `tests/corpus/README.md`,
 `COVERAGE.md`, README, HANDOFF.
 
-## 2026-11-09 — `provost verify`, and every capture records its input's hash (PV-026)
+## 2.4.0 — 2026-11-10 — every change moves the version (BN-002)
+
+`VERSION` 2.3.0 → 2.4.0, and the `man/provost.1` header. 2.4.0 numbers the
+twelve dated entries in this section (2026-11-04 to 2026-11-09, PV-004 to
+PV-026), which landed after 2.3.0 was set (the "release v2.3.0" entry below,
+PV-003) and had no number of their own, and this change. Minor, not patch:
+`provost verify`, `check-manifest`, `annotate` and `--manifest` are new.
+Nothing that worked stops working; existing stores are put right on their
+next write (PV-011, PV-015).
+
+- **Every change moves the version** (shared_tools BN-002, the owner's rule):
+  from 2.4.0 on, every pull request into `main` raises the version, however
+  small the change, and opens this file with its own
+  `## X.Y.Z — YYYY-MM-DD — summary (PV-NNN)` section. The dated, unnumbered
+  headings above 2.3.0 stop here.
+  - **`tests/check_version.sh`** (a copy of shared_tools'
+    `templates/check_version.sh`): `VERSION` and the `man/provost.1` header
+    agree, and this file's first section is that version, numbered and
+    dated; given a commit, the version is also greater than that commit's.
+  - **CI's `version` job** (`.github/workflows/ci.yml`) runs it on every pull
+    request against the base branch, and on every push to `main` against
+    what `main` was before the push.
+  - **Docs:** `CLAUDE.md` (the ticket section is shared_tools' current text;
+    a new "Every change moves the version" section; Documentation says how
+    to head an entry), `README.md` ("Versioning and support"), `HANDOFF.md`.
+- **Not published.** Publishing is still the owner's step: run "Release to
+  PyPI" (`release.yml`) on `main`, or publish a GitHub release tagged
+  `v2.4.0`, one or the other. PyPI has 2.3.0.
+
+### 2026-11-09 — `provost verify`, and every capture records its input's hash (PV-026)
 
 "Tamper-evident" is now a command. Nothing about parsing changed, so no tidy
 output or golden can move.
@@ -153,7 +188,7 @@ output or golden can move.
   tag; a deleted object; an `rm` purge; ids missing from the history; a
   pre-hash store; a restored store; a controlled directory's `files-*` tags).
 
-## 2026-11-09 — PyPI's links resolve, and a written versioning policy (PV-034)
+### 2026-11-09 — PyPI's links resolve, and a written versioning policy (PV-034)
 
 - **`pyproject.toml`**: the Documentation link pointed at
   `provost.readthedocs.io`, which is a 404 (the project was never imported on
@@ -169,7 +204,7 @@ output or golden can move.
   (a tool's exact tidy output, help wording), deprecation, and support for
   the latest release only.
 
-## 2026-11-09 — how long `batch` holds the store lock, measured (PV-024)
+### 2026-11-09 — how long `batch` holds the store lock, measured (PV-024)
 
 No product code changed: a measurement, a script to repeat it, and a test.
 
@@ -187,7 +222,7 @@ No product code changed: a measurement, a script to repeat it, and a test.
   each with its own commit, with no gap or duplicate in capture ids or row
   indices (4 checks).
 
-## 2026-11-09 — smoke's two SIGINT checks pass on CI again (PV-035)
+### 2026-11-09 — smoke's two SIGINT checks pass on CI again (PV-035)
 
 From 2026-11-09 CI's smoke job failed on every pull request with the same two
 checks: `rm --capture interrupted in the commit is put back, exit 130` (got 1)
@@ -206,7 +241,7 @@ kept passing through the same process-group walk.
   ignored at start (607/607) and without (607/607). With provost's INT trap
   broken on purpose, both checks still fail. No product code changed.
 
-## 2026-11-09 — a run manifest for the `#%` prologue (PV-020)
+### 2026-11-09 — a run manifest for the `#%` prologue (PV-020)
 
 The `#%` prologue could already carry context, and `--context-columns` put it
 on every row, but nothing said which keys a run should carry or noticed when
@@ -254,7 +289,7 @@ so a capture without a prologue files exactly as before.
   questions (key names; warn or fail by default) were answered with the
   ticket's own proposals, generic names and warn, and are easy to change.
 
-## 2026-11-04 — smoke and the extract suite run in parallel (PV-018)
+### 2026-11-04 — smoke and the extract suite run in parallel (PV-018)
 
 Most of the time a provost change took went to running the checks, one at a
 time, with the other cores idle. The two serial suites now use a job pool,
@@ -325,7 +360,8 @@ can move.
   at 4 jobs on 2 CPUs with the extract suite alongside, and 10 runs of its
   part alone.
 - **Docs:** `CLAUDE.md` (Testing), `HANDOFF.md` (0x).
-## 2026-11-04 — `rm NAME` says what is true about getting deleted data back, and drops a purged capture's `files-<id>` tag (PV-016)
+
+### 2026-11-04 — `rm NAME` says what is true about getting deleted data back, and drops a purged capture's `files-<id>` tag (PV-016)
 
 `provost rm NAME` ended "History kept — 'provost log'/'restore' still reach
 the pre-deletion state", and the man page said the same. It was not true: the
@@ -350,7 +386,7 @@ has deleted both since PV-002).
   in a controlled directory the `files-c0001` tag gone, `files c1` refused
   and a surviving capture's files still served.
 
-## 2026-11-04 — Round 5 of the held-out benchmark: built, frozen, rated for four readers (PV-005)
+### 2026-11-04 — Round 5 of the held-out benchmark: built, frozen, rated for four readers (PV-005)
 
 Round 4 was spent on `--llm`, the tiny LM and auto-multi, so every open
 measurement was waiting on a fresh unseen set. Round 5 is 107 inputs nobody
@@ -383,7 +419,7 @@ Files:
 - `docs/benchmark-2026-11-04-generalisation-round5.md`
 - `HANDOFF.md`, `CHANGELOG.md`
 
-## 2026-11-04 — A data column named `#` is renamed `#_2`, not filed beside the row id (PV-011)
+### 2026-11-04 — A data column named `#` is renamed `#_2`, not filed beside the row id (PV-011)
 
 provost puts its own `#` (the row's number in the store) in front of every
 dataset, so a tool's own `#` column ended up as a second column of the same
@@ -422,7 +458,7 @@ occurrence), so the tool's values would have been lost on reconcile.
   in place, so the old rows keep their values under `#_2` and the next
   capture appends to them.
 
-## 2026-11-04 — `fold_eval.py` keeps LightGBM and torch apart (PV-014)
+### 2026-11-04 — `fold_eval.py` keeps LightGBM and torch apart (PV-014)
 
 `ml/fold_eval.py` crashed on macOS (exit 139) whenever a run loaded both
 LightGBM and torch (`--learner both`, the default, or `lm --lm-trees`): each
@@ -450,7 +486,7 @@ run on a Mac. New stdlib tests in `ml/tests/test_fold_eval.py`. Files:
 `ml/tests/test_fold_eval.py`, `ml/README.md`, `HANDOFF.md`,
 `docs/lm-2026-10-29-tiny-labeller.md`, `CHANGELOG.md`.
 
-## 2026-11-04 — The capture column stays true when a capture brings a data column named `capture` (PV-015)
+### 2026-11-04 — The capture column stays true when a capture brings a data column named `capture` (PV-015)
 
 A dataset that already had provost's `capture` column, reconciled with a later
 capture whose data had a column of the same name, matched the two by name: the
@@ -475,7 +511,7 @@ rows had an empty column 2. Found by PV-002's adversarial pass.
 Files: `provost`, `tests/smoke.sh`, `man/provost.1`, `HANDOFF.md`,
 `CHANGELOG.md`.
 
-## 2026-11-04 — The API key pasted into chat on 2026-10-23 is revoked (PV-004)
+### 2026-11-04 — The API key pasted into chat on 2026-10-23 is revoked (PV-004)
 
 The owner confirmed on 2026-11-04 that the key is revoked, so HANDOFF 0e's
 step 4 is struck through with the date. Before asking, the tracked tree, the

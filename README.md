@@ -213,13 +213,19 @@ bash extract/tests/run_tests.sh      # extract strategies + engine
 bash analyze/tests/run_tests.sh      # analyze engine
 bash tests/corpus/run.sh --golden    # tidy output of ~3,500 real tools vs goldens
 python -m pytest                     # PyPI launcher (100% coverage enforced)
+bash tests/check_version.sh          # the version agrees everywhere (see below)
 ```
 
-All six run in CI (`.github/workflows/ci.yml`).
+All seven run in CI (`.github/workflows/ci.yml`).
 
 ## Versioning and support
 
-provost follows semantic versioning from 2.4.0 on. MAJOR.MINOR.PATCH:
+provost follows semantic versioning from 2.4.0 on, MAJOR.MINOR.PATCH, and every
+change moves the version: each pull request merged into `main` carries a new
+number and its own `CHANGELOG.md` section, however small the change (patch for
+fixes, docs, tests and CI; minor for anything new; major only for a break of
+what the promise below covers). Publishing to PyPI is a separate step, so not
+every number reaches PyPI.
 
 - **Covered by the promise** (a break needs a new major): the commands and their
   options; exit statuses; the `PROVOST_*` environment variables; the store format
