@@ -445,7 +445,16 @@ sends the template, those captures and this one to Claude once, to extend it;
 the extension is kept, with this capture added to its examples, only if it
 still reads every line of the earlier captures the template read and passes
 the same rules. A capture whose lines the template has all met before is
-never sent. \fImeta.tsv\fR records \fBllm_template\fR.
+never sent. \fBReview:\fR after Claude writes or extends a template, one more
+call (the judge, \fBPROVOST_LLM_JUDGE\fR) shows Claude the capture, the template
+and the tables it makes of the capture, and asks for PASS or up to five
+structural fixes (a parent the rows do not keep, a record split across
+tables, a header half applied, a line kind misread, data set aside). The
+fixes go back to the template's writer once; the revision is kept only if it
+reads the capture at least as well, still reads the earlier captures, and
+passes the gate, else the template as it was before the review is used. A
+review that fails costs nothing but the call. The verdict is stored in the
+template (\fBjudge\fR). \fImeta.tsv\fR records \fBllm_template\fR.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -560,6 +569,11 @@ TEMPLATES\fR); \fB0\fR (the default): don't (same as \fB--llm\fR /
 .TP
 .B PROVOST_LLM_MODEL
 The model that writes templates (default \fBclaude-opus-5-5\fR).
+.TP
+.B PROVOST_LLM_JUDGE
+\fB1\fR (the default): after Claude writes or extends a template, one more
+call reviews it and may revise it once (see \fBLLM TEMPLATES\fR, Review);
+\fB0\fR: no review.
 .TP
 .B PROVOST_LLM_API_KEY
 Anthropic API key for \fB--llm\fR (else \fBANTHROPIC_API_KEY\fR; prefer this one

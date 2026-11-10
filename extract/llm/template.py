@@ -905,9 +905,19 @@ def main(argv=None):
                 # is the capture under review
                 earlier = [el for el in (_split(e) for e in _examples(t)) if el != lines]
                 print("reviewed")
+            before = a.out + ".before"
+            if os.path.exists(before):
+                os.remove(before)
             if a.cmd == "judge" or not a.no_judge:
-                t = review_template(t, lines, a.tool, a.model, earlier)
+                t0, t = t, review_template(t, lines, a.tool, a.model, earlier)
                 print(review_summary(t))
+                if t["judge"].get("applied"):
+                    # the template as it was before the review, for a caller
+                    # whose own checks refuse the revision (provost's gate)
+                    with open(before, "w", encoding="utf-8") as fh:
+                        json.dump(dict(t0, judge=dict(t["judge"], applied=False, why="the revision was not kept")),
+                                  fh, indent=1, ensure_ascii=False)
+                        fh.write("\n")
             tmp = a.out + ".tmp"
             with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump(t, fh, indent=1, ensure_ascii=False)
