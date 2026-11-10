@@ -5,16 +5,17 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.0` section at the top of CHANGELOG): 2.4.0 (BN-002) and the HPC
-benchmark outputs (PV-030, below). 2.4.0 added `provost
+**provost 2.6.0 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.6.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (2.5.0, PV-030) and redaction (2.6.0, PV-033; both below).
+2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
-the top of CHANGELOG is always the version `main` is at. Neither 2.4.0 nor
-2.5.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.5.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
+the top of CHANGELOG is always the version `main` is at. None of 2.4.0,
+2.5.0 and 2.6.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.6.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
 faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
 added the quality gate and auto-multi, the engine fixes, removal of the
@@ -31,6 +32,25 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.6.0: secrets and redaction (PV-033, 2026-11-10; not published).** Every
+input is scrubbed of known secret patterns before it is stored
+(`lib/provost_redact.awk`, in `_receive`; `--no-redact` / `PROVOST_REDACT=0`
+turn it off); `meta.tsv` records `redacted`. `input_sha256` stays the hash of
+what was received, `output_sha256` that of the scrubbed `output.txt`.
+`provost export --redact POLICY` writes a copy of the store whose host names
+and addresses are keyed-hash pseudonyms (`lib/provost_pseudo.awk`; history
+rewritten through fast-export/fast-import; `verify` passes on the import).
+Usage: `docs/usage.md`, "Secrets and redaction". The scrub's corpus footprint
+is frozen in `tests/corpus/scrubbed.tsv` (11 inputs, all real secrets). Open:
+- The scrub is on by default, as the ticket asked: a change in what new
+  captures store (the owner's call to confirm; `--no-redact` restores the
+  old behaviour).
+- `input_sha256` of a scrubbed capture lets a guess at a weak password be
+  checked; documented, not changed (the ticket asked for the received hash).
+- Not done: `archive --redact` (no `archive` until PV-029), MAC addresses,
+  prefix-preserving address pseudonyms. PV-028's `--env` capture should use
+  the same scrub (`_scrub`).
 
 **2.5.0: the HPC benchmark outputs (PV-030, 2026-11-10; not published).**
 OSU, IOR, mdtest, HPL, HPCG, STREAM's full printout, lnet_selftest `lst stat`,

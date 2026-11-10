@@ -73,6 +73,13 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
   default; `provost control <dir>` makes a directory its own instance.
 - **Portable** — `provost export` bundles the store; `provost import` reopens it
   elsewhere. Datasets, history, and provenance all survive the move.
+- **No secrets in the store** — private keys, `Authorization` headers, tokens
+  and `password=…` values are replaced by `[REDACTED:kind]` before an input is
+  stored, and `meta.tsv` records what was scrubbed (`--no-redact` keeps them).
+  Host names and addresses stay, since datasets are keyed on them, until
+  `provost export --redact POLICY` writes a copy with each one replaced by a
+  stable pseudonym from a key that stays behind, so the copy still joins
+  ([docs/usage.md](docs/usage.md#secrets-and-redaction)).
 - **Analyze** — `provost stats <dataset>` runs the vendored analyze engine.
 
 ## Command reference
@@ -97,7 +104,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost log [--failed]` / `restore <id\|latest>` / `prev` / `next` | capture history / move the store to a capture and back |
 | `provost control [<dir>]` / `uncontrol` / `instances` | per-directory capture instances (each run keeps the directory's files) |
 | `provost files [ID] [path] [--to dir]` | a controlled directory's files as a capture kept them |
-| `provost export [<file>]` / `import <file> [<dest>]` | portable store bundle |
+| `provost export [--redact POLICY] [<file>]` / `import <file> [<dest>]` | portable store bundle; `--redact`: host names and addresses pseudonymised |
 | `provost triage` | low-confidence / unmatched bucket |
 | `provost doctor` | engine + store check |
 | `provost verify [--capture ID]` | store integrity: `git fsck`, each capture's output against its recorded sha256, tags, id gaps |
@@ -203,6 +210,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_LOCK_MAX_AGE` | `3600` | seconds after which a lock is presumed stale |
 | `PROVOST_RECONCILE_OVERLAP` | `60` | % column overlap to union vs split a variant |
 | `PROVOST_QUIET` | `0` | `1` suppresses progress/ok messages (same as `--silent`) |
+| `PROVOST_REDACT` | `1` | `0` = store inputs as they come, secrets and all (same as `--no-redact`) |
 
 ## Tests
 

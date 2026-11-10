@@ -32,6 +32,7 @@ Capture flags (for `run` and inject):
 | `--multi` | file **every** dataset the input holds instead of one winner |
 | `--no-auto-multi` | hold a parse the quality gate rejects without first trying to segment it (`--auto-multi`, the default, tries) |
 | `--context-columns` | make each `key=value` word of a `#%` prologue a column on every row (see [Metadata prologue](#metadata-prologue)) |
+| `--no-redact` | store the input as it comes; by default known secrets are scrubbed first (see [Secrets and redaction](#secrets-and-redaction)) |
 
 At an interactive terminal the capture runs in the background and the prompt
 returns at once; in a script or pipeline (stderr not a terminal) it runs in the
@@ -71,6 +72,7 @@ $ provost files [ID] [PATH]      # those files as a capture kept them (--to DIR 
 $ provost uncontrol [<dir>]      # release a controlled directory
 $ provost instances              # list controlled directories
 $ provost export [<file>]        # bundle the store into a portable file
+$ provost export --redact POLICY [<file>]  # ...a copy with host names and addresses pseudonymised
 $ provost import <file> [<dest>] # reconstitute a bundle elsewhere
 $ provost doctor                 # check engine + store
 $ provost verify                 # check the store's integrity (exit 1 on findings)
@@ -98,9 +100,10 @@ Every capture records three things about its input in `meta.tsv`:
 
 | Key | What it is |
 |---|---|
-| `input_sha256` | sha256 of the input exactly as provost received it, before CRs were stripped |
+| `input_sha256` | sha256 of the input exactly as provost received it, before CRs were stripped and secrets scrubbed |
 | `input_bytes` | its size in bytes |
-| `output_sha256` | sha256 of `output.txt`, the input as stored (CRs stripped) |
+| `output_sha256` | sha256 of `output.txt`, the input as stored (CRs stripped, secrets scrubbed) |
+| `redacted` | what the secret scrub replaced: `kind=n,...`, `none`, or `off` (see [Secrets and redaction](#secrets-and-redaction)) |
 
 The capture's commit carries the same hashes as trailers
 (`Input-SHA256: c0007 …`, `Output-SHA256: c0007 …`; a `batch` commit has one
@@ -136,6 +139,99 @@ the store's writers cannot change: a test report, a ticket. A later `verify`
 that prints a head which does not contain that commit means the history was
 rewritten. Signed commits are the stronger anchor (PV-027).
 
+## Secrets and redaction
+
+Two different needs (PV-033): secrets never belong in a store, and host
+names and addresses are data that a dataset is keyed on, until it has to
+leave.
+
+### Secrets are scrubbed at capture
+
+Before an input is stored, every known secret pattern in it is replaced by
+`[REDACTED:kind]`:
+
+| kind | what |
+|---|---|
+| `private-key` | a PEM or PGP private key block, BEGIN line to END line (to the end of the input when there is no END) |
+| `authorization` | the value of an `Authorization:` or `Proxy-Authorization:` header |
+| `bearer` | a token of 16 characters or more after `Bearer` |
+| `url-password` | the password in `scheme://user:password@host` |
+| `aws-access-key`, `github-token`, `slack-token`, `vault-token`, `jwt` | tokens in their own formats (`AKIA…`, `ghp_…`, `xoxb-…`, `hvs.…`, `eyJ….eyJ….…`) |
+| `password`, `secret`, `token`, `api-key` | the value after a key whose name ends that way: `DB_PASSWORD=…`, `"token": "…"`, `password: …`, `--api-key …` |
+
+The command line `run` records (`mysql --password=…`) and `--manifest` lines
+are scrubbed as well. A value that says it is hidden or empty (`yes`, `none`,
+`***`, `<hidden>`, `$VAR`) is left alone, and so is a plain word after a
+token, secret or key name (`unexpected token: expected`) or after a `--flag`
+(help text). A table that merely has a column called `password` is not
+touched: only the forms above are.
+
+`meta.tsv` records what was done as `redacted`: `password=1,private-key=1`,
+`none`, or `off`. `--no-redact` (`PROVOST_REDACT=0`) stores the input as it
+comes, and records `off`. An input with nothing to scrub is stored byte for
+byte as it came.
+
+**The hashes of a scrubbed capture.** `input_sha256` stays the hash of the
+input as it was *received*, secrets and all, so it still matches a hash a test
+harness took of its own log. `output_sha256` is of `output.txt` as stored,
+scrubbed, and is what `verify` re-checks. The two differ exactly when
+something was scrubbed (or a CR stripped), and `redacted` says which. One
+consequence: someone holding the store and a guess at a weak password can
+check the guess against `input_sha256`. Keep a store inside the boundary it
+was made in, and take data out with `export --redact`.
+
+How it was checked: the scrub changes 11 of the corpus's 3,733 inputs, each a
+real secret (`tests/corpus/scrubbed.tsv`, checked by the smoke suite); filed
+through the generic parsers, those 11 change 13 golden rows, and in each row
+only the secret's own cell.
+
+### Host names and addresses are pseudonymised on export
+
+```console
+$ provost export --redact policy.conf fleet.bundle
+```
+
+writes a copy of the store, history and all, in which every name the policy
+picks out is replaced by a pseudonym made with a keyed hash: `host-` and 12
+hex digits of `sha256(key, kind, name)`, likewise `ip4-…` and `ip6-…`. The
+same pseudonym stands for the name in every dataset, output, `meta.tsv`,
+commit message and dataset file name, and the same key gives the same
+pseudonyms, so datasets exported at different times still join. Secrets are
+scrubbed again on the way out (captures filed with `--no-redact`, or before
+provost 2.6.0).
+
+A policy is `KEY = VALUE` lines; `#` lines are comments:
+
+```ini
+# take a fleet's results to a vendor
+key    = ~/.config/provost/redact.key   # the default; made at random if missing
+domain = cluster.example.com            # every name in it, and the domain itself
+host   = node[0-9]+                     # names the awk regex matches, whole, lower-cased
+column = host                           # every value of the datasets' "host" column
+hosts  = inventory.txt                  # a file of names or addresses, one a line
+ipv4   = yes                            # the default (never 0.0.0.0, 127.x, netmasks)
+ipv6   = yes                            # the default (never :: or ::1)
+```
+
+`domain`, `host`, `column` and `hosts` can be repeated; a relative path is
+relative to the policy file. A name is replaced wherever it stands as a word,
+or as a part of one between `.` `_` `:` `-`: `node7` in `node7-ib0`,
+`node7.cluster.example.com` and `node7:22`. A host name has a letter in it,
+and a capture id (`c0007`) is never one; four dotted numbers inside a longer
+dotted run (an SNMP OID) are not an address. IPv6 addresses are compared in
+full form, so `2001:db8::5` and `2001:0db8:0:0:0:0:0:5` get one pseudonym.
+
+The key stays behind: it may not live in the store, and nothing derived from
+it but the pseudonyms and its id leaves. In the copy:
+
+- each `meta.tsv` loses `input_sha256` and `input_bytes` (with them, a
+  guessed name could be checked against the hash) and gains
+  `pseudonymised  key <id>`;
+- `output_sha256` and the commits' `Output-SHA256` trailers are those of the
+  exported `output.txt`, and the `Input-SHA256` trailers go, so
+  `provost verify` passes on the import;
+- a controlled directory's own files (the `files-*` tags) are left out.
+
 ## Environment variables
 
 | variable | meaning | default |
@@ -155,6 +251,7 @@ rewritten. Signed commits are the stronger anchor (PV-027).
 | `PROVOST_LOCK_MAX_AGE` | seconds after which a lock is presumed stale | `3600` |
 | `PROVOST_RECONCILE_OVERLAP` | % column overlap needed to merge a changed schema into a dataset instead of splitting `NAME.v2` | `60` |
 | `PROVOST_QUIET` | `1` suppresses progress/ok messages (same as `--silent`) | `0` |
+| `PROVOST_REDACT` | `0` = store inputs as they come, secrets and all (same as `--no-redact`) | `1` |
 
 Numeric settings must be whole numbers; anything else is rejected at startup.
 

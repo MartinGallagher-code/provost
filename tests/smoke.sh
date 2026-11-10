@@ -13,7 +13,7 @@ unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIE
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_CONTEXT_COLUMNS PROVOST_PLUGIN_DIR \
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
       PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY \
-      PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT
+      PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT PROVOST_REDACT
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -1877,6 +1877,173 @@ check "...files the rest" "1 input(s)" "$out"
 check "...and exits 1" "rc=1" "$out"
 check "PROVOST_MANIFEST_STRICT must be 0 or 1 (exit 2)" "2" "$(PROVOST_MANIFEST_STRICT=x PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" ls)"
 check "check-manifest --help" "usage: provost check-manifest" "$(mp check-manifest --help)"
+fi
+
+if _part redact; then
+echo "== secrets and redaction (PV-033): the capture-time scrub, export --redact =="
+RWS="$(mktemp -d)/.rws"; RD="$(mktemp -d)"
+rp () { PROVOST_WORKSPACE="$RWS" XDG_CONFIG_HOME="$RD/cfg" "$PROVOST" "$@" 2>&1; }
+rrc () { PROVOST_WORKSPACE="$RWS" XDG_CONFIG_HOME="$RD/cfg" rc_of "$PROVOST" "$@"; }
+rsha () { if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi | awk '{ print $1 }'; }
+# A fake PEM key, a bearer token and a password line: none of them is stored.
+printf 'name value\nuser bob\n> Authorization: Bearer abcdefghijklmnopqrstuvwx0123\nDB_PASSWORD=hunter2x\n-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEAfakefakefake\nZmFrZWZha2VmYWtl\n-----END RSA PRIVATE KEY-----\nlast line\n' > "$RD/secrets.txt"
+out="$(rp --name cfg "$RD/secrets.txt")"
+check "a capture with secrets says what it scrubbed" "secrets scrubbed before filing: authorization=1, password=1, private-key=1" "$out"
+rout="$(cat "$RWS/captures/c0001/output.txt")"
+check_not "the bearer token is not stored" "abcdefghijklmnopqrstuvwx0123" "$rout"
+check_not "the password is not stored" "hunter2x" "$rout"
+check_not "the private key is not stored" "MIIEowIBAAKCAQEAfakefakefake" "$rout"
+check_not "...nor its END line" "END RSA PRIVATE KEY" "$rout"
+check "each is replaced by its kind" "DB_PASSWORD=[REDACTED:password]" "$rout"
+check "...the key block by one line" "$(printf '[REDACTED:private-key]\nlast line')" "$rout"
+check "...the header keeps its name" "> Authorization: [REDACTED:authorization]" "$rout"
+rmeta="$(cat "$RWS/captures/c0001/meta.tsv")"
+check "meta.tsv counts what was scrubbed, by kind" "redacted	authorization=1,password=1,private-key=1" "$rmeta"
+check "input_sha256 is of the input as received, secrets and all" "input_sha256	$(rsha < "$RD/secrets.txt")" "$rmeta"
+check "output_sha256 is of output.txt as stored" "output_sha256	$(rsha < "$RWS/captures/c0001/output.txt")" "$rmeta"
+check "source shows the scrubbed input" "[REDACTED:password]" "$(rp source c0001)"
+check_not "the store's history holds no secret" "hunter2x" "$(tgit "$RWS" log --all -p)"
+check "a scrubbed store verifies" "rc=0" "$(rp verify; echo "rc=$?")"
+# run: the command line is scrubbed too.
+out="$(rp run echo mysql --password=Pw0rd5x -h db1)"
+check "run scrubs its command line" "command	echo mysql --password=[REDACTED:password] -h db1" "$(cat "$RWS/captures/c0002/meta.tsv")"
+check_not "...in the commit message too" "Pw0rd5x" "$(tgit "$RWS" log -1 --format=%B)"
+check_not "...and the output" "Pw0rd5x" "$(cat "$RWS/captures/c0002/output.txt")"
+check "...and counts both" "redacted	password=2" "$(cat "$RWS/captures/c0002/meta.tsv")"
+# Nothing to scrub: byte for byte as it came, a missing last newline included.
+printf 'a,b\n1,2' | rp --name plain >/dev/null
+check "an input with no secret records 'none'" "redacted	none" "$(cat "$RWS/captures/c0003/meta.tsv")"
+check "...and is stored byte for byte" "same" "$(cmp -s <(printf 'a,b\n1,2') "$RWS/captures/c0003/output.txt" && echo same)"
+printf 'k v\nx 1\ntoken=Xy12345678' | rp --name nolf >/dev/null
+check "a scrubbed input keeps a missing last newline missing" "$(printf 'k v\nx 1\ntoken=[REDACTED:token]' | od -An -c)" "$(od -An -c < "$RWS/captures/c0004/output.txt")"
+# Look-alikes stay.
+printf 'Last password change          : Nov 01, 2026\nPassword expires              : never\npasswd:         files systemd\nPWD=/home/u\ntokens: 5\nerror: unexpected token: expected\npassword: yes\n  -W, --password           force password prompt\nnetmask 255.255.255.0 inet 10.0.0.7\n' > "$RD/alike.txt"
+rp --name alike "$RD/alike.txt" >/dev/null
+check "look-alikes are left alone (redacted none)" "redacted	none" "$(cat "$RWS/captures/c0005/meta.tsv")"
+check "...byte for byte" "same" "$(cmp -s "$RD/alike.txt" "$RWS/captures/c0005/output.txt" && echo same)"
+# --no-redact and PROVOST_REDACT.
+rp --name off --no-redact "$RD/secrets.txt" >/dev/null
+check "--no-redact stores the input as it comes" "hunter2x" "$(cat "$RWS/captures/c0006/output.txt")"
+check "...and records 'off'" "redacted	off" "$(cat "$RWS/captures/c0006/meta.tsv")"
+PROVOST_REDACT=0 PROVOST_WORKSPACE="$RWS" "$PROVOST" --name off "$RD/secrets.txt" >/dev/null 2>&1
+check "PROVOST_REDACT=0 does the same" "redacted	off" "$(cat "$RWS/captures/c0007/meta.tsv")"
+PROVOST_REDACT=0 PROVOST_WORKSPACE="$RWS" "$PROVOST" --name on --redact "$RD/secrets.txt" >/dev/null 2>&1
+check "--redact turns it back on" "redacted	authorization=1" "$(cat "$RWS/captures/c0008/meta.tsv")"
+check "PROVOST_REDACT must be 0 or 1 (exit 2)" "2" "$(PROVOST_REDACT=x PROVOST_WORKSPACE="$RWS" rc_of "$PROVOST" ls)"
+check "doctor says the scrub is on" "secret scrub: on" "$(rp doctor)"
+# batch, --manifest and the background path.
+printf 'k,v\npassword,"x"\napi_key=Ab12345678\n' > "$RD/b1.txt"; printf 'k,v\nsecret=Zz98765432\n' > "$RD/b2.txt"
+rp batch --name bt "$RD/b1.txt" "$RD/b2.txt" >/dev/null
+check "batch scrubs each input" "redacted	api-key=1" "$(cat "$RWS/captures/c0009/meta.tsv")"
+check "...and records each one's own" "redacted	secret=1" "$(cat "$RWS/captures/c0010/meta.tsv")"
+printf 'sut=node7\ntoken=Tk0123456789\n' > "$RD/m.txt"
+rp --name man --manifest "$RD/m.txt" "$RD/b2.txt" >/dev/null
+check "--manifest lines are scrubbed too" "#% token=[REDACTED:token]" "$(cat "$RWS/captures/c0011/output.txt")"
+check "...and counted" "redacted	secret=1,token=1" "$(cat "$RWS/captures/c0011/meta.tsv")"
+printf 'k v\nx 1\npassword=AsyncPw9\n' | PROVOST_WORKSPACE="$RWS" "$PROVOST" --async --name bg >/dev/null 2>&1
+for _ in $(seq 1 100); do [[ -f "$RWS/captures/c0012/meta.tsv" ]] && break; sleep 0.1; done
+check "a background capture is scrubbed and records it" "redacted	password=1" "$(cat "$RWS/captures/c0012/meta.tsv" 2>/dev/null)"
+check_not "...and stores no secret" "AsyncPw9" "$(cat "$RWS/captures/c0012/output.txt" 2>/dev/null)"
+# The corpus: the scrub changes exactly the reviewed inputs (each a real secret).
+check "the scrub changes exactly the corpus inputs in tests/corpus/scrubbed.tsv" "$(cat "$HERE/corpus/scrubbed.tsv")" \
+    "$(LC_ALL=C awk -f "$HERE/../lib/provost_redact.awk" -f "$HERE/corpus/scrub-survey.awk" "$HERE"/corpus/inputs/*)"
+
+# --- export --redact: host names and addresses pseudonymised -------------------
+XWS="$(mktemp -d)/.xws"; XD="$(mktemp -d)"
+xp () { PROVOST_WORKSPACE="$XWS" XDG_CONFIG_HOME="$XD/cfg" "$PROVOST" "$@" 2>&1; }
+xrc () { PROVOST_WORKSPACE="$XWS" XDG_CONFIG_HOME="$XD/cfg" rc_of "$PROVOST" "$@"; }
+printf 'host\taddr\tload\nweb03.example.com\t10.0.0.1\t0.5\nnode7\t10.0.0.2\t0.7\ndb1\t2001:db8::5\t0.1\nbig\t1.3.6.1.2.1\t0.2\n' | xp --name fleet >/dev/null
+printf '#%% host=node7\nping web03.example.com from node7-ib0 (10.0.0.2) via 2001:0db8:0:0:0:0:0:5\nnetmask 255.255.255.0 lo 127.0.0.1 oid 1.3.6.1.2.1\nDB_PASSWORD=Lk7742kq\n' | xp --name ping --no-redact >/dev/null
+xp run echo ssh node12.cluster.local uptime >/dev/null
+printf 'h,v\na,1\n' | xp --name node7-df >/dev/null
+xp rm -f --capture c0004 >/dev/null
+printf 'h,v\nb,2\n' | xp --name web03-df >/dev/null
+printf 'db1\n' > "$XD/inventory"
+cat > "$XD/policy" <<'EOF'
+# a fleet going to a vendor
+key = keys/k1
+domain = example.com
+domain = *.cluster.local
+host = node[0-9]+
+column = host
+hosts = inventory
+EOF
+out="$(xp export --redact "$XD/policy" "$XD/x1.bundle"; echo "rc=$?")"
+check "export --redact writes a bundle" "exported a redacted copy of the store" "$out"
+check "...exit 0" "rc=0" "$out"
+check "...made the missing key" "made a new redaction key: $XD/keys/k1" "$out"
+check "...readable by its owner only" "600" "$(stat -c %a "$XD/keys/k1" 2>/dev/null || stat -f %Lp "$XD/keys/k1")"
+check "...and counts what it did" "6 host name(s), 2 IPv4 and 1 IPv6 address(es) pseudonymised; 1 secret(s) scrubbed" "$out"
+XI="$XD/imp1"; xp import "$XD/x1.bundle" "$XI" >/dev/null
+xi () { PROVOST_WORKSPACE="$XI" "$PROVOST" "$@" 2>&1; }
+xall="$(cd "$XI" && cat datasets/*.tsv provenance.tsv captures/*/* 2>/dev/null; tgit "$XI" log --all -p --format='%an %ae%n%B')"
+for leak in web03 node7 node12 db1 example.com cluster.local 10.0.0.1 10.0.0.2 2001:db8 2001:0db8 Lk7742kq; do
+    check "the export holds no '$leak' anywhere in its history" "0" "$(grep -cwF -- "$leak" <<< "$xall" || true)"
+done
+xtri="$(xi triage)"
+check "a held capture's input ('unsorted', base64) is pseudonymised too" "ping $(awk 'NR == 2 { print $1 }' <<< "$(xi show fleet | sq | awk 'NR == 2 { print $4 }')")" "$xtri"
+for leak in web03 node7 Lk7742kq 10.0.0.2; do
+    check "...holds no '$leak' once decoded" "0" "$(grep -cwF -- "$leak" <<< "$xtri" || true)"
+done
+check "the key is not in the export" "no" "$(grep -qF "$(head -n 1 "$XD/keys/k1")" <<< "$xall" && echo yes || echo no)"
+fleet="$(xi show fleet | sq)"
+check "a host column's values are pseudonyms" "host-" "$(awk 'NR == 2' <<< "$fleet")"
+check "...and its addresses" "ip4-" "$(awk 'NR == 2' <<< "$fleet")"
+check "an IPv6 address is a pseudonym" "ip6-" "$(awk 'NR == 4' <<< "$fleet")"
+check "four numbers inside a longer dotted run are not an address" "1.3.6.1.2.1" "$fleet"
+ping_src="$(xi source c0002)"
+h7="$(awk 'NR == 3 { print $4 }' <<< "$fleet")"
+check "a name is the same pseudonym in every dataset and output" "from $h7-ib0" "$ping_src"
+check "...in the prologue too" "#% host=$h7" "$ping_src"
+v6="$(awk 'NR == 4 { print $5 }' <<< "$fleet")"
+check "2001:db8::5 and its long form are one pseudonym" "via $v6" "$ping_src"
+check "netmasks and loopback stay" "netmask 255.255.255.0 lo 127.0.0.1 oid 1.3.6.1.2.1" "$ping_src"
+check "secrets of a --no-redact capture are scrubbed on export" "DB_PASSWORD=[REDACTED:password]" "$ping_src"
+check "the run's command is pseudonymised" "echo ssh host-" "$(cat "$XI/captures/c0003/meta.tsv")"
+check "a dataset named after a host is renamed to match" "yes" "$(ls "$XI/datasets" | grep -q '^host-[0-9a-f]*-df[.]tsv$' && echo yes || echo no)"
+check "...and provenance names it the same way" "$(ls "$XI/datasets" | sed -n 's/[.]tsv$//p' | grep '^host-')" "$(cat "$XI/provenance.tsv")"
+xmeta="$(cat "$XI/captures/c0001/meta.tsv")"
+check_not "an exported meta.tsv has no input_sha256" "input_sha256" "$xmeta"
+check "...says it was pseudonymised, with the key's id" "pseudonymised	key " "$xmeta"
+check "...and its output_sha256 is the exported output's" "output_sha256	$(rsha < "$XI/captures/c0001/output.txt")" "$xmeta"
+check_not "no Input-SHA256 trailer is exported" "Input-SHA256" "$(tgit "$XI" log --all --format=%B)"
+xv="$(xi verify; echo "rc=$?")"
+check "the import verifies clean (rm'd capture and all)" "rc=0" "$xv"
+check "...every hash checked" "4 of 4 hashed matching" "$xv"
+# The same key gives the same pseudonyms; another key, others.
+xp export --redact "$XD/policy" "$XD/x2.bundle" >/dev/null
+xp import "$XD/x2.bundle" "$XD/imp2" >/dev/null
+check "the same key gives the same pseudonyms" "$fleet" "$(PROVOST_WORKSPACE="$XD/imp2" "$PROVOST" show fleet 2>&1 | sq)"
+sed 's|^key = keys/k1|key = keys/k2|' "$XD/policy" > "$XD/policy2"
+xp export --redact "$XD/policy2" "$XD/x3.bundle" >/dev/null
+xp import "$XD/x3.bundle" "$XD/imp3" >/dev/null
+check_not "another key gives other pseudonyms" "$h7" "$(PROVOST_WORKSPACE="$XD/imp3" "$PROVOST" show fleet 2>&1)"
+# The default key, and what is refused.
+printf 'domain = example.com\n' > "$XD/p-default"
+check "with no key line the key is ~/.config/provost/redact.key" "$XD/cfg/provost/redact.key" "$(xp export --redact "$XD/p-default" "$XD/x4.bundle")"
+check "an existing output file is refused" "already exists" "$(xp export --redact "$XD/policy" "$XD/x1.bundle")"
+printf 'colour = blue\n' > "$XD/p-bad"
+check "an unknown policy key is refused" "unknown key 'colour'" "$(xp export --redact "$XD/p-bad" "$XD/x5.bundle")"
+check "...exit 1" "1" "$(xrc export --redact "$XD/p-bad" "$XD/x5.bundle")"
+printf 'host = node[0-9\n' > "$XD/p-re"
+check "a pattern awk cannot read is refused" "not a regular expression awk can read" "$(xp export --redact "$XD/p-re" "$XD/x5.bundle")"
+printf 'hosts = nowhere.txt\n' > "$XD/p-hosts"
+check "a missing hosts file is refused" "no such hosts file" "$(xp export --redact "$XD/p-hosts" "$XD/x5.bundle")"
+printf 'key = %s/k\n' "$XWS" > "$XD/p-in"
+check "a key inside the store is refused" "is inside the store" "$(xp export --redact "$XD/p-in" "$XD/x5.bundle")"
+printf 'short\n' > "$XD/kshort"; printf 'key = kshort\n' > "$XD/p-short"
+check "a short key is refused" "too short" "$(xp export --redact "$XD/p-short" "$XD/x5.bundle")"
+check "a missing policy is refused" "no such redaction policy" "$(xp export --redact "$XD/nope" "$XD/x5.bundle")"
+check "--redact needs a policy (exit 2)" "2" "$(xrc export --redact)"
+check "export --help documents --redact" "--redact POLICY" "$(xp export --help)"
+# A controlled directory: its files-* tags stay behind.
+XC="$(mktemp -d)"; echo 'web03.example.com' > "$XC/hosts.txt"
+( cd "$XC" && PROVOST_HOME="$(mktemp -d)" PROVOST_WORKSPACE="" "$PROVOST" control >/dev/null 2>&1
+  printf 'a,b\nweb03.example.com,2\n' | PROVOST_ASYNC=0 PROVOST_WORKSPACE="" "$PROVOST" --name t >/dev/null 2>&1
+  PROVOST_WORKSPACE="" XDG_CONFIG_HOME="$XD/cfg" "$PROVOST" export --redact "$XD/policy" "$XD/xc.bundle" >/dev/null 2>&1 )
+xp import "$XD/xc.bundle" "$XD/impc" >/dev/null
+check "a controlled directory's files (files-* tags) are not exported" "" "$(tgit "$XD/impc" tag -l 'files-*')"
+check "...its captures are" "capture-c0001" "$(tgit "$XD/impc" tag -l 'capture-*')"
 fi
 
 echo "smoke: $pass passed, $fail failed"

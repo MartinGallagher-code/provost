@@ -115,6 +115,7 @@ PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layou
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
 PROVOST_LLM_MODEL="${PROVOST_LLM_MODEL:-claude-opus-5-5}"   # the model that writes templates
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
+PROVOST_REDACT="${PROVOST_REDACT:-1}"                # 1 = scrub known secret patterns from each input before it is stored (--no-redact: 0)
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
 
 # ---------------------------------------------------------------------------
@@ -177,6 +178,7 @@ _validate_settings () {
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
+    [[ "$PROVOST_REDACT" == 0 || "$PROVOST_REDACT" == 1 ]] || usage_die "PROVOST_REDACT must be 0 or 1 (got '$PROVOST_REDACT')."
     [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
@@ -361,14 +363,63 @@ _sha256 () {
 
 # _receive RAW IN — the input exactly as received (RAW, already bounded by
 # PROVOST_MAX_INPUT) becomes IN with its CRs stripped, as provost has always
-# stored it; the sha256 and size of RAW, before any change, are kept beside it
-# in IN.received ("sha256<TAB>bytes") for _ingest_store to record. RAW goes.
+# stored it, and its secrets scrubbed (PV-033, unless PROVOST_REDACT=0); the
+# sha256 and size of RAW, before any change, are kept beside it in
+# IN.received ("sha256<TAB>bytes") for _ingest_store to record, and what the
+# scrub found in IN.redacted ("kind<TAB>n" lines, or "off"). RAW goes.
 _receive () {
     local raw="$1" in="$2" h n
     h="$(_sha256 "$raw")"
     n="$(wc -c < "$raw")"; n="${n//[!0-9]/}"
     printf '%s\t%s\n' "$h" "$n" > "$in.received"
     tr -d '\r' < "$raw" > "$in"; rm -f "$raw"
+    if [[ "$PROVOST_REDACT" == 1 ]]; then : > "$in.redacted"; _scrub "$in" "$in.redacted"
+    else echo off > "$in.redacted"; fi
+}
+
+# --- the secret scrub (PV-033) ------------------------------------------------
+# _scrub FILE COUNTS — FILE with every known secret pattern
+# (lib/provost_redact.awk: private keys, Authorization headers, tokens,
+# password=..., ...) replaced by [REDACTED:kind]; what was found is appended
+# to COUNTS as "kind<TAB>n" lines. A file with nothing to scrub is left byte
+# for byte as it was; a scrubbed one keeps a missing final newline missing.
+_scrub () {
+    local f="$1" counts="$2" c="$1.scrub-counts" n
+    [[ -f "$PROVOST_ROOT/lib/provost_redact.awk" ]] \
+        || die "the secret scrub is missing ($PROVOST_ROOT/lib/provost_redact.awk) — nothing captured (PROVOST_REDACT=0 files inputs unscrubbed)."
+    rm -f "$c"
+    LC_ALL=C awk -f "$PROVOST_ROOT/lib/provost_redact.awk" -v MODE=secrets -v COUNTS="$c" < "$f" > "$f.scrubbed" \
+        || { rm -f "$f.scrubbed" "$c"; die "the secret scrub failed — nothing captured."; }
+    if [[ -s "$c" ]]; then
+        if [[ -s "$f" && "$(tail -c 1 "$f" | od -An -tx1 | tr -d ' \n')" != 0a ]]; then
+            n="$(wc -c < "$f.scrubbed")"; n="${n//[!0-9]/}"
+            head -c "$((n - 1))" "$f.scrubbed" > "$f.scrubbed2" && mv -f "$f.scrubbed2" "$f.scrubbed"
+        fi
+        mv -f "$f.scrubbed" "$f"
+        cat "$c" >> "$counts"
+    else
+        rm -f "$f.scrubbed"
+    fi
+    rm -f "$c"
+}
+# _scrub_text TEXT COUNTS — TEXT (one line) scrubbed, on stdout; the counts
+# go to COUNTS, as _scrub's do (COUNTS.text is the scratch file).
+_scrub_text () {
+    local t="$2.text"
+    printf '%s\n' "$1" > "$t"
+    _scrub "$t" "$2"
+    cat "$t"; rm -f "$t"
+}
+# _redacted_summary FILE — an IN.redacted file as meta.tsv records it:
+# "kind=n,..." (sorted), "none", or "off".
+_redacted_summary () {
+    LC_ALL=C sort "$1" 2>/dev/null | awk -F'\t' '
+        $1 == "off" { off = 1; next }
+        NF == 2 { if (!($1 in n)) o[++k] = $1; n[$1] += $2 }
+        END { if (off) { print "off"; exit }
+              if (!k) { print "none"; exit }
+              for (i = 1; i <= k; i++) s = s (i > 1 ? "," : "") o[i] "=" n[o[i]]
+              print s }'
 }
 
 # _hash_trailers ID... — the commit-message trailer for these captures: a
@@ -1057,7 +1108,10 @@ _manifest_capture_setup () {
 _manifest_apply () {
     local in="$1" label="$2" missing
     if [[ -n "$_O_MANIFEST_TEXT" ]]; then
-        { printf '%s\n' "$_O_MANIFEST_TEXT"; cat -- "$in"; } > "$in.manifest" && mv -- "$in.manifest" "$in"
+        printf '%s\n' "$_O_MANIFEST_TEXT" > "$in.mlines"
+        if [[ "$PROVOST_REDACT" == 1 ]]; then _scrub "$in.mlines" "$in.redacted"; fi
+        { cat -- "$in.mlines"; cat -- "$in"; } > "$in.manifest" && mv -- "$in.manifest" "$in"
+        rm -f -- "$in.mlines"
     fi
     [[ -n "$_O_MPROF_PATH" ]] || return 0
     awk '!/^#%/ { exit } { print }' "$in" > "$in.prologue"
@@ -1875,6 +1929,9 @@ _ingest_store () {
     # of output.txt as stored, which is what 'provost verify' re-hashes.
     local in_sha="" in_bytes="" out_sha=""
     if [[ -f "$in.received" ]]; then IFS=$'\t' read -r in_sha in_bytes < "$in.received" || true; fi
+    # What the secret scrub replaced (PV-033): kind=n,..., none, or off.
+    local redacted=""
+    if [[ -f "$in.redacted" ]]; then redacted="$(_redacted_summary "$in.redacted")"; fi
     out_sha="$(_sha256 "$capd/output.txt")"
     local prov; prov="$(_prov_file)"
     [[ -f "$prov" ]] || printf '#\tdataset\tcapture\n' > "$prov"
@@ -2036,6 +2093,7 @@ _ingest_store () {
         if [[ -n "$ctx_map" ]]; then printf 'context_columns\t%s\n' "$ctx_map"; fi
         if [[ -n "$renamed" ]]; then printf 'renamed_columns\t%s\n' "$(_meta_safe "$renamed")"; fi
         if [[ -n "${detection:-}" ]]; then printf 'detection\t%s\n' "$(_meta_safe "$detection")"; fi
+        [[ -n "$redacted" ]] && printf 'redacted\t%s\n' "$redacted"
         [[ "$in_sha" =~ ^[0-9a-f]{64}$ ]] && printf 'input_sha256\t%s\n' "$in_sha"
         [[ "$in_bytes" =~ ^[0-9]+$ ]] && printf 'input_bytes\t%s\n' "$in_bytes"
         [[ -n "$out_sha" ]] && printf 'output_sha256\t%s\n' "$out_sha"
@@ -2097,6 +2155,9 @@ _ingest_store () {
             info "      only $cov% of the input's lines reached '$final'; the whole input stays with capture $id ('provost source'), and --multi files each section as a dataset of its own."
         fi
     fi
+    if [[ "$redacted" == *=* ]]; then
+        info "      secrets scrubbed before filing: ${redacted//,/, } ('provost source' shows [REDACTED:kind] in their place)."
+    fi
     # (the messages above end in `[[ ]] &&` tests; the capture itself is filed)
     return 0
 }
@@ -2116,6 +2177,7 @@ _ingest_async () {
         || die "cannot create a spool dir in $PROVOST_TEMP_DIR (set TMPDIR)."
     cp "$in" "$spool/in.txt" || { rm -rf "$spool"; die "cannot spool the input to $spool"; }
     if [[ -f "$in.received" ]]; then cp "$in.received" "$spool/in.txt.received" 2>/dev/null || true; fi
+    if [[ -f "$in.redacted" ]]; then cp "$in.redacted" "$spool/in.txt.redacted" 2>/dev/null || true; fi
     (
         trap '' HUP                                   # survive the shell exiting
         _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()  # nothing of the parent's
@@ -2320,6 +2382,11 @@ options:
                           such as default or proposal, or a .tsv file)
   --strict-manifest       refuse to file a capture whose manifest lacks a
                           required key (PROVOST_MANIFEST_STRICT=1)
+  --no-redact             store the output as it comes, secrets and all
+                          (--redact: scrub private keys, Authorization
+                          headers, tokens and password=... values first, the
+                          default, PROVOST_REDACT; SECRETS AND REDACTION in
+                          'provost help advanced')
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   --show                  show the command's output as it runs, as well
@@ -2362,6 +2429,11 @@ options:
                           such as default or proposal, or a .tsv file)
   --strict-manifest       refuse to file a capture whose manifest lacks a
                           required key (PROVOST_MANIFEST_STRICT=1)
+  --no-redact             store the output as it comes, secrets and all
+                          (--redact: scrub private keys, Authorization
+                          headers, tokens and password=... values first, the
+                          default, PROVOST_REDACT; SECRETS AND REDACTION in
+                          'provost help advanced')
   -q, --silent            no progress output
 EOF
             ;;
@@ -2386,7 +2458,7 @@ options:
                           as for piped input; under --strict-manifest an input
                           lacking a required key is not captured
   --min-confidence N, --min-coverage N, --min-consistency N, --plugin-dir DIR,
-  --multi, --no-auto-multi, --model, --llm, -q
+  --multi, --no-auto-multi, --model, --llm, --no-redact, -q
                           as for piped input ('provost inject --help')
   An empty input is skipped; one that cannot be read or parsed is reported and
   the rest are filed. Exits 1 if any input was not captured, 0 otherwise.
@@ -2401,7 +2473,39 @@ EOF
         control) echo "usage: provost control [<dir>]    make <dir> (default: cwd) its own capture instance" ;;
         uncontrol) echo "usage: provost uncontrol [<dir>]    release a controlled directory (its data is kept)" ;;
         instances) echo "usage: provost instances    list controlled directories" ;;
-        export) echo "usage: provost export [<file>]    bundle the whole store into a portable git bundle" ;;
+        export) cat <<'EOF'
+usage: provost export [--redact POLICY] [FILE]
+  Bundle the whole store -- datasets, captures, history and tags -- into one
+  portable git bundle, FILE (default: provost-export-<time>.bundle here).
+  'provost import FILE DEST' opens it elsewhere.
+options:
+  --redact POLICY         export a copy to take across a boundary: every host
+                          name and address POLICY picks out becomes a
+                          pseudonym (host-1a2b3c4d5e6f, ip4-..., ip6-...)
+                          made with a key that stays here, in every file,
+                          message and dataset name, and secrets are scrubbed
+                          again. The same key gives the same pseudonyms, so
+                          two exports still join. The history is rewritten;
+                          each capture's input_sha256 and a controlled
+                          directory's own files (files-* tags) are left out;
+                          'provost verify' passes on the import.
+the policy (KEY = VALUE lines; '#' starts a comment line):
+  key = FILE              the key: its first line, 32 characters or more
+                          (default ~/.config/provost/redact.key; made, at
+                          random, when it does not exist; never in the store)
+  ipv4 = yes|no           IPv4 addresses (default yes; never 0.0.0.0, 127.x
+                          or a netmask, nor part of 1.3.6.1.2.1)
+  ipv6 = yes|no           IPv6 addresses (default yes; never :: or ::1)
+  domain = example.com    every name in the domain, and the domain itself
+  host = PATTERN          every name the awk regular expression matches,
+                          whole and lower-cased: host = node[0-9]+
+  column = NAME           every value in a dataset column called NAME
+  hosts = FILE            every name or address in FILE, one a line
+  domain, host, column and hosts can be given more than once. A name is
+  replaced wherever it stands as a word or a part of one between . _ : -
+  (node7 in node7-ib0 and node7.cluster.local); a name has a letter in it.
+EOF
+            ;;
         import) echo "usage: provost import <file.bundle> [<dest-dir>]    reconstitute a bundle to browse" ;;
         log) cat <<'EOF'
 usage: provost log [--failed]
@@ -2573,6 +2677,8 @@ _capture_opt () {
         --no-llm) PROVOST_LLM=0 ;;
         --context-columns) PROVOST_CONTEXT_COLUMNS=1 ;;
         --no-context-columns) PROVOST_CONTEXT_COLUMNS=0 ;;
+        --redact) PROVOST_REDACT=1 ;;
+        --no-redact) PROVOST_REDACT=0 ;;
         --manifest)
             [[ $# -ge 2 ]] || usage_die "--manifest needs a file of KEY=VALUE lines."
             _O_MANIFEST="$2"; _CO_N=2 ;;
@@ -2698,6 +2804,8 @@ cmd_run () {
     # The command as a shell-quoted, TSV-safe string (printf %q never emits a
     # raw tab or newline), so meta.tsv and 'provost log' show it faithfully.
     local cmd; cmd="$(_shell_quote "$@")"
+    # ...with its secrets scrubbed too (mysql --password=..., curl -H 'Authorization: ...').
+    if [[ "$PROVOST_REDACT" == 1 ]]; then cmd="$(_scrub_text "$cmd" "$in.redacted")"; fi
     [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
     local name="$_O_NAME"
     [[ -n "$name" ]] || name="$(_run_name "$@")"
@@ -3494,10 +3602,24 @@ cmd_instances () {
 # export / import — a portable bundle of the whole store (datasets + commits).
 # ---------------------------------------------------------------------------
 cmd_export () {
-    case "${1:-}" in -h|--help) _cmd_help export ;; esac
-    [[ $# -le 1 ]] || _cmd_usage_die export
+    local policy="" out="" gout
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help export ;;
+            --redact) [[ $# -ge 2 ]] || usage_die "--redact needs a policy FILE (see 'provost export --help')."
+                      policy="$2"; shift 2 ;;
+            --redact=*) policy="${1#--redact=}"; shift ;;
+            --) shift; [[ $# -le 1 ]] || _cmd_usage_die export; out="${1:-}"; shift $# ;;
+            -?*) usage_die "export: unknown option: $1 (see 'provost export --help')." ;;
+            *) [[ -z "$out" ]] || _cmd_usage_die export; out="$1"; shift ;;
+        esac
+    done
     _ensure_workspace
-    local out="${1:-}" gout
+    if [[ -n "$policy" ]]; then
+        [[ -n "$out" ]] || out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ)-redacted.bundle"
+        _export_redacted "$policy" "$out"
+        return 0
+    fi
     if [[ -z "$out" ]]; then out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
     _git rev-parse HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
     _lock
@@ -3506,6 +3628,218 @@ cmd_export () {
     [[ -f "$out" ]] || die "export failed."
     local sz; sz=$(stat -c '%s' "$out" 2>/dev/null || echo '?')
     ok "exported store → $out ($sz bytes). Import elsewhere with: provost import $(printf '%q' "$out") <dest>"
+}
+
+# --- redacted export (PV-033) ---------------------------------------------------
+# 'provost export --redact POLICY' writes a copy of the store, history and
+# all, in which every host name and address the policy picks out is replaced
+# by a pseudonym made with a key that stays behind (host-1a2b3c4d5e6f,
+# ip4-..., ip6-...), and every secret the capture-time scrub knows is
+# scrubbed again (for captures filed with --no-redact or before 2.6.0). The
+# same key gives the same pseudonyms, so two exports still join.
+#
+# _redact_policy FILE — read a policy: "KEY = VALUE" lines, '#' lines and
+# blank lines skipped. Sets _RP_KEYFILE, _RP_IPV4, _RP_IPV6, _RP_DOMAINS,
+# _RP_HOSTRES, _RP_COLS (newline-separated) and _RP_HOSTFILES (an array).
+# A relative path is relative to the policy file's directory.
+_RP_KEYS="key, ipv4, ipv6, domain, host, column, hosts"
+_redact_policy () {
+    local f="$1" dir line k v n=0
+    [[ -f "$f" ]] || die "no such redaction policy: $f"
+    dir="$(cd "$(dirname -- "$f")" && pwd)"
+    _RP_KEYFILE=""; _RP_IPV4=1; _RP_IPV6=1; _RP_DOMAINS=""; _RP_HOSTRES=""; _RP_COLS=""; _RP_HOSTFILES=()
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        n=$((n + 1)); line="${line%$'\r'}"
+        [[ "$line" =~ ^[[:blank:]]*$ || "$line" =~ ^[[:blank:]]*# ]] && continue
+        [[ "$line" == *=* ]] || die "$f, line $n: want KEY = VALUE ($_RP_KEYS), got: $line"
+        k="${line%%=*}"; v="${line#*=}"
+        k="${k//[[:blank:]]/}"
+        v="${v#"${v%%[![:blank:]]*}"}"; v="${v%"${v##*[![:blank:]]}"}"
+        [[ -n "$v" ]] || die "$f, line $n: '$k' has no value."
+        case "$v" in "~/"*) v="$HOME/${v#\~/}" ;; esac
+        case "$k" in
+            key) case "$v" in /*) _RP_KEYFILE="$v" ;; *) _RP_KEYFILE="$dir/$v" ;; esac ;;
+            ipv4|ipv6)
+                case "$v" in
+                    yes|on|1) v=1 ;; no|off|0) v=0 ;;
+                    *) die "$f, line $n: $k is yes or no (got '$v')." ;;
+                esac
+                if [[ "$k" == ipv4 ]]; then _RP_IPV4="$v"; else _RP_IPV6="$v"; fi ;;
+            domain)
+                v="${v#\*.}"; v="${v#.}"
+                [[ "$v" =~ ^[A-Za-z0-9_]([A-Za-z0-9_.-]*[A-Za-z0-9_])?$ && "$v" != *..* ]] \
+                    || die "$f, line $n: '$v' is not a domain (example.com, cluster.local)."
+                _RP_DOMAINS+="$v"$'\n' ;;
+            host)
+                [[ "$v" != *$'\t'* ]] || die "$f, line $n: a host pattern cannot hold a tab."
+                if ! awk -v re="$v" 'BEGIN { if ("x" ~ ("^(" re ")$")) {} }' </dev/null >/dev/null 2>&1; then
+                    die "$f, line $n: '$v' is not a regular expression awk can read."
+                fi
+                _RP_HOSTRES+="$v"$'\n' ;;
+            column) _RP_COLS+="$v"$'\n' ;;
+            hosts)
+                case "$v" in /*) ;; *) v="$dir/$v" ;; esac
+                [[ -f "$v" && -r "$v" ]] || die "$f, line $n: no such hosts file: $v"
+                _RP_HOSTFILES+=("$v") ;;
+            *) die "$f, line $n: unknown key '$k' (the keys: $_RP_KEYS)." ;;
+        esac
+    done < "$f"
+    [[ -n "$_RP_KEYFILE" ]] || _RP_KEYFILE="${XDG_CONFIG_HOME:-$HOME/.config}/provost/redact.key"
+    return 0
+}
+
+# _redact_key FILE — the key (its first line) in _RP_KEY. A FILE that does
+# not exist is made: 32 random bytes as hex, readable by its owner only. The
+# key may not live in the store, or it would travel with every export.
+_redact_key () {
+    local f; f="$(_abspath "$1")"
+    local ws; ws="$(cd -P -- "$PROVOST_WORKSPACE" 2>/dev/null && pwd)" || ws="$PROVOST_WORKSPACE"
+    local fd; fd="$(cd -P -- "$(dirname -- "$f")" 2>/dev/null && pwd)" || fd="$(dirname -- "$f")"
+    case "$fd/" in "$ws"/*) die "the redaction key $f is inside the store ($PROVOST_WORKSPACE), and would travel with it: keep it outside." ;; esac
+    if [[ ! -e "$f" ]]; then
+        mkdir -p -- "$(dirname -- "$f")" || die "cannot create $(dirname -- "$f") for the redaction key."
+        ( umask 077; set -o noclobber; { od -An -tx1 -N32 /dev/urandom | tr -d ' \n'; echo; } > "$f" ) 2>/dev/null \
+            || die "cannot write a new redaction key to $f."
+        info "made a new redaction key: $f -- keep it: the same key gives the same pseudonyms, and it never goes into an export."
+    fi
+    [[ -r "$f" ]] || die "cannot read the redaction key $f."
+    _RP_KEY=""; IFS= read -r _RP_KEY < "$f" || true
+    _RP_KEY="${_RP_KEY%$'\r'}"
+    (( ${#_RP_KEY} >= 32 )) || die "the redaction key in $f is too short: it needs 32 characters or more (move the file away and provost makes a random one)."
+    [[ "$_RP_KEY" != *$'\t'* ]] || die "the redaction key in $f holds a tab."
+}
+
+# _sha256_many — for each file named on stdin (one a line; plain names),
+# "NAME<TAB>sha256", from as few processes as xargs needs.
+_sha256_many () {
+    local -a tool=()
+    if command -v sha256sum >/dev/null 2>&1; then tool=(sha256sum)
+    elif command -v shasum >/dev/null 2>&1; then tool=(shasum -a 256)
+    elif command -v openssl >/dev/null 2>&1; then tool=(openssl dgst -sha256 -r)
+    else return 1; fi
+    tr '\n' '\0' | xargs -0 "${tool[@]}" | awk '{ h = $1; f = substr($0, length(h) + 2); sub(/^[ *]/, "", f); print f "\t" tolower(h) }'
+}
+
+_export_redacted () {
+    local policy="$1" out="$2" main t lib="$PROVOST_ROOT/lib" kid ncap
+    [[ -f "$lib/provost_pseudo.awk" && -f "$lib/provost_redact.awk" ]] || die "provost's redaction code is missing from $lib."
+    _redact_policy "$policy"
+    _redact_key "$_RP_KEYFILE"
+    out="$(_abspath "$out")"
+    [[ ! -e "$out" ]] || die "$out already exists; name a new file."
+    _git rev-parse -q --verify HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
+    _mktempd redact; t="$_MKTEMPD"
+    main="$(_main_branch)"
+    # The history to rewrite: the main branch and the capture tags. A
+    # controlled directory's own files (files-* tags) stay behind.
+    _git for-each-ref --format='%(refname)' 'refs/tags/capture-*' > "$t/refs"
+    ncap="$(wc -l < "$t/refs")"; ncap="${ncap//[!0-9]/}"
+    echo "refs/heads/$main" >> "$t/refs"
+    _lock
+    if ! _git fast-export --no-data --reencode=yes --signed-tags=strip --tag-of-filtered-object=drop \
+            --stdin < "$t/refs" > "$t/stream" 2> "$t/err"; then
+        _unlock; printf 'git: %s\n' "$(cat "$t/err")" >&2; die "export failed: git fast-export."
+    fi
+    _unlock
+    # Every blob the history holds, and the paths it was filed under.
+    LC_ALL=C awk '/^M / { p = substr($0, 3); i = index(p, " "); p = substr(p, i + 1); i = index(p, " ")
+                         print substr(p, 1, i - 1) "\t" substr(p, i + 1) }' "$t/stream" | LC_ALL=C sort -u > "$t/paths"
+    cut -f1 "$t/paths" | LC_ALL=C sort -u > "$t/blobs"
+    LC_ALL=C awk -F'\t' '$2 ~ /^captures\/c[0-9]+\/meta[.]tsv$/ { print $1 }' "$t/paths" | LC_ALL=C sort -u > "$t/metablobs"
+    LC_ALL=C awk -F'\t' '$2 ~ /^datasets\/unsorted([.][^\/]*)?[.]tsv$/ { print $1 }' "$t/paths" | LC_ALL=C sort -u > "$t/heldblobs"
+    LC_ALL=C sort -u "$t/metablobs" "$t/heldblobs" | LC_ALL=C comm -23 "$t/blobs" - > "$t/otherblobs"
+    : > "$t/hosts"
+    local hf; for hf in ${_RP_HOSTFILES[@]+"${_RP_HOSTFILES[@]}"}; do cat -- "$hf" >> "$t/hosts"; echo >> "$t/hosts"; done
+    export RP_IPV4="$_RP_IPV4" RP_IPV6="$_RP_IPV6" RP_DOMAINS="$_RP_DOMAINS" RP_HOSTRES="$_RP_HOSTRES" RP_COLS="$_RP_COLS"
+    local -a aw=(env LC_ALL=C awk -f "$lib/provost_redact.awk" -f "$lib/provost_pseudo.awk")
+
+    # 1. The names: everything the policy's rules pick out, anywhere.
+    : > "$t/held"
+    _git cat-file --batch < "$t/blobs" | "${aw[@]}" -v MODE=collect -v PATHS="$t/paths" \
+        -v STREAM="$t/stream" -v HOSTS="$t/hosts" -v HELD="$t/held" > "$t/names.all" || die "export failed: collecting the names."
+    LC_ALL=C sort -u "$t/names.all" > "$t/names"; rm -f "$t/names.all"
+    # 2. A pseudonym for each: the first 12 hex digits of
+    #    sha256(key LF kind LF name), after the kind.
+    mkdir "$t/h"
+    _RP_KEY="$_RP_KEY" LC_ALL=C awk -F'\t' -v D="$t/h" '{ f = D "/" NR; printf "%s\n%s\n%s", ENVIRON["_RP_KEY"], $1, $2 > f; close(f) }' "$t/names"
+    printf '%s' "provost-redact-key-id"$'\n'"$_RP_KEY" > "$t/keyid"
+    kid="$(_sha256 "$t/keyid")"; rm -f "$t/keyid"
+    [[ -n "$kid" ]] || die "no sha256 tool (sha256sum, shasum or openssl) — cannot make pseudonyms."
+    kid="${kid:0:12}"
+    if [[ -s "$t/names" ]]; then
+        ( cd "$t/h" && ls ) | ( cd "$t/h" && _sha256_many ) > "$t/hashes" || die "export failed: hashing the names."
+    else
+        : > "$t/hashes"
+    fi
+    rm -rf "$t/h"
+    LC_ALL=C awk -F'\t' 'NR == FNR { H[$1] = $2; next }
+        { p = (($1 == "host") ? "host-" : $1 "-") substr(H[FNR], 1, 12)
+          if (H[FNR] == "") { print "provost: no hash for name " FNR > "/dev/stderr"; exit 3 }
+          if ((p in SEEN) && SEEN[p] != $1 "\t" $2) { print "provost: two names share the pseudonym " p > "/dev/stderr"; exit 3 }
+          SEEN[p] = $1 "\t" $2; print $1 "\t" $2 "\t" p }' "$t/hashes" "$t/names" > "$t/map" \
+        || die "export failed: making the pseudonyms."
+    # 3. Every blob but meta.tsv and 'unsorted', scrubbed and pseudonymised,
+    #    one file each.
+    mkdir "$t/new"
+    _git cat-file --batch < "$t/otherblobs" | "${aw[@]}" -v MODE=blobs -v MAP="$t/map" -v OUTDIR="$t/new" \
+        -v COUNTS="$t/c.blobs" -v USED="$t/u.blobs" || die "export failed: rewriting the files."
+    # 4. Each capture's output.txt as exported, hashed for its meta.tsv,
+    #    its commit's trailer, and 'provost verify'.
+    LC_ALL=C awk -F'\t' '$2 ~ /^captures\/c[0-9]+\/output[.]txt$/ { split($2, P, "/"); print P[2] "\t" $1 }' "$t/paths" > "$t/outblobs"
+    cut -f2 "$t/outblobs" | LC_ALL=C sort -u | ( cd "$t/new" && _sha256_many ) > "$t/out.sha" || true
+    LC_ALL=C awk -F'\t' 'NR == FNR { H[$1] = $2; next } ($2 in H) { print $1 "\t" H[$2] }' "$t/out.sha" "$t/outblobs" > "$t/out256"
+    # ...and, for a capture held in 'unsorted', in base64: that dataset's raw
+    # column is the capture's input, which is its output.txt.
+    local cid ob; : > "$t/b64"
+    LC_ALL=C sort -u "$t/held" | while IFS= read -r cid; do
+        ob="$(awk -F'\t' -v c="$cid" '$1 == c { print $2; exit }' "$t/outblobs")"
+        [[ -n "$ob" && -f "$t/new/$ob" ]] || continue
+        printf '%s\t' "$cid"
+        if ! base64 -w0 < "$t/new/$ob" 2>/dev/null; then base64 < "$t/new/$ob" | tr -d '\n'; fi
+        printf '\n'
+    done > "$t/b64"
+    # 5. meta.tsv: its values pseudonymised, input_sha256/input_bytes gone,
+    #    output_sha256 the exported output's, and 'pseudonymised' added.
+    _git cat-file --batch < "$t/metablobs" | RP_KEYID="$kid" "${aw[@]}" -v MODE=blobs -v META=1 -v MAP="$t/map" \
+        -v OUTDIR="$t/new" -v OUT256F="$t/out256" -v COUNTS="$t/c.meta" -v USED="$t/u.meta" \
+        || die "export failed: rewriting meta.tsv."
+    # 5b. 'unsorted': each raw cell the base64 of its capture's exported
+    #     output (of a row with no capture id, from before store format 3: a
+    #     placeholder), everything else as in step 3.
+    local gone; gone="$(printf '[REDACTED:held input, see its capture]\n' | { base64 -w0 2>/dev/null || base64 | tr -d '\n'; })"
+    _git cat-file --batch < "$t/heldblobs" | "${aw[@]}" -v MODE=blobs -v UNSORTED=1 -v MAP="$t/map" \
+        -v OUTDIR="$t/new" -v B64F="$t/b64" -v RAWGONE="$gone" -v COUNTS="$t/c.held" -v USED="$t/u.held" \
+        || die "export failed: rewriting the 'unsorted' dataset."
+    # 6. A new repository: the rewritten files, then the rewritten history.
+    local -a ngit=(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR
+                   git --git-dir="$t/new.git" -c core.hooksPath=/dev/null -c gc.auto=0)
+    git init -q --bare "$t/new.git" >/dev/null 2>&1 || die "export failed: cannot create a repository in $t."
+    ( cd "$t/new" && LC_ALL=C sort "$t/blobs" | "${ngit[@]}" hash-object -w --stdin-paths ) > "$t/newshas" \
+        || die "export failed: storing the rewritten files."
+    LC_ALL=C sort "$t/blobs" | paste - "$t/newshas" > "$t/gitmap"
+    "${aw[@]}" -v MODE=stream -v MAP="$t/map" -v GITMAP="$t/gitmap" -v OUT256F="$t/out256" \
+        -v COUNTS="$t/c.msgs" -v USED="$t/u.msgs" < "$t/stream" > "$t/stream.new" \
+        || die "export failed: rewriting the history."
+    rm -f "$t/stream"
+    if ! gout="$("${ngit[@]}" fast-import --quiet < "$t/stream.new" 2>&1)"; then
+        printf 'git: %s\n' "$gout" >&2; die "export failed: git fast-import."
+    fi
+    "${ngit[@]}" symbolic-ref HEAD "refs/heads/$main" >/dev/null 2>&1 || true
+    if ! gout="$("${ngit[@]}" fsck --no-progress 2>&1)"; then
+        printf 'git: %s\n' "$gout" >&2; die "export failed: the rewritten history does not pass git fsck."
+    fi
+    if ! gout="$("${ngit[@]}" bundle create "$out" --all 2>&1)"; then
+        rm -f -- "$out"; printf 'git: %s\n' "$gout" >&2; die "export failed: git bundle."
+    fi
+    # What was done.
+    local nh n4 n6 nsec
+    { cat "$t"/u.* 2>/dev/null || true; } | LC_ALL=C sort -u > "$t/used"
+    nh="$(awk -F'\t' '$1 == "host"' "$t/used" | wc -l)"; n4="$(awk -F'\t' '$1 == "ip4"' "$t/used" | wc -l)"
+    n6="$(awk -F'\t' '$1 == "ip6"' "$t/used" | wc -l)"
+    nsec="$({ cat "$t"/c.* 2>/dev/null || true; } | awk -F'\t' '{ n += $2 } END { print n + 0 }')"
+    ok "exported a redacted copy of the store → $out: $((10#${ncap:-0})) capture(s); $((nh)) host name(s), $((n4)) IPv4 and $((n6)) IPv6 address(es) pseudonymised; $((nsec)) secret(s) scrubbed; key id $kid."
+    info "      left out: each capture's input_sha256 (with it, a guessed name could be checked) and a controlled directory's own files (files-* tags)."
+    info "      import with: provost import $(printf '%q' "$out") <dest>   (the key, $_RP_KEYFILE, stays here)"
 }
 
 cmd_import () {
@@ -4548,6 +4882,12 @@ cmd_doctor () {
         printf '   note: store lock held by: %s\n' "$(tr '\t' ' ' < "$PROVOST_WORKSPACE/.lock/owner" 2>/dev/null || echo unknown)"
     fi
     printf '   min-confidence: %s\n' "$PROVOST_MIN_CONFIDENCE"
+    if [[ "$PROVOST_REDACT" == 1 ]]; then
+        if [[ -f "$PROVOST_ROOT/lib/provost_redact.awk" ]]; then printf '   secret scrub: on (each input is scrubbed before it is stored; --no-redact or PROVOST_REDACT=0 turns it off)\n'
+        else printf '%serror%s secret scrub: on, but %s/lib/provost_redact.awk is missing: captures will fail\n' "$C_ERR" "$C_RST" "$PROVOST_ROOT"; rc=1; fi
+    else
+        printf '   secret scrub: off (PROVOST_REDACT=0): inputs are stored as they come\n'
+    fi
     if [[ -s "$(_faillog)" ]]; then
         printf '   %swarning%s failed background captures:\n' "$C_ERR" "$C_RST"
         _show_failures 2>/dev/null | sed 's/^/     /'
@@ -4666,7 +5006,9 @@ COMMANDS
     provost files [ID] [PATH] [--to DIR]
         A controlled directory's files as capture ID kept them: list them,
         print PATH, or write them all out into DIR.
-    provost export [FILE]          the whole store as one portable git bundle
+    provost export [--redact POLICY] [FILE]
+        The whole store as one portable git bundle; --redact: a copy with
+        host names and addresses pseudonymised (SECRETS AND REDACTION).
     provost import FILE [DEST]     open an exported store elsewhere to browse
   Upkeep
     provost rm [-f] [--no-purge] NAME...
@@ -4715,6 +5057,8 @@ CAPTURE OPTIONS (run, piped input, FILE)
     --strict-manifest, --no-strict-manifest
                             refuse to file a capture whose manifest lacks a
                             required key (default: file it, with a warning)
+    --redact, --no-redact   scrub secrets before storing (SECRETS AND
+                            REDACTION below; default on)
 
 THE STORE
     Captures go to a GLOBAL git store, so you can capture from any directory:
@@ -4744,7 +5088,8 @@ THE STORE
     and source then show the store as it was, and new captures are refused
     until 'provost restore latest'. 'show --at', 'source ID', 'search --at',
     'files' and 'diff' read any capture straight from git without moving the
-    store. 'export' bundles everything, tags included; 'import' opens it.
+    store. 'export' bundles everything, tags included ('export --redact': a
+    copy with host names and addresses pseudonymised); 'import' opens it.
 
 DATASET NAMES
     'provost run CMD ...' files into a dataset named after CMD's basename
@@ -4988,12 +5333,54 @@ BATCH CAPTURE (provost batch)
     meta.tsv says 'detection  reused (...)' where it was. Off with
     PROVOST_BATCH_REUSE=0, and under --multi, --model and --llm.
 
+SECRETS AND REDACTION
+    Secrets never belong in a store. Before an input is stored, every known
+    secret pattern in it becomes [REDACTED:kind]:
+      private-key     a PEM or PGP private key block, BEGIN to END
+      authorization   the value of an Authorization: header
+      bearer          a token after 'Bearer' (16 characters or more)
+      url-password    the password in scheme://user:password@host
+      aws-access-key, github-token, slack-token, vault-token, jwt
+                      tokens in their own formats
+      password, secret, token, api-key
+                      the value after a key whose name ends that way:
+                      DB_PASSWORD=..., "token": "...", --api-key ...
+    The command line 'run' records, and --manifest lines, are scrubbed too.
+    A value that says it is hidden or empty (yes, none, ***, <hidden>,
+    \$VAR) is left alone, and so is a plain word after a token, secret or
+    key name, or after a --flag (help text). meta.tsv records what was
+    scrubbed as 'redacted': kind=n,... (password=1,private-key=1), none, or
+    off. --no-redact (PROVOST_REDACT=0) files the input as it comes.
+
+    The input's hashes: input_sha256 stays the hash of the input as it was
+    RECEIVED, secrets and all, so it still matches a hash taken where the
+    output was made; output_sha256 is of output.txt as stored, scrubbed,
+    and is what 'provost verify' re-checks. So input_sha256 can confirm a
+    guess at a weak password in a scrubbed capture: keep the store inside
+    the boundary, and take data out with 'export --redact'.
+
+    Host names and addresses are data -- a fleet dataset is keyed on them
+    -- so captures keep them. 'provost export --redact POLICY' takes them
+    out: in the copy it writes, every name the policy picks out (its
+    domains, host patterns, dataset columns and hosts files; IPv4 and IPv6
+    addresses) is replaced by a pseudonym made with a keyed hash
+    (host-1a2b3c4d5e6f, ip4-..., ip6-...), the same in every file, commit
+    message and dataset name. The key stays behind; the same key gives the
+    same pseudonyms, so datasets exported at different times still join.
+    Secrets are scrubbed again on the way out. input_sha256 does not go
+    (with it, a guessed name could be checked); output_sha256 and the
+    commit trailers are those of the exported output, so 'provost verify'
+    passes on the import, and each meta.tsv says 'pseudonymised' with the
+    key's id. 'provost export --help' lists the policy's keys.
+
 SETTINGS (environment)
     PROVOST_HOME              the global store (default: ~/.provost)
     PROVOST_WORKSPACE         use this store, whatever the directory
     PROVOST_ASYNC             1 = always background, 0 = always foreground,
                               unset/auto = background only at a terminal
     PROVOST_QUIET             1 = no progress / ok messages (as --silent)
+    PROVOST_REDACT            0 = store inputs as they come, secrets and all
+                              (as --no-redact; default 1: scrub them)
     PROVOST_MIN_CONFIDENCE    file only at this confidence or more (0-101,
                               default: 50; 101 holds every capture)
     PROVOST_MIN_COVERAGE      quality gate: min line coverage % for a generic
