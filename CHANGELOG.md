@@ -1,5 +1,45 @@
 # provost — Changelog
 
+## 2.5.1 — 2026-11-10 — the two gate rules that cost `--llm` a FAIL each (PV-010)
+
+`VERSION` 2.5.0 → 2.5.1, and the `man/provost.1` header. Patch: two gate
+fixes. Both were named in HANDOFF 0j / 0k as costing round 4 a FAIL apiece
+however good the template.
+
+- **The fragments rule counts rows, not only lines.** Auto-multi parts,
+  the layout model's sections and an LLM template's blocks are fragments
+  when the parts of 3+ hold under half of the input. A part's size was its
+  input lines (`_AM_FRAG_LINES`); it is now its lines or its table's rows,
+  whichever is more (`_am_frag_add`, `_AM_FRAG_MIN`). Round 4's 132, a
+  TeamSpeak ServerQuery client list, holds six clients on ONE line: its
+  template's blocks were "0 of 2 lines in blocks of 3+ lines" and the
+  capture was held on every run. It now files six client rows and the
+  `error id=0 msg=ok` status. Taking the larger of the two only makes a
+  part bigger; the one way a split that passed before could now be
+  declined is a small part of 1–2 lines with more rows than lines, still
+  under 3, which adds to the total but not to the substantial share. The
+  notes read "N of M lines or rows in parts of 3+".
+- **A yaml parse is no longer beyond a stored template.** `--llm` never ran
+  over an exact-format parser, and yaml is one, but its grammar is lax:
+  plain `Label: text` output is valid YAML. Round 4's 020 (golangci-lint's
+  linter list) was read as one 110-column record, its Enabled / Disabled
+  section titles lost and `wsl [deprecated]` dropped. A template already
+  stored for the tool (the store, `PROVOST_LLM_TEMPLATE_DIRS`, the shipped
+  ones) may now better a yaml parse under the rule for a generic parse the
+  gate passed (keep its share of the data lines within 10 points). Claude
+  is never asked to write one over a yaml parse, so a real YAML document
+  costs no API call and is filed as before. 020 now files 111 linter rows
+  with their state, status and flags. json, xml, toml and the tool-specific
+  parsers are untouched.
+
+Round 4 with its stored templates (`tests/benchmark/llm_round.sh`), main
+against this branch: ROUND4_RESULT
+
+Files: `provost` (`_am_frag_add`, `_AM_FRAG_MIN`, the LLM-first hook in
+`_ingest`, `provost help` AUTO-MULTI and LLM TEMPLATES), `man/provost.1`,
+`tests/smoke.sh` (5 checks in the `llm` part, failing on 2.5.0),
+`HANDOFF.md`, `VERSION`.
+
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new

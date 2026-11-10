@@ -4846,8 +4846,9 @@ AUTO-MULTI (segmenting a weak parse)
         10 points more than the single parse;
       - no part is a table under positional A/B/C... columns only;
       - a part read by the parser the gate rejected has judged column types;
-      - parts of 3+ lines hold at least half the lines (no shattering into
-        fragments).
+      - parts of 3+ lines or 3+ rows hold at least half of it (no
+        shattering into fragments; a part's size is its lines or its rows,
+        whichever is more, so one line holding many records is no fragment).
     Otherwise the capture is held as before, and why segmenting did not help
     is printed and recorded ('auto_multi declined: ...' in meta.tsv). A
     segmented capture says so in its ok line and records 'auto_multi' (why
@@ -4897,7 +4898,10 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     segmenting and the layout model), and on a GENERIC parse the gate passed,
     before that parse is trusted (the gate cannot see a title or prompt read
     as the header; a template written for the tool's layout can). Never in
-    place of an exact-format or tool-specific parser. Every block it yields
+    place of an exact-format or tool-specific parser, save one: a yaml parse
+    may be bettered by a template already stored for the tool (plain
+    'Label: text' output is valid YAML), but Claude is never asked to write
+    one over it. Every block it yields
     is measured and filed under the gate's rules: one block as the capture's
     dataset, several as NAME.<block>, AUTO-MULTI's way. Against a generic
     parse the gate passed, it must keep that parse's share of the data lines
