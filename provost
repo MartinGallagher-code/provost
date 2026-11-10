@@ -1191,15 +1191,29 @@ _tidy_cols () { head -n 1 "$1" | tr '\t' '\n' | awk 'NR == 1 && $0 == "n" { next
 #   5. the parser the gate just rejected does not come back unmeasured: a
 #      dataset (3+ lines) read by the same strategy must have a judged
 #      column-type consistency (a one-record flatten is not judged);
-#   6. it is not shattered into trivial fragments: datasets of 3+ input lines
-#      hold at least half the input's lines (a banner, a footer or a prompt
-#      may be a one-line dataset of its own; most of the input may not).
+#   6. it is not shattered into trivial fragments: datasets of 3+ lines or
+#      3+ rows hold at least half of it (a banner, a footer or a prompt may
+#      be a one-line dataset of its own; most of the input may not). A part's
+#      size is its input lines or its table's rows, whichever is more: one
+#      line can hold many records (a ServerQuery client list is one line of
+#      '|'-separated clients), and is no fragment (_am_frag_add).
 # Otherwise it returns 1 with the reason in am_note, and the capture is held
 # exactly as before. Works on _ingest's locals (dynamic scope): reads engine,
 # eargs, body, tmp, threshold, name, strategy, cov; fills ds_* and am_*.
 _AM_GAIN=10
 _LLM_CATCHALL_SLACK=20   # _llm_file: points a template may trail a catch-all parse by
-_AM_FRAG_LINES=3
+_AM_FRAG_MIN=3   # a part of fewer lines AND fewer rows than this is a fragment
+
+# _am_frag_add LINES ROWS — add one part to the fragments rule's totals (the
+# caller's tot / sub): its size is its non-blank input lines or the rows of
+# its table, whichever is more, and it counts as substantial (sub) at
+# _AM_FRAG_MIN or more.
+_am_frag_add () {
+    local n="$1"
+    [[ "$2" =~ ^[0-9]{1,9}$ ]] && (( $2 > n )) && n="$2"
+    tot=$(( tot + n )); (( n >= _AM_FRAG_MIN )) && sub=$(( sub + n ))
+    return 0
+}
 
 # _am_part_check I WIDE TSV — the per-part checks of _auto_multi (rules 2, 4
 # and 5) on part I's dstrat / dconf / dcov / dcons / dlines (the caller's
@@ -1220,7 +1234,7 @@ _am_part_check () {
             _AMP_NOTE="part $i ($dstrat) columns are $dcons% type-consistent"; return 0
         fi
     fi
-    if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_LINES )); then
+    if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_MIN )); then
         _AMP_NOTE="part $i is read by the rejected parser ($dstrat) and cannot be judged"; return 0
     fi
     _core_melt_tidy_file "$wide" "" "$tsv.renamed" > "$tsv"
@@ -1314,13 +1328,13 @@ _auto_multi () {
         fi
         [[ -z "$_AMP_NOTE" ]] || { am_note="$_AMP_NOTE"; return 1; }
         nrows="$_AMP_ROWS"
-        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        _am_frag_add "$dlines" "$_AMP_ROWS"
         if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
         an+=("${name:+$name.}$dstrat"); as+=("$dstrat"); ac+=("$dconf"); af+=("$tmp/ds.$i.tsv")
         acv+=("$dcov"); acs+=("$dcons"); arows+=("$nrows")
     done
     if (( sub == 0 || sub * 2 < tot )); then
-        am_note="the parts are fragments ($sub of $tot lines in parts of $_AM_FRAG_LINES+ lines)"; return 1
+        am_note="the parts are fragments ($sub of $tot lines or rows in parts of $_AM_FRAG_MIN+)"; return 1
     fi
 
     # Naming. Every part is named as --multi names it: NAME.strategy for
@@ -1405,13 +1419,13 @@ _model_multi () {
         dlines=$(grep -c '[^[:space:]]' "$f" || true)
         _am_part_check "$i" "$_MT_OUT" "$segd/seg.$i.tsv"
         [[ -z "$_AMP_NOTE" ]] || { mm_note="${_AMP_NOTE/#part/section}"; return 1; }
-        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        _am_frag_add "$dlines" "$_AMP_ROWS"
         [[ "$dcov" == - ]] || covl=$(( covl + dcov * dlines ))
         an+=("${name:+$name.}layout-model"); as+=(layout-model); ac+=("$dconf"); af+=("$segd/seg.$i.tsv")
         acv+=("$dcov"); acs+=("$dcons")
     done
     if (( sub == 0 || sub * 2 < tot )); then
-        mm_note="its sections are fragments ($sub of $tot lines in sections of $_AM_FRAG_LINES+ lines)"; return 1
+        mm_note="its sections are fragments ($sub of $tot lines or rows in sections of $_AM_FRAG_MIN+)"; return 1
     fi
     alll=$(grep -c '[^[:space:]]' "$body" || true)
     (( alll > 0 )) || { mm_note="the input is empty"; return 1; }
@@ -1484,13 +1498,13 @@ _llm_file () {
         dlines=$(grep -c '[^[:space:]]' "$f" || true)
         _am_part_check "$i" "$_MT_OUT" "$bd/blk.$i.tsv"
         [[ -z "$_AMP_NOTE" ]] || { llm_note="${_AMP_NOTE/#part $i/block $bname}"; return 1; }
-        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        _am_frag_add "$dlines" "$_AMP_ROWS"
         [[ "$dcov" == - ]] || covl=$(( covl + dcov * dlines ))
         an+=("${dsbase:+$dsbase.}$bname"); as+=(llm-template); ac+=("$dconf"); af+=("$bd/blk.$i.tsv")
         acv+=("$dcov"); acs+=("$dcons"); aw+=("$_MT_OUT")
     done
     if (( n > 1 )) && (( sub == 0 || sub * 2 < tot )); then
-        llm_note="its blocks are fragments ($sub of $tot lines in blocks of $_AM_FRAG_LINES+ lines)"; return 1
+        llm_note="its blocks are fragments ($sub of $tot lines or rows in blocks of $_AM_FRAG_MIN+)"; return 1
     fi
     alll=$(grep -c '[^[:space:]]' "$body" || true)
     # the lines a template marks as decoration are not counted against it:
@@ -1775,7 +1789,13 @@ _ingest_parse () {
         # fallbacks on a held capture, and before a GENERIC parse the gate
         # passed is trusted (the gate cannot see a title or prompt read as the
         # header; a template written for the tool's layout can). Never over an
-        # exact-format or tool-specific parser. See _llm_template, _llm_file.
+        # exact-format or tool-specific parser, with one exception: yaml. Its
+        # grammar is lax enough that plain `Label: text` output is valid YAML
+        # (golangci-lint's linter list reads as one 110-column record, its
+        # section titles lost), so a template ALREADY STORED for the tool may
+        # better a yaml parse under the same rule as a generic one. Claude is
+        # never asked to write one for it: a real YAML document has no
+        # template and costs nothing. See _llm_template, _llm_file.
         if [[ "$PROVOST_LLM" == 1 ]]; then
             single_cov="$cov"; single_cons="$tcons"
             if [[ "$reason" == low-coverage* || "$reason" == low-consistency* ]]; then
@@ -1783,10 +1803,11 @@ _ingest_parse () {
                     if (( llm_multi )); then am_reason="$reason"; else llm_reason="$reason"; fi
                     reason=""
                 fi
-            elif [[ -z "$reason" ]] && ! _quality_exempt "$engine" "$strategy"; then
-                local _held="passed over (the engine read it as $strategy, coverage ${cov:--}%): a template"
+            elif [[ -z "$reason" ]] && { [[ "$strategy" == yaml ]] || ! _quality_exempt "$engine" "$strategy"; }; then
+                local _held="passed over (the engine read it as $strategy, coverage ${cov:--}%): a template" _learn=1
+                [[ "$strategy" == yaml ]] && _learn=0
                 llm_floor=match
-                if _llm_template 1; then
+                if _llm_template "$_learn"; then
                     if [[ -n "$llm_learned" ]]; then _held="$_held Claude wrote for this tool fits"
                     else _held="$_held stored for this tool fits"; fi
                     if (( llm_multi )); then am_reason="$_held"; else llm_reason="$_held"; fi

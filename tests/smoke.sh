@@ -1100,6 +1100,33 @@ if command -v python3 >/dev/null 2>&1; then
     check "the parser's blocks are the capture's datasets" "ip-addr.addresses" "$lt_out"
     check "a record is built from several lines" "enp3s0	inet	10.20.30.7/24	global	85211sec	85211sec	10.20.30.255	dynamic,noprefixroute" "$(cat "$LTWS/datasets/ip-addr.addresses.tsv")"
     check "a parser that reaches outside the box is refused" "imports os" "$(printf '{"format": 2, "tool": "x", "detect": "^a", "parser": "import os\\ndef parse(l): return []"}' > "$LTD/bad.json"; python3 "$HERE/../extract/llm/template.py" apply "$LTD/bad.json" "$LTD/vol.txt" 2>&1)"
+    # PV-010: the fragments rule sizes a block by its lines OR its rows. A
+    # ServerQuery client list is one line holding six clients: a block of one
+    # line and six rows is no fragment, so the template files it.
+    R4="$HERE/benchmark/round4"; LTL="$LTD/lib"; mkdir -p "$LTL"
+    cp "$R4/llm-templates-f2/132-teamspeak-serverquery-clientlist.json" "$LTL/teamspeak-clientlist.json"
+    cp "$R4/llm-templates-f2/020-golangci-lint-linters.json" "$LTL/golangci-lint-linters.json"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.frag" PROVOST_LLM_TEMPLATE_DIRS="$LTL" \
+        "$PROVOST" --sync --llm --name teamspeak-clientlist "$R4/inputs/132-teamspeak-serverquery-clientlist.txt" 2>&1)"
+    check "a one-line block of six records is not a fragment" "read by template teamspeak-clientlist.json" "$lt_out"
+    check "each record on the one line is a row" "MusicBot | Radio" "$(cat "$LTD/.frag/datasets/teamspeak-clientlist.clients.tsv" 2>/dev/null)"
+    # sizes (lines, rows) 1+6, 1+1, 4+0 and 2+(no count): 6 + 1 + 4 + 2 = 13
+    # in all, the 6 and the 4 substantial
+    check "a part's size is its lines or rows, whichever is more" "10 13" "$(bash -c '
+        source <(sed -n "/^_AM_FRAG_MIN=/,/^}/p" "$1"); tot=0; sub=0
+        _am_frag_add 1 6; _am_frag_add 1 1; _am_frag_add 4 0; _am_frag_add 2 x; echo "$sub $tot"' _ "$PROVOST")"
+    # PV-010: a yaml parse is not beyond a template STORED for the tool (plain
+    # `Label: text` output is valid YAML), but Claude is never asked to write
+    # one over a yaml parse: a key and a dead API change nothing.
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.yaml" PROVOST_LLM_TEMPLATE_DIRS="$LTL" \
+        "$PROVOST" --sync --llm --name golangci-lint-linters "$R4/inputs/020-golangci-lint-linters.txt" 2>&1)"
+    check "a stored template betters a yaml parse of its tool" "the engine read it as yaml, coverage 98%): a template stored for this tool fits" "$lt_out"
+    check "the linter's section is kept as a column" "staticcheck	enabled" "$(cat "$LTD/.yaml/datasets/golangci-lint-linters.tsv" 2>/dev/null)"
+    printf 'server:\n  host: example.org\n  port: 8080\nlogging:\n  level: info\n' > "$LTD/conf.yaml"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.yaml" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name app-config "$LTD/conf.yaml" 2>&1)"
+    check "a yaml document with no template is filed as yaml" "strategy yaml" "$lt_out"
+    check_not "Claude is not asked to write a template over a yaml parse" "Claude" "$lt_out$(cat "$LTD/.yaml/captures/c0002/meta.tsv" 2>/dev/null)"
 fi
 fi
 
