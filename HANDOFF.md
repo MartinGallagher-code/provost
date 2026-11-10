@@ -5,9 +5,10 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.0` section at the top of CHANGELOG): 2.4.0 (BN-002) and the HPC
-benchmark outputs (PV-030, below). 2.4.0 added `provost
+**provost 2.5.1 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.5.1` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (PV-030, below; 2.5.0) and auto-multi's retuned guards
+(PV-013, Next steps 1e; 2.5.1). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -163,6 +164,23 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1e. **2026-11-10: auto-multi's guards retuned** (PV-013, 2.5.1; the postscript
+    to `docs/benchmark-2026-11-04-generalisation-round5.md`).
+    - **The change:** a part read by a tool-specific parser must keep the
+      gate's coverage of its lines (048 held). A positional part sinks a split
+      only on evidence of a lost header or shredded rows (box chrome, mostly
+      empty cells, a header-like line just above it).
+    - **Measured:** round 4 (tuning set) 2 rescues and 1 wrong table → 5 and
+      none. Round 5, once, after the commit: 0 → 1 of 3 possible, no wrong
+      table. Rounds 2 and 3 unchanged.
+    - **Round 5 is spent for auto-multi now.**
+    - **Still held:** round 5's 104 and 109 (the cut-off-header evidence is
+      right, but raters took the `--multi` output as PARTIAL), and round 4's
+      031, 109 and 133 (the per-part coverage and consistency minimums).
+      Nothing seen separates those from the parts the minimums rightly hold.
+    - `tests/benchmark/auto_multi_round.sh --roundN` measures a round
+      through the CLI.
 
 1d. **2026-11-10: every change moves the version** (shared_tools BN-002).
     2.3.0 → 2.4.0, numbering the twelve dated entries since 2.3.0 and this
@@ -707,7 +725,7 @@ Suites (all CI-enforced):
       rescues. That is a small net gain.
     - **Next:** loosen the guards to recover more of the 8 possible rescues,
       tighten the per-part check that let 048 through, then measure on a
-      round 5.
+      round 5. *Done 2026-11-10 (PV-013): see 1e.*
 
 0. **Done 2026-10-20 (PR #77), not yet released.**
    - Six engine defects from round 3 are fixed: no-output fallback, tsv

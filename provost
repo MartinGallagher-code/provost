@@ -4886,10 +4886,14 @@ AUTO-MULTI (segmenting a weak parse)
     split is clearly better:
       - it really is a split (2 or more datasets);
       - every part passes the gate on its own (confidence, coverage,
-        consistency);
+        consistency); a part read by a tool-specific parser must keep
+        --min-coverage % of its own lines too;
       - together the parts keep at least --min-coverage % of the lines, and
         10 points more than the single parse;
-      - no part is a table under positional A/B/C... columns only;
+      - no part is a table under positional A/B/C... columns only that
+        shows a lost header or shredded rows: a column of box chrome,
+        mostly empty cells, or a header-like line right above it (a
+        headerless table is filed, under A/B/C...);
       - a part read by the parser the gate rejected has judged column types;
       - parts of 3+ lines hold at least half the lines (no shattering into
         fragments).

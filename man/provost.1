@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-10" "provost 2.5.0" "User Commands"
+.TH PROVOST 1 "2026-11-10" "provost 2.5.1" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -373,9 +373,13 @@ When the quality gate would hold a parse for low coverage or low consistency,
 provost first asks the engine to segment the input, as \fB--multi\fR does, and
 files the parts instead when the split is clearly better: it is a real split
 (two or more datasets); every part passes the gate on its own (confidence,
-coverage, consistency); together the parts keep at least \fB--min-coverage\fR
-percent of the lines and 10 points more than the single parse; no part is a
-table under positional A/B/C... columns only; a part read by the parser the
+coverage, consistency), and a part read by a tool-specific parser keeps at
+least \fB--min-coverage\fR percent of its own lines; together the parts keep at
+least \fB--min-coverage\fR percent of the lines and 10 points more than the
+single parse; no part is a table under positional A/B/C... columns only that
+shows a lost header or shredded rows (a column of box chrome, mostly empty
+cells, or a header-like line right above it in the input), while a headerless
+table is filed under A/B/C...; a part read by the parser the
 gate rejected has judged column types; and parts of three or more lines hold at
 least half the lines, so the input is not shattered into fragments. Otherwise
 the capture is held as before and the reason segmenting did not help is printed

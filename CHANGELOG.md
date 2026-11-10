@@ -1,5 +1,48 @@
 # provost — Changelog
 
+## 2.5.1 — 2026-11-10 — auto-multi's guards: tighter on tool-specific parts, looser on headerless tables (PV-013)
+
+`VERSION` 2.5.0 → 2.5.1, and the `man/provost.1` header. Patch: a fix to when
+the automatic `--multi` fallback files a split. No new option, and no corpus
+golden moves: the corpus gate runs the engine, not auto-multi.
+
+- **Tightened (`_am_part_check`, rule 2).** A part read by a tool-specific
+  parser (bespoke or plugin) must keep `--min-coverage` % of its own lines.
+  On a whole input those parsers are exempt from the gate; on a fragment of
+  another tool's output a low reading is an accident. Round 4's 048 (`pytest
+  -ra`) was filed wrong when `git-annex-list` read a rule line as `flags` /
+  `path` at 50%; it is held now. The strict grammars (json, yaml, xml, toml,
+  har) stay exempt.
+- **Loosened (rule 4, `_am_positional_why`).** A table under positional
+  `A`/`B`/`C`… columns sank every split. It is now declined only on evidence
+  that a header was lost or rows shredded: a column of box chrome, cells under
+  two thirds filled, or a header-like line (2+ words, no digit) right above
+  the part in the input, past blank and rule lines. A headerless table is
+  filed, as the benchmark's rating rule 4 already accepts. Each part's own
+  input lines (the engine's `PROVOST_MULTI_TEXT_DIR`) are now always written
+  for auto-multi, so the part can be placed; the layout model's and `--llm`'s
+  own segment checks pass no text and stay as strict as before.
+- **Measured** (the postscript to
+  `docs/benchmark-2026-11-04-generalisation-round5.md`; a pointer in round 4's):
+  - Tuned on round 4 and checked on rounds 2 and 3.
+  - Committed and pushed before round 5 was run, then measured on round 5
+    once.
+  - Round 4: 2 rescues and 1 wrong table → 5 rescues and none.
+  - Round 5: 0 → 1 rescue of 3 possible (101 `aix lspv`, FAIL → PARTIAL by
+    its existing blind rating), no wrong table.
+  - Rounds 2 and 3: every input has the same outcome as before.
+- **`tests/benchmark/auto_multi_round.sh --roundN OUT`** (new): every input
+  captured through the CLI into a fresh store, with a `summary.tsv` of what
+  each was (filed / segmented / held, and why).
+- **Tests:** five smoke checks (`core`), on spent benchmark inputs:
+  - the tool-specific part (round 4's 048);
+  - a headerless table filed (round 4's 137);
+  - box chrome (round 2's 102);
+  - a cut-off header (round 3's 115);
+  - shredded rows (round 4's 031).
+- **Docs:** `provost help advanced`, `man/provost.1`, `docs/usage.md`,
+  HANDOFF (0a).
+
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new
