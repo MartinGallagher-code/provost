@@ -5,7 +5,7 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.18.0 is everything through 2026-11-11** (`VERSION`, man header,
+**provost 2.19.0 is everything through 2026-11-11** (`VERSION`, man header,
 the `## 2.18.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
@@ -24,15 +24,16 @@ versioned spec, `provost store check` and reads that never touch a store
 (PV-022, below; 2.16.0); `--llm` through OpenAI-compatible and local
 endpoints, and an offline mode (PV-019, Next steps 1k; 2.17.0); signed
 captures, the operator trailer and SHA-256 stores (PV-027, Next steps 1l;
-2.18.0). 2.4.0 added `provost
+2.18.0); store lifecycle, `prune` by a retention policy and `archive`
+(PV-029, Next steps 1m; 2.19.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.18.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.18.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.18.0`, creating
+2.19.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.19.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.19.0`, creating
 that release on a dispatched run.
 
 **2.16.0: the store format as a spec (PV-022, 2026-11-11; not published).**
@@ -349,6 +350,30 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1m. **2026-11-11: store lifecycle, `prune` and `archive`** (PV-029, 2.19.0).
+    `provost prune --policy FILE` disposes of what a retention policy no
+    longer keeps (rules: `dataset=NAME|*` or `tag=KEY=VALUE`, then
+    `keep-days=N`/`keep-last=N`); a dry run without `--yes`; no policy, no
+    pruning. `provost archive --to DIR --before DATE|--older-than Nd` writes a
+    git bundle of the whole history, `ARCHIVE.tsv`, `captures.tsv`, the kept
+    inputs and `SHA256SUMS` (signed when `PROVOST_SIGN` is set), verifies it,
+    and with `--purge --yes` then disposes of the archived captures. `archive
+    verify` and `archive import` (read-only) read one back. Every disposal
+    goes through `rm --capture`'s all-or-nothing commit and is appended, in
+    that commit, to `disposals.tsv`, which nothing prunes; ids are never
+    reused. No format bump (a file older readers ignore); `store check`
+    checks the log. Owner's questions answered on his behalf, conservatively:
+    no records schedule is assumed (no default retention, the policy is the
+    owner's to write) and archives are signed only when PV-027's signing is
+    configured. **Open:** a disposal removes captures from the working store
+    only; git's history (and any clone or export) still holds them, so
+    destroying records as a schedule may require would need a history
+    rewrite, which provost does not do; kept inputs over the size cap are
+    left in `STORE.artifacts` on disposal; `rm` (by name or `--capture`) does
+    not write the disposal log; the bundle in an archive is the whole
+    history, not only the selected captures. quarterdeck does not read
+    `disposals.tsv` or archives yet.
 
 1l. **2026-11-11: signed captures, the operator, SHA-256 stores** (PV-027,
     2.18.0). Every commit carries `Operator: user@host` (or

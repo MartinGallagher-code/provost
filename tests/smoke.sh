@@ -2904,6 +2904,205 @@ fi
 fi
 fi
 
+if _part lifecycle; then
+# Store lifecycle (PV-029): archive and prune. Captures are filed "in the
+# past" by a stand-in date(1) that answers provost's filing-time call with
+# FAKE_TS, and git's own dates are faked to match.
+LWS="$(mktemp -d)/.life"; LT="$(dirname "$LWS")"
+mkdir "$LT/fd"; real_date="$(command -v date)"
+cat > "$LT/fd/date" <<FAKEDATE
+#!/bin/sh
+if [ -n "\$FAKE_TS" ] && [ "\$1" = -u ] && [ "\$2" = "+%Y-%m-%dT%H:%M:%SZ" ]; then echo "\$FAKE_TS"; exit 0; fi
+exec "$real_date" "\$@"
+FAKEDATE
+chmod +x "$LT/fd/date"
+lp () { PROVOST_WORKSPACE="$LWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+lrc () { PROVOST_WORKSPACE="$LWS" PROVOST_ASYNC=0 rc_of "$PROVOST" "$@"; }
+# lpast TS ARGS... -- a capture filed at TS (meta.tsv's ts, and its commit's dates)
+lpast () { local ts="$1"; shift
+    PATH="$LT/fd:$PATH" FAKE_TS="$ts" GIT_AUTHOR_DATE="$ts" GIT_COMMITTER_DATE="$ts" \
+        PROVOST_WORKSPACE="$LWS" PROVOST_ASYNC=0 "$PROVOST" "$@" >/dev/null 2>&1; }
+lpast 2020-01-01T00:00:00Z run --name t printf 'a b\n1 2\n'          # c0001 t
+lpast 2020-06-01T00:00:00Z run --name t printf 'a b\n3 4\n'          # c0002 t
+lpast 2020-07-01T00:00:00Z run --name u printf 'x,y\n9,9\n'          # c0003 u
+lpast 2021-03-01T00:00:00Z run --name t printf 'a b\n5 6\n'          # c0004 t
+printf '#%% project=apollo\nk v\n1 2\n' | lpast 2020-02-01T00:00:00Z --name kv   # c0005 kv, tagged
+lp run --name t printf 'a b\n7 8\n' >/dev/null                         # c0006 t, now
+check "the stand-in date files a capture in the past" "2020-01-01T00:00:00Z" "$(cat "$LWS/captures/c0001/meta.tsv")"
+
+# --- archive ------------------------------------------------------------------
+check "archive needs --to (exit 2)" "2" "$(lrc archive --before 2021-01-01)"
+check "archive needs --before or --older-than (exit 2)" "2" "$(lrc archive --to "$LT/x")"
+check "archive refuses a date it cannot read (exit 2)" "2" "$(lrc archive --to "$LT/x" --before 2021-13-01)"
+check "archive --yes without --purge is a usage error (exit 2)" "2" "$(lrc archive --to "$LT/x" --before 2021-01-01 --yes)"
+check "archive with nothing selected writes nothing" "no archive written" "$(lp archive --to "$LT/x" --before 2019-01-01)"
+check "...and no directory" "no" "$([[ -e "$LT/x" ]] && echo yes || echo no)"
+head0="$(tgit "$LWS" rev-parse HEAD)"; snap0="$( cd "$LWS" && find . -type f -exec cksum {} + | LC_ALL=C sort -k3 )"
+aout="$(lp archive --to "$LT/a1" --before 2021-01-01 --dataset t)"
+check "archive writes the captures filed before the date, of the dataset asked for" "archived 2 capture(s) (c0001 c0002)" "$aout"
+check "...the archive has a bundle, a manifest, the captures and their sums" "ARCHIVE.tsv SHA256SUMS captures.tsv store.bundle" "$(ls "$LT/a1" | tr '\n' ' ')"
+check "...captures.tsv lists them with their commits and hashes" "c0002	2020-06-01T00:00:00Z	t	$(tgit "$LWS" rev-parse 'capture-c0002^{commit}')	$(awk -F'\t' '$1 == "output_sha256" { print $2 }' "$LWS/captures/c0002/meta.tsv")" "$(cat "$LT/a1/captures.tsv")"
+check_not "...and no other capture" "c0003" "$(cut -f1 "$LT/a1/captures.tsv")"
+check "...ARCHIVE.tsv records the store format" "$(printf 'store_format\t4')" "$(cat "$LT/a1/ARCHIVE.tsv")"
+check "...and the selection" "filed before 2021-01-01T00:00:00Z; dataset t" "$(cat "$LT/a1/ARCHIVE.tsv")"
+check "...its files are read-only" "no" "$([[ -w "$LT/a1/store.bundle" ]] && echo yes || echo no)"
+check "an archive without --purge changes nothing in the store" "<same $head0>" \
+    "<$([[ "$snap0" == "$( cd "$LWS" && find . -type f ! -path './.lock/*' -exec cksum {} + | LC_ALL=C sort -k3 )" ]] && echo same) $(tgit "$LWS" rev-parse HEAD)>"
+check "archive --older-than counts days back from --as-of" "archived 4 capture(s) (c0001 c0002 c0003 c0005)" \
+    "$(lp archive --to "$LT/a2" --older-than 365d --as-of 2021-07-02)"
+check "archive refuses a directory that exists" "already exists" "$(lp archive --to "$LT/a1" --before 2021-01-01)"
+vout="$(lp archive verify "$LT/a1")"
+check "archive verify: the sums" "SHA256SUMS: all 3 file(s) match, none unlisted" "$vout"
+check "...the bundle" "a complete git bundle" "$vout"
+check "...each capture at its tag" "all 2 capture(s) at their tags in the bundle" "$vout"
+check "...provost verify on the archived store" "provost verify on the archived store: no findings" "$vout"
+check "...exit 0" "0" "$(lrc archive verify "$LT/a1")"
+check "...--require-signed fails an unsigned archive (exit 1)" "1" "$(lrc archive verify "$LT/a1" --require-signed)"
+check "archive import re-imports it" "imported the archive read-only" "$(lp archive import "$LT/a1" "$LT/imp1")"
+check "...the imported store has the archived captures" "1 2" "$(PROVOST_WORKSPACE="$LT/imp1" "$PROVOST" show t 2>&1 | sq)"
+check "...and verifies" "verify: no findings" "$(PROVOST_WORKSPACE="$LT/imp1" "$PROVOST" verify 2>&1)"
+check "...and passes store check" "a valid format-4 store" "$(PROVOST_WORKSPACE="$LT/imp1" "$PROVOST" store check 2>&1)"
+if [[ "$(id -u)" != 0 ]]; then
+    check "...it is read-only: a capture into it is refused at once" "is read-only" \
+        "$(printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$LT/imp1" PROVOST_ASYNC=0 PROVOST_LOCK_TIMEOUT=2 "$PROVOST" --name t 2>&1)"
+fi
+# tampering is found
+cp -R "$LT/a1" "$LT/a1t"; chmod -R u+w "$LT/a1t"
+printf 'c0001\t2020-01-01T00:00:00Z\tt\t%s\t\t\t\n' "$(tgit "$LWS" rev-parse HEAD)" >> "$LT/a1t/captures.tsv"
+tout="$(lp archive verify "$LT/a1t" || true)"
+check "archive verify finds a file changed after it was written" "captures.tsv does not match its sha256 in SHA256SUMS" "$tout"
+check "...and a capture whose tag names another commit" "c0001: its tag names" "$tout"
+check "...exit 1" "1" "$(lrc archive verify "$LT/a1t")"
+check "archive import refuses an archive that does not verify" "does not verify — not imported" "$(lp archive import "$LT/a1t" "$LT/imp2")"
+cp -R "$LT/a1" "$LT/a1u"; chmod -R u+w "$LT/a1u"; echo extra > "$LT/a1u/note.txt"
+check "archive verify finds a file not in SHA256SUMS" "note.txt is in the archive but not in SHA256SUMS" "$(lp archive verify "$LT/a1u")"
+# a kept input over the size cap goes into the archive with its capture
+printf 'a b\n1 2\n3 4\n5 6\n7 8\n' > "$LT/big.txt"
+PROVOST_MAX_INPUT=12 lpast 2020-03-01T00:00:00Z --name big "$LT/big.txt"      # c0007 big, truncated
+ksha="$(awk -F'\t' '$1 == "raw_sha256" { print $2 }' "$LWS/captures/c0007/meta.tsv")"
+check "archive copies a truncated capture's kept input" "archived 1 capture(s) (c0007)" "$(lp archive --to "$LT/a3" --before 2021-01-01 --dataset big)"
+check "...into artifacts/ by its hash" "artifacts/$ksha" "$(cat "$LT/a3/SHA256SUMS")"
+check "...and verifies it" "verify: no findings" "$(lp archive verify "$LT/a3")"
+check "...archive import puts it beside the imported store" "$ksha" "$(lp archive import "$LT/a3" "$LT/imp3" >/dev/null; ls "$LT/imp3.artifacts")"
+# --purge: needs --yes; then the archived captures are disposed of and logged
+check "archive --purge without --yes writes the archive and removes nothing" "nothing removed from the store" \
+    "$(lp archive --to "$LT/a4" --before 2020-02-01 --dataset t --purge)"
+check "...c0001 is still there" "yes" "$([[ -d "$LWS/captures/c0001" ]] && echo yes)"
+pout="$(lp archive --to "$LT/a5" --before 2020-02-01 --dataset t --purge --yes)"
+check "archive --purge --yes archives, then disposes of the captures" "deleted 1 capture(s) (c0001)" "$pout"
+check "...c0001 is gone from the store" "no" "$([[ -d "$LWS/captures/c0001" ]] && echo yes || echo no)"
+check "...in one commit naming the archive" "archive: disposed of 1 capture(s) [c0001], pruned 1 row(s) to archive a5" "$(tgit "$LWS" log -1 --format=%s)"
+check "...and the disposal log records it" "$(printf 'c0001\t')" "$(cat "$LWS/disposals.tsv")"
+check "...how and which archive" "$(printf '\tarchive\tarchive %s (SHA256SUMS sha256 ' "$LT/a5")" "$(cat "$LWS/disposals.tsv")"
+check "...the disposal log is committed with the deletion" "disposals.tsv" "$(tgit "$LWS" show --name-only --format= HEAD)"
+check "...the archive still has it, and verifies" "verify: no findings" "$(lp archive verify "$LT/a5")"
+
+# --- prune --------------------------------------------------------------------
+check "prune needs --policy: there is no default retention (exit 2)" "2" "$(lrc prune)"
+check "...and says so" "provost has no retention of its own" "$(lp prune)"
+printf 'dataset=t keep-forever\n' > "$LT/bad1"
+check "a policy line with an unknown word is refused, by line (exit 2)" "line 1: 'keep-forever' is not keep-days=N or keep-last=N" "$(lp prune --policy "$LT/bad1")"
+printf '# nothing\n\n' > "$LT/bad2"
+check "a policy with no rules is refused" "has no rules" "$(lp prune --policy "$LT/bad2")"
+printf 'disks keep-days=1\n' > "$LT/bad3"
+check "a rule must start with a selector" "a rule starts with dataset=NAME" "$(lp prune --policy "$LT/bad3")"
+cat > "$LT/policy" <<'POLICY'
+# a year for t, but always its newest two; the apollo project's for 30 days
+dataset=t             keep-days=365 keep-last=2
+tag=project=apollo    keep-days=30
+POLICY
+head1="$(tgit "$LWS" rev-parse HEAD)"; snap1="$( cd "$LWS" && find . -type f -exec cksum {} + | LC_ALL=C sort -k3 )"
+dout="$(lp prune --policy "$LT/policy" --as-of 2022-01-01)"
+check "prune is a dry run by default: it says what would go" "dry run: 2 capture(s) would be disposed of" "$dout"
+check "...c0002 (t, older than a year, not among the newest two)" "goes  c0002" "$dout"
+check "...c0005 (tagged apollo, older than 30 days)" "goes  c0005" "$dout"
+check "...c0004 kept as one of t's newest two" "kept  c0004" "$dout"
+check_not "...c0003 (u: no rule names it) is not selected" "c0003" "$dout"
+check "a dry run changes nothing" "<same $head1>" \
+    "<$([[ "$snap1" == "$( cd "$LWS" && find . -type f -exec cksum {} + | LC_ALL=C sort -k3 )" ]] && echo same) $(tgit "$LWS" rev-parse HEAD)>"
+nlog0="$(wc -l < "$LWS/disposals.tsv" | tr -d ' ')"
+yout="$(PROVOST_OPERATOR="smoke operator" lp prune --policy "$LT/policy" --as-of 2022-01-01 --yes)"
+check "prune --yes disposes of exactly the policy's matches" "deleted 2 capture(s) (c0002 c0005)" "$yout"
+check "...they are gone" "no no" "$([[ -d "$LWS/captures/c0002" ]] && echo yes || echo no) $([[ -d "$LWS/captures/c0005" ]] && echo yes || echo no)"
+check "...the rest are kept" "c0003 c0004 c0006 c0007" "$(ls "$LWS/captures" | tr '\n' ' ')"
+check "...one commit, naming the policy" "prune: disposed of 2 capture(s) [c0002 c0005], pruned 2 row(s), emptied 1 dataset(s) [kv] under policy policy (sha256 " "$(tgit "$LWS" log -1 --format=%s)"
+check "...the disposal log gains one record each" "$((nlog0 + 2))" "$(wc -l < "$LWS/disposals.tsv" | tr -d ' ')"
+check "...naming the rule that let it go" "$(printf 'c0002\t')" "$(grep 'line 2: dataset=t keep-days=365 keep-last=2' "$LWS/disposals.tsv")"
+check "...and the tag rule" "$(printf 'c0005\t')" "$(grep 'line 3: tag=project=apollo keep-days=30' "$LWS/disposals.tsv")"
+check "...with who did it (the operator)" "$(printf '\tsmoke operator\tprune\t')" "$(cat "$LWS/disposals.tsv")"
+check "...and the capture's own time and output hash" "$(printf '\t2020-06-01T00:00:00Z\tt\t')" "$(grep '^c0002' "$LWS/disposals.tsv")"
+check "the store is clean after prune" "clean" "$( [[ -z "$(tgit "$LWS" status --porcelain)" ]] && echo clean)"
+check "store check counts the disposals" "3 disposal(s) recorded" "$(lp store check)"
+check "...and passes" "a valid format-4 store" "$(lp store check)"
+check "verify counts the disposed ids as removed, not missing" "3 capture id(s) removed by rm (or prune, or archive --purge" "$(lp verify)"
+check "...no findings" "verify: no findings" "$(lp verify)"
+check "pruning again finds nothing to dispose of" "nothing to dispose of" "$(lp prune --policy "$LT/policy" --as-of 2022-01-01 --yes)"
+check "the next capture's id continues the sequence after prune" "c0008:" "$(lp run --name t printf 'a b\n9 9\n')"
+check "...and after archive --purge (c0001 is never used again)" "0" "$(grep -c '^c0001$' <(ls "$LWS/captures") || true)"
+# a dataset rule does not take a capture that also filed a dataset no rule names
+MWS="$(mktemp -d)/.m"
+printf 'Linux 5.15.0-91-generic (host01) \t07/07/2026 \t_x86_64_\t(8 CPU)\n\navg-cpu:  %%user   %%nice %%system %%iowait  %%steal   %%idle\n           4.21    0.00    1.83    0.42    0.00   93.54\n\nDevice            r/s     w/s     rkB/s     wkB/s   rrqm/s   wrqm/s   %%rrqm   %%wrqm  r_await  w_await\nsda             12.34    8.91   1024.50    512.30     0.42     1.83    3.29   17.03     0.84     1.20\n' > "$LT/multi.txt"
+PATH="$LT/fd:$PATH" FAKE_TS=2020-01-01T00:00:00Z PROVOST_WORKSPACE="$MWS" PROVOST_ASYNC=0 "$PROVOST" --sync --multi "$LT/multi.txt" >/dev/null 2>&1 || true
+check "(a --multi capture files more than one dataset)" "yes" "$(grep -q $'^dataset\t.*,' "$MWS/captures/c0001/meta.tsv" 2>/dev/null && echo yes)"
+if [[ -f "$MWS/captures/c0001/meta.tsv" ]]; then
+    d1="$(awk -F'\t' '$1 == "dataset" { split($2, p, ","); print p[1] }' "$MWS/captures/c0001/meta.tsv")"
+    printf 'dataset=%s keep-days=1\n' "$d1" > "$LT/mpol"
+    check "a capture that also filed a dataset no rule names is kept" "which no rule names" "$(PROVOST_WORKSPACE="$MWS" "$PROVOST" prune --policy "$LT/mpol" 2>&1)"
+fi
+# disposal is all or nothing: a move that fails puts the store back, with no disposal log
+LF="$(mktemp -d)"
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) exit 7 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$LF/mv"; chmod +x "$LF/mv"
+FWS="$(mktemp -d)/.f"
+lpf () { PROVOST_WORKSPACE="$FWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+PATH="$LT/fd:$PATH" FAKE_TS=2020-01-01T00:00:00Z lpf run --name t printf 'a b\n1 2\n' >/dev/null
+lpf run --name t printf 'a b\n3 4\n' >/dev/null
+printf 'dataset=t keep-days=365\n' > "$LT/fpol"
+check "a prune that fails part way says nothing was disposed of" "put back as it was" "$(PATH="$LF:$PATH" lpf prune --policy "$LT/fpol" --yes || true)"
+check "...the store is as it was, with no disposal log" "clean no" \
+    "$( [[ -z "$(tgit "$FWS" status --porcelain)" ]] && echo clean) $([[ -e "$FWS/disposals.tsv" ]] && echo yes || echo no)"
+check "...and run again it disposes" "recorded 1 disposal(s)" "$(lpf prune --policy "$LT/fpol" --yes)"
+# store check on a damaged disposal log
+cp "$FWS/disposals.tsv" "$LT/keep.tsv"
+printf 'c0002\t2026-01-01T00:00:00Z\tme\tprune\tr\tts\tt\t\t\n' >> "$FWS/disposals.tsv"
+check "store check fails a disposal record for a capture still in the store" "c0002 is recorded as disposed of, but captures/c0002 is in the store" "$(lpf store check)"
+printf 'c0099\t2026-01-01T00:00:00Z\tme\tprune\tr\tts\tt\t\t\n' >> "$FWS/disposals.tsv"
+check "...and one for an id the store has not reached" "c0099 is recorded as disposed of, but .next_capture_id is 3" "$(lpf store check)"
+cp "$LT/keep.tsv" "$FWS/disposals.tsv"
+check "...put back, it passes" "a valid format-4 store" "$(lpf store check)"
+# signed archives (PV-027's key), where SSH signing works
+if (( GITV >= 2034 )) && command -v ssh-keygen >/dev/null 2>&1; then
+    ssh-keygen -q -t ed25519 -N '' -C smoke -f "$LT/key" </dev/null
+    ssh-keygen -q -t ed25519 -N '' -C other -f "$LT/other" </dev/null
+    printf 'smoke@test %s\n' "$(cat "$LT/key.pub")" > "$LT/allowed"
+    printf 'other@test %s\n' "$(cat "$LT/other.pub")" > "$LT/notallowed"
+    sout="$(PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$LT/key" lp archive --to "$LT/s1" --before 2021-01-01)"
+    check "with PROVOST_SIGN=ssh an archive is signed" "signed (ssh)" "$sout"
+    check "...SHA256SUMS.sig is written" "SHA256SUMS.sig" "$(ls "$LT/s1")"
+    check "...it verifies against the allowed signers" "SHA256SUMS signed (ssh) by smoke@test" "$(lp archive verify "$LT/s1" --allowed-signers "$LT/allowed" --require-signed)"
+    check "...exit 0" "0" "$(lrc archive verify "$LT/s1" --allowed-signers "$LT/allowed" --require-signed)"
+    check "...a signer not allowed is a finding" "the signer is not in" "$(lp archive verify "$LT/s1" --allowed-signers "$LT/notallowed")"
+    check "...without an allowed-signers file it is checked but not its signer" "the signer is not checked" "$(lp archive verify "$LT/s1")"
+    check "a key that is not there: no archive is written" "no archive written" \
+        "$(PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$LT/missing" lp archive --to "$LT/s2" --before 2021-01-01)"
+    check "...and no directory" "no" "$([[ -e "$LT/s2" ]] && echo yes || echo no)"
+else
+    echo "  skip signed archives: SSH signing needs git 2.34 or later and ssh-keygen"
+fi
+if command -v gpg >/dev/null 2>&1 && LGH="$(mktemp -d /tmp/pvl.XXXXXX)" \
+   && GNUPGHOME="$LGH" gpg --batch --passphrase '' --quick-gen-key 'provost smoke <smoke@test>' ed25519 sign never >/dev/null 2>&1; then
+    lfpr="$(GNUPGHOME="$LGH" gpg --batch --with-colons --list-secret-keys 2>/dev/null | awk -F: '$1 == "fpr" { print $10; exit }')"
+    check "with PROVOST_SIGN=gpg an archive is signed (SHA256SUMS.asc)" "signed (gpg)" \
+        "$(GNUPGHOME="$LGH" PROVOST_SIGN=gpg PROVOST_SIGNING_KEY="$lfpr" lp archive --to "$LT/g1" --before 2021-01-01)"
+    check "...and verifies against the keyring" "SHA256SUMS signed (gpg)" "$(GNUPGHOME="$LGH" lp archive verify "$LT/g1" --require-signed)"
+    GNUPGHOME="$LGH" gpgconf --kill gpg-agent >/dev/null 2>&1 || true; rm -rf "$LGH"
+else
+    echo "  skip gpg-signed archives: no gpg here"
+fi
+check "help lists archive and prune" "provost prune --policy FILE" "$("$PROVOST" help advanced)"
+check "archive --help prints its usage" "usage: provost archive" "$("$PROVOST" archive --help)"
+check "prune --help prints its usage" "usage: provost prune" "$("$PROVOST" prune --help)"
+fi
+
 if _part store-spec; then
 echo "== the store format as a spec (PV-022): every older format read, nothing read changes =="
 FXD="$HERE/store-fixtures"
@@ -2931,6 +3130,10 @@ for n in 1 2 3 4; do
     check "format $n: doctor runs" "<0>" "$(fxrc doctor)"
     check "format $n: export writes a bundle" "exported store" "$(fxp export "$FX/x.bundle"; rm -f "$FX/x.bundle")"
     check "format $n: store check passes it as format $n" "a valid format-$n store" "$(fxp store check)"
+    check "format $n: archive writes an archive of it (PV-029)" "archived " "$(fxp archive --to "$FX.arch" --before 2099-01-01)"
+    check "format $n: and the archive verifies" "archive verify: no findings" "$(fxp archive verify "$FX.arch")"
+    printf 'dataset=* keep-last=1\n' > "$FX.pol"
+    check "format $n: a prune dry run reads it" "dry run: " "$(fxp prune --policy "$FX.pol")"
     after="$(snapshot "$FX")"
     check "format $n: no read changed a byte of the store (.git included)" "<same>" \
         "<$([[ "$before" == "$after" ]] && echo same || diff <(printf '%s\n' "$before") <(printf '%s\n' "$after") | head -n 6)>"

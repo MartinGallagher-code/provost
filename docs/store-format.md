@@ -27,11 +27,13 @@ that is not.
 8. [meta.tsv](#metatsv)
 9. [Git: the branch, the commits and the tags](#git-the-branch-the-commits-and-the-tags)
 10. [Inputs kept beside the store](#inputs-kept-beside-the-store)
-11. [Other files](#other-files)
-12. [Runtime files](#runtime-files)
-13. [Format history](#format-history)
-14. [Reading a store from another program](#reading-a-store-from-another-program)
-15. [Changing the format](#changing-the-format)
+11. [The disposal log](#the-disposal-log)
+12. [Other files](#other-files)
+13. [Runtime files](#runtime-files)
+14. [Format history](#format-history)
+15. [Reading a store from another program](#reading-a-store-from-another-program)
+16. [Changing the format](#changing-the-format)
+17. [Archives](#archives)
 
 ## The compatibility promise
 
@@ -41,15 +43,17 @@ wrote is read, as it is, by every later release.
 - **A new format bumps the number and ships a migration.** Format N+1 is
   never introduced without a migration from format N, run automatically.
 - **Only a write migrates.** The first command that writes to a store (a
-  capture through `run`, `inject` or `batch`; `rm`; `annotate`; `restore`,
-  `prev`, `next`; `control`) first brings an older store up to the current
+  capture through `run`, `inject` or `batch`; `rm`; `prune --yes`;
+  `archive --purge --yes`; `annotate`; `restore`, `prev`, `next`; `control`)
+  first brings an older store up to the current
   format, in a commit of its own (`provost: store maintenance (... store
   format 4)`), and then does its work. The migration is in the store's git
   history like any other change, so the store as it was is still there.
 - **A command that only reads never changes a store on disk.** `ls`, `show`,
   `source`, `log`, `search`, `files`, `diff`, `stats`, `triage`, `verify`,
-  `doctor`, `instances`, `check-manifest`, `export` and `store check` leave
-  every byte of the store as it was, its `.git` directory included, and work
+  `doctor`, `instances`, `check-manifest`, `export`, `store check`,
+  `archive` without `--purge` and `prune` without `--yes` leave every byte
+  of the store as it was, its `.git` directory included, and work
   on a store they cannot write (an evidence copy, read-only media, a store
   whose history has been signed). They read an older store in its own
   format. CI holds this: each fixture store is read by each of these and
@@ -113,6 +117,7 @@ STORE/
 ├── .next_row_id                the next row number
 ├── .next_capture_id            the next capture number (format 2 on)
 ├── provenance.tsv              every row: its number, dataset and capture
+├── disposals.tsv               captures disposed of by prune or archive --purge (2.19.0 on)
 ├── datasets/
 │   ├── NAME.tsv                one dataset
 │   ├── NAME.v2.tsv ...         another shape filed under the same name
@@ -147,8 +152,9 @@ no quoting of any kind: a cell holds no tab and no newline.
 | `.next_row_id` | One line: the next row number to assign, an integer of at least 1, greater than every row number the store has used. | format 1 |
 | `.next_capture_id` | One line: the next capture number, an integer of at least 1, greater than every capture number the store has used, including captures `rm` has since removed. | format 2 |
 
-Row numbers and capture numbers are never reused: not after `rm`, not after
-`restore`. Both counters are committed with each capture.
+Row numbers and capture numbers are never reused: not after `rm`, `prune`
+or `archive --purge`, not after `restore`. Both counters are committed with
+each capture.
 
 The `.gitignore`, as written by format 2 and later:
 
@@ -228,8 +234,9 @@ Each capture is a directory `captures/cNNNN/`: `c` and at least four digits
 | `units.tsv` | when `--units base` added columns | `dataset`, `column`, `unit_column`, `base`, `from`, `read`: one line per column it added. |
 | `annotations.txt` | after `provost annotate` | `#% key=value` lines, one key each; setting a key again replaces its line. |
 
-A capture `rm` removes loses its directory (and its tags); its number is not
-used again. `rm` of a dataset that a capture also filed into another
+A capture `rm`, `prune` or `archive --purge` removes loses its directory
+(and its tags); its number is not used again, and git's history still holds
+it. `rm` of a dataset that a capture also filed into another
 dataset keeps the capture and rewrites the `dataset` line of its meta.tsv.
 
 ## meta.tsv
@@ -317,6 +324,8 @@ know reads every capture, old or new.
   | `batch: N capture(s) cA..cB (R rows)` | a batch |
   | `annotate cNNNN: KEY, ...` | `annotate` |
   | `rm: ...` | `rm` |
+  | `prune: disposed of N capture(s) [...], pruned R row(s)[, emptied ...] under policy NAME (sha256 HEX12)` | `prune --yes` (2.19.0 on) |
+  | `archive: disposed of N capture(s) [...], pruned R row(s)[, emptied ...] to archive DIRNAME` | `archive --purge --yes` (2.19.0 on) |
   | `provost: control DIR (...)`, `provost: uncontrol DIR` | `control`, `uncontrol` |
 
   A capture's or batch's commit message ends with trailers, one pair per
@@ -332,7 +341,8 @@ know reads every capture, old or new.
   `PROVOST_SIGN` set (2.18.0 on), an annotated tag signed with the same key,
   whose message is `capture cNNNN` and an `Operator:` trailer. **Peel it**
   (`capture-cNNNN^{commit}`) rather than assume it names the commit itself.
-  `rm` deletes the tags of the captures it removes.
+  `rm`, `prune` and `archive --purge` delete the tags of the captures they
+  remove.
 - **`files-cNNNN`** (controlled directories, 2.2.0 on) is a lightweight tag
   on a commit holding the controlled directory's own files as capture cNNNN
   saw them. These commits are **not on the branch**: they form a chain of
@@ -367,6 +377,36 @@ history**, in the **artifact directory**:
   by `raw_sha256` in the artifact directory as it is now. `provost source`,
   `provost verify` and `provost store check` report a kept input that is
   missing or no longer hashes to `raw_sha256`.
+
+## The disposal log
+
+`disposals.tsv`, at the top of the store, from provost 2.19.0 (PV-029). It is
+written only by `prune --yes` and `archive --purge --yes`, which append one
+line per capture they dispose of, **in the same commit as the disposal**.
+Nothing in provost removes or changes a line of it, and nothing prunes it. A
+store that never disposed of anything has no such file. Header and columns:
+
+| Column | Holds |
+|---|---|
+| `capture` | The capture id disposed of (`c0007`). Never in `captures/` again: ids are not reused. |
+| `disposed` | When, UTC, `YYYY-MM-DDTHH:MM:SSZ`. |
+| `operator` | Who: `PROVOST_OPERATOR`, else `user@host` (as the commit's `Operator:` trailer). |
+| `how` | `prune` or `archive`. |
+| `rule` | Why: for `prune`, `policy NAME (sha256 HEX12) line N: RULE`, the policy file's name, the first 12 hex digits of its sha256, and the rule that let the capture go; for `archive`, `archive DIR (SHA256SUMS sha256 HEX12)`. |
+| `ts` | The capture's own `ts` from its `meta.tsv`. |
+| `dataset` | Its `dataset` (comma-separated). |
+| `output_sha256` | Its `output_sha256`, or empty when it recorded none. |
+| `raw_sha256` | For a truncated capture, the sha256 of its kept input, which is **left in place** in the artifact directory (it is outside git, and the same bytes may serve another capture); else empty. |
+
+A disposal removes a capture from the working store, as `rm --capture` does:
+git's history (the commit before the disposal) still holds it, and
+`provost source ID` still finds it there. Destroying it from the history as
+well would mean rewriting it; provost does not do that.
+
+`store check` checks the header and each line's form, that no capture is
+recorded twice, that no capture recorded is still in `captures/`, that every
+one is below `.next_capture_id`, and that the file is committed. An older
+provost ignores the file, and a store with one is still format 4.
 
 ## Other files
 
@@ -470,6 +510,10 @@ shorter). A dataset it cannot put right that way is left as it is.
   2.4.0, the scrub in 2.6.0, ...) and, in 2.15.0, inputs kept by hash beside
   the store with the six `truncated`/`raw_*` keys. None of these changes what
   a format-4 reader already relied on, so none bumped the number.
+- 2.19.0 (PV-029) added `disposals.tsv` ([The disposal
+  log](#the-disposal-log)) and the `prune:` and `archive:` commit subjects,
+  within format 4: an older reader can ignore the file, and nothing a reader
+  relied on changed, so nothing is migrated.
 - 2.18.0 (PV-027) added, all within format 4: the `Operator:` commit
   trailer; signed commits and signed annotated `capture-*` tags when the
   writer sets `PROVOST_SIGN`; and SHA-256 stores. None needs a migration (an
@@ -510,6 +554,9 @@ expect a second `#` column in such a dataset.
   in `.git/config`; none means sha1), and copy a store with `git clone`, which
   keeps it, rather than `git init` and `git fetch`, which cannot fetch a
   SHA-256 store into a SHA-1 repository.
+- A capture id missing from `captures/` was removed by `rm`, `prune` or
+  `archive --purge`; `disposals.tsv`, when there is one, says which were
+  disposed of, when, by whom and why.
 - Run `provost store check DIR` in your own CI against stores you write to
   or read from: it fails on anything this document says cannot happen.
 
@@ -534,3 +581,30 @@ A change to what a reader of the store can rely on bumps `_STORE_FORMAT` in
 section and a fixture for every format up to it. Adding a `meta.tsv` key, or
 a file that an older reader can ignore, does not need a new format; add it
 to the tables above with the release that first writes it.
+
+## Archives
+
+Not a store, but written from one and read by other programs, so specified
+here: what `provost archive` writes (2.19.0 on, PV-029). An archive is a new
+directory:
+
+| File | Holds |
+|---|---|
+| `store.bundle` | `git bundle create --all` of the store as it was: its whole history, every branch and tag. A git bundle names its own prerequisites (none) and is checked with `git bundle verify`. Clone it with a git that knows the store's object format. |
+| `ARCHIVE.tsv` | `KEY<TAB>VALUE` lines: `archive_format` (`1`), `provost_version`, `store_format` (the store's `.store_format`, 1 when it had none), `object_format` (`sha1` or `sha256`), `created` (UTC), `operator`, `store` (its path then), `branch`, `head` (the commit the bundle's branch was at), `selection` (in words), `captures` (how many), `signed` (`no`, `ssh` or `gpg`). Ignore keys you do not know. |
+| `captures.tsv` | The captures the archive was made for. Header `capture`, `ts`, `dataset`, `commit` (the commit their `capture-*` tag names, peeled), `output_sha256`, `input_sha256`, `raw_sha256` (empty when not recorded). |
+| `artifacts/SHA256` | The kept input of each truncated capture in `captures.tsv` ([Inputs kept beside the store](#inputs-kept-beside-the-store)), named by its sha256. Only when there is one. |
+| `SHA256SUMS` | `HEX  PATH` (two spaces, `sha256sum`'s form), one line per file above, sorted by path. Every file in the archive but `SHA256SUMS` and its signature is listed. |
+| `SHA256SUMS.sig` | When the writer set `PROVOST_SIGN=ssh`: an SSH signature of `SHA256SUMS` (`ssh-keygen -Y sign`, namespace `provost-archive`). An allowed-signers line restricted to `namespaces="git"` does not admit it. |
+| `SHA256SUMS.asc` | When the writer set `PROVOST_SIGN=gpg`: an ASCII-armoured detached OpenPGP signature of `SHA256SUMS`. |
+
+The bundle holds the whole history, not only the selected captures: git
+cannot take a capture out of a history without rewriting it, and the whole
+history is what `verify` needs to judge the selected ones. `captures.tsv`
+says which captures the archive is *for*. `provost archive verify DIR`
+checks every file against `SHA256SUMS` (and that none is unlisted), the
+signature, the bundle, each capture in `captures.tsv` against its tag in a
+clone of the bundle, and runs `provost verify --capture` on that clone (kept
+inputs from `artifacts/`). `provost archive import DIR DEST` does all of that
+and leaves the clone at `DEST`, its kept inputs at `DEST.artifacts`, with
+every write bit removed.
