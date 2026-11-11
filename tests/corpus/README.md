@@ -309,3 +309,22 @@ over `extract/samples/<strategy>/`. Not added: `sinfo -N -l` (real, 23.11),
 whose `AVAIL_FE REASON` header pair is one space apart over cells that hold
 spaces, so `aligned-columns` merges the two columns; a golden would freeze
 that.
+
+## The secret scrub (PV-033)
+
+Captures are scrubbed of secrets before they are stored
+(`lib/provost_redact.awk`); this gate does not see that, since it runs the
+engine on the inputs directly. `scrubbed.tsv` lists every input here the
+scrub changes, and how (`kind=n`): 11 of them, each reviewed and each a real
+secret. The smoke suite (part `redact`) fails when the scrub changes a
+different set, so a new input or a change to the scrub that adds a false
+alarm is seen. To see the list:
+
+```bash
+LC_ALL=C awk -f lib/provost_redact.awk -f tests/corpus/scrub-survey.awk tests/corpus/inputs/*
+```
+
+Filed through the generic parsers, scrubbed copies of those 11 inputs change
+13 golden rows, and in each row only the secret's own cell (2026-11-10:
+scrubbed copies in place of the inputs, `run.sh --update-golden` on those
+names, `git diff`, then both restored).

@@ -1,5 +1,96 @@
 # provost — Changelog
 
+## 2.13.0 — 2026-11-10 — secrets scrubbed at capture, host names pseudonymised on export (PV-033)
+
+`VERSION` 2.12.0 → 2.13.0, and the `man/provost.1` header. Minor: a new
+default (captures are scrubbed of secrets) with a switch to turn it off, a new
+option to `export`, and a new setting (`PROVOST_REDACT`). No corpus golden
+moved: the corpus gate runs the engine on its inputs directly.
+
+The outside assessment asked for "redaction rules that scrub hostnames, IPs
+and tokens before commit". The ticket split that in two, and so does this:
+
+**Secrets never belong in a store** (`lib/provost_redact.awk`, new). Every
+input passes through a scrub before it is stored, in `_receive`, so `run`,
+piped input, `FILE`, `batch`, `listen` and the background path all get it.
+Known patterns become `[REDACTED:kind]`: PEM/PGP private key blocks,
+`Authorization:` header values, `Bearer` tokens, `scheme://user:password@`,
+AWS access key ids, GitHub, Slack and Vault tokens, JWTs, and the value after
+a key whose name ends in password, passphrase, secret, token, api key or
+access key (`KEY=VALUE`, `KEY: VALUE`, `"KEY": "VALUE"`, `--KEY VALUE`). The
+command line `run` records and `--manifest` lines are scrubbed too, so the
+commit message and `meta.tsv` hold no secret either; and since `--llm` reads
+the stored input, it never sends one. `meta.tsv` gains `redacted`
+(`kind=n,...`, `none` or `off`), and the capture's ok line says what was
+scrubbed. `--no-redact` / `--redact` and `PROVOST_REDACT` (default 1) switch
+it; `doctor` says which. An input with nothing to scrub is stored byte for
+byte as before. mawk-safe (no interval expressions).
+
+False alarms were tuned out against every input in the repository: the
+scrub leaves alone `PWD=`, `passwd:` (nsswitch), `Password expires`,
+`tokens: 5`, `unexpected token: expected`, an ARN's `:secret:NAME`, help
+text (`--password   force password prompt`), placeholders (`$VAR`, `***`,
+`<hidden>`, `PASSWORD`) and code (`'Token': m.group(...)`). It changes 11 of
+the corpus's 3,733 inputs, each a real secret (two scanner outputs' AWS keys,
+URL passwords, `Token=`, hydra's passwords, a Kubernetes secret's token, an
+audit log's `Authorization` header), listed in `tests/corpus/scrubbed.tsv`;
+filed through the generic parsers, those 11 change 13 golden rows, and in
+each row only the secret's own cell (checked by regenerating the goldens
+from scrubbed copies and diffing; not committed). Outside the corpus it
+changes only three inputs, all real passwords (`trustStorePassword=`,
+`POSTGRES_PASSWORD:`, `spring.datasource.password=`).
+
+**The hashes of a scrubbed capture** (PV-026's rules, now written down for
+this case): `input_sha256` stays the hash of the input as *received*, secrets
+and all, so it still matches a hash taken where the output was made;
+`output_sha256` is of `output.txt` as stored, scrubbed, which is what
+`verify` re-checks. `redacted` says when the two differ because of the scrub.
+The cost, documented: with the store and a guess at a weak password, the
+guess can be checked against `input_sha256`.
+
+**Host names and addresses are data**, so captures keep them, and
+`provost export --redact POLICY [FILE]` (new) takes them out
+(`lib/provost_pseudo.awk`, new). It rewrites the store's history (main and
+the `capture-*` tags, through `git fast-export --no-data` and
+`fast-import` into a new repository) so that every name the policy picks out
+becomes `host-`, `ip4-` or `ip6-` and 12 hex digits of
+`sha256(key, kind, name)`: in datasets, outputs, `meta.tsv`, prologues,
+commit messages, author lines and dataset file names alike. The same key
+gives the same pseudonyms, so exports join. The policy is `KEY = VALUE`
+lines: `key` (default `~/.config/provost/redact.key`, made at random, mode
+600, refused inside the store, 32 characters or more), `ipv4`/`ipv6` (on by
+default; never 0.0.0.0, 127.x, netmasks, `::`, `::1`, or four numbers inside
+a longer dotted run such as an SNMP OID), `domain`, `host` (an awk ERE),
+`column` and `hosts` (a file). A host name with dots also gives its first
+label when that has a digit (`web03` from `web03.example.com`). IPv6 is
+compared in full form. Secrets are scrubbed again on the way out. In the copy,
+`input_sha256`, `input_bytes` and the `Input-SHA256` trailers go (they would
+let a guessed name be checked), `output_sha256` and `Output-SHA256` are
+recomputed, each `meta.tsv` gains `pseudonymised  key <id>`, and the
+`unsorted` dataset's base64 `raw` cells are re-encoded from the rewritten
+outputs; a controlled directory's own files (`files-*` tags) are left out.
+`provost verify` passes on the import.
+
+Not done: `archive --redact` (there is no `archive` yet: PV-029); MAC
+addresses; prefix-preserving address pseudonyms (a subnet's addresses do not
+share a prefix); dataset column names are pseudonymised like any text. Not
+scrubbed at capture: a controlled directory's own files (the `files-*`
+snapshots, kept as they are so `provost files --to` gives them back exactly;
+its `.gitignore` keeps a file out) and `annotate` values.
+
+The scrub costs little: a line with none of its trigger words (password,
+token, key, bearer, `://`, ...) skips every rule, so a 10 MB input of
+ordinary output takes about 0.1 s.
+
+Files: `provost` (`_receive`, `_scrub`, `_scrub_text`, `_redacted_summary`,
+`_manifest_apply`, `_ingest_store`, `_ingest_async`, `cmd_run`,
+`_capture_opt`, `_validate_settings`, `cmd_doctor`, `cmd_export`,
+`_redact_policy`, `_redact_key`, `_sha256_many`, `_export_redacted`, the help
+texts), `lib/provost_redact.awk`, `lib/provost_pseudo.awk`,
+`tests/smoke.sh` (part `redact`, 92 checks), `tests/corpus/scrubbed.tsv`,
+`tests/corpus/scrub-survey.awk`, `tests/corpus/README.md`, `docs/usage.md`,
+`man/provost.1`, `README.md`, `HANDOFF.md`.
+
 ## 2.12.0 — 2026-11-10 — read a dataset from Python: `provost_data.load` and `load_df` (PV-031)
 
 `VERSION` 2.11.0 → 2.12.0, and the `man/provost.1` header. Minor: a new

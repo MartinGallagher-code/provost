@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-10" "provost 2.12.0" "User Commands"
+.TH PROVOST 1 "2026-11-10" "provost 2.13.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -113,6 +113,12 @@ before trusting a generic parse or holding the capture (or
 the capture's text to the Anthropic API and needs an API key. Needs
 \fBpython3\fR. See \fBLLM TEMPLATES\fR.
 .TP
+.BR --redact ", " --no-redact
+Scrub known secret patterns (private keys, Authorization headers, tokens,
+\fIpassword\fB=\fR... values) from the input before it is stored (the
+default, or \fBPROVOST_REDACT=1\fR); \fB--no-redact\fR stores it as it
+comes. See \fBSECRETS AND REDACTION\fR.
+.TP
 .BR --sync ", " --wait
 Capture in the foreground and print the resulting dataset and \fI#N\fR range.
 This is the default when stderr is not a terminal (scripts, pipelines).
@@ -216,8 +222,11 @@ Release a controlled directory (its data is kept).
 .B instances
 List controlled directories.
 .TP
-.B export \fR[\fIfile\fR]
+.B export \fR[\fB--redact\fR \fIpolicy\fR] [\fIfile\fR]
 Bundle the whole store (datasets + capture commits) into a portable file.
+With \fB--redact\fR, a copy whose host names and addresses are replaced by
+pseudonyms made with a key that stays behind, and whose secrets are scrubbed
+again; see \fBSECRETS AND REDACTION\fR.
 .TP
 .B import \fIfile\fR \fR[\fIdest\fR]
 Reconstitute a bundle elsewhere to browse.
@@ -328,6 +337,71 @@ record the head commit it prints somewhere the store's writers cannot change.
 Print the short help to stdout; \fBhelp advanced\fR prints every command,
 option and setting, and how a capture is filed. \fIsubcommand\fR \fB--help\fR
 prints that command's usage.
+.SH SECRETS AND REDACTION
+Secrets never belong in a store. Before an input is stored, every known secret
+pattern in it is replaced by \fB[REDACTED:\fIkind\fB]\fR:
+\fBprivate-key\fR (a PEM or PGP private key block, BEGIN to END),
+\fBauthorization\fR (the value of an Authorization: header),
+\fBbearer\fR (a token after Bearer), \fBurl-password\fR (the password in
+\fIscheme\fB://\fIuser\fB:\fIpassword\fB@\fIhost\fR),
+\fBaws-access-key\fR, \fBgithub-token\fR, \fBslack-token\fR,
+\fBvault-token\fR and \fBjwt\fR (tokens in their own formats), and
+\fBpassword\fR, \fBsecret\fR, \fBtoken\fR and \fBapi-key\fR (the value
+after a key whose name ends that way: DB_PASSWORD=..., "token": "...",
+--api-key ...). The command line \fBrun\fR records and \fB--manifest\fR
+lines are scrubbed too. A value that says it is hidden or empty (yes, none,
+***, <hidden>, $VAR) is left alone, and so is a plain word after a token,
+secret or key name, or after a --flag (help text). \fImeta.tsv\fR records
+\fBredacted\fR: \fIkind\fB=\fIn\fR,... , \fBnone\fR or \fBoff\fR.
+\fB--no-redact\fR (\fBPROVOST_REDACT=0\fR) files the input as it comes.
+.PP
+\fBinput_sha256\fR stays the hash of the input as it was received, secrets
+and all, so it still matches a hash taken where the output was made;
+\fBoutput_sha256\fR is of \fIoutput.txt\fR as stored, scrubbed, and is what
+\fBverify\fR re-checks. So \fBinput_sha256\fR can confirm a guess at a weak
+password in a scrubbed capture: keep the store inside the boundary, and take
+data out with \fBexport --redact\fR.
+.PP
+Host names and addresses are data, and captures keep them.
+\fBprovost export --redact\fR \fIpolicy\fR [\fIfile\fR] writes a copy of
+the store, history and all, in which every name the policy picks out is
+replaced by a pseudonym made with a keyed hash (\fBhost-1a2b3c4d5e6f\fR,
+\fBip4-\fR..., \fBip6-\fR...), the same in every file, commit message and
+dataset name; the same key gives the same pseudonyms, so exports still join.
+Secrets are scrubbed again. Each capture's \fBinput_sha256\fR is left out
+(it would let a guessed name be checked), as are a controlled directory's own
+files (\fBfiles-\fR* tags); \fBoutput_sha256\fR and the commit trailers
+are those of the exported output, so \fBverify\fR passes on the import. The
+policy is \fIKEY\fB = \fIVALUE\fR lines (\fB#\fR lines are comments):
+.TP
+.B key = \fIfile\fR
+The key, the file's first line, 32 characters or more (default:
+\fI~/.config/provost/redact.key\fR, made at random when it does not exist).
+It may not be inside the store, and never goes into an export.
+.TP
+.BR "ipv4 = yes" | no ", " "ipv6 = yes" | no
+Pseudonymise IPv4 / IPv6 addresses (default: yes). Never 0.0.0.0, 127.x.x.x,
+a netmask, :: or ::1, nor four numbers inside a longer dotted run
+(1.3.6.1.2.1).
+.TP
+.B domain = \fIdomain\fR
+Every name in the domain, and the domain itself.
+.TP
+.B host = \fIpattern\fR
+Every name the awk extended regular expression matches, whole and lower-cased
+(\fBhost = node[0-9]+\fR).
+.TP
+.B column = \fIname\fR
+Every value in a dataset column of that name.
+.TP
+.B hosts = \fIfile\fR
+Every name or address in the file, one a line.
+.PP
+\fBdomain\fR, \fBhost\fR, \fBcolumn\fR and \fBhosts\fR can be repeated.
+A name is replaced wherever it stands as a word, or as a part of one between
+\fB.\fR \fB_\fR \fB:\fR \fB-\fR (node7 in node7-ib0 and
+node7.cluster.local); a host name has a letter in it, and a capture id is
+never one.
 .SH RUN MANIFEST
 A run manifest is a \fB#%\fR prologue with agreed key names, so a result can be
 traced to the requirement it tests, the build it measured and the run that
@@ -721,6 +795,11 @@ dataset instead of a \fB.v\fIN\fR variant (default: 60; 0\-101).
 .B PROVOST_QUIET
 \fB1\fR suppresses progress and ok messages (same as \fB--silent\fR).
 .TP
+.B PROVOST_REDACT
+\fB0\fR stores each input as it comes, secrets and all (same as
+\fB--no-redact\fR); \fB1\fR, the default, scrubs them first. See
+\fBSECRETS AND REDACTION\fR.
+.TP
 .B TMPDIR
 Where temporary and background spool directories are created (default: /tmp).
 .TP
@@ -743,6 +822,7 @@ provost stats df                  # statistics on the dataset
 provost run --name disks df -h    # file into a dataset of your choosing
 provost log --failed              # background captures that failed
 provost export ~/store.bundle     # portable export
+provost export --redact policy.conf out.bundle   # host names pseudonymised
 provost show df --capture c0003   # only the rows capture c0003 filed
 provost diff df                   # what changed between df's last two captures
 provost search -i error           # every row mentioning 'error', via git grep

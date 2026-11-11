@@ -1,0 +1,11 @@
+aws-ssm-get-parameter.txt	url-password=1
+dotenv-quoted-values.txt	url-password=1
+gitlab-runner-list.txt	token=2
+gitleaks-detect.txt	aws-access-key=1
+hydra-results.txt	password=2
+nst-yaml-multidoc-blockscalar.txt	token=1
+quo-audit-exec-log.txt	authorization=1
+quo-dotenv-hash-equals.txt	secret=1,url-password=1
+quo-env-quoted-special.txt	url-password=1
+trufflehog-results.txt	aws-access-key=1
+vault-kv-get-values.txt	url-password=1

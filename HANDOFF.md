@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.12.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.12.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.13.0 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.13.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -16,15 +16,16 @@ frameworks (PV-023, below; 2.8.0); a structural judge after `--llm` learn and
 repair (PV-009, Next steps 1g; 2.9.0); the `--llm` skip audit and the template
 ledger (PV-008, Next steps 1h; 2.10.0); units as data, `--units base` (PV-032,
 below; 2.11.0); a dataset from Python, `provost_data.load` and `load_df`
-(PV-031, Next steps 1i; 2.12.0). 2.4.0 added `provost
+(PV-031, Next steps 1i; 2.12.0); secrets scrubbed at capture, host names
+pseudonymised on export (PV-033, below; 2.13.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.12.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.12.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.12.0`, creating
+2.13.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.13.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.13.0`, creating
 that release on a dispatched run.
 
 **2.8.0: recipes for test frameworks (PV-023, 2026-11-10; not published).**
@@ -66,6 +67,29 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.13.0: secrets and redaction (PV-033, 2026-11-10; not published).** Every
+input is scrubbed of known secret patterns before it is stored
+(`lib/provost_redact.awk`, in `_receive`; `--no-redact` / `PROVOST_REDACT=0`
+turn it off); `meta.tsv` records `redacted`. `input_sha256` stays the hash of
+what was received, `output_sha256` that of the scrubbed `output.txt`.
+`provost export --redact POLICY` writes a copy of the store whose host names
+and addresses are keyed-hash pseudonyms (`lib/provost_pseudo.awk`; history
+rewritten through fast-export/fast-import; `verify` passes on the import).
+Usage: `docs/usage.md`, "Secrets and redaction". The scrub's corpus footprint
+is frozen in `tests/corpus/scrubbed.tsv` (11 inputs, all real secrets). Open:
+- The scrub is on by default, as the ticket asked: a change in what new
+  captures store (the owner's call to confirm; `--no-redact` restores the
+  old behaviour).
+- `input_sha256` of a scrubbed capture lets a guess at a weak password be
+  checked; documented, not changed (the ticket asked for the received hash).
+- Not scrubbed: a controlled directory's own files (`files-*` snapshots,
+  kept exact so `provost files --to` restores them; a `.env` there is
+  committed unless the directory's `.gitignore` names it) and `annotate`
+  values. Whether to scrub snapshots too is the owner's call.
+- Not done: `archive --redact` (no `archive` until PV-029), MAC addresses,
+  prefix-preserving address pseudonyms. PV-028's `--env` capture should use
+  the same scrub (`_scrub`).
 
 **2.12.0: a dataset from Python (PV-031, 2026-11-10; not published).**
 `provost_data.load(name, store=None, capture=None)` gives rows as dicts
