@@ -5,9 +5,10 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.0` section at the top of CHANGELOG): 2.4.0 (BN-002) and the HPC
-benchmark outputs (PV-030, below). 2.4.0 added `provost
+**provost 2.5.1 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.5.1` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (PV-030, below, 2.5.0) and the generalisation decision
+record (PV-006, 2.5.1: docs only, see "Next steps" 1e). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -97,6 +98,10 @@ Rounds 1 to 5 are all seen now (round 5 was rated for four readers on
 needs a **round 6**: build it, freeze it and rate it before the change it is
 to measure, as round 5 was.
 
+**What to do about it is the owner's pick:**
+`docs/0004-generalisation-approach.md` (PV-006) weighs the options against
+rounds 4 and 5 ("Next steps" 1e).
+
 ### This round (2026-10-16, PR #76)
 
 - **Round 3 benchmark:** 107 inputs, rated on 2.1.0 and then once after the
@@ -163,6 +168,27 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1e. **2026-11-10: how to generalise, measured; the owner's pick is pending**
+    (PV-006, `docs/0004-generalisation-approach.md`, 2.5.1). It answers step 1
+    below with rounds 4 and 5; `python3 tests/benchmark/what_if.py`
+    reproduces every figure.
+    - **A** (`--multi` on weak signals) already ships as auto-multi, and it
+      never adds a PASS.
+    - **B** (the signals decide more) tops out at 15–19 PASS of 107. The
+      signals cannot see 7–8 FAILs a round.
+    - **C** (hold weak parses) halves the wrong tables filed, but holds
+      42–46% of unseen captures with the widest rule.
+    - **D:** `--model` adds nothing. `--llm` as the fallback for held
+      captures adds 6–14 PASS. **D′**, `--llm` first (what `PROVOST_LLM=1`
+      does), scores 87 / 18 / 2 and 96 / 9 / 2.
+
+    The note recommends **C and D′ together**: `--llm` first wherever a key or
+    local endpoint is configured (after PV-019), and offline, hold parses
+    under 95% coverage or with unjudged consistency. Once the owner picks,
+    record the pick here and in CHANGELOG (under a new version), set the
+    note's status, and file the follow-up tickets its last table lists,
+    including round 6.
 
 1d. **2026-11-10: every change moves the version** (shared_tools BN-002).
     2.3.0 → 2.4.0, numbering the twelve dated entries since 2.3.0 and this
@@ -719,7 +745,9 @@ Suites (all CI-enforced):
      `PROVOST_MIN_CONSISTENCY`, or turn it off with 0.
    - Release as 2.2.0 together with the 2026-10-16 work.
 
-1. **Rethink the approach before another fix round.** Two rounds of
+1. **Rethink the approach before another fix round.** *(Weighed 2026-11-10
+   in `docs/0004-generalisation-approach.md`, PV-006; the owner's pick is
+   pending: see 1e.)* Two rounds of
    pattern-level fixes, each developed against new examples, moved unseen
    FAIL by only 1–3 points while seen sets improved a lot. More heuristics in
    the same style will probably fit what we can see again. Options worth
