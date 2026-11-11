@@ -5919,7 +5919,7 @@ _prune_policy () {   # FILE OUT -> OUT: lineno, kind, value, days, last, text
 # or the reason it is kept.
 _prune_decide () {
     LC_ALL=C awk -F'\t' -v NOW="$4" -v LABEL="$5" '
-        FILENAME == ARGV[1] { nr++; RL[nr] = $1; RK[nr] = $2; RV[nr] = $3; RD[nr] = $4; RN[nr] = $5; RT[nr] = $6; next }
+        FILENAME == ARGV[1] { nr++; PL[nr] = $1; PK[nr] = $2; PV[nr] = $3; PD[nr] = $4; PN[nr] = $5; PT[nr] = $6; next }
         FILENAME == ARGV[2] { nc++; ID[nc] = $1; TS[nc] = $2; EP[nc] = $3; DS[nc] = $4
                               k = split($4, p, ","); for (i = 1; i <= k; i++) { FED[nc, p[i]] = 1; ALLDS[p[i]] = 1 }
                               NDS[nc] = k; for (i = 1; i <= k; i++) DSN[nc, i] = p[i]; next }
@@ -5928,26 +5928,26 @@ _prune_decide () {
             # rule instances: dataset=* is one per dataset
             ni = 0
             for (r = 1; r <= nr; r++) {
-                if (RK[r] == "dataset" && RV[r] == "*") { for (d in ALLDS) { ni++; IR[ni] = r; IV[ni] = d } ; STAR = 1 }
-                else { ni++; IR[ni] = r; IV[ni] = RV[r] }
-                if (RK[r] == "dataset") NAMED[RV[r]] = 1
+                if (PK[r] == "dataset" && PV[r] == "*") { for (d in ALLDS) { ni++; IR[ni] = r; IV[ni] = d } ; STAR = 1 }
+                else { ni++; IR[ni] = r; IV[ni] = PV[r] }
+                if (PK[r] == "dataset") NAMED[PV[r]] = 1
             }
             for (i = 1; i <= ni; i++) {
                 r = IR[i]; v = IV[i]; m = 0
                 for (c = 1; c <= nc; c++) {
-                    if (RK[r] == "dataset") sel = ((c, v) in FED)
+                    if (PK[r] == "dataset") sel = ((c, v) in FED)
                     else { kk = v; sub(/=.*/, "", kk); vv = substr(v, length(kk) + 2); sel = ((ID[c], kk) in TAG) && TAG[ID[c], kk] == vv }
                     if (sel) S[++m] = c
                 }
                 # newest last: S is in capture order
                 for (j = 1; j <= m; j++) {
-                    c = S[j]; nsel[c]++; if (RK[r] == "tag") bytag[c] = 1
-                    label = LABEL " line " RL[r] ": " RT[r]
+                    c = S[j]; nsel[c]++; if (PK[r] == "tag") bytag[c] = 1
+                    label = LABEL " line " PL[r] ": " PT[r]
                     keep = ""
                     if (EP[c] < 0) keep = "its ts is not a date"
-                    else if (RD[r] != "-" && NOW - EP[c] < RD[r] * 86400) keep = "younger than " RD[r] " day(s)"
-                    if (keep == "" && RN[r] != "-" && j > m - RN[r]) keep = "one of the newest " RN[r]
-                    if (keep != "") { if (!(c in why)) why[c] = "kept by line " RL[r] " (" (RK[r] == "dataset" && RV[r] == "*" ? "dataset " v ", " : "") keep ")"; kept[c] = 1 }
+                    else if (PD[r] != "-" && NOW - EP[c] < PD[r] * 86400) keep = "younger than " PD[r] " day(s)"
+                    if (keep == "" && PN[r] != "-" && j > m - PN[r]) keep = "one of the newest " PN[r]
+                    if (keep != "") { if (!(c in why)) why[c] = "kept by line " PL[r] " (" (PK[r] == "dataset" && PV[r] == "*" ? "dataset " v ", " : "") keep ")"; kept[c] = 1 }
                     else if (!(c in go)) go[c] = label
                 }
             }
