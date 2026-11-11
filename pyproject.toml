@@ -39,6 +39,8 @@ Issues = "https://github.com/MartinGallagher-code/provost/issues"
 # which live in their own package (github.com/MartinGallagher-code/provost_model).
 [project.optional-dependencies]
 lm = ["numpy", "provost-model"]
+# provost_data.load_df: a dataset as a pandas DataFrame (load needs nothing).
+pandas = ["pandas"]
 
 [project.scripts]
 provost = "provost_data:main"
@@ -62,6 +64,7 @@ packages = ["src/provost_data"]
 "VERSION" = "provost_data/_bundle/VERSION"
 "extract/provost-extract" = "provost_data/_bundle/extract/provost-extract"
 "extract/hints.tsv" = "provost_data/_bundle/extract/hints.tsv"
+"extract/secrets.tsv" = "provost_data/_bundle/extract/secrets.tsv"
 "extract/manifests" = "provost_data/_bundle/extract/manifests"
 "extract/lib" = "provost_data/_bundle/extract/lib"
 "extract/strategies" = "provost_data/_bundle/extract/strategies"
@@ -80,6 +83,7 @@ packages = ["src/provost_data"]
 "extract/llm/template.py" = "provost_data/_bundle/extract/llm/template.py"
 "extract/llm/sandbox.py" = "provost_data/_bundle/extract/llm/sandbox.py"
 "extract/llm/GUIDE.md" = "provost_data/_bundle/extract/llm/GUIDE.md"
+"extract/llm/JUDGE.md" = "provost_data/_bundle/extract/llm/JUDGE.md"
 "extract/llm/templates" = "provost_data/_bundle/extract/llm/templates"
 "extract/README.md" = "provost_data/_bundle/extract/README.md"
 "analyze/provost-analyze" = "provost_data/_bundle/analyze/provost-analyze"
@@ -87,6 +91,7 @@ packages = ["src/provost_data"]
 "analyze/profiles" = "provost_data/_bundle/analyze/profiles"
 "analyze/schemas" = "provost_data/_bundle/analyze/schemas"
 "transform/melt.sh" = "provost_data/_bundle/transform/melt.sh"
+"transform/units.sh" = "provost_data/_bundle/transform/units.sh"
 "lib" = "provost_data/_bundle/lib"
 "completions" = "provost_data/_bundle/completions"
 "man" = "provost_data/_bundle/man"

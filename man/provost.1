@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-10" "provost 2.6.0" "User Commands"
+.TH PROVOST 1 "2026-11-10" "provost 2.13.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -64,6 +64,13 @@ column on each of the capture's rows, after \fB#\fR and \fBcapture\fR (or
 \fBPROVOST_CONTEXT_COLUMNS=1\fR; \fB--no-context-columns\fR, the default,
 doesn't). See \fBprovost batch\fR under \fBSUBCOMMANDS\fR.
 .TP
+.B --units \fIMODE\fR
+\fBbase\fR: after each column whose unit can be read, add a column
+\fINAME\fB[\fIUNIT\fB]\fR holding the same values as plain numbers in a
+base unit (\fBB\fR, \fBB/s\fR, \fBbit\fR, \fBbit/s\fR, \fBs\fR); the
+original column is kept. \fBoff\fR, the default: add none (or
+\fBPROVOST_UNITS\fR). See \fBUNITS\fR.
+.TP
 .B --manifest \fIFILE\fR
 Prepend \fIFILE\fR's \fIKEY\fB=\fIVALUE\fR lines (a value is the rest of its
 line, spaces included; blank and \fB#\fR lines skipped) to the input as its
@@ -78,6 +85,14 @@ A missing required key is a warning.
 .BR --strict-manifest ", " --no-strict-manifest
 Refuse to file a capture whose run manifest lacks a required key (exit 1;
 in \fBbatch\fR, that input is not captured). Or \fBPROVOST_MANIFEST_STRICT=1\fR.
+.TP
+.BR --env ", " --env=modules ", " --no-env
+Record where the capture was taken in its \fB#%\fR prologue: the host,
+kernel, architecture, OS release, loaded environment modules, user, the Slurm
+job, and the variables \fBPROVOST_ENV_VARS\fR allows, never one that looks
+like a secret. \fB--env=modules\fR adds the loaded kernel modules. Or
+\fBPROVOST_ENV=1\fR / \fBmodules\fR; \fB--no-env\fR, the default, records
+nothing. See \fBENVIRONMENT CAPTURE\fR.
 .TP
 .BR --auto-multi ", " --no-auto-multi
 Before the quality gate holds a parse, try segmenting the input and file the
@@ -234,7 +249,7 @@ and says where the store is.
 .B ls
 List datasets.
 .TP
-.B show \fINAME\fR [\fB--capture\fR \fIid\fR] [\fB--at\fR \fIid\fR]
+.B show \fINAME\fR [\fB--capture\fR \fIid\fR] [\fB--at\fR \fIid\fR] [\fB--tsv\fR]
 Present a dataset as a tidy table. Every row carries \fB#\fR (its number,
 unique in the store), \fBcapture\fR (the capture it came from) and, for
 records, \fBn\fR (its record number within that capture); a data column
@@ -244,6 +259,11 @@ the capture id. \fB--capture\fR shows only the rows capture \fIid\fR
 filed; \fB--at\fR shows the dataset as it stood just after capture \fIid\fR,
 read from git without moving the store. For the \fBunsorted\fR bucket the
 base64 \fBraw\fR column is decoded to text.
+\fB--tsv\fR prints the rows tab-separated, exactly as stored, for a
+program to read: a blank cell stays an empty field (in the aligned table it
+is only spaces), and
+when no row matches only the header is printed. The Python package reads
+datasets this way (\fBprovost_data.load\fR, \fBload_df\fR).
 .TP
 .B search \fIpattern\fR [\fINAME\fR...] [\fB-i\fR] [\fB-F\fR] [\fB-w\fR] [\fB--at\fR \fIid\fR] [\fB--output\fR|\fB--files\fR]
 \fBgit grep\fR over the store: the dataset rows matching \fIpattern\fR (a
@@ -400,6 +420,26 @@ else \fBPROVOST_MANIFEST_PROFILE\fR, else the store's own
 \fIextract/manifests\fR. A value holding spaces is double-quoted:
 \fB#% build.toolchain="gcc 13.2"\fR. Nothing is checked unless a profile is
 asked for.
+.SH ENVIRONMENT CAPTURE
+With \fB--env\fR, provost adds where a capture was taken to its prologue as
+\fBenv.*\fR keys: \fBenv.host\fR, \fBenv.kernel\fR (\fBuname -sr\fR),
+\fBenv.arch\fR, \fBenv.os\fR (\fI/etc/os-release\fR, or \fBsw_vers\fR on
+macOS), \fBenv.modules\fR (Lmod's \fB$LOADEDMODULES\fR), \fBenv.user\fR, and
+inside a Slurm job \fBenv.slurm.job\fR, \fBenv.slurm.nodes\fR,
+\fBenv.slurm.cluster\fR and \fBenv.slurm.partition\fR.
+\fB--env=modules\fR adds \fBenv.kernel.modules\fR (\fBlsmod\fR). A
+manifest profile's optional fifth column, \fIenv\fR, claims a reading for one
+of its keys: the Slurm job id is written as \fBsched.job\fR under the default
+profile and \fBjob_id\fR under \fBproposal\fR. A key the input's own
+prologue or \fB--manifest\fR sets is left to them.
+.PP
+Environment variables come only from the allow-list \fBPROVOST_ENV_VARS\fR,
+each as \fBenv.var.\fINAME\fR, and a variable whose name or value looks like
+a secret (\fIextract/secrets.tsv\fR) is never recorded, even when
+allow-listed: provost warns and lists its name in \fBenv.withheld\fR. The
+readings describe the host provost runs on, read once per command; for a
+\fBbatch\fR of files gathered from other hosts, that is the host that filed
+them.
 .SH DATASET NAMES
 .B provost run
 \fIcmd\fR ... files into a dataset named after \fIcmd\fR's basename, looking
@@ -447,11 +487,17 @@ When the quality gate would hold a parse for low coverage or low consistency,
 provost first asks the engine to segment the input, as \fB--multi\fR does, and
 files the parts instead when the split is clearly better: it is a real split
 (two or more datasets); every part passes the gate on its own (confidence,
-coverage, consistency); together the parts keep at least \fB--min-coverage\fR
-percent of the lines and 10 points more than the single parse; no part is a
-table under positional A/B/C... columns only; a part read by the parser the
-gate rejected has judged column types; and parts of three or more lines hold at
-least half the lines, so the input is not shattered into fragments. Otherwise
+coverage, consistency), and a part read by a tool-specific parser keeps at
+least \fB--min-coverage\fR percent of its own lines; together the parts keep at
+least \fB--min-coverage\fR percent of the lines and 10 points more than the
+single parse; no part is a table under positional A/B/C... columns only that
+shows a lost header or shredded rows (a column of box chrome, mostly empty
+cells, or a header-like line right above it in the input), while a headerless
+table is filed under A/B/C...; a part read by the parser the
+gate rejected has judged column types; and parts of three or more lines or rows
+hold at least half of it, so the input is not shattered into fragments (a part's
+size is its lines or its rows, whichever is more: one line holding many records
+is no fragment). Otherwise
 the capture is held as before and the reason segmenting did not help is printed
 and recorded as \fBauto_multi\fR (\fIdeclined: ...\fR) in \fImeta.tsv\fR.
 .PP
@@ -500,7 +546,10 @@ write one from this capture; \fBthat step sends the capture's text to the
 Anthropic API\fR (at most 400 lines / 64 KB), once per tool. The template is
 tried first: on a capture the gate would hold, before segmenting and the
 layout model; and on a generic parse the gate passed, before that parse is
-trusted (never over an exact-format or tool-specific parser). What a template
+trusted (never over an exact-format or tool-specific parser, save that a
+\fByaml\fR parse may be bettered by a template already stored for the tool, since
+plain \fILabel: text\fR output is valid YAML; Claude is never asked to write one
+over it). What a template
 yields is measured by the engine and filed only under the gate's rules;
 against a generic parse the gate passed it must keep that parse's share of the
 data lines within 10 points (20 against \fBtext-lines\fR or \fBline-records\fR;
@@ -512,14 +561,55 @@ never lost; only rules and box glyphs are dropped. A tab or newline inside a
 value becomes a space. A new template
 is kept, and committed with the
 capture, only when it passes. Later captures of the tool are parsed offline.
-A template keeps the captures it was written from (its \fBexamples\fR).
+\fBSkip audit:\fR a skipped line that carries a word or a number counts as
+unread until Claude has judged its kind decoration; when Claude writes a
+template that sets such lines aside, it is shown their count and one line of
+each kind, once, and the kinds it confirms are kept in the template
+(\fBdecoration\fR). A line with no letter or digit is decoration.
+A template keeps its first and latest captures (its \fBexamples\fR).
 \fBRepair:\fR with a key, when a stored template meets a kind of line it has
-not met before (one it leaves unread, or one a skip pattern drops), provost
-sends the template, those captures and this one to Claude once, to extend it;
-the extension is kept, with this capture added to its examples, only if it
-still reads every line of the earlier captures the template read and passes
-the same rules. A capture whose lines the template has all met before is
-never sent. \fImeta.tsv\fR records \fBllm_template\fR.
+not met before (one it leaves unread, a set-aside one not judged, or far more
+set-aside lines than before), provost sends the template, those captures and
+this one to Claude once, to extend it; the extension is kept, with this
+capture added to its examples, only if it still reads every line the template
+read of every capture it was written from and passes the same rules. A
+capture whose lines the template has all met before is never sent.
+\fBReview:\fR after Claude writes or extends a template, one more
+call (the judge, \fBPROVOST_LLM_JUDGE\fR) shows Claude the capture, the template
+and the tables it makes of the capture, and asks for PASS or up to five
+structural fixes (a parent the rows do not keep, a record split across
+tables, a header half applied, a line kind misread, data set aside). The
+fixes go back to the template's writer once; the revision is kept only if it
+reads the capture at least as well (by the skip audit), still reads every
+capture the template was written from, and passes the gate, else the
+template as it was before the review is used. A review that fails costs
+nothing but the call. The verdict is stored in the template (\fBjudge\fR).
+Every capture a template files is recorded in \fIllm-templates/NAME.seen.tsv\fR
+(its ledger). \fImeta.tsv\fR records \fBllm_template\fR and
+\fBllm_skip_audit\fR.
+.SH UNITS
+By default a unit stays where the tool printed it: in a column's name
+(\fBBandwidth_(MB/s)\fR), in each cell (\fB482MiB/s\fR), or in a column
+beside the number (\fBtransfer\fR and \fBtransfer_unit\fR); nothing is
+converted unasked. With \fB--units base\fR each column whose unit can be read
+exactly gains a column right after it, \fINAME\fB[\fIUNIT\fB]\fR, with the
+same values as plain numbers in a base unit: \fBB\fR, \fBB/s\fR,
+\fBbit\fR, \fBbit/s\fR or \fBs\fR. \fB9.4 GB/s\fR and \fB9400 MB/s\fR
+both become \fB9400000000\fR in a \fB[B/s]\fR column. Bits are never turned
+into bytes, nor bytes into bits.
+.PP
+Units are read by the letter: \fBB\fR and \fBByte(s)\fR are bytes,
+\fBbit(s)\fR bits, and a short \fBb\fR bits only in a rate (\fBMb/s\fR); \fBk K M G T P E\fR are powers of 1000,
+\fBKi Mi Gi Ti Pi Ei\fR powers of 1024; times are \fBns\fR, \fBus\fR,
+\fBms\fR and \fBs\fR. A bare multiplier (\fB7.8Gi\fR, \fB1.2G\fR, as
+\fBfree -h\fR and \fBdf -h\fR print) names no quantity and is not read.
+iperf's \fBKBytes\fR, \fBMBytes\fR and \fBGBytes\fR are powers of 1024 (its
+source says so), and are read so in a dataset its parser filed or one named
+\fBiperf\fR or \fBiperf3\fR. A column is converted only when every cell
+holding a digit can be read, and the arithmetic is exact (on the decimal
+digits, never in floating point). \fImeta.tsv\fR records \fBunits base\fR, and
+the capture's \fIunits.tsv\fR lists each column added, with the units read
+and their exact factors.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -600,6 +690,10 @@ File every dataset an input holds (default 0; same as \fB--multi\fR).
 a column on the capture's rows; \fB0\fR (the default): it is context only
 (same as \fB--context-columns\fR / \fB--no-context-columns\fR).
 .TP
+.B PROVOST_UNITS
+\fBbase\fR: add \fINAME\fB[\fIUNIT\fB]\fR columns in base units;
+\fBoff\fR (the default): none (same as \fB--units\fR).
+.TP
 .B PROVOST_MANIFEST_PROFILE
 The run-manifest profile, a \fINAME\fR or a \fI.tsv\fR file (same as
 \fB--manifest-profile\fR); when set, every capture's manifest is checked.
@@ -607,6 +701,16 @@ The run-manifest profile, a \fINAME\fR or a \fI.tsv\fR file (same as
 .B PROVOST_MANIFEST_STRICT
 \fB1\fR: refuse to file a capture whose manifest lacks a required key (same
 as \fB--strict-manifest\fR); \fB0\fR, the default: warn.
+.TP
+.B PROVOST_ENV
+\fB1\fR: record where each capture was taken (same as \fB--env\fR);
+\fBmodules\fR: and the kernel modules (\fB--env=modules\fR); \fB0\fR, the
+default: nothing.
+.TP
+.B PROVOST_ENV_VARS
+The environment variables \fB--env\fR records: names or glob patterns,
+separated by spaces or commas (default: \fBOMP_* MPI_* OMPI_MCA_* I_MPI_*
+MPICH_* UCX_* CUDA_* NCCL_*\fR). Set but empty, none.
 .TP
 .B PROVOST_BATCH_REUSE
 \fB0\fR: \fBprovost batch\fR detects every input's format from scratch.
@@ -634,6 +738,11 @@ TEMPLATES\fR); \fB0\fR (the default): don't (same as \fB--llm\fR /
 .TP
 .B PROVOST_LLM_MODEL
 The model that writes templates (default \fBclaude-opus-5-5\fR).
+.TP
+.B PROVOST_LLM_JUDGE
+\fB1\fR (the default): after Claude writes or extends a template, one more
+call reviews it and may revise it once (see \fBLLM TEMPLATES\fR, Review);
+\fB0\fR: no review.
 .TP
 .B PROVOST_LLM_API_KEY
 Anthropic API key for \fB--llm\fR (else \fBANTHROPIC_API_KEY\fR; prefer this one

@@ -1,0 +1,30 @@
+## PV-009: the 26 round-5 inputs whose template the judge revised, rated blind before
+## (round5/llm-templates-learn) and after (llm-judge/revised) on CRITERIA.md by four raters;
+## no rater saw both versions of an input. round5_llm is the 2026-11-04 rating of the before output.
+id	round5_llm	before	after	change
+004-clang-tidy-diagnostics	PASS	PASS	PASS	same
+011-ffprobe-show-packets-compact	PARTIAL	PARTIAL	PASS	better
+024-go-tool-objdump	PASS	PASS	PASS	same
+025-gpgconf-list-options	PASS	PARTIAL	PASS	better
+036-m4-debug-trace	PASS	PARTIAL	PASS	better
+037-make-trace	PASS	PASS	PASS	same
+038-nasm-listing	PASS	PASS	PASS	same
+040-node-p-process-config	PASS	PASS	PASS	same
+045-pandoc-native-ast	PASS	PASS	PASS	same
+046-perl-xref	PASS	PASS	PASS	same
+048-python-pdb-session	PARTIAL	PARTIAL	PASS	better
+050-readelf-relocs	PASS	PARTIAL	PASS	better
+061-rustc-borrow-errors	PARTIAL	PARTIAL	PASS	better
+062-rustc-explain-e0382	PASS	PARTIAL	PASS	better
+064-valgrind-cachegrind-annotate	PASS	PASS	PASS	same
+101-aix-lspv	PARTIAL	PARTIAL	PASS	better
+104-checkm-qa	PASS	PASS	PASS	same
+109-cqlsh-tracing-on	PASS	PASS	PASS	same
+110-db2-list-tablespaces-show-detail	PASS	PASS	PASS	same
+111-emc-naviseccli-getlun	PASS	PASS	PASS	same
+114-hana-hdbsql-m-service-statistics	PASS	PASS	PASS	same
+121-macos-vm-stat	PASS	PARTIAL	PASS	better
+123-nokia-sros-show-router-interface	PASS	PASS	PASS	same
+128-postfix-qshape	PASS	PASS	PARTIAL	worse
+133-tsm-dsmadmc-query-node	PASS	PASS	PASS	same
+134-veritas-vxprint-ht	PASS	PASS	PASS	same

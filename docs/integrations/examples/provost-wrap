@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+#
+# provost-wrap [--name NAME] [KEY=VALUE ...] [--] CMD [ARGS...]
+#
+# Run CMD with its output (stdout and stderr, as one stream) passed through,
+# then file that output with provost, each KEY=VALUE as a column on every row
+# it files, plus rc=<CMD's exit status>. Exits with CMD's own status, whatever
+# happens to the filing: a harness sees the test's verdict, never provost's.
+# The dataset is NAME, else CMD's base name. PROVOST names the provost to call.
+set -u
+usage () { echo "usage: provost-wrap [--name NAME] [KEY=VALUE ...] [--] CMD [ARGS...]" >&2; exit 2; }
+name="" ctx=()
+while (( $# )); do
+    case "$1" in
+        --name) (( $# >= 2 )) || usage; name="$2"; shift 2 ;;
+        --) shift; break ;;
+        [A-Za-z_]*=*) ctx+=("$1"); shift ;;
+        *) break ;;
+    esac
+done
+(( $# )) || usage
+[[ -n "$name" ]] || name="$(basename -- "$1")"
+command -v -- "$1" >/dev/null || { "$@"; exit; }   # not found: 127, nothing filed
+tmp="$(mktemp -d)" || { "$@"; exit; }              # no scratch space: just run it
+trap 'rm -rf -- "$tmp"' EXIT
+
+"$@" 2>&1 | tee -- "$tmp/out"
+rc=${PIPESTATUS[0]}
+[[ -s "$tmp/out" ]] || exit "$rc"                  # no output: nothing to file
+
+# The '#%' prologue: one KEY=VALUE a line, a value with a blank or a leading
+# quote double-quoted (\ and " escaped), which is how provost reads it back.
+for kv in ${ctx[@]+"${ctx[@]}"} "rc=$rc"; do
+    k="${kv%%=*}" v="${kv#*=}"
+    if [[ "$v" == *[[:blank:]]* || "$v" == '"'* ]]; then
+        v="${v//\\/\\\\}"; v="\"${v//\"/\\\"}\""
+    fi
+    printf '#%% %s=%s\n' "$k" "$v"
+done > "$tmp/in"
+cat -- "$tmp/out" >> "$tmp/in"
+"${PROVOST:-provost}" --sync -q --context-columns --name "$name" "$tmp/in" \
+    || echo "provost-wrap: could not file the output of $1 (its status, $rc, is kept)" >&2
+exit "$rc"

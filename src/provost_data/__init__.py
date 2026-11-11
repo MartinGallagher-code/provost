@@ -8,13 +8,22 @@ provost tree (the ``provost`` entry point plus its extract/analyze/transform
 engines) ships inside the wheel under ``provost_data/_bundle`` and is exec'd in
 place, exactly as a git-checkout install runs it. All behaviour, commands, and
 ``PROVOST_*`` environment variables are those of the bundled tool.
+
+From Python, :func:`load` reads a dataset as rows (dicts) and :func:`load_df`
+as a pandas DataFrame, both through ``provost show NAME --tsv``::
+
+    import provost_data
+    rows = provost_data.load("ior")               # [{'#': '1', ...}, ...]
+    df = provost_data.load_df("ior", capture=7)   # pip install 'provost[pandas]'
 """
 
 import os
 import shutil
 import sys
 
-__all__ = ["bundle_dir", "provost_script", "main"]
+__all__ = [
+    "bundle_dir", "provost_script", "main", "load", "load_df", "ProvostError",
+]
 
 # Exit statuses for launch failures (the launched provost's own exit status is
 # whatever the tool returns — os.execv never comes back on success).
@@ -53,3 +62,7 @@ def main(argv=None):
     # provost (and any provost-model package) into
     os.environ.setdefault("PROVOST_PYTHON", sys.executable)
     os.execv(bash, [bash, script] + list(argv))
+
+
+# The dataset readers call provost_script() above, so they come last.
+from provost_data._dataset import ProvostError, load, load_df  # noqa: E402
