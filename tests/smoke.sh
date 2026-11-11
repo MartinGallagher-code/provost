@@ -13,7 +13,8 @@ unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIE
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_CONTEXT_COLUMNS PROVOST_PLUGIN_DIR \
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
       PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY \
-      PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT
+      PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT PROVOST_ENV PROVOST_ENV_VARS \
+      LOADEDMODULES SLURM_JOB_ID SLURM_JOBID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_CLUSTER_NAME SLURM_JOB_PARTITION
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -883,6 +884,27 @@ printf 'Region: eu-west-1\nZone: a\n\nID    STATE\ni-1   running\n\nMODE=fast\nR
 am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$COV_IN.frag" 2>&1)"
 check "a split into fragments is declined and held" "segmenting it did not help: the parts are fragments" "$am_out"
 rm -f "$COV_IN.frag"
+# PV-013, on spent benchmark inputs: a tool-specific parser reading a part
+# must keep the gate's coverage of it (round 4's 048 was filed wrong when
+# git-annex-list read a pytest rule line at 50%); a positional table is filed
+# when nothing shows a lost header (137: 'Speed : 259,207 Bytes/sec.' rows),
+# and declined for box chrome (round 2's 102), a header-like line right above
+# it (round 3's 115: the header sat over a rule line) or rows shredded into
+# words (round 4's 031).
+BR="$HERE/benchmark"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/048-pytest-ra-report.txt" 2>&1)"
+check "a tool-specific parser under the gate's coverage sinks the split" \
+    "git-annex-list, a tool-specific parser) keeps 50% of its lines" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/137-windows-robocopy-log.txt" 2>&1)"
+check "a headerless positional part no longer sinks the split" "→ 6 datasets" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round2/inputs/102-aws-ec2-describe-key-pairs-table.txt" 2>&1)"
+check "a positional part of box chrome is still declined" "positional columns only: box chrome read as cells" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round3/inputs/115-cisco-show-spanning-tree-vlan.txt" 2>&1)"
+check "a positional part under a cut-off header is still declined" \
+    "positional columns only: a header-like line sits right above it" "$am_out"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/031-jstack-thread-dump.txt" 2>&1)"
+check "a positional part of prose split into words is still declined" \
+    "positional columns only: its cells are mostly empty" "$am_out"
 
 # LAYOUT MODEL (--model / PROVOST_MODEL=1): a capture the gate still holds
 # after AUTO-MULTI gets the learned layout model's table, filed only when that
@@ -940,6 +962,14 @@ if command -v python3 >/dev/null 2>&1; then
     LT_SAMPLE="$HERE/../extract/samples/llm-template/basic.txt"
     LT_IN="$HERE/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt"
     LTD="$(mktemp -d)"; LTWS="$LTD/.llm"
+    # after a template Claude writes or extends comes the judge's review, and
+    # after one it writes that sets aside lines carrying words, first its skip
+    # audit (answered here with the same template: its skips judged
+    # decoration): the fake API answers a list of replies in order (lt_then
+    # FILE REPLY...)
+    LT_PASS='{"id":"msg_j","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"verdict\": \"PASS\"}"}]}'
+    lt_then () { local f="$1"; shift
+        python3 -c 'import json, sys; print(json.dumps([json.load(open(sys.argv[1]))] + [json.loads(a) for a in sys.argv[2:]]))' "$f" "$@" > "$f.seq" && mv "$f.seq" "$f"; }
     # a shipped template wins over the engine's generic parse of its tool
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$LT_SAMPLE" 2>&1)"
     check "a shipped template reads its tool's output" "mcstatus.players  #1..9  (strategy llm-template" "$lt_out"
@@ -951,6 +981,7 @@ if command -v python3 >/dev/null 2>&1; then
     check "the held line says the key is missing" "no API key to have Claude write one" "$lt_out"
     # learn: Claude (the fake API) writes a template, provost checks it, files, keeps it
     printf '%s' '{"id":"msg_1","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"cmake-cache\", \"detect\": \"^[A-Za-z0-9_.-]+:(?:STRING|BOOL|FILEPATH|PATH|INTERNAL|STATIC)=\", \"skip\": [\"^-- \", \"^// \"], \"blocks\": [{\"name\": \"entries\", \"kind\": \"table\", \"line\": \"^(?P<name>[A-Za-z0-9_.-]+):(?P<type>[A-Z]+)=(?P<value>.*)$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$(cat "$LTD/reply.json")" "$LT_PASS"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
     LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
@@ -971,7 +1002,21 @@ if command -v python3 >/dev/null 2>&1; then
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
         "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
     check "the next capture uses the stored template, offline" "read by template cmake-cache.json" "$lt_out"
-    check "the API was called once in all" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    # SKIP AUDIT: the template sets aside lines that carry words (`-- ...`,
+    # `// ...`), so learn showed Claude their count and a sample once; the
+    # kinds it left in skip are recorded as judged decoration. Then THE
+    # JUDGE reviewed what the template makes of the capture.
+    check "the API was called three times in all: learn, its skip audit, then its review" "3" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the audit shows what the template sets aside" "carry words or numbers, as decoration (skip)" "$(sed -n 2p "$LTD/log")"
+    check "the review is the judge's" "Reviewing what a parsing template makes of a capture" "$(sed -n 3p "$LTD/log")"
+    check "the kinds Claude left in skip are judged decoration" ", 0 set aside of a kind not judged" "$(python3 "$HERE/../extract/llm/template.py" audit "$LTWS/llm-templates/cmake-cache.json" "$LT_IN")"
+    check "meta records the skip audit" "judged decoration, 0 not judged (counted as unread)" "$(grep '^llm_skip_audit' "$LTWS/captures/c0003/meta.tsv")"
+    check "the ok line says the review passed it" "(llm-templates/cmake-cache.json), a review passed it" "$(cat "$LTWS/captures/c0003/meta.tsv")"
+    check "the template keeps the verdict" '"verdict": "PASS"' "$(cat "$LTWS/llm-templates/cmake-cache.json")"
+    # THE LEDGER: the template records each capture it files, and how
+    check "the template's ledger records the captures it filed" "c0003 learned llm-templates/cmake-cache.json;c0004 read llm-templates/cmake-cache.json;" "$(tail -n +2 "$LTWS/llm-templates/cmake-cache.seen.tsv" | cut -f1-3 | tr '\t\n' ' ;')"
+    check "the ledger is committed with the capture" "llm-templates/cmake-cache.seen.tsv" "$(git -C "$LTWS" show --stat HEAD 2>&1)"
+    check "a shipped template's captures go in the store's ledger" "c0001	read	shipped:mcstatus.json" "$(cat "$LTWS/llm-templates/mcstatus.seen.tsv")"
     # a refusal: held, with the category
     printf '%s' '{"id":"msg_2","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"refusal","stop_details":{"type":"refusal","category":"cyber","explanation":"x"},"usage":{"input_tokens":1,"output_tokens":0},"content":[]}' > "$LTD/reply.json"
     rm -f "$LTD/port"
@@ -991,6 +1036,7 @@ if command -v python3 >/dev/null 2>&1; then
     # lines aside). A title the heuristic took for data is decoration here.
     printf 'Volumes on host alpha\nNAME     SIZE   USED   MOUNT\ndata     100G   40G    /srv/data\nbackup   2T     1.5T   /srv/backup\nscratch  500G   12G    /scratch\n' > "$LTD/vol.txt"
     printf '%s' '{"id":"msg_3","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?)\\\\s+(?P<mount>/\\\\S*)$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$(cat "$LTD/reply.json")" "$LT_PASS"
     rm -f "$LTD/port" "$LTD/log"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -998,7 +1044,7 @@ if command -v python3 >/dev/null 2>&1; then
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
         "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
     kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
-    check "a generic parse the gate passed is offered to Claude first" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "a generic parse the gate passed is offered to Claude first (learn, its skip audit, its review)" "3" "$(wc -l < "$LTD/log" | tr -d ' ')"
     check "the template Claude wrote wins over the heuristic" "was passed over (the engine read it as aligned-columns, coverage 100%): a template Claude wrote for this tool fits; read by a new template Claude wrote (llm-templates/volumes.json)" "$lt_out"
     check "the template's rows are filed" "backup	2T	1.5T	/srv/backup" "$(cat "$LTWS/datasets/volumes.tsv")"
     check "meta records the template over the heuristic" "llm_template	filed by a new template Claude wrote (llm-templates/volumes.json)" "$(cat "$LTWS/captures/c0006/meta.tsv")"
@@ -1015,6 +1061,7 @@ if command -v python3 >/dev/null 2>&1; then
     sed 's/alpha/gamma-7/' "$LTD/vol.txt" > "$LTD/vol1b.txt"
     check "another host in the banner is not" "[]" "[$(python3 "$HERE/../extract/llm/template.py" misses "$LTWS/llm-templates/volumes.json" "$LTD/vol1b.txt")]"
     printf '%s' '{"id":"msg_5","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?|-)\\\\s+(?P<mount>/\\\\S*|\\\\[SWAP\\\\])$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$LT_PASS"
     rm -f "$LTD/port" "$LTD/log"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -1024,7 +1071,8 @@ if command -v python3 >/dev/null 2>&1; then
     kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
     check "a stored template that meets a new kind of line is extended" "read by template volumes.json, which Claude extended for 1 unread line(s) of a kind it has not met (llm-templates/volumes.json)" "$lt_out"
     check "the extension reads the new line" "swap	8G	-	[SWAP]" "$(cat "$LTWS/datasets/volumes.tsv")"
-    check "the repair was one API call" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the repair was one API call, and its review one more" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the repaired template is reviewed on the new capture" "(llm-templates/volumes.json), a review passed it" "$lt_out"
     check "the request carries the capture the template was written from" "Earlier capture 1" "$(cat "$LTD/log")"
     check "the extended template keeps both captures" "2" "$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))["examples"]))' "$LTWS/llm-templates/volumes.json")"
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
@@ -1051,6 +1099,7 @@ if command -v python3 >/dev/null 2>&1; then
     # not data) is recorded as such, and the capture is remembered
     { printf 'NAME     SIZE   USED   MOUNT\n'; for i in 1 2 3 4 5 6 7 8 9 10; do printf 'd%s       %sG    1G     /srv/d%s\n' "$i" "$i" "$i"; done; printf '(snapshot taken at 12:00)\n'; } > "$LTD/vol4.txt"
     python3 -c 'import json, sys; t = json.load(open(sys.argv[1])); t.pop("examples"); print(json.dumps({"id": "msg_7", "type": "message", "role": "assistant", "model": "claude-opus-5-5", "stop_reason": "end_turn", "usage": {"input_tokens": 1, "output_tokens": 1}, "content": [{"type": "text", "text": json.dumps(t)}]}))' "$LTWS/llm-templates/volumes.json" > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$LT_PASS"
     rm -f "$LTD/port" "$LTD/log"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -1061,6 +1110,24 @@ if command -v python3 >/dev/null 2>&1; then
     check "an unchanged reply is said to be one" "read by template volumes.json, which Claude checked for 1 unread line(s) of a kind it has not met and left as it was" "$lt_out"
     check "and the capture is remembered" "3" "$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))["examples"]))' "$LTWS/llm-templates/volumes.json")"
     check "so it is not sent again" "[]" "[$(python3 "$HERE/../extract/llm/template.py" misses "$LTWS/llm-templates/volumes.json" "$LTD/vol4.txt")]"
+    check "the ledger says how each capture was filed" "c0006 learned;c0007 read;c0008 extended;c0009 read;c0010 read;c0011 checked;" "$(tail -n +2 "$LTWS/llm-templates/volumes.seen.tsv" | cut -f1-2 | tr '\t\n' ' ;')"
+    # EVERY CAPTURE IT WAS WRITTEN FROM: a template keeps only its first and
+    # latest captures as examples (what Claude is shown); the ledger names the
+    # rest, and an extension that no longer reads one of them is refused too.
+    # Here vol2's capture (the swap line) is no longer among the examples.
+    python3 -c 'import json, sys; p = sys.argv[1]; t = json.load(open(p)); t["examples"] = [e for e in t["examples"] if "[SWAP]" not in e]; json.dump(t, open(p, "w"), indent=1)' "$LTWS/llm-templates/volumes.json"
+    { printf 'NAME     SIZE   USED   MOUNT\n'; for i in 1 2 3 4 5 6 7 8 9 10; do printf 'd%s       %sG    1G     /srv/d%s\n' "$i" "$i" "$i"; done; printf 'nfs      1T     200G   server:/export\n'; } > "$LTD/vol5.txt"
+    printf '%s' '{"id":"msg_8","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?)\\\\s+(?P<mount>/\\\\S*|\\\\S+:/\\\\S*)$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port" "$LTD/log"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol5.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "an extension that loses a capture beyond the examples is refused" "on another capture it was written from (1 of 1, not shown above) it no longer reads 1 line(s) the template read" "$lt_out"
+    check "that capture is checked, not sent" "0" "$(head -n 1 "$LTD/log" | grep -c '/var/log')"
+    check "the stored template is used as it was, after one more try" "2 read by template volumes.json (Claude could not extend it" "$(wc -l < "$LTD/log" | tr -d ' ') $(printf '%s\n' "$lt_out" | grep -o 'read by template volumes.json (Claude could not extend it')"
     # without --llm the heuristic is filed as before
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --name volumes "$LTD/vol.txt" 2>&1)"
     check "without --llm the heuristic is filed" "strategy aligned-columns" "$lt_out"
@@ -1075,6 +1142,7 @@ if command -v python3 >/dev/null 2>&1; then
     # carry words are filed in NAME.notes, so none is lost
     printf 'The quick brown fox jumps over the lazy dog near the river bank.\nEvery morning the ferry leaves the harbour at six and returns at noon.\nNobody counted the gulls, though the keeper swore there were hundreds.\nRain came late in the season and the orchard did poorly that year.\nThe mill wheel still turns when the sluice is open, which is rarely.\nVisitors are asked to keep to the path and to close the gate.\nSummary of moorings:\nNAME     LENGTH\nkestrel  12m\nosprey   9m\n' > "$LTD/prose.txt"
     printf '%s' '{"id":"msg_4","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"moorings\", \"detect\": \"^NAME\\\\s+LENGTH$\", \"skip\": [\"^[A-Z].*[.:]$\"], \"blocks\": [{\"name\": \"moorings\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+LENGTH$\", \"line\": \"^(?P<name>[a-z]+)\\\\s+(?P<length>\\\\d+m)$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$(cat "$LTD/reply.json")" "$LT_PASS"
     rm -f "$LTD/port"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -1095,6 +1163,87 @@ if command -v python3 >/dev/null 2>&1; then
     check "a template that reads too little does not replace text-lines" "strategy text-lines" "$lt_out"
     check "meta says how much it read" "Claude's template does not fit this capture (it covers 30% of the lines)" "$(cat "$LTD/.fresh2/captures/c0001/meta.tsv")"
     check_not "such a template is not kept" "moorings" "$(ls "$LTD/.fresh2/llm-templates" 2>/dev/null)"
+    # SKIP AUDIT, in the gate: a skipped line that carries words is not
+    # covered for free. A template (here from a library, no key) whose skip
+    # lines no one has judged counts them as unread; once their kind is
+    # judged decoration (its "decoration" record) they are not counted.
+    printf 'Note: inventory taken nightly\nNote: sizes in GB\nNAME   SIZE\nalpha  10\nbeta   20\ngamma  30\n' > "$LTD/inv.txt"
+    mkdir -p "$LTD/lib"
+    printf '%s' '{"format": 1, "tool": "inventory", "detect": "^NAME\\s+SIZE$", "skip": ["^Note: "], "blocks": [{"name": "items", "kind": "table", "header": "^NAME\\s+SIZE$", "line": "^(?P<name>[a-z]+)\\s+(?P<size>\\d+)$"}]}' > "$LTD/lib/inventory.json"
+    check "template.py audit counts and samples what it sets aside" "2 skipped: 0 decoration, 0 set aside of a kind judged decoration, 2 set aside of a kind not judged (counted as unread); coverage 67%
+0 |Note: inventory taken nightly
+    (2 lines of this kind)" "$(python3 "$HERE/../extract/llm/template.py" audit "$LTD/lib/inventory.json" "$LTD/inv.txt")"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.inv" PROVOST_LLM_TEMPLATE_DIRS="$LTD/lib" "$PROVOST" --sync --llm --name inventory "$LTD/inv.txt" 2>&1)"
+    check "set-aside lines not judged count as unread" "template inventory.json does not fit: its 1 block(s) keep 66% of the input's data lines" "$(cat "$LTD/.inv/captures/c0001/meta.tsv")"
+    python3 -c 'import json, sys; p = sys.argv[1]; t = json.load(open(p)); t["decoration"] = ["Note: a"]; json.dump(t, open(p, "w"))' "$LTD/lib/inventory.json"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.inv" PROVOST_LLM_TEMPLATE_DIRS="$LTD/lib" "$PROVOST" --sync --llm --name inventory "$LTD/inv.txt" 2>&1)"
+    check "judged decoration, they are not counted" "read by template inventory.json." "$lt_out"
+    check "and meta says so" "llm_skip_audit	2 skipped: 0 decoration, 2 judged decoration, 0 not judged (counted as unread)" "$(cat "$LTD/.inv/captures/c0002/meta.tsv")"
+    check "a library template's captures go in the store's ledger" "c0002	read	$LTD/lib/inventory.json	4	0	2	0	" "$(cat "$LTD/.inv/llm-templates/inventory.seen.tsv")"
+    # THE JUDGE (PROVOST_LLM_JUDGE, default 1): after Claude writes or extends a
+    # template, one more call reviews the tables it makes of the capture and
+    # answers PASS or a list of structural fixes, fed back to the writer once.
+    # Here the review asks for the host on line 0 to be kept with the rows;
+    # the revision (a format-2 parser) carries it down, and is kept. Before
+    # the review, learn's skip audit (the same template again: the banner is
+    # judged decoration).
+    python3 - "$LTD" <<'PY'
+import json, os, sys
+d = sys.argv[1]
+def msg(text):
+    return {"id": "msg_j", "type": "message", "role": "assistant", "model": "claude-opus-5-5", "stop_reason": "end_turn",
+            "usage": {"input_tokens": 1, "output_tokens": 1}, "content": [{"type": "text", "text": text}]}
+tpl = {"format": 1, "tool": "jvol", "detect": "^NAME\\s+SIZE\\s+USED\\s+MOUNT$", "skip": ["^Volumes on host "],
+       "blocks": [{"name": "volumes", "kind": "table", "header": "^NAME\\s+SIZE",
+                   "line": "^(?P<name>\\S+)\\s+(?P<size>\\S+)\\s+(?P<used>\\S+)\\s+(?P<mount>/\\S*)$"}]}
+fix = {"verdict": "FIX", "fixes": ["line 0 names the host the volumes are on: add a host column to the volumes, filled from it (a format-2 parser)"]}
+parser = "\n".join([
+    "import re", "def parse(lines):", "    host, recs, used, skip = '', [], [], []",
+    "    for j, ln in enumerate(lines):",
+    "        m = re.match(r'^Volumes on host (\\S+)$', ln)",
+    "        if m:", "            host = m.group(1)", "            used.append(j)", "            continue",
+    "        if re.match(r'^NAME\\s+SIZE', ln):", "            used.append(j)", "            continue",
+    "        m = re.match(r'^(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(/\\S*)$', ln)",
+    "        if m:", "            used.append(j)",
+    "            recs.append({'host': host, 'name': m.group(1), 'size': m.group(2), 'used': m.group(3), 'mount': m.group(4)})",
+    "    return {'blocks': [{'name': 'volumes', 'kind': 'table', 'lines': used, 'records': recs}], 'skip': skip}"])
+revised = {"format": 2, "tool": "jvol", "detect": "^NAME\\s+SIZE\\s+USED\\s+MOUNT$", "parser": parser}
+# a revision that reads every line (so the skip audit's check on it holds),
+# each into a block of its own: fragments, which provost's gate refuses
+nothing = dict(revised, parser="def parse(lines):\n    return {'blocks': [{'name': 'part%d' % j, 'kind': 'table', "
+               "'lines': [j], 'records': [{'text': ln}]} for j, ln in enumerate(lines) if ln.strip()], 'skip': []}")
+for name, seq in (("j-fix", [tpl, tpl, fix, revised]), ("j-nogate", [tpl, tpl, fix, nothing]), ("j-one", [tpl, tpl])):
+    with open(os.path.join(d, name + ".json"), "w") as fh:
+        json.dump([msg(json.dumps(x)) for x in seq], fh)
+PY
+    rm -f "$LTD/port" "$LTD/log"; cp "$LTD/j-fix.json" "$LTD/reply.json"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.j1" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name jvol "$LTD/vol.txt" 2>&1)"
+    check "the judge's fixes go back once: template, skip audit, review, revision" "4" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the review is sent the tables the template makes" "Table 1: volumes (table, 3 rows, read from lines 1-4)" "$(sed -n 3p "$LTD/log")"
+    check "the revision is asked with the fixes" "1. line 0 names the host" "$(sed -n 4p "$LTD/log")"
+    check "the ok line says the template was revised" "(llm-templates/jvol.json), revised after a review asked for 1 fix" "$lt_out"
+    check "the revision is what is filed" "alpha	backup	2T	1.5T	/srv/backup" "$(cat "$LTD/.j1/datasets/jvol.tsv")"
+    check "the stored template records the review" '"applied": true' "$(cat "$LTD/.j1/llm-templates/jvol.json")"
+    # a revision that fails provost's gate: the template as it was before the
+    # review is filed and kept instead, and says so
+    cp "$LTD/j-nogate.json" "$LTD/reply.json"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.j2" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name jvol "$LTD/vol.txt" 2>&1)"
+    check "a revision that fails the gate falls back to the template before the review" "but the revision fails the gate (its blocks are fragments (0 of 5 lines or rows in blocks of 3+)), so the template as it was is kept" "$lt_out"
+    check "the template before the review is filed" "backup	2T	1.5T	/srv/backup" "$(cat "$LTD/.j2/datasets/jvol.tsv")"
+    check "and kept, with the review not applied" '"applied": false' "$(cat "$LTD/.j2/llm-templates/jvol.json")"
+    # PROVOST_LLM_JUDGE=0: no review (learn and its skip audit only)
+    cp "$LTD/j-one.json" "$LTD/reply.json"; : > "$LTD/log"
+    lt_out="$(PROVOST_LLM_JUDGE=0 PROVOST_WORKSPACE="$LTD/.j3" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name jvol "$LTD/vol.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "PROVOST_LLM_JUDGE=0: no review call" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check_not "PROVOST_LLM_JUDGE=0: no verdict stored" '"judge"' "$(cat "$LTD/.j3/llm-templates/jvol.json")"
+    check "PROVOST_LLM_JUDGE must be 0 or 1" "2" "$(PROVOST_LLM_JUDGE=2 rc_of "$PROVOST" --sync "$LT_SAMPLE")"
     # FORMAT 2: a template that is a small Python parser, for records that
     # span lines (ip-addr.json ships with provost), run in the sandbox
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$HERE/../extract/samples/llm-template/nested.txt" 2>&1)"
@@ -1102,6 +1251,33 @@ if command -v python3 >/dev/null 2>&1; then
     check "the parser's blocks are the capture's datasets" "ip-addr.addresses" "$lt_out"
     check "a record is built from several lines" "enp3s0	inet	10.20.30.7/24	global	85211sec	85211sec	10.20.30.255	dynamic,noprefixroute" "$(cat "$LTWS/datasets/ip-addr.addresses.tsv")"
     check "a parser that reaches outside the box is refused" "imports os" "$(printf '{"format": 2, "tool": "x", "detect": "^a", "parser": "import os\\ndef parse(l): return []"}' > "$LTD/bad.json"; python3 "$HERE/../extract/llm/template.py" apply "$LTD/bad.json" "$LTD/vol.txt" 2>&1)"
+    # PV-010: the fragments rule sizes a block by its lines OR its rows. A
+    # ServerQuery client list is one line holding six clients: a block of one
+    # line and six rows is no fragment, so the template files it.
+    R4="$HERE/benchmark/round4"; LTL="$LTD/lib"; mkdir -p "$LTL"
+    cp "$R4/llm-templates-f2/132-teamspeak-serverquery-clientlist.json" "$LTL/teamspeak-clientlist.json"
+    cp "$R4/llm-templates-f2/020-golangci-lint-linters.json" "$LTL/golangci-lint-linters.json"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.frag" PROVOST_LLM_TEMPLATE_DIRS="$LTL" \
+        "$PROVOST" --sync --llm --name teamspeak-clientlist "$R4/inputs/132-teamspeak-serverquery-clientlist.txt" 2>&1)"
+    check "a one-line block of six records is not a fragment" "read by template teamspeak-clientlist.json" "$lt_out"
+    check "each record on the one line is a row" "MusicBot | Radio" "$(cat "$LTD/.frag/datasets/teamspeak-clientlist.clients.tsv" 2>/dev/null)"
+    # sizes (lines, rows) 1+6, 1+1, 4+0 and 2+(no count): 6 + 1 + 4 + 2 = 13
+    # in all, the 6 and the 4 substantial
+    check "a part's size is its lines or rows, whichever is more" "10 13" "$(bash -c '
+        source <(sed -n "/^_AM_FRAG_MIN=/,/^}/p" "$1"); tot=0; sub=0
+        _am_frag_add 1 6; _am_frag_add 1 1; _am_frag_add 4 0; _am_frag_add 2 x; echo "$sub $tot"' _ "$PROVOST")"
+    # PV-010: a yaml parse is not beyond a template STORED for the tool (plain
+    # `Label: text` output is valid YAML), but Claude is never asked to write
+    # one over a yaml parse: a key and a dead API change nothing.
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.yaml" PROVOST_LLM_TEMPLATE_DIRS="$LTL" \
+        "$PROVOST" --sync --llm --name golangci-lint-linters "$R4/inputs/020-golangci-lint-linters.txt" 2>&1)"
+    check "a stored template betters a yaml parse of its tool" "the engine read it as yaml, coverage 98%): a template stored for this tool fits" "$lt_out"
+    check "the linter's section is kept as a column" "staticcheck	enabled" "$(cat "$LTD/.yaml/datasets/golangci-lint-linters.tsv" 2>/dev/null)"
+    printf 'server:\n  host: example.org\n  port: 8080\nlogging:\n  level: info\n' > "$LTD/conf.yaml"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.yaml" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name app-config "$LTD/conf.yaml" 2>&1)"
+    check "a yaml document with no template is filed as yaml" "strategy yaml" "$lt_out"
+    check_not "Claude is not asked to write a template over a yaml parse" "Claude" "$lt_out$(cat "$LTD/.yaml/captures/c0002/meta.tsv" 2>/dev/null)"
 fi
 fi
 
@@ -1263,6 +1439,7 @@ if _part core; then
 EH="$(mktemp -d)/evilhome"; mkdir -p "$EH/transform" "$EH/extract" "$EH/analyze"
 MARK="$(mktemp -d)/pwned"
 printf 'touch %q\n' "$MARK.transform" > "$EH/transform/melt.sh"
+printf 'touch %q\n' "$MARK.units" > "$EH/transform/units.sh"
 printf 'touch %q\n' "$MARK.extract" > "$EH/extract/provost-extract"
 printf 'touch %q\n' "$MARK.analyze" > "$EH/analyze/provost-analyze"
 ev_out="$(printf 'a=1, b=2\n' | env -u PROVOST_WORKSPACE PROVOST_HOME="$EH" "$PROVOST" 2>&1)"
@@ -1731,6 +1908,73 @@ check "...each batch its own commit" "2" "$(tgit "$CBWS" log --format=%s | grep 
 check "--jobs must be a number (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch -j x "$BTD/web01.txt")"
 fi
 
+if _part units; then
+# --units base (PV-032): a NAME[UNIT] column in base units beside each column
+# whose unit can be read; off by default, so tidy output does not change.
+UWS="$(mktemp -d)/.units"; UD="$(mktemp -d)"
+up () { PROVOST_WORKSPACE="$UWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+printf '# OSU MPI Bandwidth Test v7.4\n# Size        Bandwidth (MB/s)\n1                         3.26\n2                         6.55\n4                        13.30\n' > "$UD/osu.txt"
+up --name plain "$UD/osu.txt" >/dev/null
+check "without --units the dataset is as before" "# capture n A Bandwidth_(MB/s) 1 c0001 1 1 3.26" "$(up show plain | sq | tr '\n' ' ')"
+check_not "...no NAME[UNIT] column" "[B/s]" "$(up show plain)"
+check_not "...no units line in meta.tsv" "units" "$(cat "$UWS/captures/c0001/meta.tsv")"
+check "...and no units.tsv" "none" "$(ls "$UWS/captures/c0001/units.tsv" 2>/dev/null || echo none)"
+up --units base --name osu "$UD/osu.txt" >/dev/null
+check "--units base adds NAME[UNIT] right after the column" "# capture n A Bandwidth_(MB/s) Bandwidth_(MB/s)[B/s]" "$(up show osu | sq | head -1)"
+check "...in base units, exactly" "1 3.26 3260000" "$(up show osu | sq)"
+check "...and 13.30 MB/s is 13300000 B/s" "4 13.30 13300000" "$(up show osu | sq)"
+umeta="$(cat "$UWS/captures/c0002/meta.tsv")"
+check "meta.tsv records the mode" "units	base" "$umeta"
+check "...and where the record is" "units_columns	units.tsv" "$umeta"
+check "units.tsv records each column: dataset, column, new column, base, from, read" \
+    "osu	Bandwidth_(MB/s)	Bandwidth_(MB/s)[B/s]	B/s	name	MB/s=10^6" "$(cat "$UWS/captures/c0002/units.tsv")"
+check "...under a header" "dataset	column	unit_column	base	from	read" "$(head -1 "$UWS/captures/c0002/units.tsv")"
+check "source still gives the input verbatim" "13.30" "$(up source c0002)"
+up --units=base --name osu "$UD/osu.txt" >/dev/null
+check "--units=base is the same option" "7 c0003 1 1 3.26 3260000" "$(up show osu | sq)"
+up --name osu "$UD/osu.txt" >/dev/null
+check "a later capture without --units joins the dataset" "10 c0004 1 1 3.26" "$(up show osu | sq)"
+check_not "...its unit cells empty" "10 c0004 1 1 3.26 3260000" "$(up show osu | sq)"
+check_not "...not a variant" "osu.v2" "$(up ls)"
+PROVOST_UNITS=base up --name envu "$UD/osu.txt" >/dev/null
+check "PROVOST_UNITS=base is the option" "Bandwidth_(MB/s)[B/s]" "$(up show envu | head -1)"
+PROVOST_UNITS=base up --units off --name offu "$UD/osu.txt" >/dev/null
+check_not "--units off wins over PROVOST_UNITS=base" "[B/s]" "$(up show offu)"
+cp "$HERE/../extract/samples/iperf3-intervals/basic.txt" "$UD/iperf3.txt"
+up run --units base -- cat "$UD/iperf3.txt" >/dev/null
+ishow="$(up show cat | sq)"
+check "a NAME_unit column: each row in its unit (iperf's MBytes are 2^20)" "112 MBytes 117440512" "$ishow"
+check "...its Mbits/sec are 10^6 bits" "940 Mbits/sec 940000000" "$ishow"
+check "...and KBytes 2^10" "412 KBytes 421888" "$ishow"
+check "...as units.tsv says" "MBytes=2^20 (iperf)" "$(cat "$UWS"/captures/c0007/units.tsv)"
+printf 'name,bw,io\nREAD,482MiB/s (505MB/s),28.2GiB (30.3GB)\nWRITE,344MiB/s (361MB/s),20.2GiB (21.7GB)\n' > "$UD/fio.csv"
+up --units base --name fio "$UD/fio.csv" >/dev/null
+fshow="$(up show fio | sq)"
+check "units in the cells (fio): bw" "482MiB/s (505MB/s) 505413632" "$fshow"
+check "...io, a fraction of a GiB, exactly" "28.2GiB (30.3GB) 30279519436.8" "$fshow"
+printf 'host,total\nweb01,7.8Gi\n' > "$UD/free.csv"
+up --units base --name freeh "$UD/free.csv" >/dev/null
+check_not "a bare multiplier (Gi) is not read: no column added" "[B]" "$(up show freeh)"
+check "...the mode is still recorded" "units	base" "$(cat "$UWS"/captures/c0009/meta.tsv)"
+check_not "...with no record of columns" "units_columns" "$(cat "$UWS"/captures/c0009/meta.tsv)"
+up --units base --min-confidence 101 "$UD/osu.txt" >/dev/null
+check "a held capture stays one raw column" "# capture raw" "$(up show unsorted | sq | head -1)"
+check_not "...with no units line" "units" "$(cat "$UWS"/captures/c0010/meta.tsv)"
+PROVOST_WORKSPACE="$UWS" "$PROVOST" batch -q --units base --name bat "$UD/osu.txt" "$UD/osu.txt" >/dev/null 2>&1 || true
+check "batch takes --units base" "Bandwidth_(MB/s)[B/s]" "$(up show bat | head -1)"
+check "...a units.tsv for each capture" "2" "$(ls "$UWS"/captures/c001[12]/units.tsv 2>/dev/null | wc -l | tr -d ' ')"
+check "verify is clean with units.tsv in the captures" "0" "$(PROVOST_WORKSPACE="$UWS" rc_of "$PROVOST" verify)"
+check "--units with a bad mode is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$UWS" rc_of "$PROVOST" --units si "$UD/osu.txt")"
+check "...and says what it takes" "--units must be base or off (got 'si')" "$(up --units si "$UD/osu.txt" || true)"
+check "--units with no mode is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$UWS" rc_of "$PROVOST" run --units)"
+check "PROVOST_UNITS must be off or base (exit 2)" "2" "$(PROVOST_WORKSPACE="$UWS" PROVOST_UNITS=yes rc_of "$PROVOST" ls)"
+check "inject --help lists --units" "--units MODE" "$("$PROVOST" inject --help)"
+check "run --help lists --units" "--units MODE" "$("$PROVOST" run --help)"
+check "batch --help lists --units" "--units MODE" "$("$PROVOST" batch --help)"
+check "help advanced has a UNITS section" "UNITS" "$("$PROVOST" help advanced)"
+check "help advanced lists PROVOST_UNITS" "PROVOST_UNITS" "$("$PROVOST" help advanced)"
+fi
+
 if _part verify; then
 # verify (PV-026): input hashes at capture, and 'provost verify'.
 VWS="$(mktemp -d)/.verify"
@@ -1896,6 +2140,170 @@ check "...files the rest" "1 input(s)" "$out"
 check "...and exits 1" "rc=1" "$out"
 check "PROVOST_MANIFEST_STRICT must be 0 or 1 (exit 2)" "2" "$(PROVOST_MANIFEST_STRICT=x PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" ls)"
 check "check-manifest --help" "usage: provost check-manifest" "$(mp check-manifest --help)"
+fi
+
+if _part wrap; then
+echo "== provost-wrap, the generic harness wrapper (PV-023, docs/integrations) =="
+WWS="$(mktemp -d)/.wws"; WD="$(mktemp -d)"
+WRAP="$HERE/../docs/integrations/examples/provost-wrap"
+# The wrapper calls $PROVOST: this checkout's.
+wr () { PROVOST_WORKSPACE="$WWS" PROVOST="$PROVOST" bash "$WRAP" "$@"; }
+wp () { PROVOST_WORKSPACE="$WWS" "$PROVOST" "$@" 2>&1; }
+printf 'printf "size,bw\\n1,10\\n2,20\\n"; exit 3\n' > "$WD/bench.sh"
+out="$(wr test=stream 'sut=node "7"' -- sh "$WD/bench.sh" 2>&1; echo "rc=$?")"
+check "provost-wrap passes the command's output through" "2,20" "$out"
+check "...exits with the command's own status" "rc=3" "$out"
+check_not "...and says nothing of its own" "warning" "$out"
+check "...files a capture, named after the command" "sh 2" "$(wp ls | sq)"
+out="$(wp show sh | sq)"
+check "...its KEY=VALUE words and rc as columns" "# capture test sut rc n size bw" "$out"
+check "...a quoted value read back whole" 'stream node "7" 3 2 2 20' "$out"
+check "...the prologue kept with the capture" '#% sut="node \"7\""' "$(wp source c0001)"
+out="$(wr --name probe -- sh -c 'echo "a,b"; echo "1,2"' 2>&1; echo "rc=$?")"
+check "--name names the dataset, and a success is 0" "rc=0" "$out"
+check "...into that dataset" "probe 1" "$(wp ls | sq)"
+check "a command with no output files nothing" "0" "$(wr true; echo "$?")"
+check "...(still two captures)" "c0002" "$(wp log | tail -n 1)"
+out="$(wr nosuch-command-pv023 2>&1; echo "rc=$?")"
+check "a command not found exits 127" "rc=127" "$out"
+check "...and files nothing" "c0002" "$(wp log | tail -n 1)"
+out="$(PROVOST_WORKSPACE="$WWS" PROVOST=/nonexistent/provost bash "$WRAP" sh "$WD/bench.sh" 2>&1; echo "rc=$?")"
+check "with no provost the command still runs" "2,20" "$out"
+check "...the wrapper says it could not file" "could not file the output of sh (its status, 3, is kept)" "$out"
+check "...and the command's status is kept" "rc=3" "$out"
+check "with no command, usage (exit 2)" "2" "$(rc_of bash "$WRAP" a=b)"
+check "--name with no value, usage (exit 2)" "2" "$(rc_of bash "$WRAP" --name)"
+fi
+
+if _part env; then
+echo "== environment capture (PV-028): --env, the allow-list, secrets withheld =="
+EWS="$(mktemp -d)/.ews"; ED="$(mktemp -d)"
+ep () { PROVOST_WORKSPACE="$EWS" "$PROVOST" "$@" 2>&1; }
+# the context.txt of the store's latest capture
+ectx () { cat "$EWS/captures/$(ep log | tail -n 1 | awk '{print $1}')/context.txt" 2>/dev/null || true; }
+printf 'Name,Load\nx,1\n' > "$ED/plain.txt"
+# without --env, nothing changes, whatever the environment holds
+out="$(LOADEDMODULES=gcc/13.2.0 SLURM_JOB_ID=4242 OMP_NUM_THREADS=8 ep --name plain "$ED/plain.txt"; echo "rc=$?")"
+check "without --env a capture files as before" "rc=0" "$out"
+check_not "...says nothing about the environment" "env" "$out"
+check "...and keeps no context" "no context" "$([[ -e "$EWS/captures/c0001/context.txt" ]] && echo context || echo no context)"
+check "...and stores the input as it came" "$(cat "$ED/plain.txt")" "$(cat "$EWS/captures/c0001/output.txt")"
+check "--env then --no-env records nothing" "no context" "$(ep --env --no-env --name plain "$ED/plain.txt" >/dev/null; [[ -e "$EWS/captures/c0002/context.txt" ]] && echo context || echo no context)"
+# --env: the fixed set, the Slurm job id under the profile's own key
+out="$(LOADEDMODULES=gcc/13.2.0:openmpi/4.1.6 SLURM_JOB_ID=4242 SLURM_JOB_NODELIST='node[01-04]' \
+       SLURM_CLUSTER_NAME=frontier SLURM_JOB_PARTITION=batch OMP_NUM_THREADS=8 UCX_TLS=rc,sm FOO_BAR=1 \
+       ep --env --name e "$ED/plain.txt"; echo "rc=$?")"
+check "--env files the capture" "rc=0" "$out"
+check_not "...with no warning when nothing looks like a secret" "warning" "$out"
+ctx="$(ectx)"
+check "--env records the host" "#% env.host=${HOSTNAME:-$(uname -n)}" "$ctx"
+check "--env records the kernel (uname -sr, quoted)" "#% env.kernel=\"$(uname -sr)\"" "$ctx"
+check "--env records the architecture" "#% env.arch=$(uname -m)" "$ctx"
+check "--env records the user" "#% env.user=$(id -un)" "$ctx"
+if [[ -r /etc/os-release ]]; then
+    check "--env records the OS release (PRETTY_NAME)" "#% env.os=\"$(. /etc/os-release; printf '%s' "$PRETTY_NAME")\"" "$ctx"
+fi
+check "--env records the loaded environment modules" "#% env.modules=gcc/13.2.0:openmpi/4.1.6" "$ctx"
+check "--env records the Slurm job id under the default profile's sched.job" "#% sched.job=4242" "$ctx"
+check_not "...and not again as env.slurm.job" "env.slurm.job" "$ctx"
+check "--env records the Slurm node list" "#% env.slurm.nodes=node[01-04]" "$ctx"
+check "--env records the Slurm cluster and partition" "#% env.slurm.cluster=frontier" "$ctx"
+check "...partition" "#% env.slurm.partition=batch" "$ctx"
+check "an allow-listed variable is recorded (default list: OMP_*)" "#% env.var.OMP_NUM_THREADS=8" "$ctx"
+check "...and UCX_*" "#% env.var.UCX_TLS=rc,sm" "$ctx"
+check_not "a variable not on the allow-list is absent" "FOO_BAR" "$ctx"
+check_not "kernel modules only with --env=modules" "env.kernel.modules" "$ctx"
+check "the data still parses as before" "Load" "$(ep show e)"
+c_e="$(ep log | tail -n 1 | awk '{print $1}')"
+check "input_sha256 is of the input as received, before --env's lines" "input_sha256	$(sha256sum < "$ED/plain.txt" | cut -d' ' -f1)" "$(cat "$EWS/captures/$c_e/meta.tsv")"
+check "verify passes on a store with --env captures" "0" "$(PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" verify)"
+# the proposal profile's name for the job id
+SLURM_JOB_ID=4242 ep --env --manifest-profile proposal --name e "$ED/plain.txt" >/dev/null
+check "under the proposal profile the job id is job_id" "#% job_id=4242" "$(ectx)"
+check_not "...not sched.job" "sched.job" "$(ectx)"
+# a key the input's own prologue or --manifest sets is theirs
+printf '#%% sched.job=99 env.host=elsewhere\nName,Load\nx,2\n' > "$ED/pro.txt"
+SLURM_JOB_ID=4242 ep --env --name e "$ED/pro.txt" >/dev/null
+ctx="$(ectx)"
+check "the input's own sched.job is kept" "#% sched.job=99" "$ctx"
+check_not "...and --env's is left out" "sched.job=4242" "$ctx"
+check_not "...as is its env.host" "env.host=${HOSTNAME:-$(uname -n)}" "$ctx"
+check "...while the other readings are added" "#% env.arch=" "$ctx"
+printf 'sched.job=77\n' > "$ED/m.txt"
+SLURM_JOB_ID=4242 ep --env --manifest "$ED/m.txt" --name e "$ED/plain.txt" >/dev/null
+check "a --manifest FILE's key wins over --env's" "#% sched.job=77" "$(ectx)"
+check_not "...which is left out" "sched.job=4242" "$(ectx)"
+# the manifest check sees what --env filled
+printf 'sched.job\trun\tyes\tthe job\tslurm.job\n' > "$ED/job.tsv"
+out="$(SLURM_JOB_ID=4242 ep --env --manifest-profile "$ED/job.tsv" --name e "$ED/plain.txt")"
+check_not "a required key --env fills passes the capture-time check" "lacks required" "$out"
+out="$(ep --env --manifest-profile "$ED/job.tsv" --name e "$ED/plain.txt")"
+check "...and outside a Slurm job it is reported missing" "lacks required key(s): sched.job" "$out"
+printf 'sched.job\trun\tno\tthe job\tslurm.jbo\n' > "$ED/typo.tsv"
+check "a profile's env column naming no reading is a warning" "names 'slurm.jbo', which --env does not read" "$(SLURM_JOB_ID=1 ep --env --manifest-profile "$ED/typo.tsv" --name e "$ED/plain.txt")"
+check "...and the reading keeps its env. name" "#% env.slurm.job=1" "$(ectx)"
+# secrets: refused even when allow-listed, by value and by name
+tok="ghp_$(printf 'A1b2C3d4%.0s' 1 2 3 4 5)"
+out="$(NCCL_DEBUG=INFO NCCL_SOCKET_IFNAME="$tok" OMP_AUTH_TOKEN=plain ep --env --name e "$ED/plain.txt"; echo "rc=$?")"
+check "an allow-listed variable holding a token is refused, with a warning" "\$NCCL_SOCKET_IFNAME not recorded: its value (github-token) looks like a secret" "$out"
+check "a variable with a secret's name is refused" "\$OMP_AUTH_TOKEN not recorded: its name (secret-name)" "$out"
+check "...and the capture is still filed" "rc=0" "$out"
+ctx="$(ectx)"
+check "the refused names are listed in env.withheld" "#% env.withheld=NCCL_SOCKET_IFNAME,OMP_AUTH_TOKEN" "$ctx"
+check "...beside the variables that were recorded" "#% env.var.NCCL_DEBUG=INFO" "$ctx"
+check_not "the token is nowhere in the store's files" "$tok" "$(grep -r --exclude-dir=.git -- "$tok" "$EWS" || true)"
+check_not "...nor in its history" "$tok" "$(tgit "$EWS" log -p --all 2>&1)"
+for v in 'Bearer abcdefghijklmnopqrstuvwxyz' 'https://jo:hunter2@example.com/x' 'AKIAABCDEFGHIJKLMNOP' \
+         $'-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXk=' 'password=hunter2' 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz'; do
+    check "a value like '${v%%$'\n'*}' is refused" "not recorded" "$(MPI_X="$v" ep --env --name e "$ED/plain.txt")"
+done
+check_not "ordinary values are not taken for secrets (GPU UUID, paths)" "warning" \
+    "$(CUDA_VISIBLE_DEVICES=GPU-8a1f2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda I_MPI_PIN_DOMAIN=core ep --env --name e "$ED/plain.txt")"
+# the allow-list
+out="$(FOO_BAR=1 FOO_BAZ=2 OMP_NUM_THREADS=8 PROVOST_ENV_VARS='FOO_*' ep --env --name e "$ED/plain.txt")"
+check "PROVOST_ENV_VARS replaces the default allow-list" "#% env.var.FOO_BAR=1" "$(ectx)"
+check_not "...so the default's OMP_* is not recorded" "OMP_NUM_THREADS" "$(ectx)"
+OMP_NUM_THREADS=8 PROVOST_ENV_VARS= ep --env --name e "$ED/plain.txt" >/dev/null
+check_not "PROVOST_ENV_VARS set empty records no variables" "env.var." "$(ectx)"
+check "...but still the host" "#% env.host=" "$(ectx)"
+ITS_TOKEN=x PROVOST_ENV_VARS='ITS_TOKEN, FOO_BAR' FOO_BAR=1 ep --env --name e "$ED/plain.txt" >/dev/null
+check "a variable named outright is still refused when it looks like a secret" "#% env.withheld=ITS_TOKEN" "$(ectx)"
+check "...and a comma separates patterns too" "#% env.var.FOO_BAR=1" "$(ectx)"
+mkdir -p "$ED/cwd"; : > "$ED/cwd/OMP_file"
+(cd "$ED/cwd" && OMP_NUM_THREADS=4 PROVOST_WORKSPACE="$EWS" "$PROVOST" --env --name e "$ED/plain.txt" >/dev/null 2>&1)
+check "an allow-list glob is never matched against file names" "#% env.var.OMP_NUM_THREADS=4" "$(ectx)"
+CUDA_X=$'one\ttwo\nthree' PROVOST_ENV_VARS='CUDA_X' ep --env --name e "$ED/plain.txt" >/dev/null
+check "a value's tabs and line breaks become spaces (one prologue line)" '#% env.var.CUDA_X="one two three"' "$(ectx)"
+# --env=modules, PROVOST_ENV, run and batch
+mkdir -p "$ED/bin"
+printf '#!/bin/sh\nprintf "Module                  Size  Used by\\nzfs 1 0\\nbridge 2 1\\naes 3 0\\n"\n' > "$ED/bin/lsmod"; chmod +x "$ED/bin/lsmod"
+PATH="$ED/bin:$PATH" ep --env=modules --name e "$ED/plain.txt" >/dev/null
+check "--env=modules adds the kernel modules, sorted" "#% env.kernel.modules=aes,bridge,zfs" "$(ectx)"
+PROVOST_ENV=1 ep --name e "$ED/plain.txt" >/dev/null
+check "PROVOST_ENV=1 is --env" "#% env.host=" "$(ectx)"
+PATH="$ED/bin:$PATH" PROVOST_ENV=modules ep --name e "$ED/plain.txt" >/dev/null
+check "PROVOST_ENV=modules is --env=modules" "#% env.kernel.modules=aes,bridge,zfs" "$(ectx)"
+SLURM_JOB_ID=5 ep run --env --name re printf 'a,b\n1,2\n' >/dev/null
+check "run --env records the environment" "#% sched.job=5" "$(ectx)"
+printf 'Name,Load\nx,3\n' > "$ED/b2.txt"
+out="$(SLURM_JOB_ID=6 ep batch --env --name be "$ED/plain.txt" "$ED/b2.txt"; echo "rc=$?")"
+check "batch --env files every input" "rc=0" "$out"
+n_be=0; for c in "$EWS"/captures/c*; do grep -q '^#% sched.job=6$' "$c/context.txt" 2>/dev/null && n_be=$((n_be + 1)); done
+check "...each carrying the environment" "2" "$n_be"
+out="$(ep --env --context-columns --name ecol "$ED/plain.txt"; ep show ecol)"
+check "--context-columns makes the readings columns" "env.arch" "$out"
+# macOS: no /etc/os-release there, so sw_vers (a stand-in uname and sw_vers)
+mkdir -p "$ED/mac"
+printf '#!/bin/sh\nif [ "$*" = -s ]; then echo Darwin; else exec %s "$@"; fi\n' "$(command -v uname)" > "$ED/mac/uname"
+printf '#!/bin/sh\ncase "$1" in -productName) echo macOS ;; -productVersion) echo 14.5 ;; esac\n' > "$ED/mac/sw_vers"
+chmod +x "$ED/mac/uname" "$ED/mac/sw_vers"
+PATH="$ED/mac:$PATH" ep --env --name e "$ED/plain.txt" >/dev/null
+check "on macOS the OS release comes from sw_vers" '#% env.os="macOS 14.5"' "$(ectx)"
+# bad settings
+check "--env=other is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" --env=all "$ED/plain.txt")"
+check "PROVOST_ENV must be 0, 1 or modules (exit 2)" "2" "$(PROVOST_ENV=yes PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" ls)"
+check "PROVOST_ENV_VARS refuses what is not a name pattern (exit 2)" "2" "$(PROVOST_ENV_VARS='OMP_*=8' PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" ls)"
+check "--help names --env" "--env" "$(ep inject --help)"
 fi
 
 echo "smoke: $pass passed, $fail failed"

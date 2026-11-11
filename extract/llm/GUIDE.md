@@ -51,6 +51,12 @@ never for this capture's particular values.
   Use `columns` to give a column its printed name (`Mounted on`, `%CPU`).
 - **The template must cover at least 80% of the capture's non-blank lines**
   as skip, header or data lines, or it is rejected.
+- **A skipped line that carries a word or a number is reviewed.** You will be
+  shown how many there are and one line of each kind, once, and asked to
+  read any that carry data into a block. Only the kinds you leave in `skip`
+  count as covered; a skipped line of a kind never reviewed counts as
+  unread. A line with no letter or digit (a rule, box glyphs) is decoration
+  without review.
 
 ## What a value is
 
@@ -82,7 +88,10 @@ never for this capture's particular values.
   banner, a fixed label. Never a value.
 - **When the output has several sections** (a summary block, then a table, or
   several tables), give each its own block.
-- **Section titles and lines that carry no data go in `skip`.**
+- **Section titles and lines that carry no data go in `skip`.** A line that
+  carries data is data, even outside the table: a version, a count, a size,
+  a duration, a date, a status, a summary, a warning or an error gets a `kv`
+  block (or a column), not a `skip` pattern.
 
 ## Format 2: a parser, when no line pattern can describe the output
 
@@ -113,7 +122,8 @@ when the data's shape runs across lines:
   pairs; a `table` block's records are rows with the same keys in the same
   order. Return `{"blocks": [...], "skip": [<decoration line indexes>]}` to
   mark the lines you deliberately dropped (rules, banners, prompts), so they
-  count as covered. Every other input line is uncovered; the same 80% rule
+  count as covered (those that carry words or numbers once reviewed, as
+  above). Every other input line is uncovered; the same 80% rule
   applies.
 - Keys are column names: use the tool's printed names where it has them.
   Values are strings (numbers may be ints or floats).

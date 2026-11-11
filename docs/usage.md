@@ -32,6 +32,7 @@ Capture flags (for `run` and inject):
 | `--multi` | file **every** dataset the input holds instead of one winner |
 | `--no-auto-multi` | hold a parse the quality gate rejects without first trying to segment it (`--auto-multi`, the default, tries) |
 | `--context-columns` | make each `key=value` word of a `#%` prologue a column on every row (see [Metadata prologue](#metadata-prologue)) |
+| `--units base` | after each column whose unit can be read, add a `NAME[UNIT]` column of the same values in base units (see [Units](#units)); `--units off`, the default, adds none |
 
 At an interactive terminal the capture runs in the background and the prompt
 returns at once; in a script or pipeline (stderr not a terminal) it runs in the
@@ -148,8 +149,11 @@ rewritten. Signed commits are the stronger anchor (PV-027).
 | `PROVOST_ASYNC` | `1` always background, `0` always foreground, unset = background only at a terminal | unset |
 | `PROVOST_MULTI` | file every dataset an input holds (same as `--multi`) | `0` |
 | `PROVOST_CONTEXT_COLUMNS` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) | `0` |
+| `PROVOST_UNITS` | `base` = add a `NAME[UNIT]` column in base units after each column with a readable unit (same as `--units base`) | `off` |
 | `PROVOST_MANIFEST_PROFILE` | run-manifest profile, NAME or `.tsv` file; when set every capture is checked (same as `--manifest-profile`) | unset |
 | `PROVOST_MANIFEST_STRICT` | `1` = refuse a capture lacking a required manifest key (same as `--strict-manifest`) | `0` |
+| `PROVOST_ENV` | `1` = record where each capture was taken (same as `--env`); `modules` = and the kernel modules (`--env=modules`) | `0` |
+| `PROVOST_ENV_VARS` | the variables `--env` records: names or glob patterns, space- or comma-separated; set but empty = none | `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` |
 | `PROVOST_AUTO_MULTI` | `1` = segment a parse the quality gate would hold, when the parts are clearly better; `0` = hold it (same as `--no-auto-multi`) | `1` |
 | `PROVOST_MAX_INPUT` | max input bytes, for inject and `run` | `10485760` |
 | `PROVOST_LOCK_TIMEOUT` | seconds to wait for the store lock | `30` |
@@ -177,9 +181,13 @@ original input. `provost log` shows the comma-joined list; the capture's
 **Auto-multi.** Without `--multi`, provost still segments a capture when the
 quality gate would otherwise hold its single parse for low coverage or low
 consistency — but only when the split is clearly better: two or more parts,
-each passing the gate on its own, together keeping at least the gate's
-coverage and 10 points more than the single parse, no part a table under
-positional `A`/`B`/`C` columns only, and no shattering into fragments.
+each passing the gate on its own (a part read by a tool-specific parser
+must keep the gate's coverage of its own lines too), together keeping at
+least the gate's coverage and 10 points more than the single parse, no part a
+table under positional `A`/`B`/`C` columns that shows a lost header or
+shredded rows (a column of box chrome, mostly empty cells, or a header-like
+line right above it; a headerless table is filed), and no shattering into
+fragments.
 Otherwise the capture is held as before, with the reason. The ok line says it
 segmented and why; `meta.tsv` records `auto_multi`, the held single parse's
 `single_*` measures, and each part's `dataset_coverage` /
@@ -190,6 +198,113 @@ rows together whether or not a capture segments. `PROVOST_AUTO_MULTI=0` (or
 
 See [the multi-dataset design note](0003-multi-dataset.md) for the rationale
 and the scoring machinery behind the split.
+
+## Units
+
+**Where a unit lives.** By default provost leaves a unit where the tool
+printed it, and converts nothing:
+
+- in the column's name: `Bandwidth_(MB/s)` (OSU), `Best_Rate_MB/s` (STREAM);
+- in each cell: `482MiB/s (505MB/s)` (fio), `42.18_GiB` (vnstat);
+- in a column of its own beside the number: `transfer` and `transfer_unit`
+  (the iperf3 parser).
+
+So `9.4 GB/s` in one tool's output and `9400` under `MB/s` in another's are
+different strings, and a tool that compared them as numbers would be wrong.
+
+**`--units base`** (or `PROVOST_UNITS=base`, for `run`, piped input and
+`batch`) adds, right after each column whose unit can be read exactly, a
+column named `NAME[UNIT]` holding the same values as plain numbers in a base
+unit. The original column is kept as it was. That suffix is the convention: a
+column whose name ends in `[UNIT]` holds plain numbers in `UNIT`, and the
+column it was read from is the one before it.
+
+| base unit | for |
+|---|---|
+| `B` | bytes |
+| `B/s` | bytes a second |
+| `bit` | bits |
+| `bit/s` | bits a second |
+| `s` | seconds |
+
+```console
+$ provost --sync --units base --name osu osu_bw.txt
+$ provost show osu
+#  capture  n  Size  Bandwidth_(MB/s)  Bandwidth_(MB/s)[B/s]
+1  c0001    1  1     3.26              3260000
+2  c0001    2  2     6.55              6550000
+```
+
+Bits are never turned into bytes, nor bytes into bits: a `[B/s]` column and a
+`[bit/s]` column are different units, and stay so.
+
+**How a unit is read: by the letter.**
+
+- `B`, `Byte`, `Bytes` are bytes; `bit`, `bits` are bits. A short `b` is
+  bits only in a rate (`Mb/s`, `Gbps`): as a size it means bytes about as
+  often (tc prints a 15 KiB burst as `15Kb`; sysfs has `read_ahead_kb`), so
+  `Kb`, `Mb` or `kb` alone are not read. A bare `B` glued to its number
+  (`8.0B`) is not read either, as it is as often a count (8 billion
+  parameters); `3600 B` is.
+- `k`, `K`, `M`, `G`, `T`, `P`, `E` are powers of 1000; `Ki`, `Mi`, `Gi`,
+  `Ti`, `Pi`, `Ei` are powers of 1024. A tool that prints `kB` for 1024 bytes
+  (`/proc/meminfo`) is converted as printed: the original column still says
+  what the tool said.
+- A rate is a size unit followed by `/s` or `/sec`, or `ps` after a short
+  form (`MBps`, `Mbps`).
+- Times: `ns`/`nsec`, `us`/`usec`/`µs`, `ms`/`msec`, `s`/`sec`/`seconds`.
+- A bare multiplier that names no quantity is **not** read: `7.8Gi`
+  (`free -h`), `1.2G`, `128K` (`df -h`, whose `G` is 1024^3 although the
+  letter says 1000^3). Nothing is guessed.
+- The one exception, from the tools' own source: iperf2 and iperf3 print
+  powers of 1024 as `KBytes`, `MBytes`, `GBytes` and `TBytes`, so in a dataset
+  the iperf3 parser filed, or one named `iperf` or `iperf3` (as
+  `provost run iperf3 …` names it), those are read as KiB, MiB, GiB and TiB.
+  Their bit rates (`Mbits/sec`) are powers of 1000, as labelled.
+
+**Which columns.** The unit comes from, in this order:
+
+1. the column's name: a trailing `(UNIT)` or `[UNIT]` (`Latency (us)`,
+   `bw(MiB/s)`; a one-letter unit only after a space or `_`, so `Error(s)` is
+   a plural, not seconds), the whole name when it is a size or a rate
+   (`MB/s`; never a bare time: vmstat's `us` is user CPU), or its last `_`- or
+   space-separated word when that carries a prefix or a rate
+   (`Best_Rate_MB/s`, `rtt_ms`; not `kb_read_s` or `requests_per_ms`). Each
+   cell must then be a plain number.
+2. a column named `NAME_unit` beside it: each row is read in its own unit.
+3. each cell: a number, optionally a space or `_`, and a unit (`1.19 MBytes`),
+   optionally followed by the same quantity in another unit in parentheses
+   (fio's `482MiB/s (505MB/s)`: the first is used).
+
+A column is converted only when every cell that holds a digit can be read and
+all its units are one quantity (sizes, byte rates, bit rates or times); a cell
+with no digit (empty, `-`, `N/A`) gives an empty converted cell.
+
+**Exact.** Every factor is a power of 10 or of 1024, so the conversion is done
+on the decimal digits, never in floating point (which loses precision past
+2^53), and printed in full: `28.2GiB` is `30279519436.8`, `1 EiB` is
+`1152921504606846976`, `0.041 ms` is `0.000041`.
+
+**The record.** A capture filed with `--units base` says `units  base` in its
+`meta.tsv`, and, when it added any column, `units_columns  units.tsv`: a TSV
+of `dataset`, `column`, `unit_column`, `base`, `from` (`name`, `cells`, or
+`column NAME_unit`) and `read`, each unit read with its exact factor:
+
+```text
+dataset  column            unit_column            base  from  read
+osu      Bandwidth_(MB/s)  Bandwidth_(MB/s)[B/s]  B/s   name  MB/s=10^6
+```
+
+Run over every corpus input as provost files it (3,733), `--units base`
+converted 466 columns in 276 of them; each was checked for a false reading,
+and the three found (vmstat's `us`, sysfs `read_ahead_kb`, llama-bench's
+`8.0B` parameters) are the rules above that refuse them.
+
+A dataset fed by captures with and without `--units base` keeps one table
+(the earlier rows' `[UNIT]` cells are empty), unless the added columns take
+its shape below `PROVOST_RECONCILE_OVERLAP`, when the new capture goes to a
+variant (`NAME.v2`) as any changed shape does. A capture held in `unsorted`
+is kept as it came.
 
 ## Metadata prologue
 
@@ -275,6 +390,70 @@ $ provost check-manifest --post --strict c0001          # exit 1 if any is incom
   `PROVOST_MANIFEST_PROFILE`, else the store's own `manifest-profile.tsv`,
   else `default`. A NAME is looked up in `~/.config/provost/manifests`, then
   in provost's `extract/manifests`.
+
+## Environment capture (`--env`)
+
+`--env` (or `PROVOST_ENV=1`) adds where a capture was taken to its prologue.
+Nothing is recorded without it.
+
+```
+$ module load gcc/13.2.0 openmpi/4.1.6
+$ OMP_NUM_THREADS=8 provost run --env ./stream
+$ provost source c0007
+...
+----- original source (capture c0007) -----
+#% env.host=node7
+#% env.kernel="Linux 5.14.0-427.el9.x86_64"
+#% env.arch=x86_64
+#% env.os="Rocky Linux 9.4 (Blue Onyx)"
+#% env.modules=gcc/13.2.0:openmpi/4.1.6
+#% env.user=jo
+#% sched.job=4242
+#% env.slurm.nodes=node[07-08]
+#% env.var.OMP_NUM_THREADS=8
+...
+```
+
+| key | what | from |
+|---|---|---|
+| `env.host` | the host provost ran on | `$HOSTNAME`, else `uname -n` |
+| `env.kernel` | kernel name and release | `uname -sr` |
+| `env.arch` | machine architecture | `uname -m` |
+| `env.os` | OS release | `/etc/os-release` (`PRETTY_NAME`), or `sw_vers` on macOS |
+| `env.modules` | loaded environment modules (Lmod, Environment Modules) | `$LOADEDMODULES` |
+| `env.user` | the user provost ran as | `id -un` |
+| `sched.job` | the Slurm job id (the manifest's key: `job_id` under `proposal`; `env.slurm.job` under a profile that claims no key for it) | `$SLURM_JOB_ID` |
+| `env.slurm.nodes`, `.cluster`, `.partition` | the job's node list, cluster and partition | `$SLURM_JOB_NODELIST`, `$SLURM_CLUSTER_NAME`, `$SLURM_JOB_PARTITION` |
+| `env.kernel.modules` | loaded kernel modules, sorted (only with `--env=modules`) | `lsmod`, else `/proc/modules` |
+| `env.var.NAME` | an allow-listed environment variable | `PROVOST_ENV_VARS` |
+| `env.withheld` | allow-listed variables not recorded because they look like secrets | `extract/secrets.tsv` |
+
+- **Variables only from an allow-list**, never all of them: an environment
+  carries tokens and passwords. `PROVOST_ENV_VARS` holds names or glob
+  patterns, separated by spaces or commas; the default is
+  `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*`, and set but
+  empty it records none.
+- **A variable that looks like a secret is never recorded**, even when
+  allow-listed by name. `extract/secrets.tsv` lists the patterns: a name
+  holding `TOKEN`, `SECRET`, `PASSWORD`, `KEY`, ...; a value holding a private
+  key, an `Authorization:` header or bearer token, an AWS, GitHub, GitLab,
+  Slack, Anthropic/OpenAI-style or Google API key, a JWT, credentials in a
+  URL, or `password=`. provost warns, files the capture without it, and names
+  it in `env.withheld`.
+- **A manifest profile can claim a reading** for one of its own keys, in an
+  optional fifth column, `env`. `default.tsv` and `proposal.tsv` claim the
+  Slurm job id for `sched.job` and `job_id`; a store's own profile can claim
+  others (`sut` from `host`, say).
+- **The input's own prologue and `--manifest FILE` win:** a key either of
+  them sets is left out of `--env`'s lines.
+- **The readings describe the host provost runs on**, read once per command.
+  `provost batch --env` puts the same readings on every input: right for
+  outputs made on this host, wrong for files gathered from other hosts. A
+  launcher that already gathers facts per host (quarterdeck's `qd probe
+  facts`) should not pass `--env`.
+- With `--context-columns`, every reading becomes a column, like any other
+  prologue key. As with `--manifest`, `input_sha256` is of the input as
+  received and `output_sha256` of what is stored, the readings included.
 
 ## Batch capture
 

@@ -108,8 +108,9 @@ bash tests/check_version.sh origin/main   # bumped everywhere, and past main's
 When you change `provost` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (604 checks)
+bash tests/smoke.sh                 # end-to-end (737 checks)
 bash transform/tests/test_melt.sh   # transform unit test (70 checks)
+bash transform/tests/test_units.sh  # --units base: conversion table and rules (86 checks)
 ```
 
 `tests/smoke.sh` and `extract/tests/run_tests.sh` run in parallel, as the corpus
@@ -123,6 +124,15 @@ with a fresh one.
 When you change `src/provost_data/` (the PyPI launcher) or `pyproject.toml`, run
 `python -m pytest` — 100% line+branch coverage of `provost_data` is enforced
 (`--cov-fail-under=100`, CI `python-package` job).
+
+When you change the offline install bundle (`tools/offline_bundle.py`,
+`tools/offline-install-*.sh`, `docs/offline-install.md`, PV-025), run its unit
+tests; CI's `offline bundle` job also builds a real one, validates the SBOM's
+schema, signs and verifies `SHA256SUMS`, and installs it with networking off:
+
+```bash
+python3 -m unittest discover -s tests/offline_bundle
+```
 
 When you change the `extract/` or `transform/` trees (e.g. add an extract
 strategy), run that tree's suite:
