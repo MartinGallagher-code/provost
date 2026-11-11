@@ -10,7 +10,7 @@ _provost_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store help"
+    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store prune archive help"
     local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --units --manifest --manifest-profile --strict-manifest --no-strict-manifest --env --env=modules --no-env --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
@@ -52,6 +52,19 @@ _provost_complete () {
         store)
             if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "check --help" -- "$cur") )
             else COMPREPLY=( $(compgen -d -- "$cur") ); fi ;;
+        prune)
+            case "$prev" in --policy) COMPREPLY=( $(compgen -f -- "$cur") ); return ;; esac
+            COMPREPLY=( $(compgen -W "--policy --as-of --yes --help" -- "$cur") ) ;;
+        archive)
+            case "$prev" in
+                --to|verify|import) COMPREPLY=( $(compgen -d -- "$cur") ); return ;;
+                --allowed-signers) COMPREPLY=( $(compgen -f -- "$cur") ); return ;;
+                --dataset) COMPREPLY=( $(compgen -W "$(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')" -- "$cur") ); return ;;
+            esac
+            if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "verify import --to --before --older-than --dataset --as-of --purge --yes --help" -- "$cur") )
+            elif [[ "${COMP_WORDS[2]}" == verify ]]; then COMPREPLY=( $(compgen -W "--allowed-signers --require-signed --help" -- "$cur") )
+            elif [[ "${COMP_WORDS[2]}" == import ]]; then COMPREPLY=( $(compgen -d -- "$cur") )
+            else COMPREPLY=( $(compgen -W "--to --before --older-than --dataset --as-of --purge --yes --help" -- "$cur") ); fi ;;
         annotate)
             local caps
             caps="$(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"

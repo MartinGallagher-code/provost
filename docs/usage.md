@@ -60,6 +60,8 @@ $ provost restore <id|latest>    # bring a capture's commit back up
 $ provost prev / provost next    # step the store back / forward one capture
 $ provost rm [-f] [--no-purge] NAME...   # captures are purged only when no dataset still uses them
 $ provost rm [-f] --capture ID[,ID...]   # captures, and the rows they filed in every dataset
+$ provost prune --policy FILE [--yes]    # dispose of what a retention policy no longer keeps (dry run without --yes)
+$ provost archive --to DIR --before DATE # a verifiable archive of older captures (--purge --yes: then dispose of them)
 ```
 
 Every row carries `#` (its number in the store, `provost source N`),
@@ -151,7 +153,8 @@ older format.** A command that writes (a capture, `rm`, `annotate`,
 `restore`, `control`) first migrates an older store to the current format, in
 a commit of its own; a command that only reads (`ls`, `show`, `source`, `log`,
 `search`, `files`, `diff`, `stats`, `triage`, `verify`, `doctor`, `export`,
-`store check`) never changes a store on disk, and works on a store it cannot
+`store check`, `archive` without `--purge`, `prune` without `--yes`) never
+changes a store on disk, and works on a store it cannot
 write: an evidence copy, read-only media, a store whose history was signed.
 
 ```
@@ -171,6 +174,53 @@ template ledgers. It exits 0 with no findings and 1 with them, and takes no
 lock and commits nothing. `verify` is the other half: it checks the history
 (fsck, hashes, tags), where `store check` checks the files' shape. A program
 that writes to or reads a store (quarterdeck) can run both in its own CI.
+
+## Retention: prune and archive
+
+provost keeps everything until told otherwise, and has **no retention of its
+own**: nothing goes unless a policy you wrote says so (PV-029, 2.19.0).
+
+```
+$ cat retention.policy
+# a year for the disk inventories, but always the newest ten;
+# the apollo project's captures for 90 days
+dataset=disks          keep-days=365 keep-last=10
+tag=project=apollo     keep-days=90
+$ provost prune --policy retention.policy            # a dry run: what would go, what is kept
+$ provost prune --policy retention.policy --yes      # dispose of them
+```
+
+A rule selects captures by dataset (`dataset=NAME`; `dataset=*` is a rule for
+each dataset) or by a `#%` prologue or annotation key (`tag=KEY=VALUE`), and
+keeps those younger than `keep-days` days or among the newest `keep-last`. A
+capture goes only when every rule that selects it lets it go, and a capture
+that also filed a dataset no rule names is kept. `--as-of DATE` judges ages
+as of a date rather than now.
+
+`--yes` disposes of them as `rm --capture` does: the captures and the rows
+they filed, in one commit, all or nothing; git's history still holds them.
+Each one is recorded, in that same commit, in the store's **disposal log**,
+`disposals.tsv`: the capture, when, who (the operator), how, and the rule
+that let it go, with the policy file's sha256. Nothing removes a record from
+it, and capture ids are never used again. See
+[The disposal log](store-format.md#the-disposal-log).
+
+To keep evidence out of the working store but still verifiable, archive it
+first:
+
+```
+$ provost archive --to /records/2025 --before 2026-01-01            # write and verify an archive
+$ provost archive --to /records/2025 --before 2026-01-01 --purge --yes   # ...then dispose of those captures
+$ provost archive verify /records/2025 --allowed-signers signers --require-signed
+$ provost archive import /records/2025 ~/audit-2025                # open it read-only
+```
+
+An archive is a git bundle of the store's whole history, a manifest
+(`ARCHIVE.tsv`, `captures.tsv`: the store format, each capture's commit and
+hashes), the archived captures' kept inputs, and `SHA256SUMS`, signed with
+`PROVOST_SIGNING_KEY` when `PROVOST_SIGN` is set ([Archives](store-format.md#archives)).
+It is verified before `archive` finishes, so `--purge` never disposes of
+anything an archive that does not verify was meant to hold.
 
 ## Oversize inputs
 
@@ -199,8 +249,9 @@ The artifact directory is `PROVOST_ARTIFACT_DIR`, or `<store>.artifacts`
 beside the store: `~/.provost.artifacts`, or `DIR/.provost.artifacts` for a
 controlled directory (left out of its files and manifest). It is never the
 store or inside it, so no clone, `export` or handover of the store carries
-it. `provost rm` leaves it alone: one kept file serves every capture of the
-same bytes. Inputs within the cap are read and filed exactly as before;
+it. `provost rm`, `prune` and `archive --purge` leave it alone: one kept
+file serves every capture of the same bytes. `provost archive` copies the
+kept inputs of the captures it archives into the archive. Inputs within the cap are read and filed exactly as before;
 `--refuse-oversize` (`PROVOST_OVERSIZE=refuse`) refuses an input over the cap
 with "input too large", as every provost before 2.15.0 did.
 

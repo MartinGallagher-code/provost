@@ -165,6 +165,8 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost init [--object-format sha256]` | make the store now; `sha256`: in git's SHA-256 object format (git 2.29+); never converts one |
 | `provost verify [--capture ID] [--require-signed] [--allowed-signers FILE]` | store integrity: `git fsck`, each capture's output against its recorded sha256, tags, id gaps, signatures |
 | `provost store check [DIR]` | check a store against the [store format](docs/store-format.md); reads only |
+| `provost prune --policy FILE [--yes]` | dispose of captures a retention policy no longer keeps (a dry run without `--yes`); each disposal logged in `disposals.tsv` |
+| `provost archive --to DIR --before DATE [--purge --yes]` / `archive verify DIR` / `archive import DIR [DEST]` | a verifiable (and, with `PROVOST_SIGN`, signed) archive of older captures; re-imported read-only |
 | `provost help` / `help advanced` / `<command> --help` | short help / full reference / one command's usage |
 
 Every dataset row carries `#` (its number in the store), `capture` (the

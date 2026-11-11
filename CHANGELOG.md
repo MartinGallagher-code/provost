@@ -1,5 +1,81 @@
 # provost — Changelog
 
+## 2.19.0 — 2026-11-11 — store lifecycle: prune by a retention policy, and archive (PV-029)
+
+`VERSION` 2.18.0 → 2.19.0, and the `man/provost.1` header. Minor: two new
+commands. Nothing changes for a store neither is run on.
+
+- **`provost prune --policy FILE [--as-of DATE] [--yes]`** (`provost`:
+  `cmd_prune`, `_prune_policy`, `_prune_decide`). There is **no default
+  retention**: without `--policy` nothing is pruned (exit 2). A policy is
+  one rule a line, `dataset=NAME`, `dataset=*` or `tag=KEY=VALUE` (a `#%`
+  prologue or annotation key), then `keep-days=N` and/or `keep-last=N`. A
+  capture goes only when every rule that selects it lets it go, and one
+  selected by dataset rules alone is kept if it also filed a dataset no rule
+  names. **Without `--yes` it is a dry run** that lists what goes and what is
+  kept and changes nothing; with `--yes` it decides again under the store's
+  lock and disposes of them.
+- **Disposal** (`_dispose`, and `_rm_captures` taught `_RM_VERB`,
+  `_RM_WHY` and `_RM_DLOG`) goes through `rm --capture`'s machinery: the
+  captures, their rows and their tags in one commit, all or nothing (a
+  failure part way puts the store back, a new disposal log included). Git's
+  history still holds what was disposed of; nothing rewrites it.
+- **The disposal log, `disposals.tsv`** (new, committed, at the top of the
+  store): one line per capture disposed of (`capture`, `disposed`,
+  `operator`, `how`, `rule`, `ts`, `dataset`, `output_sha256`,
+  `raw_sha256`), appended in the same commit as the disposal. Nothing in
+  provost removes a line. `store check` checks its header and lines, that no
+  capture is recorded twice or is still in the store, that every one is
+  below `.next_capture_id`, and that it is committed.
+- **`provost archive --to DIR (--before DATE | --older-than N[d])
+  [--dataset NAME]... [--as-of DATE] [--purge [--yes]]`** (`cmd_archive`)
+  writes a new directory: `store.bundle` (the whole history, `git bundle
+  --all`), `ARCHIVE.tsv` (archive format 1, the store format, the object
+  format, head, who, when, the selection), `captures.tsv` (each selected
+  capture's commit and output, input and kept-input sha256),
+  `artifacts/SHA256` (the selected truncated captures' kept inputs, PV-021)
+  and `SHA256SUMS`. **Signed when PV-027's signing is configured**:
+  `PROVOST_SIGN=ssh` signs `SHA256SUMS` with `ssh-keygen -Y sign`
+  (namespace `provost-archive`, `SHA256SUMS.sig`), `gpg` with a detached
+  armoured signature (`SHA256SUMS.asc`); a key that cannot sign stops it
+  before anything is written. Otherwise unsigned. The archive is verified
+  before the command ends; without `--purge` the store is only read.
+  `--purge --yes` then disposes of the archived captures as `prune` does
+  (`how` = `archive`, the rule names the archive and its `SHA256SUMS`
+  hash); `--purge` alone writes the archive and removes nothing.
+- **`provost archive verify DIR [--allowed-signers FILE]
+  [--require-signed]`**: every file against `SHA256SUMS` and none unlisted,
+  the signature (SSH against the allowed signers or `PROVOST_ALLOWED_SIGNERS`,
+  OpenPGP against the keyring; unsigned fails only under
+  `--require-signed`), `git bundle verify`, each capture at its tag in a
+  clone with its output hash, and `provost verify --capture` on that clone.
+- **`provost archive import DIR [DEST]`** verifies the archive, then leaves
+  the clone at `DEST` and its kept inputs at `DEST.artifacts`, with every
+  write bit removed.
+- **Kept inputs (PV-021)**: `archive` copies the selected captures' kept
+  inputs into the archive; `prune` and `archive --purge` leave the store's
+  copies in place (outside git, possibly shared by identical bytes) and
+  record their `raw_sha256` in the disposal log.
+- **A read-only store is refused at once** (`_lock`): a write to a store
+  directory no one may write (an imported archive, an evidence copy) says so
+  instead of waiting out `PROVOST_LOCK_TIMEOUT` for a lock it cannot take.
+- `verify`'s count of removed ids now names prune and archive `--purge` too.
+- **No store-format bump.** `disposals.tsv` is a file an older reader can
+  ignore, and nothing a reader relied on changed (`docs/store-format.md`,
+  "Changing the format"); it is documented there (Layout, Files, Git, The
+  disposal log, Format 4, Reading a store), with a new **Archives** section.
+- Help (`prune`, `archive`, help advanced), `man/provost.1`,
+  `completions/provost.bash`, `README.md`, `docs/usage.md` ("Retention:
+  prune and archive").
+- Tests: `tests/smoke.sh` part `lifecycle` (archive of captures filed in the
+  past by a stand-in `date` with faked git dates, re-import and verify;
+  tampering found; kept inputs archived; `--purge` needs `--yes`; a prune
+  dry run changes nothing, `--yes` removes exactly the policy's matches and
+  logs each; ids continue after prune and after archive `--purge`; a failed
+  prune leaves no disposal log; `store check` on a damaged log; SSH- and
+  gpg-signed archives), and `store-spec` now archives and dry-runs a prune on
+  every format's fixture, which must stay byte for byte unchanged.
+
 ## 2.18.0 — 2026-11-11 — signed captures, the operator on every commit, and SHA-256 stores (PV-027)
 
 `VERSION` 2.17.0 → 2.18.0, and the `man/provost.1` header. Minor: new settings

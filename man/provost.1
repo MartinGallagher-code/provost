@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-11" "provost 2.18.0" "User Commands"
+.TH PROVOST 1 "2026-11-11" "provost 2.19.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -307,6 +307,38 @@ still feeds a surviving dataset is kept and its \fImeta.tsv\fR updated.
 Delete captures instead, with their tags, and the rows they filed in every
 dataset they fed; a dataset left with no rows goes too. One commit: git's
 history (the commit before it) still holds what was there.
+.TP
+.B prune \fB--policy\fR \fIfile\fR [\fB--as-of\fR \fIdate\fR] [\fB--yes\fR]
+Dispose of the captures a retention policy no longer keeps. There is no
+default retention: without \fB--policy\fR nothing is pruned. Without
+\fB--yes\fR it is a dry run that lists what would go and changes nothing.
+With \fB--yes\fR the captures go as \fBrm --capture\fR takes them (one
+commit; git's history still holds them), and each is recorded, in the same
+commit, in the store's disposal log \fIdisposals.tsv\fR (what, when, who,
+under which rule); nothing removes a record from it. A policy is one rule a
+line: \fBdataset=\fINAME\fR, \fBdataset=*\fR or \fBtag=\fIKEY\fB=\fIVALUE\fR,
+then \fBkeep-days=\fIN\fR and/or \fBkeep-last=\fIN\fR. A capture goes only
+when every rule that selects it lets it go. \fB--as-of\fR judges ages as of
+a date (UTC) rather than now. A truncated capture's kept input is left in
+place.
+.TP
+.B archive \fB--to\fR \fIdir\fR (\fB--before\fR \fIdate\fR | \fB--older-than\fR \fIN\fR[\fBd\fR]) [\fB--dataset\fR \fINAME\fR]... [\fB--as-of\fR \fIdate\fR] [\fB--purge\fR [\fB--yes\fR]]
+Write the selected captures to a new directory as a verifiable archive: a
+git bundle of the store's whole history (\fIstore.bundle\fR),
+\fIARCHIVE.tsv\fR (store format, object format, head, who, when, the
+selection), \fIcaptures.tsv\fR (each capture's commit and hashes), their
+kept inputs (\fIartifacts/\fR), and \fISHA256SUMS\fR, signed when
+\fBPROVOST_SIGN\fR is set. It is verified before the command ends. Without
+\fB--purge\fR the store is only read; \fB--purge --yes\fR then disposes of
+the archived captures as \fBprune\fR does.
+.TP
+.B archive verify \fIdir\fR [\fB--allowed-signers\fR \fIfile\fR] [\fB--require-signed\fR]
+Check an archive: every file against \fISHA256SUMS\fR, the signature, the
+bundle, each capture at its tag, and \fBverify\fR on a clone of it.
+.TP
+.B archive import \fIdir\fR [\fIdest\fR]
+Verify an archive, then open it read-only as a store at \fIdest\fR (its
+kept inputs at \fIdest\fB.artifacts\fR).
 .TP
 .B stats \fINAME\fR [analyze-args]
 Statistics on a dataset (\fB--all\fR for every analysis).
@@ -744,8 +776,8 @@ module are loaded only from provost's own installation directory, never from
 the store (which a shared store's other members can write to). provost's git
 calls also disable hooks and fsmonitor.
 .PP
-Capture ids and row indices are never reused (not after \fBrm\fR, not after
-\fBrestore\fR). Runtime files (the lock, the failure log, temporary files) are
+Capture ids and row indices are never reused (not after \fBrm\fR,
+\fBprune\fR or \fBarchive --purge\fR, not after \fBrestore\fR). Runtime files (the lock, the failure log, temporary files) are
 listed in the store's \fI.gitignore\fR and never committed.
 .PP
 The store's layout is a versioned format, recorded in \fI.store_format\fR and
@@ -754,7 +786,8 @@ format. A command that writes migrates an older store to the current format
 first, in a commit of its own; a command that only reads (\fBls\fR,
 \fBshow\fR, \fBsource\fR, \fBlog\fR, \fBsearch\fR, \fBfiles\fR,
 \fBdiff\fR, \fBstats\fR, \fBtriage\fR, \fBverify\fR, \fBdoctor\fR,
-\fBexport\fR, \fBstore check\fR) never changes a store on disk and works on
+\fBexport\fR, \fBstore check\fR, \fBarchive\fR without \fB--purge\fR, and
+\fBprune\fR without \fB--yes\fR) never changes a store on disk and works on
 one it cannot write.
 .PP
 The store lock records host, pid, uid and time. It is broken as stale only when

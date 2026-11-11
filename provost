@@ -929,6 +929,11 @@ _lock () {
     done
     max=$((PROVOST_LOCK_TIMEOUT * 5))
     mkdir -p "$dir" 2>/dev/null || true
+    # a store no one may write (an imported archive, PV-029; an evidence
+    # copy): say so now, rather than wait out a lock that cannot be taken
+    if [[ -d "$dir" && ! -w "$dir" && ! -e "$lock" ]]; then
+        die "the store at $dir is read-only (an imported archive, or a copy kept as evidence) — provost does not write to it."
+    fi
     while ! mkdir "$lock" 2>/dev/null; do
         [[ -d "$dir" ]] || die "cannot create the store directory: $dir"
         if _lock_stale "$lock" && _lock_break "$lock"; then continue; fi
@@ -1213,7 +1218,7 @@ _ensure_workspace () {
 }
 
 # Allocate the next capture id from the monotonic counter (under the lock).
-# Ids are never reused — not after an 'rm' purge, not after a 'restore'.
+# Ids are never reused — not after an 'rm' purge, a prune or an archive --purge, not after a 'restore'.
 # Result in $_CAPID.
 _next_capture_id () {
     local f n; f="$(_capid_file)"
@@ -3457,6 +3462,62 @@ usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the cap
   the deletion is one commit, and git's history keeps what was there.
 EOF
             ;;
+        prune) cat <<'EOF'
+usage: provost prune --policy FILE [--as-of DATE] [--yes]
+  Dispose of the captures a retention policy no longer keeps. provost has no
+  retention of its own: without --policy it prunes nothing. Without --yes it
+  is a dry run: it lists what would go and what is kept, and changes nothing.
+  With --yes the captures go as 'rm --capture' takes them (with the rows
+  they filed, in one commit; git's history still holds them), and each one is
+  recorded in the store's disposal log, disposals.tsv (what, when, who, under
+  which rule), in the same commit. Nothing removes a record from that log.
+  Capture ids are never used again.
+  A policy is one rule a line ('#' comments and blank lines are skipped):
+    dataset=NAME          keep-days=N keep-last=N
+    dataset=*             (a rule for each dataset)
+    tag=KEY=VALUE         (captures whose '#%' prologue or annotations set it)
+  Within a rule's captures, one is kept while it is younger than keep-days
+  days or among the newest keep-last; a capture goes only when every rule
+  that selects it lets it go, and (selected by dataset rules alone) every
+  dataset it filed into is named by one. Anything no rule selects is kept.
+  The policy's name and sha256 are in the commit and in each record.
+options:
+  --policy FILE   the retention rules (required)
+  --as-of DATE    judge ages as of DATE (YYYY-MM-DD or ...THH:MM:SSZ, UTC),
+                  not now: what a policy would have done, or will do
+  --yes, -y       dispose of them (otherwise: a dry run)
+  A truncated capture's kept input (beside the store, outside git) is left in
+  place; its sha256 is in the disposal record.
+EOF
+            ;;
+        archive) cat <<'EOF'
+usage: provost archive --to DIR (--before DATE | --older-than N[d])
+                       [--dataset NAME]... [--as-of DATE] [--purge [--yes]]
+       provost archive verify DIR [--allowed-signers FILE] [--require-signed]
+       provost archive import DIR [DEST]
+  Write the captures filed before DATE (or more than N days before now, or
+  --as-of), of the datasets named (else all), to a new directory DIR: a git
+  bundle of the store's whole history as it is now (store.bundle), what the
+  archive is (ARCHIVE.tsv: the store format, object format, head, who, when,
+  the selection), the captures it was made for (captures.tsv: each one's
+  commit and its output, input and kept-input sha256), their inputs kept
+  over the size cap (artifacts/), and SHA256SUMS of all of it. With
+  PROVOST_SIGN set, SHA256SUMS is signed with PROVOST_SIGNING_KEY
+  (SHA256SUMS.sig, ssh; SHA256SUMS.asc, gpg); otherwise the archive is
+  unsigned. The archive is verified before the command finishes. Without
+  --purge the store is only read.
+  --purge --yes then disposes of the archived captures as 'provost prune'
+  does (one commit; recorded in disposals.tsv, naming the archive). --purge
+  without --yes writes the archive and removes nothing.
+  verify: the manifest, every file against SHA256SUMS (and none unlisted),
+  the signature (an SSH one against --allowed-signers or
+  PROVOST_ALLOWED_SIGNERS; --require-signed fails an unsigned archive), the
+  bundle, each capture at its tag, and 'provost verify' on a clone of it.
+  Exit 0 with no findings, 1 with them.
+  import: verify it, then open it as a store at DEST (its kept inputs at
+  DEST.artifacts), read-only: browse it with PROVOST_WORKSPACE=DEST.
+EOF
+            ;;
         annotate) cat <<'EOF'
 usage: provost annotate ID KEY=VALUE...
   Add run-manifest keys decided after the run (reviewer, disposition, ...) to
@@ -5401,10 +5462,16 @@ _rm_cap_apply () {
     done
     if [[ -f "$tmpd/prov" ]]; then mv "$tmpd/prov" "$prov" || return 1; fi
     while IFS= read -r c; do rm -rf "${cap:?}/$c" || return 1; done < "$tmpd/ids"
+    # prune and archive --purge (PV-029): their disposal records, appended
+    # to the disposal log in the same commit
+    if [[ -n "$dlogf" ]]; then
+        if [[ ! -f "$dlogf" ]]; then printf '%s\n' "$_DISPOSAL_HDR" > "$dlogf" || return 1; fi
+        cat "$_RM_DLOG" >> "$dlogf" || return 1
+    fi
     # only what it touches: anything else in the store is not this commit's
-    _git add -A -- "${rb[@]}" >/dev/null 2>&1 || return 1
-    if ! _git diff --cached --quiet -- "${rb[@]}" >/dev/null 2>&1; then
-        _git commit -q -m "$(_with_operator "$msg")" -- "${rb[@]}" >/dev/null 2>&1 || return 1
+    _git add -A -- "${rb[@]}" ${dlogf:+"$dlogf"} >/dev/null 2>&1 || return 1
+    if ! _git diff --cached --quiet -- "${rb[@]}" ${dlogf:+"$dlogf"} >/dev/null 2>&1; then
+        _git commit -q -m "$(_with_operator "$msg")" -- "${rb[@]}" ${dlogf:+"$dlogf"} >/dev/null 2>&1 || return 1
     fi
     return 0
 }
@@ -5430,11 +5497,16 @@ _rm_cap_commit () {
             _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 && { put=0; break; }   # tree and index
             tries=$((tries + 1)); sleep 0.2
         done
+        # a disposal log this rm was to create is not in HEAD to put back from
+        if (( dlognew )) && [[ -n "$dlogf" ]]; then
+            _git rm -q --cached --ignore-unmatch -- "$dlogf" >/dev/null 2>&1 || true
+            rm -f -- "$dlogf" || put=1
+        fi
         (( put == 0 )) && _rm_cap_exit 1
         _rm_cap_exit 2
     fi
     tries=0
-    until _git reset -q -- "${rb[@]}" >/dev/null 2>&1; do
+    until _git reset -q -- "${rb[@]}" ${dlogf:+"$dlogf"} >/dev/null 2>&1; do
         tries=$((tries + 1)); (( tries < 5 )) || { : > "$tmpd/indexstale"; break; }; sleep 0.2
     done
     # their tags, capture-<id> and files-<id> where it kept files, in one go
@@ -5522,9 +5594,13 @@ _rm_cap_exit () {
 # it touches must be committed before it starts, and any failure on the way
 # (a signal included) puts those paths back from HEAD, so it either commits
 # the whole deletion or leaves the store as it was.
+# prune and archive --purge (PV-029) dispose of captures through this too,
+# with _RM_VERB (the commit's subject: "prune: disposed of ..."), _RM_WHY
+# (what it adds to the subject) and _RM_DLOG (a file of disposal records,
+# appended to the disposal log in the same commit) set by the caller.
 _rm_captures () {
     local yes="$1"; shift
-    local dir cap prov tmpd c count removed=0 msg shown _rmsig=0
+    local dir cap prov tmpd c count removed=0 msg shown _rmsig=0 dlogf="" dlognew=0
     local names=() keep=() gone=() missing=() rb=()
     local GIT_LITERAL_PATHSPECS=1; export GIT_LITERAL_PATHSPECS
     dir="$(_ds_dir)"; cap="$(_cap_dir)"; prov="$(_prov_file)"
@@ -5562,6 +5638,14 @@ _rm_captures () {
     fi
     [[ -f "$prov" ]] && rb+=("$prov")
     rb+=("$cap")
+    if [[ -n "${_RM_DLOG:-}" ]]; then
+        dlogf="$(_disposal_file)"
+        if _git cat-file -e "HEAD:${dlogf##*/}" >/dev/null 2>&1; then rb+=("$dlogf")
+        elif [[ -e "$dlogf" ]]; then
+            _unlock
+            die "the store has a disposal log that was never committed ($dlogf) — commit or remove it first; nothing disposed of."
+        else dlognew=1; fi
+    fi
     if [[ -n "$(_git status --porcelain --untracked-files=all -- "${rb[@]}" 2>/dev/null)" ]]; then
         _unlock
         die "the store has uncommitted changes to its datasets, provenance or captures (see: git -C $(printf '%q' "$PROVOST_WORKSPACE") status) — commit or discard them first; nothing deleted."
@@ -5579,8 +5663,13 @@ _rm_captures () {
     local rbrel="" r
     for r in "${rb[@]}"; do rbrel+=" $(printf '%q' "${r#"$PROVOST_WORKSPACE"/}")"; done
     local wsq; wsq="$(printf '%q' "$PROVOST_WORKSPACE")"
-    msg="rm: deleted $count capture(s) [$shown], pruned $removed row(s)"
+    if [[ -n "${_RM_VERB:-}" ]]; then
+        msg="$_RM_VERB: disposed of $count capture(s) [$shown], pruned $removed row(s)"
+    else
+        msg="rm: deleted $count capture(s) [$shown], pruned $removed row(s)"
+    fi
     (( ${#gone[@]} > 0 )) && msg="$msg, emptied ${#gone[@]} dataset(s) [${gone[*]}]"
+    msg="$msg${_RM_WHY:-}"
 
     local head0; head0="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
     local rmowner="" i
@@ -5659,6 +5748,632 @@ _rm_captures () {
     (( ${#gone[@]} > 0 )) && extra=" ${gone[*]} had no rows left, and went too."
     ok "deleted $count capture(s) ($shown) and the $removed row(s) they filed.$extra $tagged's history (the commit before this one) still holds what was there."
     (( _rmsig == 0 )) || exit "$_rmsig"
+}
+
+# ---------------------------------------------------------------------------
+# Store lifecycle (PV-029): prune by a retention policy, and archive.
+#   provost prune --policy FILE [--as-of DATE] [--yes]
+#   provost archive --to DIR (--before DATE | --older-than N[d]) [--dataset NAME]...
+#                   [--as-of DATE] [--purge [--yes]]
+#   provost archive verify DIR [--allowed-signers FILE] [--require-signed]
+#   provost archive import DIR [DEST]
+# Neither has a default: prune does nothing without a policy, and changes
+# nothing without --yes (a dry run says what would go). A disposal goes
+# through rm --capture's machinery (_rm_captures): one commit, all or
+# nothing, and git's history still holds what was removed. Each disposal is
+# appended, in that same commit, to the disposal log (disposals.tsv), which
+# nothing in provost ever removes a line from. Capture ids are never reused.
+# ---------------------------------------------------------------------------
+_DISPOSAL_HDR=$'capture\tdisposed\toperator\thow\trule\tts\tdataset\toutput_sha256\traw_sha256'
+_disposal_file () { printf '%s/disposals.tsv\n' "$PROVOST_WORKSPACE"; }
+_ARCHIVE_FORMAT=1
+_ARCHIVE_CAPS_HDR=$'capture\tts\tdataset\tcommit\toutput_sha256\tinput_sha256\traw_sha256'
+
+# _epoch_of DATE — DATE (YYYY-MM-DD, or YYYY-MM-DDTHH:MM:SS with an optional
+# Z; always UTC) as seconds since 1970, by arithmetic alone (GNU and BSD date
+# parse dates differently). Fails on anything else.
+_epoch_of () {
+    [[ "$1" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})(T([0-9]{2}):([0-9]{2}):([0-9]{2})Z?)?$ ]] || return 1
+    local y=$((10#${BASH_REMATCH[1]})) m=$((10#${BASH_REMATCH[2]})) d=$((10#${BASH_REMATCH[3]}))
+    local H=$((10#${BASH_REMATCH[5]:-0})) M=$((10#${BASH_REMATCH[6]:-0})) S=$((10#${BASH_REMATCH[7]:-0}))
+    (( m >= 1 && m <= 12 && d >= 1 && d <= 31 && H <= 23 && M <= 59 && S <= 60 && y >= 1970 )) || return 1
+    (( m <= 2 )) && y=$((y - 1))
+    local era=$((y / 400)) yoe doy doe
+    yoe=$((y - era * 400)); doy=$(( (153 * ((m + 9) % 12) + 2) / 5 + d - 1 ))
+    doe=$((yoe * 365 + yoe / 4 - yoe / 100 + doy))
+    printf '%s\n' $(( (era * 146097 + doe - 719468) * 86400 + H * 3600 + M * 60 + S ))
+}
+# _iso_of EPOCH — EPOCH as YYYY-MM-DDTHH:MM:SSZ (the inverse, by arithmetic).
+_iso_of () {
+    local t="$1" z era doe yoe y doy mp d m
+    z=$((t / 86400 + 719468)); era=$((z / 146097)); doe=$((z - era * 146097))
+    yoe=$(( (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365 ))
+    y=$((yoe + era * 400)); doy=$((doe - (365 * yoe + yoe / 4 - yoe / 100)))
+    mp=$(( (5 * doy + 2) / 153 )); d=$((doy - (153 * mp + 2) / 5 + 1))
+    m=$(( mp < 10 ? mp + 3 : mp - 9 )); (( m <= 2 )) && y=$((y + 1))
+    printf '%04d-%02d-%02dT%02d:%02d:%02dZ\n' "$y" "$m" "$d" $(( t % 86400 / 3600 )) $(( t % 3600 / 60 )) $(( t % 60 ))
+}
+# _now_epoch [AS-OF] — AS-OF (a DATE) when given, else now.
+_now_epoch () {
+    if [[ -n "${1:-}" ]]; then _epoch_of "$1" || usage_die "--as-of wants a date, YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ (UTC), got '$1'."
+    else date -u +%s; fi
+}
+
+# _lc_scan OUT — the live captures (captures/*/meta.tsv), one line each in
+# capture-number order: id, ts, epoch of ts (-1 when it is not a date),
+# dataset(s), output_sha256, input_sha256, raw_sha256, raw_artifact.
+_lc_scan () {
+    local out="$1" cap f
+    cap="$(_cap_dir)"
+    : > "$out"
+    [[ -d "$cap" ]] || return 0
+    local -a metas=()
+    for f in "$cap"/c*/meta.tsv; do [[ -f "$f" ]] && metas+=("$f"); done
+    (( ${#metas[@]} > 0 )) || return 0
+    LC_ALL=C awk -F'\t' '
+        function flush() {
+            if (id == "") return
+            e = -1
+            if (match(ts, /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z$/)) {
+                y = substr(ts, 1, 4) + 0; m = substr(ts, 6, 2) + 0; d = substr(ts, 9, 2) + 0
+                if (m <= 2) y--
+                era = int(y / 400); yoe = y - era * 400
+                doy = int((153 * ((m + 9) % 12) + 2) / 5) + d - 1
+                doe = yoe * 365 + int(yoe / 4) - int(yoe / 100) + doy
+                e = (era * 146097 + doe - 719468) * 86400 + substr(ts, 12, 2) * 3600 + substr(ts, 15, 2) * 60 + substr(ts, 18, 2)
+            }
+            n = id; sub(/^c/, "", n)
+            printf "%d\t%s\t%s\t%.0f\t%s\t%s\t%s\t%s\t%s\n", n + 0, id, ts, e, ds, osha, isha, rsha, rart
+        }
+        FNR == 1 { flush(); id = ""; ts = ""; ds = ""; osha = ""; isha = ""; rsha = ""; rart = ""
+                   f = FILENAME; sub(/\/meta\.tsv$/, "", f); sub(/^.*\//, "", f); dirid = f }
+        $1 == "id" { id = $2 }
+        $1 == "ts" { ts = $2 }
+        $1 == "dataset" { ds = substr($0, 9) }
+        $1 == "output_sha256" { osha = $2 }
+        $1 == "input_sha256" { isha = $2 }
+        $1 == "raw_sha256" { rsha = $2 }
+        $1 == "raw_artifact" { rart = substr($0, 14) }
+        END { flush() }' "${metas[@]}" | sort -n -k1,1 | cut -f2- > "$out"
+}
+
+# _kept_input SHA ARTIFACT — the path of a truncated capture's kept input
+# (PV-021): at ARTIFACT, else by its hash in today's artifact directory.
+_kept_input () {
+    if [[ -n "$2" && -f "$2" ]]; then printf '%s\n' "$2"
+    else printf '%s/%s\n' "$(_artifact_dir)" "$1"; fi
+}
+
+# _dispose WHY HOW RULEFILE ID... — dispose of the captures (as rm --capture
+# does, already decided and confirmed) and record each in the disposal log.
+# RULEFILE: "ID<TAB>rule" lines, the rule that let each go. Called with the
+# store's lock held and on its branch.
+_dispose () {
+    local why="$1" how="$2" rules="$3"; shift 3
+    local d when op
+    _mktempd dispose; d="$_MKTEMPD"
+    when="$(_iso_of "$(date -u +%s)")"; op="$(_operator)"
+    _lc_scan "$d/caps"
+    printf '%s\n' "$@" > "$d/ids"
+    LC_ALL=C awk -F'\t' -v OFS='\t' -v W="$when" -v OP="$op" -v H="$how" '
+        FILENAME == ARGV[1] { want[$1] = 1; next }
+        FILENAME == ARGV[2] { r = $0; sub(/^[^\t]*\t/, "", r); gsub(/\t/, " ", r); rule[$1] = r; next }
+        ($1 in want) { print $1, W, OP, H, rule[$1], $2, $4, $5, $7 }' "$d/ids" "$rules" "$d/caps" > "$d/log"
+    _RM_VERB="$how" _RM_WHY="$why" _RM_DLOG="$d/log" _rm_captures 1 "$@"
+    ok "recorded $# disposal(s) in $(_disposal_file) (who: $op; when: $when)."
+    local nk; nk="$(awk -F'\t' '$9 != ""' "$d/log" | wc -l | tr -d ' ')"
+    if (( nk > 0 )); then
+        info "$nk of them had an input over the size cap kept beside the store; those copies are left in place in $(_artifact_dir) (outside git; the disposal log records their raw_sha256)."
+    fi
+}
+
+# --- prune -------------------------------------------------------------------
+# A policy file: one rule a line, '#' comments and blank lines ignored.
+#   SELECTOR KEEP...
+#   dataset=NAME | dataset=* | tag=KEY=VALUE      keep-days=N  keep-last=N
+# A line selects captures: those that filed into dataset NAME (dataset=* is
+# a line for each dataset), or whose '#%' prologue or annotations set KEY to
+# VALUE. Within a line's selection a capture is kept while it is younger than
+# keep-days days, or among the newest keep-last; otherwise that line lets it
+# go. A capture goes only when some line selects it and every line that
+# selects it lets it go, and (when only dataset lines select it) every
+# dataset it filed into is named by one. Anything else is kept.
+_prune_policy () {   # FILE OUT -> OUT: lineno, kind, value, days, last, text
+    local f="$1" out="$2" ln=0 line w sel kind val days last text
+    : > "$out"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        ln=$((ln + 1))
+        line="${line%$'\r'}"
+        [[ "$line" =~ ^[[:space:]]*(#.*)?$ ]] && continue
+        local -a words=()
+        read -r -a words <<< "$line"
+        sel="${words[0]}"; days=""; last=""
+        case "$sel" in
+            dataset=\*) kind=dataset; val='*' ;;
+            dataset=*) kind=dataset; val="${sel#dataset=}"
+                       _valid_name "$val" || usage_die "policy $f line $ln: '$val' is not a dataset name." ;;
+            tag=*=*) kind=tag; val="${sel#tag=}"
+                     [[ "${val%%=*}" =~ $_MKEY_RE ]] || usage_die "policy $f line $ln: '${val%%=*}' is not a prologue key." ;;
+            *) usage_die "policy $f line $ln: a rule starts with dataset=NAME, dataset=* or tag=KEY=VALUE (got '$sel')." ;;
+        esac
+        for w in "${words[@]:1}"; do
+            case "$w" in
+                keep-days=*) [[ -z "$days" ]] || usage_die "policy $f line $ln: keep-days twice."
+                             days="${w#keep-days=}" ;;
+                keep-last=*) [[ -z "$last" ]] || usage_die "policy $f line $ln: keep-last twice."
+                             last="${w#keep-last=}" ;;
+                *) usage_die "policy $f line $ln: '$w' is not keep-days=N or keep-last=N." ;;
+            esac
+        done
+        [[ -n "$days$last" ]] || usage_die "policy $f line $ln: a rule needs keep-days=N, keep-last=N or both."
+        [[ -z "$days" || "$days" =~ ^[0-9]{1,6}$ ]] || usage_die "policy $f line $ln: keep-days wants a number of days, got '$days'."
+        [[ -z "$last" || "$last" =~ ^[0-9]{1,9}$ ]] || usage_die "policy $f line $ln: keep-last wants a number of captures, got '$last'."
+        text="${words[*]}"
+        printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$ln" "$kind" "$val" "${days:--}" "${last:--}" "$text" >> "$out"
+    done < "$f"
+    [[ -s "$out" ]] || usage_die "policy $f has no rules: nothing would ever go (a rule is SELECTOR keep-days=N and/or keep-last=N)."
+}
+
+# _prune_decide RULES CAPS TAGS NOW LABEL OUT — OUT: one line per capture
+# some rule selects: id, go|keep, ts, dataset(s), the rule(s) that let it go
+# or the reason it is kept.
+_prune_decide () {
+    LC_ALL=C awk -F'\t' -v NOW="$4" -v LABEL="$5" '
+        FILENAME == ARGV[1] { nr++; PL[nr] = $1; PK[nr] = $2; PV[nr] = $3; PD[nr] = $4; PN[nr] = $5; PT[nr] = $6; next }
+        FILENAME == ARGV[2] { nc++; ID[nc] = $1; TS[nc] = $2; EP[nc] = $3; DS[nc] = $4
+                              k = split($4, p, ","); for (i = 1; i <= k; i++) { FED[nc, p[i]] = 1; ALLDS[p[i]] = 1 }
+                              NDS[nc] = k; for (i = 1; i <= k; i++) DSN[nc, i] = p[i]; next }
+        FILENAME == ARGV[3] { TAG[$1, $2] = $3; next }
+        END {
+            # rule instances: dataset=* is one per dataset
+            ni = 0
+            for (r = 1; r <= nr; r++) {
+                if (PK[r] == "dataset" && PV[r] == "*") { for (d in ALLDS) { ni++; IR[ni] = r; IV[ni] = d } ; STAR = 1 }
+                else { ni++; IR[ni] = r; IV[ni] = PV[r] }
+                if (PK[r] == "dataset") NAMED[PV[r]] = 1
+            }
+            for (i = 1; i <= ni; i++) {
+                r = IR[i]; v = IV[i]; m = 0
+                for (c = 1; c <= nc; c++) {
+                    if (PK[r] == "dataset") sel = ((c, v) in FED)
+                    else { kk = v; sub(/=.*/, "", kk); vv = substr(v, length(kk) + 2); sel = ((ID[c], kk) in TAG) && TAG[ID[c], kk] == vv }
+                    if (sel) S[++m] = c
+                }
+                # newest last: S is in capture order
+                for (j = 1; j <= m; j++) {
+                    c = S[j]; nsel[c]++; if (PK[r] == "tag") bytag[c] = 1
+                    label = LABEL " line " PL[r] ": " PT[r]
+                    keep = ""
+                    if (EP[c] < 0) keep = "its ts is not a date"
+                    else if (PD[r] != "-" && NOW - EP[c] < PD[r] * 86400) keep = "younger than " PD[r] " day(s)"
+                    if (keep == "" && PN[r] != "-" && j > m - PN[r]) keep = "one of the newest " PN[r]
+                    if (keep != "") { if (!(c in why)) why[c] = "kept by line " PL[r] " (" (PK[r] == "dataset" && PV[r] == "*" ? "dataset " v ", " : "") keep ")"; kept[c] = 1 }
+                    else if (!(c in go)) go[c] = label
+                }
+            }
+            for (c = 1; c <= nc; c++) {
+                if (!(c in nsel)) continue
+                st = "go"; rs = go[c]
+                if (c in kept) { st = "keep"; rs = why[c] }
+                else if (!(c in bytag) && !STAR) {
+                    for (i = 1; i <= NDS[c]; i++) if (!(DSN[c, i] in NAMED)) { st = "keep"; rs = "it also filed into " DSN[c, i] ", which no rule names"; break }
+                }
+                printf "%s\t%s\t%s\t%s\t%s\n", ID[c], st, TS[c], DS[c], rs
+            }
+        }' "$1" "$2" "$3" > "$6"
+}
+
+cmd_prune () {
+    local policy="" yes=0 asof=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help prune ;;
+            --policy) [[ $# -ge 2 ]] || usage_die "--policy needs a FILE."; policy="$2"; shift 2 ;;
+            --policy=*) policy="${1#--policy=}"; shift ;;
+            --as-of) [[ $# -ge 2 ]] || usage_die "--as-of needs a DATE."; asof="$2"; shift 2 ;;
+            --as-of=*) asof="${1#--as-of=}"; shift ;;
+            -y|--yes) yes=1; shift ;;
+            *) usage_die "prune: unknown argument: $1 (see 'provost help prune')." ;;
+        esac
+    done
+    [[ -n "$policy" ]] || usage_die "prune needs --policy FILE: provost has no retention of its own, and prunes nothing without one (see 'provost help prune')."
+    [[ -f "$policy" && -r "$policy" ]] || die "no such policy file: $policy"
+    local now; now="$(_now_epoch "$asof")"
+    _mktempd prune; local tmp="$_MKTEMPD"
+    _prune_policy "$policy" "$tmp/rules"
+    if [[ ! -d "$PROVOST_WORKSPACE/.git" ]]; then info "no store at $PROVOST_WORKSPACE — nothing to prune."; return 0; fi
+    local psha label
+    psha="$(_sha256 "$policy")"
+    label="policy ${policy##*/}${psha:+ (sha256 ${psha:0:12})}"
+    if (( yes )); then
+        # decided under the lock, from what is there then
+        _ensure_workspace
+        _lock
+        _require_on_branch
+    fi
+    _lc_scan "$tmp/caps"
+    local c f
+    : > "$tmp/tags"
+    while IFS=$'\t' read -r c _; do
+        local -a pf=()
+        for f in "$(_cap_dir)/$c/context.txt" "$(_cap_dir)/$c/annotations.txt"; do [[ -f "$f" ]] && pf+=("$f"); done
+        (( ${#pf[@]} > 0 )) || continue
+        _prologue_kv "${pf[@]}" | awk -F'\t' -v OFS='\t' -v C="$c" '{ v[$1] = $2 } END { for (k in v) print C, k, v[k] }' >> "$tmp/tags"
+    done < "$tmp/caps"
+    _prune_decide "$tmp/rules" "$tmp/caps" "$tmp/tags" "$now" "$label" "$tmp/decide"
+    local ngo nkeep
+    ngo="$(awk -F'\t' '$2 == "go"' "$tmp/decide" | wc -l | tr -d ' ')"
+    nkeep="$(awk -F'\t' '$2 == "keep"' "$tmp/decide" | wc -l | tr -d ' ')"
+    printf 'prune: %s, %d rule(s), as of %s\n' "$label" "$(wc -l < "$tmp/rules" | tr -d ' ')" "$(_iso_of "$now")"
+    awk -F'\t' '$2 == "go" { printf "  goes  %-7s %s  %-16s %s\n", $1, $3, $4, $5 }' "$tmp/decide"
+    awk -F'\t' '$2 == "keep" { printf "  kept  %-7s %s  %-16s %s\n", $1, $3, $4, $5 }' "$tmp/decide"
+    if (( ngo == 0 )); then
+        (( yes )) && _unlock
+        printf '   nothing to dispose of: %d capture(s) selected, all kept\n' "$nkeep"
+        return 0
+    fi
+    if (( ! yes )); then
+        printf '   dry run: %d capture(s) would be disposed of (and the rows they filed), %d kept. Nothing changed; run again with --yes to dispose of them.\n' "$ngo" "$nkeep"
+        return 0
+    fi
+    awk -F'\t' -v OFS='\t' '$2 == "go" { print $1, $5 }' "$tmp/decide" > "$tmp/rulefile"
+    local -a ids=()
+    while IFS=$'\t' read -r c _; do ids+=("$c"); done < "$tmp/rulefile"
+    _dispose " under $label" prune "$tmp/rulefile" "${ids[@]}"
+}
+
+# --- archive -----------------------------------------------------------------
+# An archive is a directory:
+#   store.bundle   the store's whole history (git bundle --all), as of then
+#   ARCHIVE.tsv    key<TAB>value: the archive format, the provost, the
+#                  store's format and object format, when, who, the branch
+#                  and its head, the selection
+#   captures.tsv   the captures it was made for: id, ts, dataset(s), the
+#                  commit their tag names, and their output, input and kept
+#                  input (raw) sha256
+#   artifacts/SHA  each of those captures' kept inputs over the size cap
+#   SHA256SUMS     the sha256 of every file above
+#   SHA256SUMS.sig an SSH signature of SHA256SUMS (PROVOST_SIGN=ssh), or
+#   SHA256SUMS.asc an OpenPGP one (PROVOST_SIGN=gpg)
+_ARCHIVE_NS=provost-archive
+cmd_archive () {
+    case "${1:-}" in
+        verify) shift; _archive_verify_cmd "$@"; return ;;
+        import) shift; _archive_import "$@"; return ;;
+    esac
+    local to="" before="" older="" asof="" purge=0 yes=0 v
+    local -a dss=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help archive ;;
+            --to) [[ $# -ge 2 ]] || usage_die "--to needs a DIR."; to="$2"; shift 2 ;;
+            --to=*) to="${1#--to=}"; shift ;;
+            --before) [[ $# -ge 2 ]] || usage_die "--before needs a DATE."; before="$2"; shift 2 ;;
+            --before=*) before="${1#--before=}"; shift ;;
+            --older-than) [[ $# -ge 2 ]] || usage_die "--older-than needs a number of days (365d)."; older="$2"; shift 2 ;;
+            --older-than=*) older="${1#--older-than=}"; shift ;;
+            --as-of) [[ $# -ge 2 ]] || usage_die "--as-of needs a DATE."; asof="$2"; shift 2 ;;
+            --as-of=*) asof="${1#--as-of=}"; shift ;;
+            --dataset) [[ $# -ge 2 ]] || usage_die "--dataset needs a NAME."; v="$2"; shift 2
+                       _require_name "$v"; dss+=("$v") ;;
+            --dataset=*) v="${1#--dataset=}"; shift; _require_name "$v"; dss+=("$v") ;;
+            --purge) purge=1; shift ;;
+            -y|--yes) yes=1; shift ;;
+            *) usage_die "archive: unknown argument: $1 (see 'provost help archive')." ;;
+        esac
+    done
+    [[ -n "$to" ]] || usage_die "archive needs --to DIR, where the archive is written (a new directory)."
+    [[ -n "$before" || -n "$older" ]] || usage_die "archive needs --before DATE or --older-than N[d]: which captures to archive."
+    [[ -z "$before" || -z "$older" ]] || usage_die "archive takes --before or --older-than, not both."
+    local cutoff sel
+    if [[ -n "$before" ]]; then
+        [[ -z "$asof" ]] || usage_die "--as-of goes with --older-than, not --before."
+        cutoff="$(_epoch_of "$before")" || usage_die "--before wants a date, YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ (UTC), got '$before'."
+        sel="filed before $(_iso_of "$cutoff")"
+    else
+        [[ "$older" =~ ^([0-9]{1,6})d?$ ]] || usage_die "--older-than wants a number of days (365 or 365d), got '$older'."
+        cutoff=$(( $(_now_epoch "$asof") - 10#${BASH_REMATCH[1]} * 86400 ))
+        sel="older than ${BASH_REMATCH[1]} day(s): filed before $(_iso_of "$cutoff")"
+    fi
+    (( ${#dss[@]} > 0 )) && sel="$sel; dataset ${dss[*]}"
+    (( yes && ! purge )) && usage_die "--yes goes with --purge: an archive without --purge removes nothing."
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store at $PROVOST_WORKSPACE — nothing to archive."
+    _git rev-parse -q --verify HEAD >/dev/null 2>&1 || die "nothing to archive — the store has no commits yet."
+    _archive_sign_ready
+
+    # Purging writes, so it migrates an older store first (in a commit the
+    # bundle then carries) and holds the lock from the bundle to the purge;
+    # an archive alone only reads.
+    if (( purge && yes )); then
+        _ensure_workspace; _lock; _require_on_branch
+    else
+        _lock_if_writable
+    fi
+    _mktempd archive; local tmp="$_MKTEMPD"
+    _lc_scan "$tmp/caps"
+    DSS="$(printf '%s\n' ${dss[@]+"${dss[@]}"})" LC_ALL=C awk -F'\t' -v CUT="$cutoff" '
+        BEGIN { n = split(ENVIRON["DSS"], d, "\n"); for (i = 1; i <= n; i++) if (d[i] != "") { want[d[i]] = 1; any = 1 } }
+        $3 < 0 || $3 >= CUT { next }
+        any { k = split($4, p, ","); hit = 0; for (i = 1; i <= k; i++) if (p[i] in want) hit = 1; if (!hit) next }
+        { print }' "$tmp/caps" > "$tmp/sel"
+    local nsel; nsel="$(wc -l < "$tmp/sel" | tr -d ' ')"
+    if (( nsel == 0 )); then
+        _unlock
+        info "no capture was $sel — no archive written."
+        return 0
+    fi
+
+    local dest; dest="$(_abspath "$to")"
+    [[ -e "$dest" ]] && die "the archive's directory already exists: $dest (an archive is always written to a new one)."
+    mkdir -p -- "$(dirname -- "$dest")" 2>/dev/null || true
+    mkdir -- "$dest" 2>/dev/null || die "cannot create the archive's directory: $dest"
+    _TMPDIRS+=("$dest")      # removed on any failure until it is complete
+    local c ts e ds osha isha rsha rart commit kp got out
+    printf '%s\n' "$_ARCHIVE_CAPS_HDR" > "$dest/captures.tsv"
+    # (\037, not a tab, between fields: read collapses empty tab-separated ones)
+    while IFS=$'\037' read -r c ts e ds osha isha rsha rart; do
+        commit="$(_git rev-parse -q --verify "refs/tags/capture-$c^{commit}" 2>/dev/null)" \
+            || die "capture $c has no tag capture-$c to archive it by — the store may be damaged ('provost verify'); no archive written."
+        if [[ -n "$rsha" ]]; then
+            kp="$(_kept_input "$rsha" "$rart")"
+            [[ -f "$kp" ]] || die "capture $c's kept input (sha256 ${rsha:0:16}…) is not at $kp nor in $(_artifact_dir) — no archive written (it would not be whole)."
+            got="$(_sha256 "$kp")"
+            [[ "$got" == "$rsha" ]] || die "capture $c's kept input at $kp no longer hashes to what was kept — no archive written."
+            mkdir -p "$dest/artifacts"
+            [[ -f "$dest/artifacts/$rsha" ]] || cp -- "$kp" "$dest/artifacts/$rsha" || die "could not copy $kp into the archive."
+        fi
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$c" "$ts" "$ds" "$commit" "$osha" "$isha" "$rsha" >> "$dest/captures.tsv"
+    done < <(tr '\t' '\037' < "$tmp/sel")
+    out="$(_git bundle create "$dest/store.bundle" --all 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "could not write the archive's bundle — no archive written."; }
+    local main head
+    main="$(_main_branch)"; head="$(_git rev-parse -q --verify HEAD 2>/dev/null)"
+    {
+        printf 'archive_format\t%s\n' "$_ARCHIVE_FORMAT"
+        printf 'provost_version\t%s\n' "$PROVOST_VERSION"
+        printf 'store_format\t%s\n' "$(_store_format)"
+        printf 'object_format\t%s\n' "$(_object_format)"
+        printf 'created\t%s\n' "$(_iso_of "$(date -u +%s)")"
+        printf 'operator\t%s\n' "$(_operator)"
+        printf 'store\t%s\n' "$(_meta_safe "$PROVOST_WORKSPACE")"
+        printf 'branch\t%s\n' "$main"
+        printf 'head\t%s\n' "$head"
+        printf 'selection\t%s\n' "$(_meta_safe "$sel")"
+        printf 'captures\t%s\n' "$nsel"
+        printf 'signed\t%s\n' "$([[ "$PROVOST_SIGN" == off ]] && echo no || echo "$PROVOST_SIGN")"
+    } > "$dest/ARCHIVE.tsv"
+    _archive_sums "$dest" > "$dest/SHA256SUMS" || die "no sha256 tool (sha256sum, shasum or openssl) — no archive written."
+    _archive_sign "$dest"
+    # read-only, as evidence is kept
+    find "$dest" -type f -exec chmod a-w {} + 2>/dev/null || true
+    # It must verify before anything is purged on the strength of it.
+    # (not in a $(...): its scratch clone is this shell's, removed on exit)
+    if ! _archive_verify "$dest" "" 0 > "$tmp/verify" 2>&1; then
+        cat "$tmp/verify" >&2
+        chmod -R u+w "$dest" 2>/dev/null || true
+        die "the archive just written does not verify — removed; nothing purged."
+    fi
+    local -a keep=(); for v in ${_TMPDIRS[@]+"${_TMPDIRS[@]}"}; do [[ "$v" == "$dest" ]] || keep+=("$v"); done
+    _TMPDIRS=(${keep[@]+"${keep[@]}"})
+    local shown; shown="$(cut -f1 "$tmp/sel" | head -n 8 | tr '\n' ' ')"; shown="${shown% }"
+    (( nsel > 8 )) && shown="$shown …"
+    ok "archived $nsel capture(s) ($shown), $sel → $dest$([[ "$PROVOST_SIGN" == off ]] || echo ", signed ($PROVOST_SIGN)"). It verifies: provost archive verify $(printf '%q' "$dest")"
+    if (( ! purge )); then _unlock; return 0; fi
+    if (( ! yes )); then
+        _unlock
+        info "--purge without --yes: nothing removed from the store. Run again with --purge --yes to archive and then dispose of these $nsel capture(s) (to a new --to DIR)."
+        return 0
+    fi
+    local ssum; ssum="$(_sha256 "$dest/SHA256SUMS")"
+    awk -F'\t' -v OFS='\t' -v R="archive $dest (SHA256SUMS sha256 ${ssum:0:12})" '{ print $1, R }' "$tmp/sel" > "$tmp/rulefile"
+    local -a ids=()
+    while IFS=$'\t' read -r c _; do ids+=("$c"); done < "$tmp/sel"
+    _dispose " to archive ${dest##*/}" archive "$tmp/rulefile" "${ids[@]}"
+}
+
+# _archive_sums DIR — SHA256SUMS for every file in DIR but the sums and their
+# signature, as 'HEX  PATH' (sha256sum's form), sorted by path.
+_archive_sums () {
+    local d="$1" f h
+    ( cd "$d" && find . -type f ! -name SHA256SUMS ! -name SHA256SUMS.sig ! -name SHA256SUMS.asc | sed 's|^\./||' | LC_ALL=C sort ) |
+    while IFS= read -r f; do
+        h="$(_sha256 "$d/$f")"; [[ -n "$h" ]] || return 1
+        printf '%s  %s\n' "$h" "$f"
+    done
+}
+
+# _archive_sign_ready — with PROVOST_SIGN set, refuse before writing anything
+# an archive that could not be signed.
+_archive_sign_ready () {
+    case "$PROVOST_SIGN" in
+        off) return 0 ;;
+        ssh) command -v ssh-keygen >/dev/null 2>&1 || die "PROVOST_SIGN=ssh signs an archive with ssh-keygen, which is not on PATH — no archive written."
+             [[ -n "$PROVOST_SIGNING_KEY" ]] || die "PROVOST_SIGN=ssh signs an archive with PROVOST_SIGNING_KEY, which is not set — no archive written."
+             if [[ "$PROVOST_SIGNING_KEY" != key::* ]]; then
+                 [[ -r "$PROVOST_SIGNING_KEY" ]] || die "cannot sign the archive: the signing key $PROVOST_SIGNING_KEY (PROVOST_SIGNING_KEY) does not exist or cannot be read — no archive written."
+             fi ;;
+        gpg) command -v gpg >/dev/null 2>&1 || die "PROVOST_SIGN=gpg signs an archive with gpg, which is not on PATH — no archive written." ;;
+    esac
+    _sign_check
+}
+
+# _archive_sign DIR — sign DIR/SHA256SUMS with the key PROVOST_SIGN names.
+_archive_sign () {
+    local d="$1" key="$PROVOST_SIGNING_KEY" out
+    case "$PROVOST_SIGN" in
+        off) return 0 ;;
+        ssh)
+            if [[ "$key" == key::* ]]; then
+                printf '%s\n' "${key#key::}" > "$d.key.pub" && _TMPDIRS+=("$d.key.pub"); key="$d.key.pub"
+            fi
+            out="$(env ${_SIGN_ENV[@]+"${_SIGN_ENV[@]}"} ssh-keygen -q -Y sign -f "$key" -n "$_ARCHIVE_NS" "$d/SHA256SUMS" </dev/null 2>&1)" \
+                && [[ -f "$d/SHA256SUMS.sig" ]] \
+                || { printf 'ssh-keygen: %s\n' "$out" >&2; die "could not sign the archive with $key — no archive written."; }
+            rm -f "$d.key.pub" ;;
+        gpg)
+            out="$(gpg --batch --yes --armor --detach-sign ${key:+--local-user "$key"} --output "$d/SHA256SUMS.asc" "$d/SHA256SUMS" </dev/null 2>&1)" \
+                || { printf 'gpg: %s\n' "$out" >&2; die "could not sign the archive with gpg${key:+ ($key)} — no archive written."; } ;;
+    esac
+}
+
+# _archive_verify DIR ALLOWED-SIGNERS REQUIRE-SIGNED — check an archive:
+# its manifest, every file against SHA256SUMS (and nothing unlisted), the
+# signature, the bundle, each capture against its tag in a clone of it, and
+# 'provost verify --capture' on that clone. Prints findings; status 1 with
+# any. The clone is left at $_ARCHIVE_CLONE for the caller.
+_ARCHIVE_CLONE=""
+_archive_verify () {
+    local d="$1" asf="$2" reqsig="$3" nf=0 f h p af fmt ofmt
+    _afail () { printf '%sFAIL%s %s\n' "$C_ERR" "$C_RST" "$*"; nf=$((nf + 1)); }
+    _aok ()   { printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*"; }
+    [[ -f "$d/ARCHIVE.tsv" ]] || { _afail "$d has no ARCHIVE.tsv: not a provost archive"; return 1; }
+    af="$(awk -F'\t' '$1 == "archive_format" { print $2; exit }' "$d/ARCHIVE.tsv")"
+    if [[ "$af" != "$_ARCHIVE_FORMAT" ]]; then _afail "archive format '${af:0:20}' is not one this provost reads ($_ARCHIVE_FORMAT)"; return 1; fi
+    fmt="$(awk -F'\t' '$1 == "store_format" { print $2; exit }' "$d/ARCHIVE.tsv")"
+    ofmt="$(awk -F'\t' '$1 == "object_format" { print $2; exit }' "$d/ARCHIVE.tsv")"
+    _aok "archive format $af: store format ${fmt:-?}, git object format ${ofmt:-sha1}, $(awk -F'\t' '$1 == "captures" { print $2; exit }' "$d/ARCHIVE.tsv") capture(s), made $(awk -F'\t' '$1 == "created" { print $2; exit }' "$d/ARCHIVE.tsv") by $(awk -F'\t' '$1 == "operator" { print $2; exit }' "$d/ARCHIVE.tsv")"
+    # 1. every file, against SHA256SUMS
+    if [[ ! -f "$d/SHA256SUMS" ]]; then _afail "SHA256SUMS is missing"; return 1; fi
+    local nsum=0 bad=0
+    while IFS= read -r f; do
+        h="${f%%  *}"; p="${f#*  }"
+        if [[ ! "$h" =~ ^[0-9a-f]{64}$ || "$p" == /* || "$p" == *..* || -z "$p" ]]; then _afail "SHA256SUMS: not a sum line: ${f:0:80}"; bad=1; continue; fi
+        nsum=$((nsum + 1))
+        if [[ ! -f "$d/$p" ]]; then _afail "$p is listed in SHA256SUMS but missing"; bad=1
+        elif [[ "$(_sha256 "$d/$p")" != "$h" ]]; then _afail "$p does not match its sha256 in SHA256SUMS"; bad=1; fi
+    done < "$d/SHA256SUMS"
+    while IFS= read -r p; do
+        P="$p" awk 'substr($0, 67) == ENVIRON["P"] { f = 1 } END { exit !f }' "$d/SHA256SUMS" || { _afail "$p is in the archive but not in SHA256SUMS"; bad=1; }
+    done < <(cd "$d" && find . -type f ! -name SHA256SUMS ! -name SHA256SUMS.sig ! -name SHA256SUMS.asc | sed 's|^\./||' | LC_ALL=C sort)
+    (( bad )) || _aok "SHA256SUMS: all $nsum file(s) match, none unlisted"
+    # 2. the signature
+    local out prin
+    if [[ -f "$d/SHA256SUMS.sig" ]]; then
+        if ! command -v ssh-keygen >/dev/null 2>&1; then _afail "SHA256SUMS.sig is an SSH signature, and ssh-keygen is not on PATH to check it"
+        elif [[ -n "$asf" ]]; then
+            prin="$(ssh-keygen -Y find-principals -s "$d/SHA256SUMS.sig" -f "$asf" 2>/dev/null | head -n 1)"
+            if [[ -z "$prin" ]]; then _afail "SHA256SUMS.sig: the signer is not in $asf"
+            elif out="$(ssh-keygen -Y verify -f "$asf" -I "$prin" -n "$_ARCHIVE_NS" -s "$d/SHA256SUMS.sig" < "$d/SHA256SUMS" 2>&1)"; then
+                _aok "SHA256SUMS signed (ssh) by $prin, checked against $asf"
+            else _afail "SHA256SUMS.sig does not verify: ${out:0:200}"; fi
+        else
+            if out="$(ssh-keygen -Y check-novalidate -n "$_ARCHIVE_NS" -s "$d/SHA256SUMS.sig" < "$d/SHA256SUMS" 2>&1)"; then
+                if (( reqsig )); then _afail "SHA256SUMS is signed (ssh), but there is no allowed-signers file to check who signed it (--allowed-signers or PROVOST_ALLOWED_SIGNERS)"
+                else _aok "SHA256SUMS signed (ssh): the signature is good; the signer is not checked (no allowed-signers file)"; fi
+            else _afail "SHA256SUMS.sig does not verify: ${out:0:200}"; fi
+        fi
+    elif [[ -f "$d/SHA256SUMS.asc" ]]; then
+        if ! command -v gpg >/dev/null 2>&1; then _afail "SHA256SUMS.asc is an OpenPGP signature, and gpg is not on PATH to check it"
+        elif out="$(gpg --batch --verify "$d/SHA256SUMS.asc" "$d/SHA256SUMS" 2>&1)"; then _aok "SHA256SUMS signed (gpg), checked against the keyring"
+        else _afail "SHA256SUMS.asc does not verify: $(printf '%s' "$out" | tail -n 2 | tr '\n' ' ')"; fi
+    elif (( reqsig )); then _afail "the archive is not signed (--require-signed)"
+    else printf '   the archive is not signed (PROVOST_SIGN signs one)\n'; fi
+    # 3. the bundle, and a clone of it
+    _mktempd archverify; local t="$_MKTEMPD"
+    local -a ofo=()
+    if [[ "$ofmt" == sha256 ]]; then
+        _git_at_least 2 29 || { _afail "the archive's store is SHA-256, which this git ($_GITVER) cannot read: use git 2.29 or later"; return 1; }
+        ofo=(--object-format=sha256)
+    fi
+    git init -q ${ofo[@]+"${ofo[@]}"} "$t/scratch" >/dev/null 2>&1 || { _afail "cannot make a scratch repository in $PROVOST_TEMP_DIR"; return 1; }
+    if ! out="$(git -C "$t/scratch" bundle verify "$d/store.bundle" 2>&1)"; then
+        _afail "store.bundle is not a complete git bundle: $(printf '%s' "$out" | tail -n 1)"; return 1
+    fi
+    if ! out="$(git clone -q "$d/store.bundle" "$t/store" 2>&1)"; then _afail "could not clone store.bundle: ${out:0:200}"; return 1; fi
+    git -C "$t/store" checkout -q main >/dev/null 2>&1 || git -C "$t/store" checkout -q master >/dev/null 2>&1 || true
+    _aok "store.bundle: a complete git bundle (git bundle verify), cloned"
+    _ARCHIVE_CLONE="$t/store"
+    # 4. each capture against its tag
+    local c ts ds commit osha isha rsha tc gotc n=0 m=0
+    local -a ids=()
+    IFS= read -r f < "$d/captures.tsv" || true
+    [[ "$f" == "$_ARCHIVE_CAPS_HDR" ]] || _afail "captures.tsv: its header is not ${_ARCHIVE_CAPS_HDR//$'\t'/, }"
+    while IFS=$'\037' read -r c ts ds commit osha isha rsha; do
+        n=$((n + 1))
+        _valid_capid "$c" || { _afail "captures.tsv line $((n + 1)): \"${c:0:40}\" is not a capture id"; continue; }
+        ids+=("$c")
+        tc="$(git -C "$t/store" rev-parse -q --verify "refs/tags/capture-$c^{commit}" 2>/dev/null)" \
+            || { _afail "$c: the bundle has no tag capture-$c"; continue; }
+        [[ "$tc" == "$commit" ]] || { _afail "$c: its tag names $tc, captures.tsv says $commit"; continue; }
+        if [[ -n "$osha" ]]; then
+            gotc="$(git -C "$t/store" show "$commit:captures/$c/output.txt" 2>/dev/null > "$t/out" && _sha256 "$t/out")"
+            [[ "$gotc" == "$osha" ]] || { _afail "$c: its output.txt in the bundle does not hash to captures.tsv's output_sha256"; continue; }
+        fi
+        if [[ -n "$rsha" && ! -f "$d/artifacts/$rsha" ]]; then _afail "$c: its kept input artifacts/$rsha is not in the archive"; continue; fi
+        m=$((m + 1))
+    done < <(tail -n +2 "$d/captures.tsv" | tr '\t' '\037')
+    (( m == n )) && _aok "captures.tsv: all $n capture(s) at their tags in the bundle, output hashes matching"
+    # 5. provost verify on the clone, for those captures (their kept inputs
+    # from the archive's own copies)
+    if (( ${#ids[@]} > 0 )); then
+        local vargs=(--capture "$(printf '%s,' "${ids[@]}" | sed 's/,$//')")
+        [[ -n "$asf" ]] && vargs+=(--allowed-signers "$asf")
+        if out="$( PROVOST_WORKSPACE="$t/store"; PROVOST_ARTIFACT_DIR="$d/artifacts"; PROVOST_TEMP_DIR="$t"; cmd_verify "${vargs[@]}" 2>&1 )"; then
+            _aok "provost verify on the archived store: no findings"
+        else
+            _afail "provost verify on the archived store:"; printf '%s\n' "$out" | sed 's/^/     /'
+        fi
+    fi
+    (( nf == 0 ))
+}
+
+_archive_verify_cmd () {
+    local d="" asf="$PROVOST_ALLOWED_SIGNERS" reqsig=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help archive ;;
+            --require-signed) reqsig=1; shift ;;
+            --allowed-signers) [[ $# -ge 2 ]] || usage_die "--allowed-signers needs a FILE."; asf="$2"; shift 2 ;;
+            --allowed-signers=*) asf="${1#--allowed-signers=}"; shift ;;
+            -?*) usage_die "archive verify: unknown option: $1 (see 'provost help archive')." ;;
+            *) [[ -z "$d" ]] || usage_die "archive verify takes one DIR."; d="$1"; shift ;;
+        esac
+    done
+    [[ -n "$d" ]] || usage_die "archive verify needs the archive's DIR."
+    [[ -d "$d" ]] || die "no such archive directory: $d"
+    if [[ -n "$asf" ]]; then
+        asf="$(_abspath "$asf")"; [[ -f "$asf" && -r "$asf" ]] || die "no such allowed-signers file: $asf"
+    fi
+    if _archive_verify "$(_abspath "$d")" "$asf" "$reqsig"; then
+        printf '%s ok%s archive verify: no findings\n' "$C_OK" "$C_RST"; return 0
+    fi
+    printf '%sarchive verify: findings above%s\n' "$C_ERR" "$C_RST"; return 1
+}
+
+# archive import DIR [DEST] — verify the archive, then open it as a store at
+# DEST (its kept inputs at DEST.artifacts), read-only: every file and
+# directory loses its write bits, so no provost (nor git) writes to it.
+_archive_import () {
+    local d="" dest=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help archive ;;
+            -?*) usage_die "archive import: unknown option: $1 (see 'provost help archive')." ;;
+            *) if [[ -z "$d" ]]; then d="$1"; elif [[ -z "$dest" ]]; then dest="$1"; else usage_die "archive import takes DIR [DEST]."; fi; shift ;;
+        esac
+    done
+    [[ -n "$d" ]] || usage_die "archive import needs the archive's DIR."
+    [[ -d "$d" ]] || die "no such archive directory: $d"
+    d="$(_abspath "$d")"; d="${d%/}"
+    [[ -n "$dest" ]] || dest="$PWD/provost-archive-${d##*/}"
+    dest="$(_abspath "$dest")"; dest="${dest%/}"
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    [[ -e "$dest.artifacts" ]] && die "destination's artifact directory already exists: $dest.artifacts"
+    _mktempd archimport; local vout="$_MKTEMPD/verify"
+    if ! _archive_verify "$d" "$PROVOST_ALLOWED_SIGNERS" 0 > "$vout" 2>&1; then
+        cat "$vout" >&2; die "the archive does not verify — not imported."
+    fi
+    mkdir -- "$dest" 2>/dev/null || die "cannot create $dest"
+    rmdir -- "$dest"
+    mv -- "$_ARCHIVE_CLONE" "$dest" 2>/dev/null || cp -R -- "$_ARCHIVE_CLONE" "$dest" || die "could not put the store at $dest"
+    git -C "$dest" remote remove origin >/dev/null 2>&1 || true
+    if [[ -d "$d/artifacts" ]]; then
+        cp -R -- "$d/artifacts" "$dest.artifacts" || die "could not copy the kept inputs to $dest.artifacts"
+        chmod -R a-w "$dest.artifacts" 2>/dev/null || true
+    fi
+    chmod -R a-w "$dest" 2>/dev/null || true
+    local ncap; ncap="$(tail -n +2 "$d/captures.tsv" | wc -l | tr -d ' ')"
+    ok "imported the archive read-only → $dest ($ncap archived capture(s), and the store's history as of the archive)."
+    info "browse it with: PROVOST_WORKSPACE=$(printf '%q' "$dest") provost ls   (or show/log/source/verify; to remove it: chmod -R u+w first)"
 }
 
 # ---------------------------------------------------------------------------
@@ -5907,7 +6622,7 @@ cmd_verify () {
         (( nunsigned > 0 )) && printf '; %d unsigned' "$nunsigned"
         printf '\n'
     fi
-    (( removed > 0 )) && printf '   %d capture id(s) removed by rm (in the history, not on %s): not a failure\n' "$removed" "$main"
+    (( removed > 0 )) && printf '   %d capture id(s) removed by rm (or prune, or archive --purge; in the history, not on %s): not a failure\n' "$removed" "$main"
     printf '   %s at %s\n' "$main" "$tip"
     if (( nfail > 0 )); then
         printf '%sverify: %d finding(s)%s\n' "$C_ERR" "$nfail" "$C_RST"
@@ -6166,9 +6881,38 @@ _store_check () {
             || _sfail "llm-templates/${f##*/}: not a template ledger header"
     done
 
+    # 8. the disposal log (2.19.0 on, PV-029): its header, each record's
+    # form, each capture once, none of them still in the store, and every
+    # one below .next_capture_id (ids are never reused)
+    local ndisp=0
+    if [[ -f "$(_disposal_file)" ]]; then
+        printf '%s\n' ${caps[@]+"${caps[@]}"} > "$tmp/live"
+        LC_ALL=C awk -F'\t' -v HDR="$_DISPOSAL_HDR" -v NEXT="${ncap:-0}" -v LIVE="$tmp/live" '
+            function fail(m) { print "F\tdisposals.tsv: " m }
+            FILENAME == LIVE { live[$1] = 1; next }
+            FNR == 1 { if ($0 != HDR) { fail("its header is not the disposal log'"'"'s"); bad = 1 } next }
+            bad { next }
+            { n++ }
+            NF != 9 { if (b++ < 3) fail("line " FNR ": " NF " fields, not 9"); next }
+            $1 !~ /^c[0-9][0-9][0-9][0-9]+$/ { if (b++ < 3) fail("line " FNR ": \"" $1 "\" is not a capture id"); next }
+            $2 !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z$/ { if (b++ < 3) fail("line " FNR ": disposed \"" $2 "\" is not a UTC time"); next }
+            $4 != "prune" && $4 != "archive" { if (b++ < 3) fail("line " FNR ": how is \"" $4 "\", not prune or archive"); next }
+            ($1 in seen) { if (d++ < 3) fail($1 " is recorded as disposed of twice") }
+            { seen[$1] = 1 }
+            ($1 in live) { if (l++ < 3) fail($1 " is recorded as disposed of, but captures/" $1 " is in the store") }
+            NEXT > 0 { k = $1; sub(/^c/, "", k); if (k + 0 >= NEXT + 0 && h++ < 3) fail($1 " is recorded as disposed of, but .next_capture_id is " NEXT ": an id would be used again") }
+            END { print "N\t" n + 0 }' "$tmp/live" "$(_disposal_file)" > "$tmp/disp"
+        while IFS=$'\t' read -r kind msg; do
+            case "$kind" in F) _sfail "$msg" ;; N) ndisp="$msg" ;; esac
+        done < "$tmp/disp"
+        _git ls-files --error-unmatch -- "$(_disposal_file)" >/dev/null 2>&1 \
+            || _sfail "disposals.tsv is not committed (provost commits it with each disposal)"
+    fi
+
     printf '   %d dataset(s), %d row(s), %d capture(s)' "${#dsf[@]}" "$nrows" "${#caps[@]}"
     (( ntrunc > 0 )) && printf ' (%d truncated, kept input checked)' "$ntrunc"
     (( nfiles > 0 )) && printf ', %d files-* tag(s)' "$nfiles"
+    (( ndisp > 0 )) && printf ', %d disposal(s) recorded' "$ndisp"
     printf '\n'
     if (( nfail > 0 )); then
         printf '%sstore check: %d finding(s) against store format %d%s\n' "$C_ERR" "$nfail" "$fmt" "$C_RST"
@@ -6416,6 +7160,16 @@ COMMANDS
     provost rm [-f] --capture ID[,ID...]...
         Delete captures, and the rows they filed in every dataset they fed
         (a dataset left with no rows goes too). One commit, as above.
+    provost prune --policy FILE [--as-of DATE] [--yes]
+        Dispose of the captures a retention policy no longer keeps (a dry
+        run without --yes), recording each in the disposal log
+        (disposals.tsv). No policy, no pruning.
+    provost archive --to DIR (--before DATE | --older-than N[d])
+                    [--dataset NAME]... [--purge [--yes]]
+        A verifiable archive of older captures: a git bundle, a manifest
+        and SHA256SUMS (signed with PROVOST_SIGN). --purge --yes then
+        disposes of them as prune does. 'archive verify DIR' checks one;
+        'archive import DIR [DEST]' opens one read-only.
     provost doctor                 check the engines and the store
     provost init [--object-format sha256]
         Make the store now; sha256: in git's SHA-256 object format (SIGNING).
@@ -6507,11 +7261,20 @@ THE STORE
 
     The store's layout is a versioned format, written in .store_format and
     set out in docs/store-format.md. Every provost reads every older format.
-    A write (a capture, rm, annotate, restore, control) first migrates an
-    older store to this provost's format, in a commit of its own; a command
-    that only reads (ls, show, source, log, search, files, diff, stats,
-    triage, verify, doctor, export, store check) never changes the store,
-    and works on a store it cannot write. 'store check' validates one.
+    A write (a capture, rm, prune --yes, archive --purge --yes, annotate,
+    restore, control) first migrates an older store to this provost's
+    format, in a commit of its own; a command that only reads (ls, show,
+    source, log, search, files, diff, stats, triage, verify, doctor, export,
+    store check, archive without --purge, prune without --yes) never
+    changes the store, and works on a store it cannot write. 'store check'
+    validates one.
+
+    Retention is yours to set: provost keeps everything until a policy says
+    otherwise. 'prune --policy FILE' disposes of what the policy no longer
+    keeps (a dry run without --yes), and 'archive --to DIR' writes older
+    captures to a verifiable, optionally signed archive first. Each
+    disposal is recorded in disposals.tsv in the store, which nothing
+    prunes; git's history still holds what was disposed of.
 
 DATASET NAMES
     'provost run CMD ...' files into a dataset named after CMD's basename
@@ -7080,7 +7843,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store prune archive help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -7142,6 +7905,8 @@ main () {
         init)          shift; cmd_init "$@" ;;
         verify)        shift; cmd_verify "$@" ;;
         store)         shift; cmd_store "$@" ;;
+        prune)         shift; cmd_prune "$@" ;;
+        archive)       shift; cmd_archive "$@" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
         ""|-*)         cmd_inject "$@" ;;          # default verb (options only)
         *)
