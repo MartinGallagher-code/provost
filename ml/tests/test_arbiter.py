@@ -197,6 +197,32 @@ class Fit(unittest.TestCase):
         self.assertEqual(len(rm["coef"]), 12)
         self.assertIn(rm["threshold"], AR.THRESHOLDS)
 
+    def save(self, d, t):
+        paths = {}
+        for key, rows in (("corpus", d.corp.values()), ("cv", d.cv.values()), ("llm", d.llm.values())):
+            paths[key] = os.path.join(t, key + ".jsonl")
+            with open(paths[key], "w", encoding="utf-8") as fh:
+                fh.writelines(json.dumps(r) + "\n" for r in rows)
+        out = os.path.join(t, "arbiter.json")
+        AR.main(["--corpus", paths["corpus"], "--crossval", paths["cv"], "--llm", paths["llm"],
+                 "--meta", t, "--target", "llm", "--save", out])
+        with open(out, encoding="utf-8") as fh:
+            return json.load(fh)
+
+    def test_roles_part_ships_only_when_it_helps_out_of_fold(self):
+        helps = data([qhost_doc(name_in_fold(k, i), label_header=bool(i % 3 == 0)) for k in range(5) for i in range(6)])
+        # the model right on every dispute: nothing for the roles part to add
+        never = data([qhost_doc(name_in_fold(k, i), model_header=bool(i % 3 == 0), label_header=bool(i % 3 == 0))
+                      for k in range(5) for i in range(6)]
+                     + [qhost_doc(name_in_fold(k, 9), label_header=True) for k in range(5)]
+                     + [qhost_doc(name_in_fold(k, 10), label_header=False) for k in range(5) for _ in (0,)])
+        with tempfile.TemporaryDirectory() as t:
+            self.assertIn("roles", self.save(helps, t))
+        with tempfile.TemporaryDirectory() as t:
+            m = self.save(never, t)
+        tot, _ = AR.nested(never, "llm", "0.5")
+        self.assertEqual("roles" in m, tot["role_arbiter"] > tot["role_model"])
+
     def test_auto_threshold_is_one_of_the_choices(self):
         d = self.corpus()
         t = AR.choose_threshold(d, set(d.cv), "llm", range(5))

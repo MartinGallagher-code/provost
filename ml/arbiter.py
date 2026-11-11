@@ -21,7 +21,10 @@ keeps them), a second part is fitted the same way, always to the LLM labels
 (the hand labels are splits only): "roles", for lines one reader calls a
 header and the other a data row (a data line taken as the header renames
 every column after it). It is left out when the folds give fewer than
-MIN_ROLE_ROWS lines to fit it on.
+MIN_ROLE_ROWS lines to fit it on, and when, out of fold, it does not get more
+of those disputes right than the model alone (2026-11-11, PV-012: on the
+corpus it did not: 69 disputes, the LM right on 50, the engine on 12, and
+the fitted part switched 4 lines, 1 for the better and 3 for the worse).
 
 It is fitted on out-of-fold predictions: each document's probabilities come
 from a model that never trained on its family, so they are as sure of
@@ -425,12 +428,15 @@ def main(argv=None):
     if data.has_roles():
         folds = sorted({data.fold(n) for n in data.cv})
         rm = fit_roles(data, set(data.cv), a.threshold, folds)
-        if rm:
+        if not rm:
+            print(f"  roles part: left out (fewer than {MIN_ROLE_ROWS} header/row disputes to fit on)")
+        elif tot["role_arbiter"] <= tot["role_model"]:
+            print(f"  roles part: left out (out of fold it gets {tot['role_arbiter']} of {tot['role_disputes']} "
+                  f"header/row disputes right, the model alone {tot['role_model']})")
+        else:
             final["roles"] = rm
             print(f"  roles part: fitted on {len(role_rows(data, set(data.cv))[1])} header/row disputes; "
                   f"threshold {rm['threshold']}")
-        else:
-            print(f"  roles part: left out (fewer than {MIN_ROLE_ROWS} header/row disputes to fit on)")
     if a.save:
         if a.for_model == "provost-model":
             import arbitrate
