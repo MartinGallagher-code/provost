@@ -86,9 +86,21 @@ A store is a directory that is a git repository. Which one a command uses:
 | controlled directory | `DIR/.provost`, for the nearest directory above the current one that `provost control` made an instance |
 | global | `$PROVOST_HOME`, else `~/.provost` |
 
-A store is created by its first write. Nothing in the store depends on where
-it is; a store can be moved, copied or cloned (`provost export` and `provost
-import` move one as a git bundle).
+A store is created by its first write, or by `provost init`. Nothing in the
+store depends on where it is; a store can be moved, copied or cloned
+(`provost export` and `provost import` move one as a git bundle).
+
+**The git object format** (2.18.0 on) is SHA-1, git's default, unless the
+store was made with `provost init --object-format sha256` or
+`PROVOST_OBJECT_FORMAT=sha256`; then it is SHA-256 (git 2.29 or later), and
+its `.git/config` sets `extensions.objectformat = sha256`. Nothing else
+about the store differs: the layout, the files and the refs are the same,
+and object ids are 64 hex digits instead of 40. provost never converts a
+store from one format to the other. A reader must read a store with a git
+that knows its object format, and cannot fetch a SHA-256 store into a SHA-1
+repository (`git clone` makes a copy in the source's format; `git init`
+followed by `git fetch` does not). `provost doctor` and `provost store
+check` show the format.
 
 ## Layout
 
@@ -290,8 +302,12 @@ know reads every capture, old or new.
   all its captures). HEAD is on the branch, except after `restore`, `prev`
   or `next`, which check out an earlier capture with HEAD detached; a store
   in that state refuses writes until `provost restore latest`.
-- **Commits** are made with the identity `provost <provost@localhost>`,
-  unsigned. Their subjects:
+- **Commits** are made with the identity `provost <provost@localhost>`.
+  They are unsigned unless whoever ran provost set `PROVOST_SIGN` (2.18.0
+  on): then every commit provost made in that run carries an SSH or OpenPGP
+  signature (the `gpgsig` header). A store can hold signed and unsigned
+  commits side by side; signing is a setting of the person writing, not of
+  the store. Their subjects:
 
   | Subject | Made by |
   |---|---|
@@ -305,10 +321,18 @@ know reads every capture, old or new.
 
   A capture's or batch's commit message ends with trailers, one pair per
   capture that recorded hashes: `Input-SHA256: cNNNN HEX` and
-  `Output-SHA256: cNNNN HEX`.
-- **`capture-cNNNN`** is a lightweight tag on the commit that filed capture
-  cNNNN, one per capture on the branch. `rm` deletes the tags of the
-  captures it removes.
+  `Output-SHA256: cNNNN HEX`. From 2.18.0 every commit provost makes ends
+  with an `Operator: WHO` trailer (in the same trailer block as the hashes):
+  who made it, as `user@host`, or `PROVOST_OPERATOR` when that was set. It
+  is one line of printable text, at most 512 characters. A commit made
+  before 2.18.0 has none. Read it with `git log
+  --format='%(trailers:key=Operator,valueonly)'`.
+- **`capture-cNNNN`** is a tag on the commit that filed capture cNNNN, one
+  per capture on the branch: a lightweight tag, or, for a capture made with
+  `PROVOST_SIGN` set (2.18.0 on), an annotated tag signed with the same key,
+  whose message is `capture cNNNN` and an `Operator:` trailer. **Peel it**
+  (`capture-cNNNN^{commit}`) rather than assume it names the commit itself.
+  `rm` deletes the tags of the captures it removes.
 - **`files-cNNNN`** (controlled directories, 2.2.0 on) is a lightweight tag
   on a commit holding the controlled directory's own files as capture cNNNN
   saw them. These commits are **not on the branch**: they form a chain of
@@ -316,7 +340,11 @@ know reads every capture, old or new.
   did not change is tagged on the previous run's commit.
 
 `provost verify` checks the history: `git fsck`, each tag against the branch,
-each `output.txt` against its recorded hash, and gaps in the capture ids.
+each `output.txt` against its recorded hash, gaps in the capture ids, and each
+signed capture's commit and tag signatures (`--allowed-signers FILE` or
+`PROVOST_ALLOWED_SIGNERS` for SSH; `--require-signed` fails an unsigned
+capture). `provost export --redact` writes a rewritten history: its copy
+carries no signatures and no `Operator:` trailers.
 
 ## Inputs kept beside the store
 
@@ -442,6 +470,12 @@ shorter). A dataset it cannot put right that way is left as it is.
   2.4.0, the scrub in 2.6.0, ...) and, in 2.15.0, inputs kept by hash beside
   the store with the six `truncated`/`raw_*` keys. None of these changes what
   a format-4 reader already relied on, so none bumped the number.
+- 2.18.0 (PV-027) added, all within format 4: the `Operator:` commit
+  trailer; signed commits and signed annotated `capture-*` tags when the
+  writer sets `PROVOST_SIGN`; and SHA-256 stores. None needs a migration (an
+  existing store is never signed after the fact, nor converted), and the
+  layout is unchanged, so the number stays 4. What a reader must do is in
+  [Reading a store from another program](#reading-a-store-from-another-program).
 
 ### Fixed on write, not by a format
 
@@ -469,6 +503,13 @@ expect a second `#` column in such a dataset.
 - `output.txt` of a capture with `truncated` set is only the parsed head of
   its input: the whole input is the kept copy (`raw_sha256`).
 - Treat `unsorted.tsv`'s `raw` as base64.
+- Peel a `capture-*` tag to its commit (`capture-cNNNN^{commit}`): in a
+  signed store it is an annotated tag. Read a commit's message through
+  the tag, not the tag's own message, for the hash trailers.
+- Use a git that knows the store's object format (`extensions.objectformat`
+  in `.git/config`; none means sha1), and copy a store with `git clone`, which
+  keeps it, rather than `git init` and `git fetch`, which cannot fetch a
+  SHA-256 store into a SHA-1 repository.
 - Run `provost store check DIR` in your own CI against stores you write to
   or read from: it fails on anything this document says cannot happen.
 

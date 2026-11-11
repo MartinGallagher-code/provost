@@ -16,6 +16,7 @@ unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIE
       PROVOST_LLM_API PROVOST_LLM_OFFLINE PROVOST_LLM_ALLOW_HOSTS \
       PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT PROVOST_REDACT PROVOST_ENV PROVOST_ENV_VARS \
       PROVOST_OVERSIZE PROVOST_ARTIFACT_DIR \
+      PROVOST_SIGN PROVOST_SIGNING_KEY PROVOST_OPERATOR PROVOST_OBJECT_FORMAT PROVOST_ALLOWED_SIGNERS \
       LOADEDMODULES SLURM_JOB_ID SLURM_JOBID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_CLUSTER_NAME SLURM_JOB_PARTITION
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
@@ -83,6 +84,33 @@ dead_pid () { sleep 0 & local p=$!; wait "$p" 2>/dev/null || true; echo "$p"; }
 # each part's output, prints it whole in file order, and adds up the counts.
 # PROVOST_TEST_JOBS=1 runs every part in this one process, top to bottom.
 _part () { [[ -z "${PROVOST_SMOKE_PART:-}" || "$PROVOST_SMOKE_PART" == "$1" ]]; }
+# git's version, as MAJOR*1000+MINOR (2.34 -> 2034), for checks that need a
+# newer git than provost itself does (PV-027).
+GITV="$(git --version 2>/dev/null | awk '{ split($3, v, "."); print v[1] * 1000 + v[2] }')"
+# Variants (PV-027): the core part again, on a SHA-256 store (core@sha256)
+# and with every commit and capture tag SSH-signed (core@signed). Each runs
+# as a part of its own; a git too old for one says so and passes nothing.
+SMOKE_VARIANTS=(core@sha256 core@signed)
+case "${PROVOST_SMOKE_VARIANT:-}" in
+    "") ;;
+    sha256)
+        if (( GITV < 2029 )); then
+            echo "  skip core@sha256: git $(git --version | awk '{ print $3 }') cannot make a SHA-256 repository (2.29 or later can)"
+            echo "smoke: 0 passed, 0 failed"; exit 0
+        fi
+        echo "  (core part, re-run on a SHA-256 store)"
+        export PROVOST_OBJECT_FORMAT=sha256 ;;
+    signed)
+        if (( GITV < 2034 )) || ! command -v ssh-keygen >/dev/null 2>&1; then
+            echo "  skip core@signed: SSH signing needs git 2.34 or later and ssh-keygen"
+            echo "smoke: 0 passed, 0 failed"; exit 0
+        fi
+        echo "  (core part, re-run with every commit and capture tag SSH-signed)"
+        _vk="$(mktemp -d)"; ssh-keygen -q -t ed25519 -N '' -C smoke -f "$_vk/key" </dev/null
+        printf 'smoke@test %s\n' "$(cat "$_vk/key.pub")" > "$_vk/allowed"
+        export PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$_vk/key" PROVOST_ALLOWED_SIGNERS="$_vk/allowed" ;;
+    *) echo "smoke: unknown variant '$PROVOST_SMOKE_VARIANT'" >&2; exit 2 ;;
+esac
 export PROVOST_HOME="${WS%/.provost}/home"
 JOBS="${PROVOST_TEST_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
 if ! [[ "$JOBS" =~ ^[1-9][0-9]*$ ]]; then
@@ -97,12 +125,14 @@ if [[ -z "${PROVOST_SMOKE_PART:-}" && $JOBS -gt 1 ]]; then
     fi
     PARTS=()
     while read -r p; do PARTS+=("$p"); done < <(sed -n 's/^if _part \([a-z0-9-]*\); then$/\1/p' "${BASH_SOURCE[0]}" | awk '!seen[$0]++')
+    PARTS+=("${SMOKE_VARIANTS[@]}")
     PW="$(mktemp -d "${TMPDIR:-/tmp}/provost-smoke.XXXXXX")"
     trap 'rm -rf "$PW"' EXIT
     _has_wait_n=0
     (( BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 3) )) && _has_wait_n=1
     for i in "${!PARTS[@]}"; do
-        ( rc=0; t0=$SECONDS; PROVOST_SMOKE_PART="${PARTS[$i]}" bash "${BASH_SOURCE[0]}" > "$PW/$i.log" 2>&1 || rc=$?
+        _pv=""; [[ "${PARTS[$i]}" == *@* ]] && _pv="${PARTS[$i]#*@}"
+        ( rc=0; t0=$SECONDS; PROVOST_SMOKE_PART="${PARTS[$i]%@*}" PROVOST_SMOKE_VARIANT="$_pv" bash "${BASH_SOURCE[0]}" > "$PW/$i.log" 2>&1 || rc=$?
           echo "$((SECONDS - t0))" > "$PW/$i.t"
           echo "$rc" > "$PW/$i.rc.tmp" && mv "$PW/$i.rc.tmp" "$PW/$i.rc" ) &
         while [[ "$(jobs -rp | wc -l)" -ge "$JOBS" ]]; do
@@ -1634,6 +1664,22 @@ while IFS= read -r v; do
     check "help documents $v" "$v" "$help_out"
     check "man page documents $v" "$v" "$(cat "$MAN")"
 done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)
+for v in init; do
+    check "help advanced lists '$v'" "provost $v" "$help_out"
+    check "'$v --help' prints its own usage to stdout" "usage: provost $v" "$("$PROVOST" "$v" --help 2>/dev/null)"
+done
+# A variant run (PV-027): the store core used is what the variant asked for.
+case "${PROVOST_SMOKE_VARIANT:-}" in
+    sha256)
+        check "core@sha256: the core store is a SHA-256 repository" "sha256" "$(git -C "$WS" rev-parse --show-object-format 2>&1)"
+        check "core@sha256: ...and verifies" "verify: no findings" "$("$PROVOST" verify 2>&1)"
+        check "core@sha256: ...and passes store check" "git object format sha256" "$("$PROVOST" store check 2>&1)" ;;
+    signed)
+        check "core@signed: every capture in the core store is signed and verifies" "verify: no findings" \
+            "$("$PROVOST" verify --require-signed 2>&1)"
+        check_not "core@signed: ...no commit provost made there is unsigned" "N" \
+            "$(git -C "$WS" -c gpg.ssh.allowedSignersFile="$PROVOST_ALLOWED_SIGNERS" log --format=%G? --grep='^capture c\|^batch:' 2>/dev/null | sort -u)" ;;
+esac
 fi
 
 if _part store-formats; then
@@ -2659,6 +2705,205 @@ check "inject --help names --refuse-oversize" "--refuse-oversize" "$("$PROVOST" 
 check "doctor says where they are kept" "kept whole, outside git, in $OART" "$(op doctor)"
 fi
 
+if _part operator; then
+# The operator (PV-027): an Operator: trailer on every commit provost makes.
+OWS2="$(mktemp -d)/.op"
+opp () { PROVOST_WORKSPACE="$OWS2" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+printf 'a b\n1 2\n' | opp --name t >/dev/null
+me="$(id -un)@$(uname -n)"
+check "a capture's commit names its operator, user@host by default" "Operator: $me" "$(tgit "$OWS2" log -1 --format=%B capture-c0001)"
+check "...as a trailer git reads, in the block with the hash trailers" "$me" \
+    "$(tgit "$OWS2" log -1 --format='%(trailers:key=Operator,valueonly)' capture-c0001)"
+check "...the hash trailers still parse beside it" "c0001" \
+    "$(tgit "$OWS2" log -1 --format='%(trailers:key=Output-SHA256,valueonly)' capture-c0001)"
+printf 'a b\n3 4\n' | PROVOST_OPERATOR="Jane Q. Tester (bench 4)" opp --name t >/dev/null
+check "PROVOST_OPERATOR overrides it" "Operator: Jane Q. Tester (bench 4)" "$(tgit "$OWS2" log -1 --format=%B capture-c0002)"
+check_not "...and the default is not also written" "Operator: $me" "$(tgit "$OWS2" log -1 --format=%B capture-c0002)"
+check "the committer is still provost" "provost <provost@localhost>" "$(tgit "$OWS2" log -1 --format='%cn <%ce>' capture-c0002)"
+printf 'x y\n1 2\n' > "$OWS2.i1"; printf 'x y\n3 4\n' > "$OWS2.i2"
+PROVOST_OPERATOR=batcher opp batch --name bt "$OWS2.i1" "$OWS2.i2" >/dev/null
+check "a batch commit names its operator once, after every capture's trailers" "batcher" \
+    "$(tgit "$OWS2" log -1 --format='%(trailers:key=Operator,valueonly)')"
+check "...still with both captures' hashes" "c0004" "$(tgit "$OWS2" log -1 --format='%(trailers:key=Output-SHA256,valueonly)')"
+PROVOST_OPERATOR=reviewer opp annotate c0001 disposition=ok >/dev/null
+check "annotate's commit names its operator" "Operator: reviewer" "$(tgit "$OWS2" log -1 --format=%B)"
+PROVOST_OPERATOR=cleaner opp rm -f --capture c0003 >/dev/null
+check "rm's commit names its operator" "Operator: cleaner" "$(tgit "$OWS2" log -1 --format=%B)"
+check "doctor shows the operator" "operator: $me (user@host" "$(opp doctor)"
+check "...and PROVOST_OPERATOR when it is set" "operator: lab-7 (PROVOST_OPERATOR)" "$(PROVOST_OPERATOR=lab-7 opp doctor)"
+check "an operator with a line break is refused (exit 2)" "2" \
+    "$(PROVOST_WORKSPACE="$OWS2" PROVOST_OPERATOR=$'a\nForged: x' rc_of "$PROVOST" ls)"
+check "...with the reason" "cannot hold a tab, a line break" "$(PROVOST_OPERATOR=$'a\nb' opp ls)"
+check "an operator over 512 characters is refused (exit 2)" "2" \
+    "$(PROVOST_WORKSPACE="$OWS2" PROVOST_OPERATOR="$(printf 'x%.0s' $(seq 1 513))" rc_of "$PROVOST" ls)"
+check "the store still verifies" "verify: no findings" "$(opp verify)"
+# A redacted export leaves the operator behind (it names a person).
+printf 'key = %s\nhost = node[0-9]+\n' "$OWS2.key" > "$OWS2.pol"
+opp export --redact "$OWS2.pol" "$OWS2.x.bundle" >/dev/null
+opp import "$OWS2.x.bundle" "$OWS2.ximp" >/dev/null
+check_not "export --redact drops the Operator trailers" "Operator:" "$(tgit "$OWS2.ximp" log --format=%B)"
+check "...and says so" "Operator trailers" "$(opp export --redact "$OWS2.pol" "$OWS2.x2.bundle")"
+fi
+
+if _part signing; then
+# Signed captures (PV-027): PROVOST_SIGN=ssh with a throwaway key.
+if (( GITV < 2034 )) || ! command -v ssh-keygen >/dev/null 2>&1; then
+    echo "  skip signing: SSH signing needs git 2.34 or later and ssh-keygen (this is git $(git --version | awk '{ print $3 }'))"
+    check "an old git is refused for PROVOST_SIGN=ssh with a clear message" "needs git 2.34 or later" \
+        "$(printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$(mktemp -d)/.s" PROVOST_SIGN=ssh PROVOST_ASYNC=0 "$PROVOST" --name t 2>&1)"
+else
+SK="$(mktemp -d)"
+ssh-keygen -q -t ed25519 -N '' -C smoke -f "$SK/key" </dev/null
+ssh-keygen -q -t ed25519 -N '' -C other -f "$SK/other" </dev/null
+ssh-keygen -q -t ed25519 -N 'a passphrase' -C locked -f "$SK/locked" </dev/null
+printf 'smoke@test %s\n' "$(cat "$SK/key.pub")" > "$SK/allowed"
+printf 'other@test %s\n' "$(cat "$SK/other.pub")" > "$SK/notallowed"
+SWS="$(mktemp -d)/.signed"
+sp () { PROVOST_WORKSPACE="$SWS" PROVOST_ASYNC=0 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/key" "$PROVOST" "$@" 2>&1; }
+src () { PROVOST_WORKSPACE="$SWS" PROVOST_ASYNC=0 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/key" rc_of "$PROVOST" "$@"; }
+sgit () { tgit "$SWS" -c gpg.ssh.allowedSignersFile="$SK/allowed" "$@"; }
+printf 'a b\n1 2\n' | sp --name t >/dev/null
+sp run printf 'k v\n1 2\n' >/dev/null
+printf 'x y\n1 2\n' > "$SK/i1"; printf 'x y\n3 4\n' > "$SK/i2"
+sp batch --name bt "$SK/i1" "$SK/i2" >/dev/null
+sp annotate c0001 reviewer=me >/dev/null
+showsig="$(sgit log --show-signature --format='%s' 2>&1)"
+check "git log --show-signature: every commit is signed" "5" "$(grep -c 'Good "git" signature for smoke@test' <<< "$showsig")"
+check "...the store's history is 5 commits (init, 2 captures, a batch, annotate)" "5" "$(sgit rev-list --count HEAD)"
+check "...none unsigned or bad" "G" "$(sgit log --format=%G? | sort -u | tr -d '\n')"
+check "every capture tag is an annotated tag" "tag tag tag tag" "$(sgit for-each-ref --format='%(objecttype)' 'refs/tags/capture-*' | tr '\n' ' ')"
+vt=0; for t in c0001 c0002 c0003 c0004; do sgit verify-tag "capture-$t" >/dev/null 2>&1 || vt=$((vt + 1)); done
+check "...each one signed and verifying (git verify-tag)" "0" "$vt"
+check "...and its message names the capture and the operator" "Operator: " "$(sgit cat-file tag capture-c0003)"
+check "commands read through the annotated tags" "x y" "$(sp source 3)"
+check "verify checks them against the allowed signers" "4 of 4 capture(s) signed (commit and tag), 4 checked good" \
+    "$(sp verify --allowed-signers "$SK/allowed")"
+check "...--require-signed passes (exit 0)" "0" "$(src verify --require-signed --allowed-signers "$SK/allowed")"
+check "...PROVOST_ALLOWED_SIGNERS does the same" "4 checked good" "$(PROVOST_ALLOWED_SIGNERS="$SK/allowed" sp verify)"
+check "without an allowed-signers file they are counted, not checked" "4 not checked (no allowed-signers file" "$(sp verify)"
+check "...and that is not a finding (exit 0)" "0" "$(src verify)"
+check "...but is under --require-signed (exit 1)" "1" "$(src verify --require-signed)"
+check "a signer not in the allowed signers is a finding" "not an allowed signer" "$(sp verify --allowed-signers "$SK/notallowed")"
+check "...exit 1" "1" "$(src verify --allowed-signers "$SK/notallowed")"
+check "a missing allowed-signers file is an error" "no such allowed-signers file" "$(sp verify --allowed-signers "$SK/nope")"
+check "doctor says signing works" "signing: ssh with $SK/key; a test signature works" "$(sp doctor)"
+check "store check counts the annotated tags" "4 capture tag(s) are annotated" "$(sp store check)"
+check "...and passes" "a valid format-4 store" "$(sp store check)"
+# A forced signing failure: nothing is written, exit non-zero.
+head0="$(sgit rev-parse HEAD)"; ncap0="$(cat "$SWS/.next_capture_id")"
+out="$(printf 'a b\n5 6\n' | PROVOST_WORKSPACE="$SWS" PROVOST_ASYNC=0 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/missing" "$PROVOST" --name t 2>&1; echo "rc=$?")"
+check "a signing key that is not there fails the capture" "rc=1" "$out"
+check "...saying why, and that nothing was captured" "does not exist or cannot be read. Nothing was captured" "$out"
+check "...no commit was made" "$head0" "$(sgit rev-parse HEAD)"
+check "...and no capture id was used" "$ncap0" "$(cat "$SWS/.next_capture_id")"
+check "...nor any file written" "clean" "$(o="$(tgit "$SWS" status --porcelain)"; [[ -z "$o" ]] && echo clean || echo "$o")"
+out="$(printf 'a b\n5 6\n' | PROVOST_WORKSPACE="$SWS" PROVOST_ASYNC=0 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/locked" "$PROVOST" --name t 2>&1; echo "rc=$?")"
+check "a key that would ask for a passphrase is refused, not waited on" "needs a passphrase, and provost will not wait" "$out"
+check "...exit 1" "rc=1" "$out"
+out="$(printf 'a b\n5 6\n' | env -u SSH_AUTH_SOCK PROVOST_WORKSPACE="$SWS" PROVOST_ASYNC=0 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/locked.pub" "$PROVOST" --name t 2>&1; echo "rc=$?")"
+check "...so is its .pub when no ssh-agent holds it" "$SK/locked needs a passphrase" "$out"
+mkdir "$SK/pubonly"; cp "$SK/key.pub" "$SK/pubonly/"
+out="$(printf 'a b\n5 6\n' | env -u SSH_AUTH_SOCK PROVOST_WORKSPACE="$SWS" PROVOST_ASYNC=0 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/pubonly/key.pub" "$PROVOST" --name t 2>&1; echo "rc=$?")"
+check "a .pub key no ssh-agent holds fails the test signature" "a test signature failed" "$out"
+check "...exit 1, nothing committed" "rc=1 $head0" "$(grep -o 'rc=1' <<< "$out") $(sgit rev-parse HEAD)"
+check "doctor reports a key that cannot sign (exit 1)" "1" \
+    "$(PROVOST_WORKSPACE="$SWS" PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/missing" rc_of "$PROVOST" doctor)"
+check "PROVOST_SIGN must be off, ssh or gpg (exit 2)" "2" "$(PROVOST_WORKSPACE="$SWS" PROVOST_SIGN=x509 rc_of "$PROVOST" ls)"
+# The test signature passes and git's own commit signature then fails: the
+# capture fails too (a stand-in ssh-keygen that signs once and then refuses).
+FK="$(mktemp -d)"; real_kg="$(command -v ssh-keygen)"
+cat > "$FK/ssh-keygen" <<EOF
+#!/bin/sh
+case " \$* " in *" -Y sign "*)
+    n=\$(cat "$FK/n" 2>/dev/null || echo 0); n=\$((n + 1)); echo \$n > "$FK/n"
+    [ "\$n" -gt 1 ] && { echo "stand-in: signing refused" >&2; exit 1; } ;;
+esac
+exec "$real_kg" "\$@"
+EOF
+chmod +x "$FK/ssh-keygen"
+SWF="$(mktemp -d)/.sf"; cp -R "$SWS" "$SWF"; headf="$(tgit "$SWF" rev-parse HEAD)"
+out="$(printf 'a b\n5 6\n' | PATH="$FK:$PATH" PROVOST_WORKSPACE="$SWF" PROVOST_ASYNC=0 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$SK/key" "$PROVOST" --name t 2>&1; echo "rc=$?")"
+check "a commit git cannot sign fails the capture" "rc=1" "$out"
+check "...saying so" "could not be signed, so nothing was committed" "$out"
+check "...no unsigned commit was made" "$headf" "$(tgit "$SWF" rev-parse HEAD)"
+check "...and no tag" "none" "$(o="$(tgit "$SWF" tag -l 'capture-c0005')"; echo "${o:-none}")"
+# Unsigned and half-signed captures.
+printf 'a b\n7 8\n' | PROVOST_WORKSPACE="$SWS" PROVOST_ASYNC=0 "$PROVOST" --name t >/dev/null 2>&1
+check "an unsigned capture beside signed ones is not a finding by default" "0" "$(src verify --allowed-signers "$SK/allowed")"
+check "...it is counted" "; 1 unsigned" "$(sp verify --allowed-signers "$SK/allowed")"
+check "...--require-signed fails it" "c0005: not signed" "$(sp verify --require-signed --allowed-signers "$SK/allowed")"
+check "...--capture narrows --require-signed" "0" "$(src verify --require-signed --allowed-signers "$SK/allowed" --capture 1,2)"
+SWT="$(mktemp -d)/.st"; cp -R "$SWS" "$SWT"
+tgit "$SWT" tag -f capture-c0002 "capture-c0002^{commit}" >/dev/null
+check "a signed capture re-tagged by hand is always a finding" "c0002: its tag is not signed, though its commit is" \
+    "$(PROVOST_WORKSPACE="$SWT" "$PROVOST" verify 2>&1)"
+# gpg too, where gpg is installed (a throwaway keyring).
+if command -v gpg >/dev/null 2>&1 && GH="$(mktemp -d /tmp/pvg.XXXXXX)" \
+   && GNUPGHOME="$GH" gpg --batch --passphrase '' --quick-gen-key 'provost smoke <smoke@test>' ed25519 sign never >/dev/null 2>&1; then
+    fpr="$(GNUPGHOME="$GH" gpg --batch --with-colons --list-secret-keys 2>/dev/null | awk -F: '$1 == "fpr" { print $10; exit }')"
+    GWS="$(mktemp -d)/.g"
+    printf 'a b\n1 2\n' | GNUPGHOME="$GH" PROVOST_WORKSPACE="$GWS" PROVOST_ASYNC=0 PROVOST_SIGN=gpg PROVOST_SIGNING_KEY="$fpr" "$PROVOST" --name t >/dev/null 2>&1
+    check "PROVOST_SIGN=gpg signs with an OpenPGP key" "G" "$(GNUPGHOME="$GH" tgit "$GWS" log --format=%G? | sort -u | tr -d '\n')"
+    check "...and verify checks it against the keyring" "1 checked good" "$(GNUPGHOME="$GH" PROVOST_WORKSPACE="$GWS" "$PROVOST" verify --require-signed 2>&1)"
+    GNUPGHOME="$GH" gpgconf --kill gpg-agent >/dev/null 2>&1 || true; rm -rf "$GH"
+else
+    echo "  skip PROVOST_SIGN=gpg: no gpg here"
+fi
+fi
+fi
+
+if _part objfmt; then
+# SHA-256 stores (PV-027): provost init --object-format, PROVOST_OBJECT_FORMAT.
+HWS="$(mktemp -d)/.h"
+hp () { PROVOST_WORKSPACE="$HWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+hrc () { PROVOST_WORKSPACE="$HWS" PROVOST_ASYNC=0 rc_of "$PROVOST" "$@"; }
+check "init refuses an object format it does not know (exit 2)" "2" "$(hrc init --object-format md5)"
+check "PROVOST_OBJECT_FORMAT is checked too (exit 2)" "2" "$(PROVOST_WORKSPACE="$HWS" PROVOST_OBJECT_FORMAT=sha512 rc_of "$PROVOST" ls)"
+D1="$(mktemp -d)/.d1"
+check "init makes a sha1 store by default" "object format sha1" "$(PROVOST_WORKSPACE="$D1" "$PROVOST" init 2>&1)"
+check "doctor shows a store's object format" "object format: sha1" "$(PROVOST_WORKSPACE="$D1" "$PROVOST" doctor 2>&1)"
+check "store check shows it" "git object format sha1" "$(PROVOST_WORKSPACE="$D1" "$PROVOST" store check 2>&1)"
+if (( GITV < 2029 )); then
+    echo "  skip SHA-256 stores: git $(git --version | awk '{ print $3 }') cannot make one (2.29 or later can)"
+    check "an old git is refused with a clear message" "needs git 2.29 or later" "$(hp init --object-format sha256)"
+else
+check "init --object-format sha256 makes a SHA-256 store" "object format sha256" "$(hp init --object-format sha256)"
+check "...it is one" "sha256" "$(git -C "$HWS" rev-parse --show-object-format)"
+check "doctor shows it" "object format: sha256" "$(hp doctor)"
+check "init again is a no-op" "already exists (object format sha256); nothing to do" "$(hp init)"
+check "init will not convert it (exit 1)" "1" "$(hrc init --object-format sha1)"
+check "...and says so" "does not convert a store" "$(hp init --object-format=sha1)"
+printf 'a b\n1 2\n' | hp --name t >/dev/null
+hp run printf 'k v\n1 2\n' >/dev/null
+check "a capture into it verifies" "verify: no findings" "$(hp verify)"
+check "store check passes it" "git object format sha256" "$(hp store check)"
+hp export "$HWS.bundle" >/dev/null
+hp import "$HWS.bundle" "$HWS.imp" >/dev/null
+check "export and import keep the object format" "sha256" "$(git -C "$HWS.imp" rev-parse --show-object-format)"
+check "...and the import verifies" "verify: no findings" "$(PROVOST_WORKSPACE="$HWS.imp" "$PROVOST" verify 2>&1)"
+printf 'key = %s\nhost = node[0-9]+\n' "$HWS.key" > "$HWS.pol"
+hp export --redact "$HWS.pol" "$HWS.x.bundle" >/dev/null
+hp import "$HWS.x.bundle" "$HWS.ximp" >/dev/null
+check "a redacted export of a SHA-256 store is SHA-256" "sha256" "$(git -C "$HWS.ximp" rev-parse --show-object-format)"
+check "...and verifies" "verify: no findings" "$(PROVOST_WORKSPACE="$HWS.ximp" "$PROVOST" verify 2>&1)"
+E1="$(mktemp -d)/.e1"
+printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$E1" PROVOST_OBJECT_FORMAT=sha256 PROVOST_ASYNC=0 "$PROVOST" --name t >/dev/null 2>&1
+check "PROVOST_OBJECT_FORMAT=sha256 makes the store a first capture creates SHA-256" "sha256" "$(git -C "$E1" rev-parse --show-object-format)"
+printf 'a b\n3 4\n' | PROVOST_WORKSPACE="$E1" PROVOST_OBJECT_FORMAT=sha1 PROVOST_ASYNC=0 "$PROVOST" --name t >/dev/null 2>&1
+check "...and does not change one that exists" "sha256" "$(git -C "$E1" rev-parse --show-object-format)"
+check "...which still verifies" "verify: no findings" "$(PROVOST_WORKSPACE="$E1" "$PROVOST" verify 2>&1)"
+# Signed and SHA-256 at once.
+if (( GITV >= 2034 )) && command -v ssh-keygen >/dev/null 2>&1; then
+    HK="$(mktemp -d)"; ssh-keygen -q -t ed25519 -N '' -C smoke -f "$HK/key" </dev/null
+    printf 'smoke@test %s\n' "$(cat "$HK/key.pub")" > "$HK/allowed"
+    HS="$(mktemp -d)/.hs"
+    printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$HS" PROVOST_OBJECT_FORMAT=sha256 PROVOST_SIGN=ssh PROVOST_SIGNING_KEY="$HK/key" PROVOST_ASYNC=0 "$PROVOST" --name t >/dev/null 2>&1
+    check "a signed SHA-256 store verifies with --require-signed" "1 checked good" \
+        "$(PROVOST_WORKSPACE="$HS" "$PROVOST" verify --require-signed --allowed-signers "$HK/allowed" 2>&1)"
+fi
+fi
+fi
+
 if _part store-spec; then
 echo "== the store format as a spec (PV-022): every older format read, nothing read changes =="
 FXD="$HERE/store-fixtures"
@@ -2783,5 +3028,15 @@ CDS="$(mktemp -d)/ctl"; mkdir -p "$CDS"; printf 'k v\n1 2\n' > "$CDS/notes.txt"
 check "store check passes a controlled directory's store" "1 files-* tag(s)" "$("$PROVOST" store check "$CDS/.provost" 2>&1)"
 fi
 
+if [[ -z "${PROVOST_SMOKE_PART:-}" ]]; then
+    # one job (PROVOST_TEST_JOBS=1): the variants, each in a process of its own
+    for v in "${SMOKE_VARIANTS[@]}"; do
+        vlog="$(PROVOST_SMOKE_PART="${v%@*}" PROVOST_SMOKE_VARIANT="${v#*@}" bash "${BASH_SOURCE[0]}" 2>&1 || true)"
+        grep -v '^smoke: [0-9]* passed, [0-9]* failed$' <<< "$vlog" || true
+        line="$(grep '^smoke: [0-9]* passed, [0-9]* failed$' <<< "$vlog" | tail -1 || true)"
+        if [[ -z "$line" ]]; then echo "  FAIL part '$v' stopped early"; fail=$((fail + 1)); continue; fi
+        read -r _ p _ f _ <<< "$line"; pass=$((pass + p)); fail=$((fail + f))
+    done
+fi
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

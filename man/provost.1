@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-11" "provost 2.17.0" "User Commands"
+.TH PROVOST 1 "2026-11-11" "provost 2.18.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -327,10 +327,18 @@ without filing it again: they go to \fIcaptures/ID/annotations.txt\fR as
 \fB#%\fR lines (setting a key again replaces it), in a commit of their own.
 .TP
 .B doctor
-Check the extract/analyze engines and the store; lists failed background
-captures.
+Check the extract/analyze engines and the store (its git object format, the
+operator, and with \fBPROVOST_SIGN\fR set whether a test signature works);
+lists failed background captures.
 .TP
-.B verify \fR[\fB--capture\fR \fIID\fR[,\fIID\fR...]]...
+.B init \fR[\fB--object-format\fR \fBsha1\fR|\fBsha256\fR]
+Make the store now, instead of at its first capture. \fB--object-format
+sha256\fR makes it in git's SHA-256 object format (git 2.29 or later); the
+default is sha1, or \fBPROVOST_OBJECT_FORMAT\fR. An existing store is never
+converted: \fBinit\fR refuses an object format it was not made in. See
+\fBSIGNING AND SHA-256\fR.
+.TP
+.B verify \fR[\fB--capture\fR \fIID\fR[,\fIID\fR...]]... [\fB--require-signed\fR] [\fB--allowed-signers\fR \fIFILE\fR]
 Check the store's integrity: \fBgit fsck --full\fR; no tracked file changed
 and left uncommitted; every \fBcapture-\fR* tag on the store's history; each
 capture's \fBoutput.txt\fR is the one its tag filed and re-hashes to the
@@ -342,6 +350,11 @@ Exits 0 with no findings, 1
 with them. Captures filed before hashes were recorded are counted as unhashed.
 It proves the store is consistent, not that its history was never rewritten:
 record the head commit it prints somewhere the store's writers cannot change.
+A signed capture's commit and tag are checked too (SSH signatures against
+\fB--allowed-signers\fR \fIFILE\fR or \fBPROVOST_ALLOWED_SIGNERS\fR,
+OpenPGP ones against your keyring): a signature that does not verify, or a
+capture with only one of the two signed, is a finding; an unsigned capture is
+one only under \fB--require-signed\fR.
 .TP
 .B store check \fR[\fIDIR\fR]
 Check a store (\fIDIR\fR, else the active store) against the store format it
@@ -691,6 +704,30 @@ never races. A failed background capture is appended to the store's
 \fI.async-failures.log\fR (its input and full log are kept in the spool
 directory it names); every later provost command prints a one-line warning
 until the failure is seen with \fBprovost log --failed\fR or \fBprovost doctor\fR.
+.SH SIGNING AND SHA-256
+Every commit provost makes ends with an \fBOperator:\fR trailer naming who
+made it: \fIuser\fB@\fIhost\fR, or \fBPROVOST_OPERATOR\fR when set. The
+committer stays \fBprovost <provost@localhost>\fR.
+.PP
+\fBPROVOST_SIGN=ssh\fR (or \fBgpg\fR) signs every commit provost makes and
+makes each \fBcapture-\fR\fIID\fR tag an annotated tag signed with the same
+key (\fBPROVOST_SIGNING_KEY\fR: for ssh a key file with no passphrase, or a
+\fI.pub\fR file or \fBkey::\fR literal whose private half ssh-agent holds;
+for gpg a key id; unset, git's \fBuser.signingkey\fR). SSH signing needs git
+2.34 or later. Before writing anything provost signs a test commit in a
+scratch repository and stops, exit 1, if that fails or if the key file would
+ask for a passphrase; a commit git then fails to sign fails the capture too.
+Nothing is committed unsigned while signing is on. Signing is a setting of
+whoever runs provost and is never read from a store's \fI.git/config\fR.
+\fBverify\fR checks the signatures; \fBexport --redact\fR writes a rewritten
+history with no signatures and no \fBOperator:\fR trailers.
+.PP
+A store is made in git's SHA-1 object format unless
+\fBPROVOST_OBJECT_FORMAT=sha256\fR or \fBinit --object-format sha256\fR asks
+for SHA-256 (git 2.29 or later). Every command works on either, and
+\fBdoctor\fR and \fBstore check\fR show which a store is. A SHA-256 store
+cannot be pushed to or fetched from a SHA-1 repository, and some git hosting
+does not accept SHA-256 repositories.
 .SH STORE
 By default captures go to a global git store at
 .BR $PROVOST_HOME ", or " ~/.provost
@@ -876,6 +913,27 @@ so a \fBprovost-model\fR package installed beside provost is found.
 .B PROVOST_FILES_MAX_SIZE
 In a controlled directory, the largest file (bytes) committed with each run
 (default: 1048576; 0 keeps no files, only the manifest).
+.TP
+.B PROVOST_OPERATOR
+Who makes the captures, written in each commit's \fBOperator:\fR trailer
+(default: \fIuser\fB@\fIhost\fR). One line of at most 512 characters.
+.TP
+.B PROVOST_SIGN
+\fBssh\fR or \fBgpg\fR: sign every commit and capture tag provost makes;
+\fBoff\fR (the default): don't. See \fBSIGNING AND SHA-256\fR.
+.TP
+.B PROVOST_SIGNING_KEY
+The key to sign with: for ssh a key file, a \fI.pub\fR file whose private half
+ssh-agent holds, or \fBkey::\fR\fIliteral\fR; for gpg a key id (default: git's
+\fBuser.signingkey\fR).
+.TP
+.B PROVOST_ALLOWED_SIGNERS
+The SSH allowed-signers file \fBverify\fR checks signatures against (as
+\fB--allowed-signers\fR).
+.TP
+.B PROVOST_OBJECT_FORMAT
+\fBsha256\fR: make a new store in git's SHA-256 object format (default:
+\fBsha1\fR). An existing store keeps its own.
 .TP
 .B PROVOST_LOCK_TIMEOUT
 Seconds to wait for the store lock (default: 30).

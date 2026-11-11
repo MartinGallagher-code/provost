@@ -128,6 +128,14 @@ PROVOST_LLM_OFFLINE="${PROVOST_LLM_OFFLINE:-0}"      # 1 = --llm never sends any
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
 PROVOST_REDACT="${PROVOST_REDACT:-1}"                # 1 = scrub known secret patterns from each input before it is stored (--no-redact: 0)
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
+# Signed captures, the operator and the object format (PV-027). They come from
+# the environment of whoever runs provost, never from the store: a store's own
+# .git/config is not trusted to name a program to run (see _vet_store_config).
+PROVOST_SIGN="${PROVOST_SIGN:-off}"                  # off | ssh | gpg: sign every commit and capture tag provost makes
+PROVOST_SIGNING_KEY="${PROVOST_SIGNING_KEY:-}"       # ssh: a key file (a .pub with ssh-agent), or key::LITERAL; gpg: a key id ('' = git's user.signingkey)
+PROVOST_OPERATOR="${PROVOST_OPERATOR:-}"             # who made a capture, in its Operator: trailer ('' = user@host)
+PROVOST_OBJECT_FORMAT="${PROVOST_OBJECT_FORMAT:-sha1}" # sha1 | sha256: the git object format of a store this run creates
+PROVOST_ALLOWED_SIGNERS="${PROVOST_ALLOWED_SIGNERS:-}" # ssh allowed-signers file 'verify' checks signatures against
 
 # ---------------------------------------------------------------------------
 # Tiny UI helpers
@@ -211,6 +219,149 @@ _validate_settings () {
         [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
     fi
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
+    case "$PROVOST_SIGN" in
+        ""|0|off|no) PROVOST_SIGN=off ;;
+        ssh|gpg) ;;
+        openpgp) PROVOST_SIGN=gpg ;;
+        *) usage_die "PROVOST_SIGN must be off, ssh or gpg (got '$PROVOST_SIGN')." ;;
+    esac
+    [[ "$PROVOST_SIGNING_KEY" != *[$'\t\n\r']* ]] || usage_die "PROVOST_SIGNING_KEY cannot hold a tab or a line break."
+    case "$PROVOST_OBJECT_FORMAT" in sha1|sha256) ;; *) usage_die "PROVOST_OBJECT_FORMAT must be sha1 or sha256 (got '$PROVOST_OBJECT_FORMAT')." ;; esac
+    [[ "$PROVOST_ALLOWED_SIGNERS" != *[$'\t\n\r']* ]] || usage_die "PROVOST_ALLOWED_SIGNERS cannot hold a tab or a line break."
+    _validate_operator "$PROVOST_OPERATOR" PROVOST_OPERATOR
+    _sign_setup
+}
+
+# _validate_operator VALUE LABEL — one line of printable text, at most 512
+# characters: it becomes a commit trailer.
+_validate_operator () {
+    [[ -z "$1" ]] && return 0
+    (( ${#1} <= 512 )) || usage_die "$2 is at most 512 characters (got ${#1})."
+    [[ "$1" != *[[:cntrl:]]* ]] || usage_die "$2 cannot hold a tab, a line break or another control character."
+    [[ "$1" =~ [^[:space:]] ]] || usage_die "$2 cannot be only spaces."
+}
+
+# The operator: PROVOST_OPERATOR, else the local user and host (user@host).
+_operator () {
+    if [[ -n "$PROVOST_OPERATOR" ]]; then printf '%s' "$PROVOST_OPERATOR"; return 0; fi
+    local u h
+    u="$(id -un 2>/dev/null || true)"; [[ -n "$u" ]] || u="${USER:-${LOGNAME:-unknown}}"
+    h="$(uname -n 2>/dev/null || true)"; [[ -n "$h" ]] || h="${HOSTNAME:-unknown}"
+    u="${u//[[:cntrl:]]/}"; h="${h//[[:cntrl:]]/}"
+    printf '%s@%s' "${u:0:100}" "${h:0:99}"
+}
+
+# _with_operator MSG — MSG with an "Operator: WHO" trailer: added to the
+# trailer block MSG already ends with (its hash trailers), else in one of its
+# own after a blank line.
+_with_operator () {
+    local msg="$1" last
+    last="${msg##*$'\n\n'}"
+    if [[ "$msg" == *$'\n\n'* ]] && ! LC_ALL=C awk '!/^[A-Za-z0-9-]+: / { bad = 1 } END { exit bad }' <<< "$last"; then
+        msg="$msg"$'\n\n'
+    elif [[ "$msg" == *$'\n\n'* ]]; then
+        msg="$msg"$'\n'
+    else
+        msg="$msg"$'\n\n'
+    fi
+    printf '%s' "${msg}Operator: $(_operator)"
+}
+
+# --- git version, signing and the object format (PV-027) ----------------------
+# _git_at_least MAJ MIN — the git on PATH is MAJ.MIN or later.
+_GITVER=""
+_git_at_least () {
+    if [[ -z "$_GITVER" ]]; then
+        _GITVER="$(git --version 2>/dev/null | awk '{ print $3 }')"
+        [[ -n "$_GITVER" ]] || _GITVER=0.0
+    fi
+    local ma mi
+    IFS=. read -r ma mi _ <<< "$_GITVER"
+    ma="${ma//[!0-9]/}"; mi="${mi//[!0-9]/}"
+    (( 10#${ma:-0} > $1 || (10#${ma:-0} == $1 && 10#${mi:-0} >= $2) ))
+}
+
+# _sign_setup — the -c options every git call carries: signing off, or on
+# with the format and key asked for. In _GIT_SIGN.
+_GIT_SIGN=(-c commit.gpgsign=false -c tag.gpgSign=false); _SIGN_S=(); _SIGN_ENV=()
+_sign_setup () {
+    _GIT_SIGN=(-c commit.gpgsign=false -c tag.gpgSign=false); _SIGN_S=(); _SIGN_ENV=()
+    [[ "$PROVOST_SIGN" == off ]] && return 0
+    _SIGN_S=(-S)
+    # ssh-keygen never asks for a passphrase: a prompt fails at once
+    # (OpenSSH 8.4 and later) instead of waiting on a terminal.
+    [[ "$PROVOST_SIGN" == ssh ]] && _SIGN_ENV=(SSH_ASKPASS_REQUIRE=force "SSH_ASKPASS=$(command -v false || echo /bin/false)")
+    local key="$PROVOST_SIGNING_KEY"
+    if [[ "$PROVOST_SIGN" == ssh && -n "$key" && "$key" != key::* ]]; then
+        key="$(_abspath "$key")"; PROVOST_SIGNING_KEY="$key"
+    fi
+    # tag.gpgSign stays off: a capture tag is signed with an explicit -s
+    # (with tag.gpgSign on, git tag NAME would open an editor for a message).
+    _GIT_SIGN=(-c commit.gpgsign=true -c tag.gpgSign=false)
+    if [[ "$PROVOST_SIGN" == ssh ]]; then _GIT_SIGN+=(-c gpg.format=ssh)
+    else _GIT_SIGN+=(-c gpg.format=openpgp); fi
+    [[ -n "$key" ]] && _GIT_SIGN+=(-c "user.signingkey=$key")
+    return 0
+}
+
+# _sign_check — with signing on, refuse to start a write that could not be
+# signed, before anything is written: a git too old for the format, a key
+# that is missing or would ask for a passphrase (nothing would answer it in a
+# batch or background run, and the capture would hang), or a test signature
+# that fails. Once per process.
+_SIGN_CHECKED=0
+_sign_check () {
+    [[ "$PROVOST_SIGN" == off || "$_SIGN_CHECKED" == 1 ]] && return 0
+    local key="$PROVOST_SIGNING_KEY" out empty
+    if [[ "$PROVOST_SIGN" == ssh ]]; then
+        _git_at_least 2 34 || die "PROVOST_SIGN=ssh needs git 2.34 or later to sign with an SSH key (this is git $_GITVER). Use PROVOST_SIGN=gpg, or a newer git."
+        command -v ssh-keygen >/dev/null 2>&1 || die "PROVOST_SIGN=ssh needs ssh-keygen, which is not on PATH."
+        if [[ -n "$key" && "$key" != key::* ]]; then
+            [[ -r "$key" ]] || die "cannot sign: the signing key $key (PROVOST_SIGNING_KEY) does not exist or cannot be read. Nothing was captured."
+            # The private key ssh-keygen would load: the file itself, or for
+            # a .pub one ssh-agent does not hold, the file beside it.
+            local priv="$key" pub
+            if [[ "$key" == *.pub ]]; then
+                priv=""
+                pub="$(awk '{ print $2; exit }' "$key" 2>/dev/null)"
+                if [[ -z "${SSH_AUTH_SOCK:-}" || -z "$pub" ]] || ! ssh-add -L 2>/dev/null | grep -qF -- "$pub"; then
+                    [[ -f "${key%.pub}" ]] && priv="${key%.pub}"
+                fi
+            fi
+            if [[ -n "$priv" ]] && ! ssh-keygen -y -P '' -f "$priv" </dev/null >/dev/null 2>&1; then
+                die "cannot sign: the signing key $priv needs a passphrase, and provost will not wait for one (a batch or background capture would hang). Load it into ssh-agent and set PROVOST_SIGNING_KEY to its .pub file. Nothing was captured."
+            fi
+        fi
+    fi
+    if ! out="$(_sign_try 2>&1)"; then
+        printf 'git: %s\n' "$out" >&2
+        die "cannot sign with PROVOST_SIGN=$PROVOST_SIGN${key:+ and the key $key}: a test signature failed. Nothing was captured; fix the key, or set PROVOST_SIGN=off to capture unsigned."
+    fi
+    _SIGN_CHECKED=1
+}
+
+# _sign_try — sign a commit in a scratch repository (never in the store: the
+# check leaves no object behind there), as the store's commits are signed.
+_sign_try () {
+    local t rc=0
+    t="$(mktemp -d "$PROVOST_TEMP_DIR/provost-sign.XXXXXX")" || { echo "cannot create a temp dir in $PROVOST_TEMP_DIR"; return 1; }
+    {
+        env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR \
+            git init -q "$t" </dev/null >/dev/null 2>&1 \
+        && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR \
+            ${_SIGN_ENV[@]+"${_SIGN_ENV[@]}"} git -C "$t" -c core.hooksPath=/dev/null -c user.name=provost -c user.email=provost@localhost \
+            "${_GIT_SIGN[@]}" commit-tree -S "$(git -C "$t" mktree </dev/null)" -m 'provost: signing check' </dev/null >/dev/null
+    } || rc=1
+    rm -rf "$t"
+    return $rc
+}
+
+# _object_format [GITDIR] — the store's object format: sha1 or sha256.
+_object_format () {
+    local gd="${1:-$PROVOST_WORKSPACE/.git}" f
+    f="$(env -u GIT_CONFIG_PARAMETERS -u GIT_CONFIG_COUNT git config --file "$gd/config" --no-includes --get extensions.objectformat 2>/dev/null || true)"
+    f="$(printf '%s' "$f" | tr 'A-Z' 'a-z')"
+    printf '%s\n' "${f:-sha1}"
 }
 
 # A dataset name is one path component: [A-Za-z0-9][A-Za-z0-9._-]*, no "..".
@@ -313,7 +464,9 @@ _faillog ()    { printf '%s/.async-failures.log\n' "$PROVOST_WORKSPACE"; }
 _failseen ()   { printf '%s/.async-failures.seen\n' "$PROVOST_WORKSPACE"; }
 
 # git wrapper:
-#   * pinned identity + no signing, so commits work in any environment;
+#   * pinned identity, and signing off unless PROVOST_SIGN turns it on (then
+#     with the format and key it names, _sign_setup), so commits work in any
+#     environment and a user's own signing config never half-applies;
 #   * safe.directory=<store>, so a shared store owned by another user works
 #     instead of tripping git's dubious-ownership check;
 #   * hooks and fsmonitor disabled — with safe.directory lifted, a store's own
@@ -367,10 +520,10 @@ _git () {
     fi
     env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
         -u GIT_COMMON_DIR -u GIT_NAMESPACE ${_GIT_INDEX:+"GIT_INDEX_FILE=$_GIT_INDEX"} \
-        GIT_OPTIONAL_LOCKS=0 git -C "$PROVOST_WORKSPACE" -c safe.directory="$_WS_REAL" \
+        ${_SIGN_ENV[@]+"${_SIGN_ENV[@]}"} GIT_OPTIONAL_LOCKS=0 git -C "$PROVOST_WORKSPACE" -c safe.directory="$_WS_REAL" \
         -c core.hooksPath=/dev/null -c core.fsmonitor=false \
         -c user.name=provost -c user.email=provost@localhost \
-        -c commit.gpgsign=false -c tag.gpgSign=false "$@"
+        "${_GIT_SIGN[@]}" "$@"
 }
 
 # Stage everything and commit. Prints git's own error and exits non-zero if
@@ -380,10 +533,20 @@ _commit () {
     out="$(_git add -A 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "git add failed in $PROVOST_WORKSPACE — nothing was committed."; }
     _git diff --cached --quiet >/dev/null 2>&1 || rc=$?
     [[ $rc -eq 0 ]] && return 0                    # nothing staged: nothing to do
-    out="$(_git commit -q -m "$msg" 2>&1)" || {
+    out="$(_git commit -q -m "$(_with_operator "$msg")" 2>&1)" || {
         printf 'git: %s\n' "$out" >&2
+        [[ "$PROVOST_SIGN" != off ]] && die "git commit failed in $PROVOST_WORKSPACE with PROVOST_SIGN=$PROVOST_SIGN — the commit could not be signed, so nothing was committed (provost never commits unsigned while signing is on; the files stay in the store and go into the next successful commit)."
         die "git commit failed in $PROVOST_WORKSPACE — nothing was committed (the files stay in the store and go into the next successful commit)."
     }
+}
+
+# _tag_capture ID — tag the commit just made capture-ID: a lightweight tag, or
+# with signing on an annotated tag signed with the same key (PV-027), whose
+# message names the capture and its operator. git commit-tree does not
+# follow commit.gpgsign, so its callers pass ${_SIGN_S[@]} (-S, or nothing).
+_tag_capture () {
+    if [[ "$PROVOST_SIGN" == off ]]; then _git tag "capture-$1"
+    else _git tag -s -m "$(_with_operator "capture $1")" "capture-$1" </dev/null; fi
 }
 
 # --- input hashes (PV-026) ---------------------------------------------------
@@ -1019,14 +1182,24 @@ _migrate_store () {
 # store don't race on `git init`.
 _ensure_workspace () {
     _vet_store_config
+    # A new store's object format is asked for before anything is made.
+    if [[ ! -d "$PROVOST_WORKSPACE/.git" && "$PROVOST_OBJECT_FORMAT" == sha256 ]]; then
+        _git_at_least 2 29 || die "PROVOST_OBJECT_FORMAT=sha256 needs git 2.29 or later (this is git $_GITVER); the store at $PROVOST_WORKSPACE was not created."
+    fi
     mkdir -p "$(_ds_dir)" "$(_cap_dir)" 2>/dev/null \
         || die "cannot create the store at $PROVOST_WORKSPACE"
+    # With signing on, nothing is written that could not then be signed.
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] && _sign_check
     if [[ ! -d "$PROVOST_WORKSPACE/.git" || ! -f "$(_rowid_file)" ]]; then
         _lock
         if [[ ! -d "$PROVOST_WORKSPACE/.git" ]]; then
             local out
-            out="$(_git init -q 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "git init failed in $PROVOST_WORKSPACE"; }
+            local -a fmt=()
+            # (only when asked: a git before 2.29 does not know the option)
+            [[ "$PROVOST_OBJECT_FORMAT" == sha256 ]] && fmt=(--object-format=sha256)
+            out="$(_git init -q ${fmt[@]+"${fmt[@]}"} 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "git init failed in $PROVOST_WORKSPACE"; }
             _git symbolic-ref HEAD refs/heads/main >/dev/null 2>&1 || true
+            _sign_check
             _write_gitignore
             printf 'provost workspace (store model %s)\n' "$PROVOST_VERSION" > "$PROVOST_WORKSPACE/.provostrc"
             [[ -f "$(_capid_file)" ]] || echo 1 > "$(_capid_file)"
@@ -1582,8 +1755,8 @@ _snapshot_files () {
     if [[ -n "$parent" && "$ptree" == "$tree" ]]; then
         commit="$parent"
     else
-        commit="$(_git commit-tree "$tree" ${parent:+-p "$parent"} \
-                    -m "files of $dir at capture $id" 2>/dev/null)" || return 1
+        commit="$(_git commit-tree ${_SIGN_S[@]+"${_SIGN_S[@]}"} "$tree" ${parent:+-p "$parent"} \
+                    -m "files of $dir at capture $id" </dev/null 2>/dev/null)" || return 1
     fi
     _git tag "files-$id" "$commit" >/dev/null 2>&1
 }
@@ -2778,7 +2951,7 @@ _ingest_store () {
         msg="$msg$(_hash_trailers "$id")"
         _commit "$msg"
         local out
-        out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
+        out="$(_tag_capture "$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
         if [[ -n "$ctl_dir" ]]; then
             _snapshot_files "$ctl_dir" "$id" \
                 || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
@@ -3310,9 +3483,22 @@ EOF
             ;;
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
         triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
-        doctor) echo "usage: provost doctor    check the engines and the store; lists failed background captures" ;;
+        doctor) echo "usage: provost doctor    check the engines and the store (its object format, the operator, signing); lists failed background captures" ;;
+        init) cat <<'EOF'
+usage: provost init [--object-format sha1|sha256]
+  Make the store now (PROVOST_WORKSPACE, else the controlled directory's or
+  the global one), instead of at its first capture. --object-format sha256
+  makes a store in git's SHA-256 object format (git 2.29 or later); the
+  default is sha1, git's own default, or PROVOST_OBJECT_FORMAT. A store that
+  exists is left as it is: provost does not convert one, and refuses an
+  --object-format it was not made in. 'provost doctor' shows the format.
+  A SHA-256 store cannot be pushed to or fetched from a SHA-1 repository,
+  and some git hosting does not accept them; export and import (bundles)
+  carry the format with them.
+EOF
+;;
         verify) cat <<'EOF'
-usage: provost verify [--capture ID[,ID...]]...
+usage: provost verify [--capture ID[,ID...]]... [--require-signed] [--allowed-signers FILE]
   Check the store's integrity: git fsck --full; no tracked file changed and
   left uncommitted; every capture-* tag names a commit on the store's history
   (and every files-* tag a commit); each capture's output.txt is the one its tag filed and re-hashes
@@ -3323,16 +3509,28 @@ usage: provost verify [--capture ID[,ID...]]...
   hashes to raw_sha256. Exit 0 with no findings, 1 with a list of them.
   Captures filed before provost recorded hashes (2.3.0 and earlier) are
   counted as unhashed, not failed.
+  Signatures (PROVOST_SIGN): a signed capture's commit and tag are checked,
+  SSH signatures against the allowed-signers file, OpenPGP ones against
+  your keyring. A signature that does not verify, or a capture with only
+  one of the two signed, is always a finding; an unsigned capture is not,
+  unless --require-signed.
 options:
   --capture ID            check only these captures' tags and hashes (fsck
                           and the id sequence still cover the whole store)
+  --require-signed        every capture checked must be signed, commit and
+                          tag, and its signatures checked good
+  --allowed-signers FILE  the SSH allowed-signers file (git's format: one
+                          'PRINCIPAL KEYTYPE KEY' line per signer) to check
+                          SSH signatures against (PROVOST_ALLOWED_SIGNERS)
 what it proves:
   That the store is internally consistent: nothing was edited, lost or
   dropped without rewriting the history to match. It does NOT prove that the
   history was never rewritten: anyone who can write the store can rebuild
   every commit, hash and tag. To anchor it, record the head commit verify
   prints (and the store's capture count) somewhere the store's writers
-  cannot change -- a test report, a ticket -- and check it later.
+  cannot change -- a test report, a ticket -- and check it later. Or sign
+  the captures (PROVOST_SIGN; SIGNING in 'provost help advanced'): then a
+  rewrite also needs a signer's key.
 EOF
             ;;
         store) cat <<'EOF'
@@ -3815,7 +4013,7 @@ cmd_batch () {
         _commit "batch: ${#ids[@]} capture(s) $range ($((rows1 - rows0)) rows)$(_hash_trailers "${ids[@]}")"
         local out
         for id in "${ids[@]}"; do
-            out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "batch $first..$last was committed but $id could not be tagged capture-$id."; }
+            out="$(_tag_capture "$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "batch $first..$last was committed but $id could not be tagged capture-$id."; }
             if [[ -n "$ctl_dir" ]]; then
                 _snapshot_files "$ctl_dir" "$id" \
                     || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
@@ -4503,7 +4701,12 @@ _export_redacted () {
     ncap="$(wc -l < "$t/refs")"; ncap="${ncap//[!0-9]/}"
     echo "refs/heads/$main" >> "$t/refs"
     _lock_if_writable
-    if ! _git fast-export --no-data --reencode=yes --signed-tags=strip --tag-of-filtered-object=drop \
+    # Signatures go: the copy's history is rewritten, so no signature on it
+    # would verify (PV-027). A git that knows --signed-commits is told so;
+    # an older one drops commit signatures as a matter of course.
+    local -a fesig=()
+    git fast-export -h 2>&1 | grep -q -- '--signed-commits' && fesig=(--signed-commits=strip)
+    if ! _git fast-export --no-data --reencode=yes --signed-tags=strip ${fesig[@]+"${fesig[@]}"} --tag-of-filtered-object=drop \
             --stdin < "$t/refs" > "$t/stream" 2> "$t/err"; then
         _unlock; printf 'git: %s\n' "$(cat "$t/err")" >&2; die "export failed: git fast-export."
     fi
@@ -4580,7 +4783,10 @@ _export_redacted () {
     # 6. A new repository: the rewritten files, then the rewritten history.
     local -a ngit=(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR
                    git --git-dir="$t/new.git" -c core.hooksPath=/dev/null -c gc.auto=0)
-    git init -q --bare "$t/new.git" >/dev/null 2>&1 || die "export failed: cannot create a repository in $t."
+    # in the store's own object format (a sha256 store's copy is sha256)
+    local -a nfmt=()
+    [[ "$(_object_format)" == sha256 ]] && nfmt=(--object-format=sha256)
+    git init -q --bare ${nfmt[@]+"${nfmt[@]}"} "$t/new.git" >/dev/null 2>&1 || die "export failed: cannot create a repository in $t."
     ( cd "$t/new" && LC_ALL=C sort "$t/blobs" | "${ngit[@]}" hash-object -w --stdin-paths ) > "$t/newshas" \
         || die "export failed: storing the rewritten files."
     LC_ALL=C sort "$t/blobs" | paste - "$t/newshas" > "$t/gitmap"
@@ -4605,7 +4811,7 @@ _export_redacted () {
     n6="$(awk -F'\t' '$1 == "ip6"' "$t/used" | wc -l)"
     nsec="$({ cat "$t"/c.* 2>/dev/null || true; } | awk -F'\t' '{ n += $2 } END { print n + 0 }')"
     ok "exported a redacted copy of the store → $out: $((10#${ncap:-0})) capture(s); $((nh)) host name(s), $((n4)) IPv4 and $((n6)) IPv6 address(es) pseudonymised; $((nsec)) secret(s) scrubbed; key id $kid."
-    info "      left out: each capture's input_sha256 (with it, a guessed name could be checked) and a controlled directory's own files (files-* tags)."
+    info "      left out: each capture's input_sha256 (with it, a guessed name could be checked), a controlled directory's own files (files-* tags), the commits' Operator trailers and every signature (the copy's history is rewritten)."
     info "      import with: provost import $(printf '%q' "$out") <dest>   (the key, $_RP_KEYFILE, stays here)"
 }
 
@@ -5198,7 +5404,7 @@ _rm_cap_apply () {
     # only what it touches: anything else in the store is not this commit's
     _git add -A -- "${rb[@]}" >/dev/null 2>&1 || return 1
     if ! _git diff --cached --quiet -- "${rb[@]}" >/dev/null 2>&1; then
-        _git commit -q -m "$msg" -- "${rb[@]}" >/dev/null 2>&1 || return 1
+        _git commit -q -m "$(_with_operator "$msg")" -- "${rb[@]}" >/dev/null 2>&1 || return 1
     fi
     return 0
 }
@@ -5475,10 +5681,14 @@ _rm_captures () {
 # ---------------------------------------------------------------------------
 cmd_verify () {
     local -a want=()
-    local v
+    local v reqsig=0 asf="$PROVOST_ALLOWED_SIGNERS"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help) _cmd_help verify ;;
+            --require-signed) reqsig=1; shift ;;
+            --allowed-signers) [[ $# -ge 2 ]] || usage_die "--allowed-signers needs a FILE."
+                               asf="$2"; shift 2 ;;
+            --allowed-signers=*) asf="${1#--allowed-signers=}"; shift ;;
             --capture) [[ $# -ge 2 ]] || usage_die "--capture needs an ID."
                        IFS=',' read -r -a v <<< "$2"; want+=(${v[@]+"${v[@]}"}); shift 2 ;;
             --capture=*) IFS=',' read -r -a v <<< "${1#--capture=}"; want+=(${v[@]+"${v[@]}"}); shift ;;
@@ -5491,6 +5701,10 @@ cmd_verify () {
     done
     want=(${norm[@]+"${norm[@]}"})
     [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no git-backed store at $PROVOST_WORKSPACE — nothing to verify."
+    if [[ -n "$asf" ]]; then
+        asf="$(_abspath "$asf")"
+        [[ -f "$asf" && -r "$asf" ]] || die "no such allowed-signers file: $asf"
+    fi
     _mktempd verify; local tmp="$_MKTEMPD"
     local main tip nfail=0 out
     main="$(_main_branch)"
@@ -5541,8 +5755,9 @@ cmd_verify () {
     else
         mapfile -t ids < "$tmp/live"
     fi
-    # Each capture's commit-message trailers, in one git call.
-    _git for-each-ref --format='@@@ %(refname:short)%0a%(contents)' 'refs/tags/capture-*' \
+    # Each capture's commit-message trailers, in one git call: the commit's
+    # message, through an annotated (signed) tag to the commit it names.
+    _git for-each-ref --format='@@@ %(refname:short)%0a%(if)%(*objectname)%(then)%(*contents)%(else)%(contents)%(end)' 'refs/tags/capture-*' \
         | awk '/^@@@ capture-/ { next }
                $1 == "Output-SHA256:" && $2 ~ /^c[0-9]+$/ { print $2 "\t" $3 }' > "$tmp/trailers"
     # Each capture's meta.tsv as its tag filed it, in one git call.
@@ -5591,6 +5806,59 @@ cmd_verify () {
         fi
     done
 
+    # 4a. Signatures (PV-027): each capture's commit and tag. A signature that
+    # does not verify is always a finding; an unsigned capture only under
+    # --require-signed. SSH signatures are checked against the allowed-signers
+    # file (--allowed-signers, PROVOST_ALLOWED_SIGNERS); OpenPGP ones against
+    # the user's own keyring.
+    local nsig=0 ngood=0 nunchecked=0 nunsigned=0 c ck ct tk tsig st
+    local -a vcfg=()
+    [[ -n "$asf" ]] && vcfg=(-c "gpg.ssh.allowedSignersFile=$asf")
+    for id in ${ids[@]+"${ids[@]}"}; do
+        c="$(_git rev-parse -q --verify "refs/tags/capture-$id^{commit}" 2>/dev/null)" || continue
+        # the commit's signature kind: ssh, pgp, or none
+        ck="$(_git cat-file commit "$c" 2>/dev/null | LC_ALL=C awk '/^$/ { exit }
+                /^gpgsig/ { print (index($0, "SSH SIGNATURE") ? "ssh" : "pgp"); exit }')"
+        # the tag's: an annotated tag carries its signature in its body
+        tk=""
+        if [[ "$(_git cat-file -t "refs/tags/capture-$id" 2>/dev/null)" == tag ]]; then
+            tk="$(_git cat-file tag "refs/tags/capture-$id" 2>/dev/null | LC_ALL=C awk '
+                    /^-----BEGIN SSH SIGNATURE-----/ { print "ssh"; exit }
+                    /^-----BEGIN PGP SIGNATURE-----/ { print "pgp"; exit }')"
+        fi
+        if [[ -z "$ck" && -z "$tk" ]]; then
+            nunsigned=$((nunsigned + 1))
+            (( reqsig )) && _vfail "$id: not signed (its commit and its tag carry no signature)"
+            continue
+        fi
+        if [[ -z "$ck" || -z "$tk" ]]; then
+            # provost signs both or neither: one alone was made by hand
+            _vfail "$id: its $([[ -z "$ck" ]] && echo commit || echo tag) is not signed, though its $([[ -z "$ck" ]] && echo tag || echo commit) is (provost signs both; the other was made or replaced outside provost)"
+            continue
+        fi
+        nsig=$((nsig + 1))
+        if [[ "$ck" == ssh && -z "$asf" ]] || [[ "$tk" == ssh && -z "$asf" ]]; then
+            nunchecked=$((nunchecked + 1))
+            (( reqsig )) && _vfail "$id: signed, but not checked: name the allowed signers (--allowed-signers FILE or PROVOST_ALLOWED_SIGNERS)"
+            continue
+        fi
+        st="$(_git ${vcfg[@]+"${vcfg[@]}"} log -1 --format=%G? "$c" 2>/dev/null)" || st=E
+        tsig=0; _git ${vcfg[@]+"${vcfg[@]}"} verify-tag "refs/tags/capture-$id" >/dev/null 2>&1 || tsig=1
+        case "$st" in
+            G|X|Y) ;;
+            U) _vfail "$id: its commit is signed by a key that is not an allowed signer (or is not trusted)"; continue ;;
+            B) _vfail "$id: its commit's signature is BAD (the commit was changed after it was signed)"; continue ;;
+            R) _vfail "$id: its commit is signed by a revoked key"; continue ;;
+            *) nunchecked=$((nunchecked + 1))
+               (( reqsig )) && _vfail "$id: its commit's signature cannot be checked (git says '$st': the key is not available)"
+               continue ;;
+        esac
+        if (( tsig )); then
+            _vfail "$id: its tag capture-$id does not verify against the allowed signers"; continue
+        fi
+        ngood=$((ngood + 1))
+    done
+
     # 4b. A truncated capture's whole input, kept outside git (PV-021): still
     # there, and still the bytes that were kept.
     local nkept=0 kpath
@@ -5630,6 +5898,15 @@ cmd_verify () {
     (( unhashed > 0 )) && printf ', %d filed before hashes were recorded (no hash to check)' "$unhashed"
     (( nkept > 0 )) && printf '; %d truncated capture(s) whose whole input was checked' "$nkept"
     printf '\n'
+    if (( nsig == 0 )); then
+        printf '   signatures: none of the %d capture(s) is signed%s\n' "${#ids[@]}" "$( (( reqsig )) || echo ' (PROVOST_SIGN signs them; --require-signed fails unsigned ones)')"
+    else
+        printf '   signatures: %d of %d capture(s) signed (commit and tag), %d checked good' "$nsig" "${#ids[@]}" "$ngood"
+        [[ -n "$asf" ]] && printf ' against %s' "$asf"
+        (( nunchecked > 0 )) && printf '; %d not checked%s' "$nunchecked" "$([[ -z "$asf" ]] && echo ' (no allowed-signers file: --allowed-signers or PROVOST_ALLOWED_SIGNERS)')"
+        (( nunsigned > 0 )) && printf '; %d unsigned' "$nunsigned"
+        printf '\n'
+    fi
     (( removed > 0 )) && printf '   %d capture id(s) removed by rm (in the history, not on %s): not a failure\n' "$removed" "$main"
     printf '   %s at %s\n' "$main" "$tip"
     if (( nfail > 0 )); then
@@ -5709,7 +5986,14 @@ _store_check () {
     fi
     (( fmt <= _STORE_FORMAT )) || { printf '%sstore check: %d finding(s)%s\n' "$C_ERR" "$nfail" "$C_RST"; return 1; }
 
-    # 2. git: the branch, and where HEAD is
+    # 2. git: the object format (PV-027), the branch, and where HEAD is
+    local ofmt; ofmt="$(_object_format)"
+    case "$ofmt" in
+        sha1) _sok "git object format sha1" ;;
+        sha256) if _git_at_least 2 29; then _sok "git object format sha256"
+                else _sfail "git object format sha256, which this git ($_GITVER) cannot read: use git 2.29 or later"; fi ;;
+        *) _sfail "git object format '$ofmt' is not one provost makes (sha1 or sha256)" ;;
+    esac
     main="$(_main_branch)"
     _git rev-parse -q --verify "refs/heads/$main^{commit}" >/dev/null 2>&1 \
         || _sfail "the store has no '$main' branch with a commit on it"
@@ -5855,6 +6139,14 @@ _store_check () {
         local orphan; orphan="$(printf '%s\n' ${caps[@]+"${caps[@]}"} | sort | comm -13 - "$tmp/tags" | head -n 5 | tr '\n' ' ')"
         [[ -z "$orphan" ]] || _snote "tags for captures no longer in the store (removed?): $orphan"
     fi
+    # capture-* tags: each names a commit, directly (lightweight) or through
+    # an annotated tag (a signed store, PV-027)
+    local nann=0 tt
+    while IFS=$'\t' read -r f tt; do
+        [[ "$tt" == tag ]] && nann=$((nann + 1))
+        [[ "$(_git cat-file -t "refs/tags/$f^{}" 2>/dev/null)" == commit ]] || _sfail "tag $f does not name a commit"
+    done < <(_git for-each-ref --format='%(refname:short)%09%(objecttype)' 'refs/tags/capture-*' 2>/dev/null)
+    (( nann > 0 )) && _snote "$nann capture tag(s) are annotated (signed captures; 'provost verify' checks the signatures)"
     # files-* tags (a controlled directory's files, PV-028): each a commit
     while IFS= read -r f; do
         nfiles=$((nfiles + 1))
@@ -5884,6 +6176,36 @@ _store_check () {
     fi
     printf '%s ok%s store check: the store is a valid format-%d store\n' "$C_OK" "$C_RST" "$fmt"
     return 0
+}
+
+# ---------------------------------------------------------------------------
+# init — make the store now, in the git object format asked for (PV-027).
+# A store is otherwise made by its first write, in PROVOST_OBJECT_FORMAT.
+# An existing store is never converted.
+# ---------------------------------------------------------------------------
+cmd_init () {
+    local fmt=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help init ;;
+            --object-format) [[ $# -ge 2 ]] || usage_die "--object-format needs sha1 or sha256."
+                             fmt="$2"; shift 2 ;;
+            --object-format=*) fmt="${1#--object-format=}"; shift ;;
+            *) usage_die "init: unknown argument: $1 (see 'provost help init')." ;;
+        esac
+    done
+    case "$fmt" in ""|sha1|sha256) ;; *) usage_die "--object-format must be sha1 or sha256 (got '$fmt')." ;; esac
+    if [[ -d "$PROVOST_WORKSPACE/.git" ]]; then
+        local have; have="$(_object_format)"
+        if [[ -n "$fmt" && "$fmt" != "$have" ]]; then
+            die "the store at $PROVOST_WORKSPACE already exists, in object format $have. provost does not convert a store: make a new one elsewhere (PROVOST_WORKSPACE=DIR provost init --object-format=$fmt)."
+        fi
+        ok "the store at $PROVOST_WORKSPACE already exists (object format $have); nothing to do."
+        return 0
+    fi
+    [[ -n "$fmt" ]] && PROVOST_OBJECT_FORMAT="$fmt"
+    _ensure_workspace
+    ok "made a store at $PROVOST_WORKSPACE (object format $(_object_format)$( [[ "$PROVOST_SIGN" != off ]] && printf ', commits signed with %s' "$PROVOST_SIGN"))."
 }
 
 cmd_doctor () {
@@ -5916,6 +6238,9 @@ cmd_doctor () {
     [[ -d "$PROVOST_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
     if [[ -d "$PROVOST_WORKSPACE/.git" ]]; then
         local head
+        printf '   object format: %s' "$(_object_format)"
+        [[ "$(_object_format)" == sha256 ]] && ! _git_at_least 2 29 && printf ' %s(this git, %s, cannot read it: git 2.29 or later can)%s' "$C_ERR" "$_GITVER" "$C_RST"
+        printf '\n'
         if head="$(_git symbolic-ref -q --short HEAD 2>/dev/null)"; then
             printf '   branch: %s\n' "$head"
         else
@@ -5933,6 +6258,20 @@ cmd_doctor () {
     if [[ -d "$PROVOST_WORKSPACE/.lock" ]]; then
         printf '   note: store lock held by: %s\n' "$(tr '\t' ' ' < "$PROVOST_WORKSPACE/.lock/owner" 2>/dev/null || echo unknown)"
     fi
+    printf '   operator: %s (%s)\n' "$(_operator)" "$([[ -n "$PROVOST_OPERATOR" ]] && echo PROVOST_OPERATOR || echo 'user@host; PROVOST_OPERATOR overrides')"
+    if [[ "$PROVOST_SIGN" == off ]]; then
+        printf '   signing: off (PROVOST_SIGN=ssh or gpg signs every commit and capture tag)\n'
+    else
+        local sout
+        if sout="$( (_sign_check) 2>&1 )"; then
+            printf '%s ok%s signing: %s%s; a test signature works\n' "$C_OK" "$C_RST" "$PROVOST_SIGN" "${PROVOST_SIGNING_KEY:+ with $PROVOST_SIGNING_KEY}"
+        else
+            printf '%serror%s signing: %s — captures will fail:\n' "$C_ERR" "$C_RST" "$PROVOST_SIGN"
+            printf '%s\n' "$sout" | sed 's/^/     /'
+            rc=1
+        fi
+    fi
+    printf '   new stores: object format %s (PROVOST_OBJECT_FORMAT)\n' "$PROVOST_OBJECT_FORMAT"
     printf '   min-confidence: %s\n' "$PROVOST_MIN_CONFIDENCE"
     if [[ "$PROVOST_REDACT" == 1 ]]; then
         if [[ -f "$PROVOST_ROOT/lib/provost_redact.awk" ]]; then printf '   secret scrub: on (each input is scrubbed before it is stored; --no-redact or PROVOST_REDACT=0 turns it off)\n'
@@ -6078,9 +6417,13 @@ COMMANDS
         Delete captures, and the rows they filed in every dataset they fed
         (a dataset left with no rows goes too). One commit, as above.
     provost doctor                 check the engines and the store
-    provost verify [--capture ID]  check the store's integrity: git fsck, each
+    provost init [--object-format sha256]
+        Make the store now; sha256: in git's SHA-256 object format (SIGNING).
+    provost verify [--capture ID] [--require-signed] [--allowed-signers FILE]
+                                   check the store's integrity: git fsck, each
                                    capture's output against its recorded
-                                   sha256, tags, and gaps in capture ids
+                                   sha256, tags, gaps in capture ids, and
+                                   signatures (SIGNING)
     provost store check [DIR]      check a store against the store format
                                    (docs/store-format.md); reads only
     provost help [advanced]        the short help / this text
@@ -6566,6 +6909,38 @@ SECRETS AND REDACTION
     passes on the import, and each meta.tsv says 'pseudonymised' with the
     key's id. 'provost export --help' lists the policy's keys.
 
+SIGNING, THE OPERATOR AND SHA-256 STORES
+    Every commit provost makes ends with an 'Operator: WHO' trailer: who made
+    it, as user@host, or PROVOST_OPERATOR when set (qd passes its operator
+    through it). The committer stays 'provost <provost@localhost>', so the
+    store's history reads the same whoever writes to it.
+
+    PROVOST_SIGN=ssh (or gpg) signs every commit provost makes, and makes each
+    capture-ID tag an annotated tag signed with the same key, so each piece
+    of evidence is tied to a key. PROVOST_SIGNING_KEY names the key: for ssh
+    a private key file with no passphrase, or a .pub file (or key::LITERAL)
+    whose private half ssh-agent holds; for gpg a key id. Unset, git's own
+    user.signingkey is used. SSH signing needs git 2.34 or later.
+    With signing on, a capture that cannot be signed is not captured: before
+    writing anything, provost signs a test commit in a scratch repository,
+    and stops (exit 1) if that fails or if the key file would ask for a
+    passphrase (nothing would answer it in a batch or background run). A
+    commit git then fails to sign fails the capture as well. Nothing is ever
+    committed unsigned while PROVOST_SIGN is on.
+    Signing is a setting of whoever runs provost, not of the store: provost
+    never reads signing settings from a store's .git/config. 'provost verify'
+    checks the signatures (PROVOST_ALLOWED_SIGNERS for ssh), and
+    --require-signed fails any capture that is not signed. 'provost export
+    --redact' writes a rewritten history, so its copy carries no
+    signatures and no Operator trailers.
+
+    A store is made in git's SHA-1 object format unless PROVOST_OBJECT_FORMAT
+    =sha256 or 'provost init --object-format sha256' asks for SHA-256 (git
+    2.29 or later). Every provost command works on either; 'provost doctor'
+    and 'provost store check' show which a store is. An existing store is not
+    converted. A SHA-256 store cannot be pushed to or fetched from a SHA-1
+    repository, and some git hosting does not accept SHA-256 repositories.
+
 UNITS (--units base)
     By default a unit stays where the tool printed it: in a column's name
     (Bandwidth_(MB/s)), in each cell (482MiB/s), or in a column beside the
@@ -6669,6 +7044,16 @@ SETTINGS (environment)
                               <store>.artifacts, beside the store)
     PROVOST_FILES_MAX_SIZE    in a controlled directory, the largest file kept
                               with each run (bytes; default: 1048576; 0 = none)
+    PROVOST_OPERATOR          who makes the captures, in each commit's
+                              Operator: trailer (default: user@host)
+    PROVOST_SIGN              ssh or gpg = sign every commit and capture tag;
+                              off = don't (the default). SIGNING
+    PROVOST_SIGNING_KEY       the key to sign with (ssh: a key file, a .pub
+                              with ssh-agent, or key::...; gpg: a key id)
+    PROVOST_ALLOWED_SIGNERS   the SSH allowed-signers file 'verify' checks
+                              signatures against
+    PROVOST_OBJECT_FORMAT     sha256 = make a new store in git's SHA-256
+                              object format (default: sha1)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
     PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even
                               if its owner cannot be checked (default: 3600)
@@ -6695,7 +7080,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify store help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -6754,6 +7139,7 @@ main () {
         annotate)      shift; cmd_annotate "$@" ;;
         check-manifest) shift; cmd_check_manifest "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
+        init)          shift; cmd_init "$@" ;;
         verify)        shift; cmd_verify "$@" ;;
         store)         shift; cmd_store "$@" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
