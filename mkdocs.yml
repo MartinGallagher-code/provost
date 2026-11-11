@@ -16,6 +16,12 @@ nav:
   - Home: index.md
   - Usage: usage.md
   - Installing with no network: offline-install.md
+  - Test frameworks:
+      - Overview: integrations/index.md
+      - A generic wrapper: integrations/wrapper.md
+      - ReFrame: integrations/reframe.md
+      - pytest: integrations/pytest.md
+      - GitLab CI: integrations/gitlab-ci.md
   - Design:
       - Rename and simplification: 0001-rename-and-simplification.md
       - Tidy-first and nameless columns: 0002-tidy-first-and-nameless-columns.md

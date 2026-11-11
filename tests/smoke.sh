@@ -1928,6 +1928,39 @@ check "PROVOST_MANIFEST_STRICT must be 0 or 1 (exit 2)" "2" "$(PROVOST_MANIFEST_
 check "check-manifest --help" "usage: provost check-manifest" "$(mp check-manifest --help)"
 fi
 
+if _part wrap; then
+echo "== provost-wrap, the generic harness wrapper (PV-023, docs/integrations) =="
+WWS="$(mktemp -d)/.wws"; WD="$(mktemp -d)"
+WRAP="$HERE/../docs/integrations/examples/provost-wrap"
+# The wrapper calls $PROVOST: this checkout's.
+wr () { PROVOST_WORKSPACE="$WWS" PROVOST="$PROVOST" bash "$WRAP" "$@"; }
+wp () { PROVOST_WORKSPACE="$WWS" "$PROVOST" "$@" 2>&1; }
+printf 'printf "size,bw\\n1,10\\n2,20\\n"; exit 3\n' > "$WD/bench.sh"
+out="$(wr test=stream 'sut=node "7"' -- sh "$WD/bench.sh" 2>&1; echo "rc=$?")"
+check "provost-wrap passes the command's output through" "2,20" "$out"
+check "...exits with the command's own status" "rc=3" "$out"
+check_not "...and says nothing of its own" "warning" "$out"
+check "...files a capture, named after the command" "sh 2" "$(wp ls | sq)"
+out="$(wp show sh | sq)"
+check "...its KEY=VALUE words and rc as columns" "# capture test sut rc n size bw" "$out"
+check "...a quoted value read back whole" 'stream node "7" 3 2 2 20' "$out"
+check "...the prologue kept with the capture" '#% sut="node \"7\""' "$(wp source c0001)"
+out="$(wr --name probe -- sh -c 'echo "a,b"; echo "1,2"' 2>&1; echo "rc=$?")"
+check "--name names the dataset, and a success is 0" "rc=0" "$out"
+check "...into that dataset" "probe 1" "$(wp ls | sq)"
+check "a command with no output files nothing" "0" "$(wr true; echo "$?")"
+check "...(still two captures)" "c0002" "$(wp log | tail -n 1)"
+out="$(wr nosuch-command-pv023 2>&1; echo "rc=$?")"
+check "a command not found exits 127" "rc=127" "$out"
+check "...and files nothing" "c0002" "$(wp log | tail -n 1)"
+out="$(PROVOST_WORKSPACE="$WWS" PROVOST=/nonexistent/provost bash "$WRAP" sh "$WD/bench.sh" 2>&1; echo "rc=$?")"
+check "with no provost the command still runs" "2,20" "$out"
+check "...the wrapper says it could not file" "could not file the output of sh (its status, 3, is kept)" "$out"
+check "...and the command's status is kept" "rc=3" "$out"
+check "with no command, usage (exit 2)" "2" "$(rc_of bash "$WRAP" a=b)"
+check "--name with no value, usage (exit 2)" "2" "$(rc_of bash "$WRAP" --name)"
+fi
+
 if _part env; then
 echo "== environment capture (PV-028): --env, the allow-list, secrets withheld =="
 EWS="$(mktemp -d)/.ews"; ED="$(mktemp -d)"
