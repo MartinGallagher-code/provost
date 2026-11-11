@@ -32,6 +32,7 @@ Capture flags (for `run` and inject):
 | `--multi` | file **every** dataset the input holds instead of one winner |
 | `--no-auto-multi` | hold a parse the quality gate rejects without first trying to segment it (`--auto-multi`, the default, tries) |
 | `--context-columns` | make each `key=value` word of a `#%` prologue a column on every row (see [Metadata prologue](#metadata-prologue)) |
+| `--units base` | after each column whose unit can be read, add a `NAME[UNIT]` column of the same values in base units (see [Units](#units)); `--units off`, the default, adds none |
 
 At an interactive terminal the capture runs in the background and the prompt
 returns at once; in a script or pipeline (stderr not a terminal) it runs in the
@@ -147,6 +148,7 @@ rewritten. Signed commits are the stronger anchor (PV-027).
 | `PROVOST_ASYNC` | `1` always background, `0` always foreground, unset = background only at a terminal | unset |
 | `PROVOST_MULTI` | file every dataset an input holds (same as `--multi`) | `0` |
 | `PROVOST_CONTEXT_COLUMNS` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) | `0` |
+| `PROVOST_UNITS` | `base` = add a `NAME[UNIT]` column in base units after each column with a readable unit (same as `--units base`) | `off` |
 | `PROVOST_MANIFEST_PROFILE` | run-manifest profile, NAME or `.tsv` file; when set every capture is checked (same as `--manifest-profile`) | unset |
 | `PROVOST_MANIFEST_STRICT` | `1` = refuse a capture lacking a required manifest key (same as `--strict-manifest`) | `0` |
 | `PROVOST_ENV` | `1` = record where each capture was taken (same as `--env`); `modules` = and the kernel modules (`--env=modules`) | `0` |
@@ -195,6 +197,113 @@ rows together whether or not a capture segments. `PROVOST_AUTO_MULTI=0` (or
 
 See [the multi-dataset design note](0003-multi-dataset.md) for the rationale
 and the scoring machinery behind the split.
+
+## Units
+
+**Where a unit lives.** By default provost leaves a unit where the tool
+printed it, and converts nothing:
+
+- in the column's name: `Bandwidth_(MB/s)` (OSU), `Best_Rate_MB/s` (STREAM);
+- in each cell: `482MiB/s (505MB/s)` (fio), `42.18_GiB` (vnstat);
+- in a column of its own beside the number: `transfer` and `transfer_unit`
+  (the iperf3 parser).
+
+So `9.4 GB/s` in one tool's output and `9400` under `MB/s` in another's are
+different strings, and a tool that compared them as numbers would be wrong.
+
+**`--units base`** (or `PROVOST_UNITS=base`, for `run`, piped input and
+`batch`) adds, right after each column whose unit can be read exactly, a
+column named `NAME[UNIT]` holding the same values as plain numbers in a base
+unit. The original column is kept as it was. That suffix is the convention: a
+column whose name ends in `[UNIT]` holds plain numbers in `UNIT`, and the
+column it was read from is the one before it.
+
+| base unit | for |
+|---|---|
+| `B` | bytes |
+| `B/s` | bytes a second |
+| `bit` | bits |
+| `bit/s` | bits a second |
+| `s` | seconds |
+
+```console
+$ provost --sync --units base --name osu osu_bw.txt
+$ provost show osu
+#  capture  n  Size  Bandwidth_(MB/s)  Bandwidth_(MB/s)[B/s]
+1  c0001    1  1     3.26              3260000
+2  c0001    2  2     6.55              6550000
+```
+
+Bits are never turned into bytes, nor bytes into bits: a `[B/s]` column and a
+`[bit/s]` column are different units, and stay so.
+
+**How a unit is read: by the letter.**
+
+- `B`, `Byte`, `Bytes` are bytes; `bit`, `bits` are bits. A short `b` is
+  bits only in a rate (`Mb/s`, `Gbps`): as a size it means bytes about as
+  often (tc prints a 15 KiB burst as `15Kb`; sysfs has `read_ahead_kb`), so
+  `Kb`, `Mb` or `kb` alone are not read. A bare `B` glued to its number
+  (`8.0B`) is not read either, as it is as often a count (8 billion
+  parameters); `3600 B` is.
+- `k`, `K`, `M`, `G`, `T`, `P`, `E` are powers of 1000; `Ki`, `Mi`, `Gi`,
+  `Ti`, `Pi`, `Ei` are powers of 1024. A tool that prints `kB` for 1024 bytes
+  (`/proc/meminfo`) is converted as printed: the original column still says
+  what the tool said.
+- A rate is a size unit followed by `/s` or `/sec`, or `ps` after a short
+  form (`MBps`, `Mbps`).
+- Times: `ns`/`nsec`, `us`/`usec`/`µs`, `ms`/`msec`, `s`/`sec`/`seconds`.
+- A bare multiplier that names no quantity is **not** read: `7.8Gi`
+  (`free -h`), `1.2G`, `128K` (`df -h`, whose `G` is 1024^3 although the
+  letter says 1000^3). Nothing is guessed.
+- The one exception, from the tools' own source: iperf2 and iperf3 print
+  powers of 1024 as `KBytes`, `MBytes`, `GBytes` and `TBytes`, so in a dataset
+  the iperf3 parser filed, or one named `iperf` or `iperf3` (as
+  `provost run iperf3 …` names it), those are read as KiB, MiB, GiB and TiB.
+  Their bit rates (`Mbits/sec`) are powers of 1000, as labelled.
+
+**Which columns.** The unit comes from, in this order:
+
+1. the column's name: a trailing `(UNIT)` or `[UNIT]` (`Latency (us)`,
+   `bw(MiB/s)`; a one-letter unit only after a space or `_`, so `Error(s)` is
+   a plural, not seconds), the whole name when it is a size or a rate
+   (`MB/s`; never a bare time: vmstat's `us` is user CPU), or its last `_`- or
+   space-separated word when that carries a prefix or a rate
+   (`Best_Rate_MB/s`, `rtt_ms`; not `kb_read_s` or `requests_per_ms`). Each
+   cell must then be a plain number.
+2. a column named `NAME_unit` beside it: each row is read in its own unit.
+3. each cell: a number, optionally a space or `_`, and a unit (`1.19 MBytes`),
+   optionally followed by the same quantity in another unit in parentheses
+   (fio's `482MiB/s (505MB/s)`: the first is used).
+
+A column is converted only when every cell that holds a digit can be read and
+all its units are one quantity (sizes, byte rates, bit rates or times); a cell
+with no digit (empty, `-`, `N/A`) gives an empty converted cell.
+
+**Exact.** Every factor is a power of 10 or of 1024, so the conversion is done
+on the decimal digits, never in floating point (which loses precision past
+2^53), and printed in full: `28.2GiB` is `30279519436.8`, `1 EiB` is
+`1152921504606846976`, `0.041 ms` is `0.000041`.
+
+**The record.** A capture filed with `--units base` says `units  base` in its
+`meta.tsv`, and, when it added any column, `units_columns  units.tsv`: a TSV
+of `dataset`, `column`, `unit_column`, `base`, `from` (`name`, `cells`, or
+`column NAME_unit`) and `read`, each unit read with its exact factor:
+
+```text
+dataset  column            unit_column            base  from  read
+osu      Bandwidth_(MB/s)  Bandwidth_(MB/s)[B/s]  B/s   name  MB/s=10^6
+```
+
+Run over every corpus input as provost files it (3,733), `--units base`
+converted 466 columns in 276 of them; each was checked for a false reading,
+and the three found (vmstat's `us`, sysfs `read_ahead_kb`, llama-bench's
+`8.0B` parameters) are the rules above that refuse them.
+
+A dataset fed by captures with and without `--units base` keeps one table
+(the earlier rows' `[UNIT]` cells are empty), unless the added columns take
+its shape below `PROVOST_RECONCILE_OVERLAP`, when the new capture goes to a
+variant (`NAME.v2`) as any changed shape does. A capture held in `unsorted`
+is kept as it came.
 
 ## Metadata prologue
 

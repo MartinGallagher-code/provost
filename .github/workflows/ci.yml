@@ -102,6 +102,8 @@ jobs:
           exit $missing
       - name: transform unit test
         run: bash transform/tests/test_melt.sh
+      - name: units unit test (--units base, PV-032)
+        run: bash transform/tests/test_units.sh
       # stdlib only (no numpy/torch): the layout-model label builders
       - name: layout-model training-set tests
         run: python3 -m unittest discover -s ml/tests -v

@@ -74,6 +74,11 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
   per record; same-typed captures reconcile into one table.
 - **Git core** — the store is a git repo; every capture is a commit tagged
   `capture-<id>`. `provost log` lists them, `provost restore <id>` brings one back up.
+- **Units as data** — a unit stays where the tool printed it (the column name,
+  the cell, or a `NAME_unit` column); `--units base` adds a `NAME[UNIT]`
+  column beside each one in base units (`B`, `B/s`, `bit`, `bit/s`, `s`),
+  converted exactly, so `9.4 GB/s` and `9400 MB/s` compare as equal. Off by
+  default. See [Units](docs/usage.md#units).
 - **Provenance** — every dataset row has a globally-unique visible `#N`;
   `provost source N` shows the exact captured input that produced it.
 - **Global or per-directory** — captures go to a global store (`~/.provost`) by
@@ -96,6 +101,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `… --plugin-dir <dir>` | extra strategy dir for this capture (inject/run) |
 | `… --context-columns` | each `key=value` in a `#%` prologue becomes a column on every row (inject/batch) |
 | `… --env` | record where the capture was taken (host, kernel, OS, modules, Slurm job, user, allow-listed variables) in its `#%` prologue (`--env=modules`: and the kernel modules) |
+| `… --units base` | add a `NAME[UNIT]` column in base units after each column with a readable unit (inject/run/batch; [Units](docs/usage.md#units)) |
 | `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then) |
 | `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
 | `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
@@ -209,6 +215,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_ASYNC` | unset | `1` always background, `0` always foreground; unset = background only at a terminal |
 | `PROVOST_MULTI` | `0` | file every dataset an input holds (same as `--multi`) |
 | `PROVOST_CONTEXT_COLUMNS` | `0` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) |
+| `PROVOST_UNITS` | `off` | `base` = after each column whose unit can be read, a `NAME[UNIT]` column of the same values in base units, exactly; the original is kept (same as `--units base`) |
 | `PROVOST_MANIFEST_PROFILE` | unset | run-manifest profile (NAME or `.tsv`); when set, every capture is checked |
 | `PROVOST_MANIFEST_STRICT` | `0` | `1` = refuse a capture lacking a required manifest key (`--strict-manifest`) |
 | `PROVOST_ENV` | `0` | `1` = record where each capture was taken in its prologue (`--env`); `modules` = and the kernel modules (`--env=modules`) |
@@ -235,6 +242,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 ```bash
 bash tests/smoke.sh                  # end-to-end
 bash transform/tests/test_melt.sh    # transform unit tests
+bash transform/tests/test_units.sh   # --units: the conversion table and rules
 bash extract/tests/run_tests.sh      # extract strategies + engine
 bash analyze/tests/run_tests.sh      # analyze engine
 bash tests/corpus/run.sh --golden    # tidy output of ~3,500 real tools vs goldens
@@ -242,7 +250,7 @@ python -m pytest                     # PyPI launcher (100% coverage enforced)
 bash tests/check_version.sh          # the version agrees everywhere (see below)
 ```
 
-All seven run in CI (`.github/workflows/ci.yml`).
+All eight run in CI (`.github/workflows/ci.yml`).
 
 ## Versioning and support
 

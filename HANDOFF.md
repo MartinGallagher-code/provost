@@ -5,24 +5,25 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.10.0 is everything through 2026-11-10** (`VERSION`, man header, the
-`## 2.10.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
-outputs (PV-030, below, 2.5.0), the generalisation decision record (PV-006,
-2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules (PV-010,
-2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f; 2.5.3);
-the offline install bundle with an SBOM (PV-025, below; 2.6.0); opt-in
+**provost 2.11.0 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.11.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
+(PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
+(PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
+2.5.3); the offline install bundle with an SBOM (PV-025, below; 2.6.0); opt-in
 environment capture, `--env` (PV-028, below; 2.7.0); recipes for test
 frameworks (PV-023, below; 2.8.0); a structural judge after `--llm` learn and
-repair (PV-009, Next steps 1g; 2.9.0); the `--llm` skip audit and the
-template ledger (PV-008, Next steps 1h; 2.10.0). 2.4.0 added `provost
+repair (PV-009, Next steps 1g; 2.9.0); the `--llm` skip audit and the template
+ledger (PV-008, Next steps 1h; 2.10.0); units as data, `--units base` (PV-032,
+below; 2.11.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.10.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.10.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.10.0`, creating
+2.11.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.11.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.11.0`, creating
 that release on a dispatched run.
 
 **2.8.0: recipes for test frameworks (PV-023, 2026-11-10; not published).**
@@ -64,6 +65,37 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.11.0: units as data, `--units base` (PV-032, 2026-11-10; not
+published).** Off by default, so tidy output is unchanged. With `--units base`
+(`PROVOST_UNITS=base`) every column whose unit can be read exactly (from its
+name, a `NAME_unit` column, or its cells) gains a `NAME[UNIT]` column right
+after it: the same values as plain numbers in `B`, `B/s`, `bit`, `bit/s` or
+`s`, converted on the decimal digits (exact past 2^53). Units are read by the
+letter (SI powers of 1000, IEC powers of 1024, `b` bits, `B` bytes); a bare
+multiplier (`7.8Gi`, `1.2G`) is not read; iperf's `MBytes` are 2^20 (its
+source). The capture's `units.tsv` records each column added and each unit's
+exact factor; `meta.tsv` says `units  base`. Code: `transform/units.sh`
+(`_core_units_base`), applied at the end of `_ingest_parse`, recorded in
+`_ingest_store`. Docs: `docs/usage.md` "Units" (the convention), README, help
+advanced "UNITS", the man page. Open:
+- **The PV-030 HPC strategies' units cannot be read**: `ior`, `hpl`,
+  `stream` name them in lower case (`bw_mib_s`, `time_s`, `best_rate_mb_s`),
+  which loses MiB against Mib, and `lst-stat` and `mdtest` give one long-form
+  `unit` column for several value columns, with different quantities per row
+  (MiB/s and RPC/s; ops/s and s). Making them readable changes their tidy
+  output (2.5.0 is not published, so no store has them yet): the owner's
+  call. A long-form `unit` column would also need its own rule, since one
+  `NAME[UNIT]` column holds one base unit.
+- `nvidia-smi dmon`/`pmon` print units on a second header row (`MB/s`), which
+  the generic parse drops; fio's JSON, terse and bw-log outputs carry no unit
+  (KiB/s by fio's documentation), so nothing is read there.
+- Labels that lie: `/proc/meminfo`'s `kB` is 1024 bytes but is read as 1000;
+  a piped iperf3 server report (parsed generically, so no tool name) reads
+  `MBytes` as 10^6. Only iperf is in the tool-conventions table.
+- quarterdeck: QD-010 (qd check) and qd compare should refuse to compare
+  columns of different units unless both are `[UNIT]` columns of the same
+  base.
 
 **2.7.0: environment capture, `--env` (PV-028, 2026-11-10; not published).**
 Off unless asked for. `--env` (`PROVOST_ENV=1`) prepends `#% env.*` lines:
@@ -127,13 +159,16 @@ HPCG, HPL 2.3, ibstat, perfquery, lst, STREAM). Open:
   mdtest did). Either fix would let those go generic, but both parsers sit
   under many goldens.
 - nvidia-smi not re-checked against a current driver (no GPU).
-- Units are kept in names, not normalised: PV-032.
+- Units are kept in names, not normalised: PV-032 added `--units base`
+  (2.6.0), but these strategies' lower-case unit names are not readable by it
+  (above).
 - `ml/gen/tools/sci_ior.py` and `sci_osu_latency.py` were removed (their families
   are in the corpus now); the layout model's next retrain drops them.
 
 provost is one Bash entry point (`provost`) over:
 - the extract engine (`extract/provost-extract`, 274 strategies, ~118 generic)
 - the tidy melt (`transform/melt.sh`)
+- units as data (`transform/units.sh`, `--units base`)
 - the analyze engine (`analyze/provost-analyze`)
 
 It has a git-backed store and ships as a thin Python launcher
@@ -227,8 +262,9 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (604)
+- `tests/smoke.sh` (737, with the `units` part's 41)
 - `transform/tests/test_melt.sh` (70)
+- `transform/tests/test_units.sh` (86; mawk and gawk)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
 - `tests/corpus/run.sh --golden`
