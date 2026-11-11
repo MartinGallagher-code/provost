@@ -1,5 +1,108 @@
 # provost — Changelog
 
+## 2.10.0 — 2026-11-10 — `--llm`: the skip audit, and a ledger of the captures each template filed (PV-008)
+
+`VERSION` 2.9.0 → 2.10.0, and the `man/provost.1` header. Minor: what a
+template's skipped lines count for changes (so which parse files a capture
+can change, which the versioning policy does not promise), and there is a
+new store file and a new `template.py` command. Nothing a user ran stops
+working; no corpus golden moved (`--llm` is off by default).
+
+PV-008 asked for three things from HANDOFF 0j's next steps. The first,
+**repair on a miss** (a stored template's unread lines on a new capture go
+back to Claude once; the extension is kept only if it still reads the
+captures it was written from), was built on 2026-10-27 (PR #87, HANDOFF 0k)
+and is unchanged except that it now checks *every* capture the template was
+written from, not only the three it keeps. This adds the other two.
+
+**The skip audit: a skipped line is not covered for free.** Round 4 found
+first-contact templates putting information in `skip` (a version banner, a
+summary count, a test's duration: about 15 PARTIALs), and one skip rule that
+swallowed a whole diff while coverage read 100% (060 systemd-delta).
+- A skipped line with no letter or digit (rules, box glyphs) is decoration.
+  One that carries a word or a number is *set aside*, and counts as covered
+  only once its kind (`_kind`: first word, shape of the rest) has been judged
+  decoration by Claude. The kinds judged are kept in the template as
+  `"decoration"`. Until then the line counts as **unread**: in the gate
+  (`_llm_file`: it is in the denominator, not the numerator), in `find`'s
+  choice between templates, and in `learn`'s and `repair`'s coverage.
+- **`learn` audits once:** when the template it wrote sets aside such lines,
+  Claude is shown their count and a sample (one line per kind, with how many
+  lines of that kind; at most 60 kinds) in the same conversation, and asked to
+  read any that carry data into a block or leave the template unchanged. The
+  reply is kept only if it still reads every line the first template read and
+  covers the capture; otherwise the first template stands with nothing judged.
+  One more API call per new tool, only when something is set aside.
+- **`repair` judges what is new:** `misses` now reports set-aside lines of a
+  kind not judged (it reported skipped lines of a kind the examples never
+  showed), and **all** set-aside lines when there are at least 3 and their
+  share of the capture is 25 points above the largest share on the
+  template's examples (the systemd-delta case, even when the kinds are
+  known). The repair request shows them by kind with counts; the kinds Claude
+  leaves in skip are judged.
+- `GUIDE.md` (the prompt) says a line that carries data is data even outside
+  the table, and that skipped lines with words are reviewed.
+- `template.py audit TEMPLATE INPUT` prints the counts and the sample.
+  `template.py apply` prints the counts after the block count and coverage
+  (skipped, decoration, judged, not judged, read, unread); provost reads them.
+- `meta.tsv` gets `llm_skip_audit` on every capture a template files: `N
+  skipped: D decoration, J judged decoration, U not judged (counted as
+  unread)`. The set-aside lines themselves are in `NAME.notes`, as before.
+- **Older templates:** a template with no `"decoration"` record (every one
+  written before this) counts the kinds *its examples* set aside as judged,
+  since the flow it came through accepted them, so an existing store's
+  templates read its captures as they did. A template with no examples (a
+  library one in `PROVOST_LLM_TEMPLATE_DIRS`, say) has nothing judged: its
+  set-aside lines count as unread until a repair (with a key) shows them to
+  Claude, and without a key it may now be declined where it was filed. The
+  two shipped templates skip nothing on their samples.
+
+**The ledger: each template records the captures it has seen.** Every
+capture a template files is recorded beside the store's templates in
+`llm-templates/NAME.seen.tsv` (`capture`, `how`: learned / extended /
+checked / read, `template`: `llm-templates/NAME.json`, `shipped:NAME.json`
+or the library path, its `read` / `unread` / `skipped` / `unjudged` line
+counts on that capture, and the capture's `input_sha256`). It is written
+under the store lock with the capture's id and committed with it. A
+template still keeps its first and latest captures as `"examples"` (what
+Claude is shown in a repair); a repair now also passes the store's copies
+of every other capture the ledger says it was written from (`template.py
+repair --earlier FILE`), and an extension that no longer reads one of them
+is refused like one that loses an example. A capture `rm --capture` purges
+keeps its ledger row (as its commit keeps its `Input-SHA256` trailer); a
+repair skips it.
+
+Also: `template.py find` passes over a stored template whose parser fails
+(a runaway or broken format-2 parser) instead of failing the whole search.
+
+**With the judge (2.9.0, PV-009).** Both run. After `learn` the audit's
+call (only when the template sets lines aside) comes before the judge's
+review; after `repair` the audit rides in the repair call and the review
+follows. A judge's revision is held to the same audited coverage (the kinds
+the template has judged count; a newly set-aside kind does not), keeps the
+template's `"decoration"`, and must still read the ledger's other captures
+(`template.py judge` and `repair` take `--earlier`; checked, not sent).
+`"examples"`, `"decoration"` and `"judge"` are what provost keeps beside a
+template's patterns: none is sent to Claude or compared to tell a change.
+
+Tests: `ml/tests/test_llm_template.py` (43, was 30) — the audit's three-way
+split and coverage, older templates, `find`, learn's audit (kept, refused,
+failed, not needed, one line per kind), unjudged and rising set-aside lines
+as misses, repair judging them, and repair against captures beyond the
+examples (API and CLI), all against the fake API. `tests/smoke.sh` (llm
+part, 71): learn's audit call, `decoration` and `llm_skip_audit`, the
+ledger (learned, read, extended, checked; shipped and library templates),
+an extension refused for a capture only the ledger names (and not sent), and
+the gate counting an unjudged set-aside line until it is judged. Merged
+with the judge: 57 unit tests and 94 smoke checks in the llm part; the
+judge's tests now expect learn's audit call before the review, and a
+revision is checked against a capture only the ledger names.
+
+Not measured: whether the audit lifts the PASS rate. That needs a key and a
+fresh frozen round (round 5 is spent for `--llm`; PV-007 is the
+open `--llm` measurement). One real API call was made while building this
+(a repair of a six-line made-up input).
+
 ## 2.9.0 — 2026-11-10 — a structural judge after --llm learn and repair (PV-009)
 
 `VERSION` 2.8.0 → 2.9.0, and the `man/provost.1` header. Minor: a new

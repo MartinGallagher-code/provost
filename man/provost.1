@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-10" "provost 2.9.0" "User Commands"
+.TH PROVOST 1 "2026-11-10" "provost 2.10.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -475,23 +475,32 @@ never lost; only rules and box glyphs are dropped. A tab or newline inside a
 value becomes a space. A new template
 is kept, and committed with the
 capture, only when it passes. Later captures of the tool are parsed offline.
-A template keeps the captures it was written from (its \fBexamples\fR).
+\fBSkip audit:\fR a skipped line that carries a word or a number counts as
+unread until Claude has judged its kind decoration; when Claude writes a
+template that sets such lines aside, it is shown their count and one line of
+each kind, once, and the kinds it confirms are kept in the template
+(\fBdecoration\fR). A line with no letter or digit is decoration.
+A template keeps its first and latest captures (its \fBexamples\fR).
 \fBRepair:\fR with a key, when a stored template meets a kind of line it has
-not met before (one it leaves unread, or one a skip pattern drops), provost
-sends the template, those captures and this one to Claude once, to extend it;
-the extension is kept, with this capture added to its examples, only if it
-still reads every line of the earlier captures the template read and passes
-the same rules. A capture whose lines the template has all met before is
-never sent. \fBReview:\fR after Claude writes or extends a template, one more
+not met before (one it leaves unread, a set-aside one not judged, or far more
+set-aside lines than before), provost sends the template, those captures and
+this one to Claude once, to extend it; the extension is kept, with this
+capture added to its examples, only if it still reads every line the template
+read of every capture it was written from and passes the same rules. A
+capture whose lines the template has all met before is never sent.
+\fBReview:\fR after Claude writes or extends a template, one more
 call (the judge, \fBPROVOST_LLM_JUDGE\fR) shows Claude the capture, the template
 and the tables it makes of the capture, and asks for PASS or up to five
 structural fixes (a parent the rows do not keep, a record split across
 tables, a header half applied, a line kind misread, data set aside). The
 fixes go back to the template's writer once; the revision is kept only if it
-reads the capture at least as well, still reads the earlier captures, and
-passes the gate, else the template as it was before the review is used. A
-review that fails costs nothing but the call. The verdict is stored in the
-template (\fBjudge\fR). \fImeta.tsv\fR records \fBllm_template\fR.
+reads the capture at least as well (by the skip audit), still reads every
+capture the template was written from, and passes the gate, else the
+template as it was before the review is used. A review that fails costs
+nothing but the call. The verdict is stored in the template (\fBjudge\fR).
+Every capture a template files is recorded in \fIllm-templates/NAME.seen.tsv\fR
+(its ledger). \fImeta.tsv\fR records \fBllm_template\fR and
+\fBllm_skip_audit\fR.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /

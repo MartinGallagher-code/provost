@@ -5,23 +5,24 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.9.0 is everything through 2026-11-10** (`VERSION`, man header, the
-`## 2.9.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
+**provost 2.10.0 is everything through 2026-11-10** (`VERSION`, man header, the
+`## 2.10.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
 outputs (PV-030, below, 2.5.0), the generalisation decision record (PV-006,
 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules (PV-010,
 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f; 2.5.3);
 the offline install bundle with an SBOM (PV-025, below; 2.6.0); opt-in
 environment capture, `--env` (PV-028, below; 2.7.0); recipes for test
 frameworks (PV-023, below; 2.8.0); a structural judge after `--llm` learn and
-repair (PV-009, Next steps 1g; 2.9.0). 2.4.0 added `provost
+repair (PV-009, Next steps 1g; 2.9.0); the `--llm` skip audit and the
+template ledger (PV-008, Next steps 1h; 2.10.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.8.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.8.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.8.0`, creating
+2.10.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.10.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.10.0`, creating
 that release on a dispatched run.
 
 **2.8.0: recipes for test frameworks (PV-023, 2026-11-10; not published).**
@@ -237,6 +238,34 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1h. **2026-11-10: `--llm` skip audit and the template ledger** (PV-008;
+    2.10.0). 0j's next steps 1 and 2. Repair on a miss was already built
+    (0k); now:
+    - **A skipped line is not covered for free.** One with a letter or digit
+      is *set aside* and counts as unread until Claude has judged its kind
+      decoration (the template's `"decoration"` list): in the gate, in
+      `find`, in learn's and repair's coverage. `learn` makes one more call
+      when its template sets lines aside (their count and one line per kind);
+      `misses` sends unjudged set-aside lines, or a set-aside share 25 points
+      above the examples', to repair. A template with no `"decoration"`
+      record trusts what its examples set aside; one with no examples (a
+      library template) trusts nothing. `template.py audit` shows it;
+      `meta.tsv` has `llm_skip_audit`.
+    - **The ledger:** `llm-templates/NAME.seen.tsv` records every capture a
+      template files (how: learned / extended / checked / read, counts,
+      input hash), under the lock, committed with the capture. Repair checks
+      an extension against every capture it was written from that the store
+      still has (`--earlier`), not only the three examples it keeps.
+    - **With the judge (PV-009, 1g):** both run. After `learn` the skip
+      audit comes first (its call only when the template sets lines aside),
+      then the judge's review; after `repair` the audit rides in the repair
+      call and the review follows. A judge's revision is held to the audit's
+      coverage, keeps the template's `"decoration"`, and must still read the
+      ledger's other captures too (checked, not sent).
+    - **Not measured:** the lift. Needs a key and a fresh frozen round (round
+      5 is spent). The audit's call could ride on the judge's (both review
+      what a template sets aside): one call per new tool saved.
 
 1g. **2026-11-10: a structural judge after `--llm` learn and repair**
     (PV-009; CHANGELOG 2.9.0; `extract/llm/JUDGE.md`). One review call
@@ -682,12 +711,13 @@ Suites (all CI-enforced):
     - **Not yet measured:** the first-contact rate through `learn` (two API
       attempts, no iteration).
     - **Next:**
-      1. **Template repair on a miss:** a stored template's unread lines on
+      1. ~~**Template repair on a miss:** a stored template's unread lines on
          a new capture go back to Claude to extend it (one call), kept only
          if it still reads the captures it was written from; record which
-         captures each template has seen. Then rerun part 3.
-      2. Skip lines audited (count + sample, judged), not counted as
-         covered for free.
+         captures each template has seen. Then rerun part 3.~~ Done: 0k
+         (repair), 1h (the ledger, every capture checked).
+      2. ~~Skip lines audited (count + sample, judged), not counted as
+         covered for free.~~ Done 2026-11-10 (PV-008): see 1h.
       3. The judge (step 3), then with the key the `learn` run, the library
          (step 5) and round 5.
       - **The key:** add it as `PROVOST_LLM_API_KEY` (a Claude Code
