@@ -2,7 +2,7 @@
 
 ## 2.6.0 — 2026-11-10 — an offline install bundle with an SBOM for each release (PV-025)
 
-`VERSION` 2.5.0 → 2.6.0, and the `man/provost.1` header. Minor: something
+`VERSION` 2.5.3 → 2.6.0, and the `man/provost.1` header. Minor: something
 new a user can use (the bundle). The tool itself does not change.
 
 An outside assessment asked for a "high-side transfer bundle": provost on an
@@ -40,6 +40,118 @@ supply-chain story. Each release now carries one.
 
 Not in the bundle: `provost[lm]` (numpy and the 85 MB `provost-model`) and an
 RPM. Both are open questions for the owner on PV-025.
+
+## 2.5.3 — 2026-11-10 — auto-multi's guards: tighter on tool-specific parts, looser on headerless tables (PV-013)
+
+`VERSION` 2.5.2 → 2.5.3, and the `man/provost.1` header. Patch: a fix to when
+the automatic `--multi` fallback files a split. No new option, and no corpus
+golden moves: the corpus gate runs the engine, not auto-multi.
+
+- **Tightened (`_am_part_check`, rule 2).** A part read by a tool-specific
+  parser (bespoke or plugin) must keep `--min-coverage` % of its own lines.
+  On a whole input those parsers are exempt from the gate; on a fragment of
+  another tool's output a low reading is an accident. Round 4's 048 (`pytest
+  -ra`) was filed wrong when `git-annex-list` read a rule line as `flags` /
+  `path` at 50%; it is held now. The strict grammars (json, yaml, xml, toml,
+  har) stay exempt.
+- **Loosened (rule 4, `_am_positional_why`).** A table under positional
+  `A`/`B`/`C`… columns sank every split. It is now declined only on evidence
+  that a header was lost or rows shredded: a column of box chrome, cells under
+  two thirds filled, or a header-like line (2+ words, no digit) right above
+  the part in the input, past blank and rule lines. A headerless table is
+  filed, as the benchmark's rating rule 4 already accepts. Each part's own
+  input lines (the engine's `PROVOST_MULTI_TEXT_DIR`) are now always written
+  for auto-multi, so the part can be placed; the layout model's and `--llm`'s
+  own segment checks pass no text and stay as strict as before.
+- **Measured** (the postscript to
+  `docs/benchmark-2026-11-04-generalisation-round5.md`; a pointer in round 4's):
+  - Tuned on round 4 and checked on rounds 2 and 3.
+  - Committed and pushed before round 5 was run, then measured on round 5
+    once.
+  - Round 4: 2 rescues and 1 wrong table → 5 rescues and none.
+  - Round 5: 0 → 1 rescue of 3 possible (101 `aix lspv`, FAIL → PARTIAL by
+    its existing blind rating), no wrong table.
+  - Rounds 2 and 3: every input has the same outcome as before.
+- **`tests/benchmark/auto_multi_round.sh --roundN OUT`** (new): every input
+  captured through the CLI into a fresh store, with a `summary.tsv` of what
+  each was (filed / segmented / held, and why).
+- **Tests:** five smoke checks (`core`), on spent benchmark inputs:
+  - the tool-specific part (round 4's 048);
+  - a headerless table filed (round 4's 137);
+  - box chrome (round 2's 102);
+  - a cut-off header (round 3's 115);
+  - shredded rows (round 4's 031).
+- **Docs:** `provost help advanced`, `man/provost.1`, `docs/usage.md`,
+  HANDOFF (0a).
+
+## 2.5.2 — 2026-11-10 — the two gate rules that cost `--llm` a FAIL each (PV-010)
+
+`VERSION` 2.5.1 → 2.5.2, and the `man/provost.1` header. Patch: two gate
+fixes. Both were named in HANDOFF 0j / 0k as costing round 4 a FAIL apiece
+however good the template.
+
+- **The fragments rule counts rows, not only lines.** Auto-multi parts,
+  the layout model's sections and an LLM template's blocks are fragments
+  when the parts of 3+ hold under half of the input. A part's size was its
+  input lines (`_AM_FRAG_LINES`); it is now its lines or its table's rows,
+  whichever is more (`_am_frag_add`, `_AM_FRAG_MIN`). Round 4's 132, a
+  TeamSpeak ServerQuery client list, holds six clients on ONE line: its
+  template's blocks were "0 of 2 lines in blocks of 3+ lines" and the
+  capture was held on every run. It now files six client rows and the
+  `error id=0 msg=ok` status. Taking the larger of the two only makes a
+  part bigger; the one way a split that passed before could now be
+  declined is a small part of 1–2 lines with more rows than lines, still
+  under 3, which adds to the total but not to the substantial share. The
+  notes read "N of M lines or rows in parts of 3+".
+- **A yaml parse is no longer beyond a stored template.** `--llm` never ran
+  over an exact-format parser, and yaml is one, but its grammar is lax:
+  plain `Label: text` output is valid YAML. Round 4's 020 (golangci-lint's
+  linter list) was read as one 110-column record, its Enabled / Disabled
+  section titles lost and `wsl [deprecated]` dropped. A template already
+  stored for the tool (the store, `PROVOST_LLM_TEMPLATE_DIRS`, the shipped
+  ones) may now better a yaml parse under the rule for a generic parse the
+  gate passed (keep its share of the data lines within 10 points). Claude
+  is never asked to write one over a yaml parse, so a real YAML document
+  costs no API call and is filed as before. 020 now files 111 linter rows
+  with their state, status and flags. json, xml, toml and the tool-specific
+  parsers are untouched.
+
+Round 4 with its stored templates (`tests/benchmark/llm_round.sh`), main
+against this branch, on the first captures (`inputs/`) and the second
+(`variants/`): exactly 020 and 132 change in each (engine yaml → template;
+held → template), and every other capture's tidy files and meta are
+byte-identical but for the timestamp. First captures: 105 template / 1
+engine / 1 held → 107 template. Second captures: 101 / 5 / 1 → 103 / 4 / 0.
+Corpus gate: 3602 passed, 0 failed (no golden moved).
+
+Files: `provost` (`_am_frag_add`, `_AM_FRAG_MIN`, the LLM-first hook in
+`_ingest`, `provost help` AUTO-MULTI and LLM TEMPLATES), `man/provost.1`,
+`tests/smoke.sh` (5 checks in the `llm` part, failing on 2.5.0),
+`HANDOFF.md`, `VERSION`.
+
+## 2.5.1 — 2026-11-10 — a decision record on how provost should generalise (PV-006)
+
+`VERSION` 2.5.0 → 2.5.1, and the `man/provost.1` header. Patch: docs and a
+benchmark analysis script, no behaviour changed.
+
+- **`docs/0004-generalisation-approach.md`** weighs the four options HANDOFF
+  listed before another fix round (segment with `--multi` on weak signals;
+  let the quality signals decide more; narrow the claim and hold weak parses;
+  `--model` or `--llm` as the default fallback for held captures), plus
+  `--llm` first, against rounds 4 and 5. The findings:
+  - the signals cannot see 7–8 FAILs a round;
+  - no choice between the engine's own readers gets past 15–19 PASS of 107;
+  - `--model` adds nothing on held captures;
+  - `--llm` first is the only reader that changes the result (87 / 18 / 2 and
+    96 / 9 / 2).
+
+  It recommends that pick and narrowing the claim offline together. **The
+  owner's pick is pending.** When it is made, it gets its own version and
+  entry here, HANDOFF records it, and its follow-up tickets are filed.
+- **`tests/benchmark/what_if.py`** reproduces every figure in the note from
+  the rounds' rating sheets (stdlib, nothing re-run or re-rated).
+- `mkdocs.yml` lists the note under Design. HANDOFF "Next steps" 1 points to
+  it.
 
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 

@@ -176,9 +176,13 @@ original input. `provost log` shows the comma-joined list; the capture's
 **Auto-multi.** Without `--multi`, provost still segments a capture when the
 quality gate would otherwise hold its single parse for low coverage or low
 consistency — but only when the split is clearly better: two or more parts,
-each passing the gate on its own, together keeping at least the gate's
-coverage and 10 points more than the single parse, no part a table under
-positional `A`/`B`/`C` columns only, and no shattering into fragments.
+each passing the gate on its own (a part read by a tool-specific parser
+must keep the gate's coverage of its own lines too), together keeping at
+least the gate's coverage and 10 points more than the single parse, no part a
+table under positional `A`/`B`/`C` columns that shows a lost header or
+shredded rows (a column of box chrome, mostly empty cells, or a header-like
+line right above it; a headerless table is filed), and no shattering into
+fragments.
 Otherwise the capture is held as before, with the reason. The ok line says it
 segmented and why; `meta.tsv` records `auto_multi`, the held single parse's
 `single_*` measures, and each part's `dataset_coverage` /
