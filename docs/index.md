@@ -30,6 +30,8 @@ launcher; the only runtime requirements are `bash` and standard POSIX tools.
 
 - **[Usage](usage.md)** — every subcommand, flag, and `PROVOST_*` environment
   variable.
+- **[The store format](store-format.md)** — the store's layout, every file in
+  it, and the compatibility promise: every provost reads every older format.
 - **[Test frameworks](integrations/index.md)** — worked recipes for filing
   results from ReFrame, pytest, GitLab CI or any harness, with the run's
   context as columns.

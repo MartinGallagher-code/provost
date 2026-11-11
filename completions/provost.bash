@@ -10,7 +10,7 @@ _provost_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify help"
+    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify store help"
     local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --units --manifest --manifest-profile --strict-manifest --no-strict-manifest --env --env=modules --no-env --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
@@ -49,6 +49,9 @@ _provost_complete () {
             COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ) ;;
         log)
             COMPREPLY=( $(compgen -W "--failed --help" -- "$cur") ) ;;
+        store)
+            if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "check --help" -- "$cur") )
+            else COMPREPLY=( $(compgen -d -- "$cur") ); fi ;;
         annotate)
             local caps
             caps="$(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"

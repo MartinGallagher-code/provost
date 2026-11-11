@@ -142,6 +142,36 @@ the store's writers cannot change: a test report, a ticket. A later `verify`
 that prints a head which does not contain that commit means the history was
 rewritten. Signed commits are the stronger anchor (PV-027).
 
+## Checking a store against the format
+
+The store's layout is a versioned format, specified in
+[The store format](store-format.md) and recorded in the store's
+`.store_format` (a store without one is format 1). **Every provost reads every
+older format.** A command that writes (a capture, `rm`, `annotate`,
+`restore`, `control`) first migrates an older store to the current format, in
+a commit of its own; a command that only reads (`ls`, `show`, `source`, `log`,
+`search`, `files`, `diff`, `stats`, `triage`, `verify`, `doctor`, `export`,
+`store check`) never changes a store on disk, and works on a store it cannot
+write: an evidence copy, read-only media, a store whose history was signed.
+
+```
+$ provost store check              # the active store
+$ provost store check /evidence/run-17/.provost
+ ok store format 3 (read as it is; the next write migrates it to 4)
+   3 dataset(s), 11 row(s), 6 capture(s)
+ ok store check: the store is a valid format-3 store
+```
+
+`store check` validates the layout against the format the store records: the
+format number, the `.gitignore` and the counters, `provenance.tsv` and every
+dataset (headers, field counts, each row in provenance under its own dataset,
+from format 3 the capture in column 2), each capture's files and `meta.tsv`
+(its keys, its tag, a truncated capture's kept input), `files-*` tags and the
+template ledgers. It exits 0 with no findings and 1 with them, and takes no
+lock and commits nothing. `verify` is the other half: it checks the history
+(fsck, hashes, tags), where `store check` checks the files' shape. A program
+that writes to or reads a store (quarterdeck) can run both in its own CI.
+
 ## Oversize inputs
 
 `PROVOST_MAX_INPUT` (10 MiB by default) is how much of an input is parsed. A

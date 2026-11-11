@@ -1,5 +1,80 @@
 # provost — Changelog
 
+## 2.16.0 — 2026-11-11 — the store format as a versioned spec, with a compatibility promise and `provost store check` (PV-022)
+
+`VERSION` 2.15.0 → 2.16.0, and the `man/provost.1` header. Minor: a new
+command, `provost store check`, and two reads that no longer touch the store.
+
+- **The spec.** `docs/store-format.md` sets out store format 4: the layout,
+  every file and its columns, every `meta.tsv` key (PV-021's `truncated`,
+  `parsed_bytes`, `raw_artifact`, `raw_sha256`, `raw_bytes`, `raw_redacted`
+  included), the kept-input directory beside the store, the branch, the commit
+  subjects and trailers, the `capture-c*` and `files-c*` tags, the runtime
+  files, and what formats 1, 2 and 3 differed by, with the releases that
+  wrote each (1: 2.0.0–2.0.1; 2: 2.1.0; 3: 2.2.0–2.3.0; 4: 2.4.0 on). It ends
+  with how to read a store from another program, and the checklist for
+  changing the format.
+- **The compatibility promise**, in the spec, the README (Versioning and
+  support), `help advanced` (THE STORE), the man page and `docs/usage.md`:
+  every provost reads every older store format; a new format bumps the number
+  and ships a migration; only a write migrates, in a commit of its own; a
+  command that only reads never changes a store on disk. No long-term-support
+  branch: the promise is what makes the latest release enough.
+- **Reads no longer change a store.** Tested by snapshotting every byte of a
+  store, `.git` included, around each read:
+  - `export` migrated an older store and committed the migration (it called
+    the store set-up every write uses), and created a store that did not
+    exist. It now reads the store as it is, and says "no store" for a missing
+    one. **Behaviour change:** the bundle of an older store now carries that
+    store's format; the first write after `import` migrates it.
+  - `export` (and `export --redact`) waited out, then failed on, the lock of a
+    store it could not write ("store is locked"). It now takes the lock only
+    in a store it can write.
+  - `verify` rewrote `.git/index` (git status refreshing its stat cache). Every
+    git call provost makes now runs with `GIT_OPTIONAL_LOCKS=0`.
+  - `verify` failed every store 2.0.1 or earlier wrote, on the `.lock/pid`
+    that format committed. Its "tracked files changed" step now leaves the
+    runtime files out.
+  - One runtime file is still written by a read, and is documented as such:
+    `log --failed` records in `.async-failures.seen` how many failures it has
+    shown (ignored by git, and skipped on a store it cannot write).
+- **`provost store check [DIR]`** validates a store against the format it
+  records: the format number (a bad or newer `.store_format` fails), the
+  `.gitignore`, the row and capture counters (missing, malformed, or behind
+  what the store has used), `provenance.tsv` and every dataset (header, field
+  counts, each row in provenance under its own dataset, from format 3 the
+  capture in column 2; format 3's PV-015 rows are reported, not failed), each
+  capture's `output.txt`, `meta.tsv` (required keys, the forms of the hash and
+  byte keys, all six keys of a truncated capture) and tag, a truncated
+  capture's kept input, `files-*` tags, the controlled manifest and the
+  template ledgers. It only reads. Exit 0, 1 with findings, 2 for a usage
+  error. In the help, the man page, `docs/usage.md`, the README and the bash
+  completion.
+- **Fixture stores of every format.** `tests/store-fixtures/format1.tar.gz` to
+  `format4.tar.gz`, each written by the last release of that format (2.0.1,
+  2.1.0, 2.3.0, and this one) with `tests/store-fixtures/make.sh`: the same
+  six captures, among them a reconcile of a data column named `capture`, so
+  the format-3 store carries PV-015's fault, and in format 4 a truncated
+  capture with its kept input. Smoke part `store-spec` (124 checks) opens each
+  with the current provost: `ls`, `show`, `source`, `log`, `search`,
+  `triage`, `stats`, `diff`, `verify`, `doctor`, `export` and `store check`
+  read it and the store comes out byte for byte the same; the same on a
+  read-only copy; then a write migrates it to format 4 and `store check` and
+  `verify` pass it.
+- **The format's contract is tested.** Smoke checks that every format up to
+  `_STORE_FORMAT` has a migration step, a `### Format N` section in the spec
+  and a fixture, and that a copy of `provost` with `_STORE_FORMAT` bumped and
+  nothing else fails that check.
+- **Not changed:** a provost does not refuse a store whose format is newer
+  than its own (the spec says so, and `store check` reports it); writes still
+  migrate as before.
+- **Files:** `provost` (`_git`, `_lock_if_writable`, `_RUNTIME_EXCLUDE`,
+  `cmd_export`, `_export_redacted`, `cmd_verify`, `cmd_store`,
+  `_store_check`, help text, dispatch), `docs/store-format.md` (new),
+  `docs/usage.md`, `docs/index.md`, `mkdocs.yml`, `README.md`,
+  `man/provost.1`, `completions/provost.bash`, `tests/smoke.sh`,
+  `tests/store-fixtures/` (new), `VERSION`, `HANDOFF.md`.
+
 ## 2.15.0 — 2026-11-11 — inputs over PROVOST_MAX_INPUT kept by reference, not refused (PV-021)
 
 `VERSION` 2.14.0 → 2.15.0, and the `man/provost.1` header. Minor: an input

@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.15.0 is everything through 2026-11-11** (`VERSION`, man header,
-the `## 2.15.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.16.0 is everything through 2026-11-11** (`VERSION`, man header,
+the `## 2.16.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -19,16 +19,35 @@ below; 2.11.0); a dataset from Python, `provost_data.load` and `load_df`
 (PV-031, Next steps 1i; 2.12.0); secrets scrubbed at capture, host names
 pseudonymised on export (PV-033, below; 2.13.0); the tiny LM's arbiter
 (PV-012, below; 2.14.0); inputs over `PROVOST_MAX_INPUT` kept by reference
-instead of refused (PV-021, Next steps 1j; 2.15.0). 2.4.0 added `provost
+instead of refused (PV-021, Next steps 1j; 2.15.0); the store format as a
+versioned spec, `provost store check` and reads that never touch a store
+(PV-022, below; 2.16.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.15.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.15.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.15.0`, creating
+2.16.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.16.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.16.0`, creating
 that release on a dispatched run.
+
+**2.16.0: the store format as a spec (PV-022, 2026-11-11; not published).**
+`docs/store-format.md` is the store's specification (format 4, PV-021's keys
+and kept-input directory included) and what formats 1-3 differed by; the
+promise is "every provost reads every older format", in the spec and the
+README. Reads never change a store: `export` no longer migrates (or creates)
+one and does not need to lock a store it cannot write, and `GIT_OPTIONAL_LOCKS=0`
+keeps `verify`'s git status from rewriting the index. `provost store check
+[DIR]` validates a store against the format it records. `tests/store-fixtures/`
+holds a store written by the last release of each format (2.0.1, 2.1.0,
+2.3.0, 2.16.0; `make.sh` says how), and smoke part `store-spec` reads each one
+byte-for-byte unchanged, read-only too, then migrates it. A change to the
+format must come with a migration, a `### Format N` section and a fixture:
+smoke fails `_STORE_FORMAT` without them. Open, for the owner: whether a
+provost should refuse to write to a store whose format is newer than its own
+(today it does not; the spec says so). quarterdeck's reader was checked
+against the spec; its gaps are QD-031.
 
 **2.8.0: recipes for test frameworks (PV-023, 2026-11-10; not published).**
 `docs/integrations/`: `provost-wrap` (a generic wrapper that keeps the
