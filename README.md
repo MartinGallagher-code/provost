@@ -163,6 +163,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost triage` | low-confidence / unmatched bucket |
 | `provost doctor` | engine + store check |
 | `provost verify [--capture ID]` | store integrity: `git fsck`, each capture's output against its recorded sha256, tags, id gaps |
+| `provost store check [DIR]` | check a store against the [store format](docs/store-format.md); reads only |
 | `provost help` / `help advanced` / `<command> --help` | short help / full reference / one command's usage |
 
 Every dataset row carries `#` (its number in the store), `capture` (the
@@ -313,10 +314,16 @@ what the promise below covers). Publishing to PyPI is a separate step, so not
 every number reaches PyPI.
 
 - **Covered by the promise** (a break needs a new major): the commands and their
-  options; exit statuses; the `PROVOST_*` environment variables; the store format
-  (a store written by 2.x is read by every later 2.x; a format change ships with
-  an automatic migration, as formats 2 and 3 did); the dataset layout (`#`,
-  `capture`, `n`, then the data columns) and `provost export` bundles.
+  options; exit statuses; the `PROVOST_*` environment variables; the store format,
+  as [docs/store-format.md](docs/store-format.md) specifies it; the dataset layout
+  (`#`, `capture`, `n`, then the data columns) and `provost export` bundles.
+- **The store format.** Every provost reads every older store format. A new
+  format bumps the number in the store's `.store_format` and ships a migration,
+  as formats 2, 3 and 4 did; only a command that writes runs it, in a commit of
+  its own, and a command that only reads never changes a store on disk, so a
+  read-only or signed evidence store can be read by any later release.
+  `provost store check` validates a store against the spec, and CI opens a store
+  written by the last release of every earlier format.
 - **Not covered**: the exact tidy output provost gives for a particular tool's
   output. Parsers improve in minor releases, so a re-capture can file a better
   table than before; captures already filed never change. Help wording, and
@@ -325,7 +332,8 @@ every number reaches PyPI.
   least one minor release that still accepts it and warns. (Before 2.4 this was
   not so: the legacy `ENVOY_*`/`MFE_*` names were dropped in 2.2.0.)
 - **Support**: the latest release only. Fixes ship in the next release; there are
-  no backports to older minors or majors.
+  no backports to older minors or majors, and no long-term-support branch: since
+  every release reads every older store, the current one is the one to use.
 
 ## License
 

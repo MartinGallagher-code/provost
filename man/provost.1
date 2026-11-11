@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-11" "provost 2.15.0" "User Commands"
+.TH PROVOST 1 "2026-11-11" "provost 2.16.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -343,6 +343,17 @@ with them. Captures filed before hashes were recorded are counted as unhashed.
 It proves the store is consistent, not that its history was never rewritten:
 record the head commit it prints somewhere the store's writers cannot change.
 .TP
+.B store check \fR[\fIDIR\fR]
+Check a store (\fIDIR\fR, else the active store) against the store format it
+records in \fI.store_format\fR, as \fIdocs/store-format.md\fR specifies it:
+the format number, the \fI.gitignore\fR and the row and capture counters,
+\fIprovenance.tsv\fR and every dataset (headers, field counts, each row in
+provenance under its own dataset, and from format 3 the capture in column 2),
+each capture's \fIoutput.txt\fR and \fImeta.tsv\fR (its keys, its tag, a
+truncated capture's kept input), \fBfiles-\fR* tags and the template ledgers.
+A store an older provost wrote is checked as that format. It only reads: no
+lock, no migration, no commit. Exits 0 with no findings, 1 with them.
+.TP
 .B help \fR[\fBadvanced\fR]
 Print the short help to stdout; \fBhelp advanced\fR prints every command,
 option and setting, and how a capture is filed. \fIsubcommand\fR \fB--help\fR
@@ -681,8 +692,16 @@ calls also disable hooks and fsmonitor.
 .PP
 Capture ids and row indices are never reused (not after \fBrm\fR, not after
 \fBrestore\fR). Runtime files (the lock, the failure log, temporary files) are
-listed in the store's \fI.gitignore\fR and never committed; stores created by
-older versions are migrated on the next write.
+listed in the store's \fI.gitignore\fR and never committed.
+.PP
+The store's layout is a versioned format, recorded in \fI.store_format\fR and
+specified in \fIdocs/store-format.md\fR. Every provost reads every older
+format. A command that writes migrates an older store to the current format
+first, in a commit of its own; a command that only reads (\fBls\fR,
+\fBshow\fR, \fBsource\fR, \fBlog\fR, \fBsearch\fR, \fBfiles\fR,
+\fBdiff\fR, \fBstats\fR, \fBtriage\fR, \fBverify\fR, \fBdoctor\fR,
+\fBexport\fR, \fBstore check\fR) never changes a store on disk and works on
+one it cannot write.
 .PP
 The store lock records host, pid, uid and time. It is broken as stale only when
 it was taken on this host and its process no longer exists, or when it is older

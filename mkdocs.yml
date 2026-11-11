@@ -15,6 +15,7 @@ theme:
 nav:
   - Home: index.md
   - Usage: usage.md
+  - The store format: store-format.md
   - Installing with no network: offline-install.md
   - Test frameworks:
       - Overview: integrations/index.md

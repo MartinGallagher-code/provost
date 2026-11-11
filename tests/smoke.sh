@@ -2577,5 +2577,129 @@ check "inject --help names --refuse-oversize" "--refuse-oversize" "$("$PROVOST" 
 check "doctor says where they are kept" "kept whole, outside git, in $OART" "$(op doctor)"
 fi
 
+if _part store-spec; then
+echo "== the store format as a spec (PV-022): every older format read, nothing read changes =="
+FXD="$HERE/store-fixtures"
+# A store's every file, .git included, as one listing: a read must leave it
+# byte for byte as it was (cksum: POSIX, so it runs on macOS too).
+snapshot () { ( cd "$1" && find . -type f -exec cksum {} + | LC_ALL=C sort -k3 ); }
+fx_open () { local d; d="$(mktemp -d)"; tar -C "$d" -xzf "$FXD/format$1.tar.gz"; printf '%s\n' "$d"; }
+fxp () { PROVOST_WORKSPACE="$FX/store" "$PROVOST" "$@" 2>&1; }
+fxrc () { local rc=0; PROVOST_WORKSPACE="$FX/store" "$PROVOST" "$@" >/dev/null 2>&1 || rc=$?; echo "<$rc>"; }
+for n in 1 2 3 4; do
+    FX="$(fx_open "$n")"
+    check "format $n: the fixture is a store of that format" "<$n>" "<$( [[ -f "$FX/store/.store_format" ]] && cat "$FX/store/.store_format" || echo 1)>"
+    before="$(snapshot "$FX")"
+    ds="disks"; (( n == 1 )) && ds="aligned-columns"     # 2.0.1 named a dataset by its parser
+    check "format $n: ls lists its datasets" "$ds" "$(fxp ls)"
+    check "format $n: show reads a dataset" "sdb" "$(fxp show "$ds")"
+    check "format $n: source N reads a row's capture" "sda" "$(fxp source 1)"
+    check "format $n: source ID reads a capture" "sdd" "$(fxp source c0002)"
+    check "format $n: log lists the captures" "c0006" "$(fxp log)"
+    check "format $n: search finds a value" "sdh" "$(fxp search sdh)"
+    check "format $n: triage decodes the held input" "~~" "$(fxp triage)"
+    check "format $n: stats reads a dataset" "<0>" "$(fxrc stats "$ds")"
+    check "format $n: diff compares two captures" "<0>" "$(fxrc diff c0001 c0002)"
+    check "format $n: verify passes" "<0>" "$(fxrc verify)"
+    check "format $n: doctor runs" "<0>" "$(fxrc doctor)"
+    check "format $n: export writes a bundle" "exported store" "$(fxp export "$FX/x.bundle"; rm -f "$FX/x.bundle")"
+    check "format $n: store check passes it as format $n" "a valid format-$n store" "$(fxp store check)"
+    after="$(snapshot "$FX")"
+    check "format $n: no read changed a byte of the store (.git included)" "<same>" \
+        "<$([[ "$before" == "$after" ]] && echo same || diff <(printf '%s\n' "$before") <(printf '%s\n' "$after") | head -n 6)>"
+    # and a store no one can write reads the same (not as root: root writes anyway)
+    if [[ "$(id -u)" != 0 ]]; then
+        chmod -R a-w "$FX"
+        check "format $n, read-only: ls" "$ds" "$(fxp ls)"
+        check "format $n, read-only: source" "sda" "$(fxp source 1)"
+        check "format $n, read-only: verify" "<0>" "$(fxrc verify)"
+        check "format $n, read-only: export" "exported store" "$(PROVOST_LOCK_TIMEOUT=1 fxp export "$(mktemp -d)/x.bundle")"
+        check "format $n, read-only: store check" "<0>" "$(fxrc store check)"
+        chmod -R u+w "$FX"
+    fi
+    # The first write migrates it to the current format, and it still checks.
+    printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$FX/store" "$PROVOST" --sync --name late >/dev/null 2>&1
+    check "format $n: a write migrates it to format 4" "4" "$(cat "$FX/store/.store_format")"
+    (( n < 4 )) && check "format $n: the migration is a commit of its own" "store format 4" "$(tgit "$FX/store" log --format=%s)"
+    check "format $n: the migrated store passes store check" "a valid format-4 store" "$(fxp store check)"
+    check "format $n: and verify" "<0>" "$(fxrc verify)"
+    (( n == 3 )) && check "format 3: the migration puts PV-015's wrong rows right" "$(printf '8\tc0004\t1\tsdh\t500\t7\t\tsnap1')" "$(cat "$FX/store/datasets/disks.tsv")"
+    (( n == 1 )) && check_not "format 1: the migration drops total_entries" "total_entries" "$(head -1 "$FX/store/datasets/aligned-columns.tsv")"
+done
+FX="$(fx_open 3)"
+check "format 3: store check names PV-015's rows without failing them" "known fault (PV-015)" "$(fxp store check)"
+FX="$(fx_open 4)"
+check "format 4: a truncated capture's kept input is found beside the moved store" "1 truncated, kept input checked" "$(fxp store check)"
+check "format 4: the fixture keeps the PV-021 fields" "raw_sha256" "$(cat "$FX/store/captures/c0007/meta.tsv")"
+
+# store check: a fresh store passes; each kind of damage fails it
+SC="$(mktemp -d)/.sc"
+printf 'name size\nsda 5\n' | PROVOST_WORKSPACE="$SC" "$PROVOST" --sync --name d >/dev/null 2>&1
+printf 'k: v\nj: w\n' | PROVOST_WORKSPACE="$SC" "$PROVOST" --sync --name kv >/dev/null 2>&1
+scp () { PROVOST_WORKSPACE="$SC" "$PROVOST" store check 2>&1; }
+check "store check passes a fresh store" "a valid format-4 store" "$(scp)"
+check "...exit 0" "0" "$(PROVOST_WORKSPACE="$SC" rc_of "$PROVOST" store check)"
+check "store check DIR checks that store" "a valid format-4 store" "$("$PROVOST" store check "$SC" 2>&1)"
+check "store with no subcommand is a usage error" "2" "$(rc_of "$PROVOST" store frob)"
+check "store --help prints its usage" "usage: provost store check" "$("$PROVOST" store --help)"
+cp "$SC/.next_row_id" "$SC/.keep"; rm -f "$SC/.next_row_id"
+check "a missing row counter fails it" ".next_row_id is missing" "$(scp)"
+check "...exit 1" "1" "$(PROVOST_WORKSPACE="$SC" rc_of "$PROVOST" store check)"
+echo 1 > "$SC/.next_row_id"
+check "a row counter behind the rows fails it" ".next_row_id is 1, but row #" "$(scp)"
+mv "$SC/.keep" "$SC/.next_row_id"
+cp "$SC/.next_capture_id" "$SC/.keep"; rm -f "$SC/.next_capture_id"
+check "a missing capture counter fails it" ".next_capture_id is missing" "$(scp)"
+mv "$SC/.keep" "$SC/.next_capture_id"
+echo x > "$SC/.store_format"
+check "a bad format file fails it" ".store_format holds 'x', not a format number" "$(scp)"
+echo 9 > "$SC/.store_format"
+check "a format newer than this provost fails it" "store format 9 is newer than this provost knows (4)" "$(scp)"
+echo 4 > "$SC/.store_format"
+check "...and put back, it passes" "a valid format-4 store" "$(scp)"
+cp "$SC/provenance.tsv" "$SC/.keep"; sed '$d' "$SC/.keep" > "$SC/provenance.tsv"
+check "a row missing from provenance fails it" "is not in provenance.tsv" "$(scp)"
+mv "$SC/.keep" "$SC/provenance.tsv"
+cp "$SC/datasets/d.tsv" "$SC/.keep"; awk -F'\t' -v OFS='\t' 'NR == 2 { $2 = "c0099" } { print }' "$SC/.keep" > "$SC/datasets/d.tsv"
+check "a row naming the wrong capture fails it (format 4)" "says capture \"c0099\", provenance.tsv says c0001" "$(scp)"
+mv "$SC/.keep" "$SC/datasets/d.tsv"
+mv "$SC/captures/c0002/meta.tsv" "$SC/.keep"
+check "a capture with no meta.tsv fails it" "captures/c0002: meta.tsv is missing" "$(scp)"
+mv "$SC/.keep" "$SC/captures/c0002/meta.tsv"
+tgit "$SC" tag -d capture-c0001 >/dev/null 2>&1
+check "a capture with no tag fails it" "there is no tag capture-c0001" "$(scp)"
+check "store check changes nothing (it found the damage, it did not commit it)" "<>" "<$(tgit "$SC" status --porcelain)>"
+
+# The format's contract, held in place: every format this provost writes has
+# a migration to it, a section in the spec and a fixture of it, so bumping
+# _STORE_FORMAT without them fails here (and the mutation proves it can).
+format_contract () {   # PROVOST-FILE -> "ok", or what is missing
+    local pf="$1" n k miss=""
+    n="$(sed -n 's/^_STORE_FORMAT=\([0-9]*\)$/\1/p' "$pf")"
+    [[ "$n" =~ ^[0-9]+$ ]] || { echo "no _STORE_FORMAT"; return; }
+    for (( k = 2; k <= n; k++ )); do
+        grep -qF "if (( \$(_store_format) < $k )); then" "$pf" || miss="$miss no-migration-to-$k"
+    done
+    for (( k = 1; k <= n; k++ )); do
+        grep -qE "^### Format $k([^0-9]|\$)" "$HERE/../docs/store-format.md" || miss="$miss no-spec-section-$k"
+        [[ -f "$FXD/format$k.tar.gz" ]] || miss="$miss no-fixture-$k"
+    done
+    echo "${miss:-ok}"
+}
+check "every store format has a migration, a spec section and a fixture" "ok" "$(format_contract "$PROVOST")"
+MUT="$(mktemp -d)/provost"; sed 's/^_STORE_FORMAT=4$/_STORE_FORMAT=5/' "$PROVOST" > "$MUT"
+check "mutation: _STORE_FORMAT bumped with no migration fails the contract" "no-migration-to-5" "$(format_contract "$MUT")"
+check "...and no spec section or fixture" "no-spec-section-5 no-fixture-5" "$(format_contract "$MUT")"
+check "the spec states the compatibility promise" "Every provost reads every older store format" "$(cat "$HERE/../docs/store-format.md")"
+check "so does the README" "Every provost reads every older store format" "$(cat "$HERE/../README.md")"
+check "help advanced names store check" "provost store check" "$("$PROVOST" help advanced)"
+
+# A controlled directory's store: context/manifest.tsv and files-* tags.
+CDS="$(mktemp -d)/ctl"; mkdir -p "$CDS"; printf 'k v\n1 2\n' > "$CDS/notes.txt"
+( cd "$CDS" && env -u PROVOST_WORKSPACE "$PROVOST" control . >/dev/null 2>&1
+  printf 'a b\n1 2\n' | env -u PROVOST_WORKSPACE "$PROVOST" --sync --name t >/dev/null 2>&1 ) || true
+check "store check passes a controlled directory's store" "1 files-* tag(s)" "$("$PROVOST" store check "$CDS/.provost" 2>&1)"
+fi
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

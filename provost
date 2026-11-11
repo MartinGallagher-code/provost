@@ -310,7 +310,10 @@ _failseen ()   { printf '%s/.async-failures.seen\n' "$PROVOST_WORKSPACE"; }
 #   * hooks and fsmonitor disabled — with safe.directory lifted, a store's own
 #     .git/config or hooks (writable by the store's other members) must not be
 #     able to run code as us;
-#   * the caller's GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE can't redirect us.
+#   * the caller's GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE can't redirect us;
+#   * GIT_OPTIONAL_LOCKS=0, so a command that only reads (git status in
+#     'verify', say) never rewrites the store's index to refresh its stat
+#     cache: a read leaves the store byte for byte as it was (PV-022).
 _WS_REAL=""; _WS_REAL_FOR=""
 
 # Lifting safe.directory hands the store's own .git/config the trust git would
@@ -355,7 +358,7 @@ _git () {
     fi
     env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
         -u GIT_COMMON_DIR -u GIT_NAMESPACE ${_GIT_INDEX:+"GIT_INDEX_FILE=$_GIT_INDEX"} \
-        git -C "$PROVOST_WORKSPACE" -c safe.directory="$_WS_REAL" \
+        GIT_OPTIONAL_LOCKS=0 git -C "$PROVOST_WORKSPACE" -c safe.directory="$_WS_REAL" \
         -c core.hooksPath=/dev/null -c core.fsmonitor=false \
         -c user.name=provost -c user.email=provost@localhost \
         -c commit.gpgsign=false -c tag.gpgSign=false "$@"
@@ -770,6 +773,10 @@ _lock () {
     printf '%s\n' "$owner" > "$lock/owner.tmp" && mv "$lock/owner.tmp" "$lock/owner"
     _LOCKS_HELD+=("$lock"); _LOCKS_OWNER+=("$owner")
 }
+# _lock_if_writable -- _lock, for a reader that wants a consistent view: in
+# a store this process can write; in one it cannot, nothing (no writer can
+# be holding its lock that we could wait out, and we could not take it).
+_lock_if_writable () { if [[ -w "$PROVOST_WORKSPACE" ]]; then _lock; fi; }
 # Remove a lock dir only if it still carries OUR owner record.
 _release_lock_dir () {
     local lock="$1" mine="$2" cur
@@ -797,6 +804,9 @@ _unlock () {
 # files, the machine-local instance registry). The first line is a version
 # marker: a store whose .gitignore lacks it is migrated.
 _GITIGNORE_MARK="# provost store .gitignore v1 — runtime files, never committed"
+# The same runtime files as pathspecs that leave them out of a git command.
+_RUNTIME_EXCLUDE=(':(exclude).lock' ':(exclude).lock/**' ':(exclude).lock.*' ':(exclude).async-failures.log'
+                  ':(exclude).async-failures.seen' ':(exclude)instances.tsv' ':(exclude)instances.tsv.*')
 _write_gitignore () {
     cat > "$PROVOST_WORKSPACE/.gitignore" <<EOF
 $_GITIGNORE_MARK
@@ -3288,6 +3298,20 @@ what it proves:
   cannot change -- a test report, a ticket -- and check it later.
 EOF
             ;;
+        store) cat <<'EOF'
+usage: provost store check [DIR]
+  Check a store (DIR, else the active store) against the store format it
+  records in .store_format (docs/store-format.md): the format number; the
+  .gitignore and the row and capture counters; provenance.tsv and every
+  dataset (headers, field counts, each row id in provenance under its own
+  dataset, and from format 3 the capture in column 2); each capture's
+  output.txt and meta.tsv (its keys, its tag, a truncated capture's kept
+  input); files-* tags; the template ledgers. A store an older provost
+  wrote is checked as that format, and passes. It only reads: no lock, no
+  migration, no commit. Exit 0 with no findings, 1 with them.
+  'provost verify' is the integrity check (fsck, hashes, the history).
+EOF
+            ;;
         *) return 1 ;;
     esac
 }
@@ -4314,7 +4338,10 @@ cmd_export () {
             *) [[ -z "$out" ]] || _cmd_usage_die export; out="$1"; shift ;;
         esac
     done
-    _ensure_workspace
+    # Export only reads the store (PV-022): it neither creates one nor
+    # migrates an older format (the bundle carries the store as it is; the
+    # first write after an import migrates it, as it would have here).
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store at $PROVOST_WORKSPACE — nothing to export."
     if [[ -n "$policy" ]]; then
         [[ -n "$out" ]] || out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ)-redacted.bundle"
         _export_redacted "$policy" "$out"
@@ -4322,8 +4349,11 @@ cmd_export () {
     fi
     if [[ -z "$out" ]]; then out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
     _git rev-parse HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
-    _lock
-    gout="$(_git bundle create "$(_abspath "$out")" --all 2>&1)" || { printf 'git: %s\n' "$gout" >&2; die "export failed."; }
+    # The lock keeps a writer from committing half-way through the bundle. A
+    # store no one can write (an evidence copy, read-only media) has no
+    # writer to wait for, and its lock could not be taken: read it as it is.
+    _lock_if_writable
+    gout="$(_git bundle create "$(_abspath "$out")" --all 2>&1)" || { printf 'git: %s\n' "$gout" >&2; _unlock; die "export failed."; }
     _unlock
     [[ -f "$out" ]] || die "export failed."
     local sz; sz=$(stat -c '%s' "$out" 2>/dev/null || echo '?')
@@ -4435,7 +4465,7 @@ _export_redacted () {
     _git for-each-ref --format='%(refname)' 'refs/tags/capture-*' > "$t/refs"
     ncap="$(wc -l < "$t/refs")"; ncap="${ncap//[!0-9]/}"
     echo "refs/heads/$main" >> "$t/refs"
-    _lock
+    _lock_if_writable
     if ! _git fast-export --no-data --reencode=yes --signed-tags=strip --tag-of-filtered-object=drop \
             --stdin < "$t/refs" > "$t/stream" 2> "$t/err"; then
         _unlock; printf 'git: %s\n' "$(cat "$t/err")" >&2; die "export failed: git fast-export."
@@ -5439,8 +5469,11 @@ cmd_verify () {
         printf '%s\n' "$out" | awk 'NR <= 20 { print "     " $0 }'
     fi
 
-    # 2. tracked files changed and not committed
-    out="$(_git status --porcelain --untracked-files=no 2>/dev/null | head -n 20)" || true
+    # 2. tracked files changed and not committed. A store made by 2.0.1 or
+    # earlier (store format 1, with no .gitignore) committed its runtime files --
+    # the lock, the failure log, the instance registry -- which then change
+    # as a matter of course; they are not the store's content (PV-022).
+    out="$(_git status --porcelain --untracked-files=no -- . "${_RUNTIME_EXCLUDE[@]}" 2>/dev/null | head -n 20)" || true
     if [[ -n "$out" ]]; then
         _vfail "tracked files were changed outside provost and not committed:"
         printf '%s\n' "$out" | sed 's/^/     /'
@@ -5567,6 +5600,252 @@ cmd_verify () {
         return 1
     fi
     printf '%s ok%s verify: no findings\n' "$C_OK" "$C_RST"
+    return 0
+}
+
+# ---------------------------------------------------------------------------
+# store check — validate a store against docs/store-format.md (PV-022).
+#   provost store check [DIR]
+# Reads only: no lock, no migration, no commit, so it can check a store that
+# is read-only, signed or on someone else's disk. It judges a store by the
+# format it records (.store_format; none = format 1), so a store an older
+# provost wrote passes as that format, and says what the next write would
+# migrate. What it checks is the layout and the cross-references between
+# files; 'provost verify' is the integrity check (fsck, hashes, the history).
+# Exit 0 when nothing failed, 1 with the findings, 2 for a usage error.
+# ---------------------------------------------------------------------------
+_RE_CAPID='^c[0-9]{4,}$'
+_RE_DSNAME='^[A-Za-z0-9][A-Za-z0-9._-]*$'
+
+cmd_store () {
+    local sub="${1:-}"
+    case "$sub" in
+        check) shift; _store_check "$@" ;;
+        -h|--help|"") _cmd_help store ;;
+        *) usage_die "store: unknown subcommand '$sub' (see 'provost help store')." ;;
+    esac
+}
+
+_store_check () {
+    local dir=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help store ;;
+            -?*) usage_die "store check: unknown option: $1 (see 'provost help store')." ;;
+            *) [[ -z "$dir" ]] || _cmd_usage_die store; dir="$1"; shift ;;
+        esac
+    done
+    if [[ -n "$dir" ]]; then
+        [[ -d "$dir" ]] || die "no such directory: $dir"
+        PROVOST_WORKSPACE="$(_abspath "$dir")"; PROVOST_STORE_KIND="explicit override"
+        _vet_store_config
+    fi
+    local ws="$PROVOST_WORKSPACE"
+    [[ -d "$ws/.git" ]] || die "no git-backed store at $ws — nothing to check."
+    _mktempd storecheck; local tmp="$_MKTEMPD"
+    local nfail=0 fmt raw main detached=0 f
+    _sfail () { printf '%sFAIL%s %s\n' "$C_ERR" "$C_RST" "$*"; nfail=$((nfail + 1)); }
+    _snote () { printf '   %s\n' "$*"; }
+    _sok ()   { printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*"; }
+
+    # 1. the format it records
+    if [[ -f "$(_store_format_file)" ]]; then
+        raw="$(cat "$(_store_format_file)" 2>/dev/null || true)"
+        if [[ ! "$raw" =~ ^[0-9]{1,6}$ ]]; then
+            _sfail ".store_format holds '${raw:0:40}', not a format number (provost would read it as format 1)"
+            fmt=1
+        elif (( 10#$raw < 1 )); then
+            _sfail ".store_format is $raw: formats start at 1"; fmt=1
+        elif (( 10#$raw > _STORE_FORMAT )); then
+            _sfail "store format $raw is newer than this provost knows ($_STORE_FORMAT): check it with a provost that writes format $raw"
+            fmt=$((10#$raw))
+        else
+            fmt=$((10#$raw))
+        fi
+    else
+        fmt=1
+    fi
+    if (( fmt < _STORE_FORMAT )); then
+        _sok "store format $fmt (read as it is; the next write migrates it to $_STORE_FORMAT)"
+    elif (( fmt == _STORE_FORMAT )); then
+        _sok "store format $fmt (current)"
+    fi
+    (( fmt <= _STORE_FORMAT )) || { printf '%sstore check: %d finding(s)%s\n' "$C_ERR" "$nfail" "$C_RST"; return 1; }
+
+    # 2. git: the branch, and where HEAD is
+    main="$(_main_branch)"
+    _git rev-parse -q --verify "refs/heads/$main^{commit}" >/dev/null 2>&1 \
+        || _sfail "the store has no '$main' branch with a commit on it"
+    if ! _git symbolic-ref -q HEAD >/dev/null 2>&1; then
+        detached=1
+        _snote "on a restored capture (detached HEAD): checked as that capture left it"
+    fi
+
+    # 3. the files at the top
+    [[ -f "$ws/.provostrc" ]] || _sfail ".provostrc is missing (every store provost makes has one)"
+    if (( fmt >= 2 )); then
+        local first=""
+        [[ -f "$ws/.gitignore" ]] && { IFS= read -r first < "$ws/.gitignore" || true; }
+        [[ "$first" == "$_GITIGNORE_MARK" ]] || _sfail ".gitignore is missing or does not start with provost's marker line (format 2 on)"
+        _git ls-files -- .lock .lock.* instances.tsv .async-failures.log .async-failures.seen 2>/dev/null > "$tmp/rt" || true
+        [[ -s "$tmp/rt" ]] && _sfail "runtime files are committed (format 2 on untracks them): $(head -n 4 "$tmp/rt" | tr '\n' ' ')"
+    fi
+
+    # 4. the counters
+    local nrow ncap
+    nrow="$(cat "$(_rowid_file)" 2>/dev/null || true)"
+    if [[ ! -f "$(_rowid_file)" ]]; then _sfail ".next_row_id is missing"; nrow=""
+    elif [[ ! "$nrow" =~ ^[0-9]{1,15}$ ]] || (( 10#$nrow < 1 )); then _sfail ".next_row_id holds '${nrow:0:40}', not a row number"; nrow=""
+    fi
+    ncap="$(cat "$(_capid_file)" 2>/dev/null || true)"
+    if [[ ! -f "$(_capid_file)" ]]; then
+        if (( fmt >= 2 )); then _sfail ".next_capture_id is missing (format 2 on)"; fi
+        ncap=""
+    elif [[ ! "$ncap" =~ ^[0-9]{1,12}$ ]] || (( 10#$ncap < 1 )); then _sfail ".next_capture_id holds '${ncap:0:40}', not a capture number"; ncap=""
+    fi
+
+    # 5. provenance.tsv and every dataset, in one awk: the header, field counts,
+    # row ids (unique, below .next_row_id, each in provenance under its own
+    # dataset), and (format 3 on) column 2, the capture.
+    local prov; prov="$(_prov_file)"
+    local -a dsf=()
+    for f in "$(_ds_dir)"/*.tsv; do [[ -f "$f" ]] && dsf+=("$f"); done
+    if [[ ! -f "$prov" ]]; then
+        if (( ${#dsf[@]} > 0 )); then _sfail "provenance.tsv is missing, but the store has datasets"; fi
+        : > "$tmp/prov"
+    else
+        cp "$prov" "$tmp/prov"
+    fi
+    for f in ${dsf[@]+"${dsf[@]}"}; do
+        local b="${f##*/}"; b="${b%.tsv}"
+        [[ "$b" =~ $_RE_DSNAME ]] || _sfail "datasets/$b.tsv: not a dataset name provost makes"
+    done
+    LC_ALL=C awk -F'\t' -v FMT="$fmt" -v NEXT="${nrow:-0}" -v PROV="$tmp/prov" '
+        function fail(m) { print "F\t" m; nf++ }
+        function note(m) { print "N\t" m }
+        FILENAME == PROV {
+            if (FNR == 1) { if ($0 != "#\tdataset\tcapture") fail("provenance.tsv: header is not #, dataset, capture"); next }
+            if (NF != 3 || $1 !~ /^[0-9]+$/ || $3 !~ /^c[0-9][0-9][0-9][0-9]+$/) { if (bp++ < 3) fail("provenance.tsv line " FNR ": not #N, dataset, capture id"); next }
+            if ($1 in P) { if (dp++ < 3) fail("provenance.tsv: row #" $1 " is listed twice") }
+            P[$1] = $2; C[$1] = $3; PDS[$2] = 1
+            if ($1 + 0 > pmax) pmax = $1 + 0
+            next }
+        FNR == 1 {
+            ds = FILENAME; sub(/^.*\//, "", ds); sub(/\.tsv$/, "", ds); SEEN[ds] = 1
+            hn = NF; cap2 = ($2 ~ /^_*capture$/)
+            if ($1 != "#") { fail("datasets/" ds ".tsv: its header does not start with #"); skip = 1 } else skip = 0
+            if (!skip && FMT >= 3 && !cap2) fail("datasets/" ds ".tsv: column 2 is \"" $2 "\", not the capture column (format 3 on)")
+            if (ds == "unsorted" && $NF != "raw") fail("datasets/unsorted.tsv: its last column is not raw")
+            next }
+        skip { next }
+        {   if (NF != hn) { if (bf[ds]++ < 2) fail("datasets/" ds ".tsv line " FNR ": " NF " fields, its header has " hn) }
+            if ($1 !~ /^[0-9]+$/) { if (bi[ds]++ < 2) fail("datasets/" ds ".tsv line " FNR ": row id \"" $1 "\" is not a number"); next }
+            if ($1 in R) { if (dr++ < 3) fail("row #" $1 " is in datasets/" R[$1] ".tsv and datasets/" ds ".tsv") }
+            R[$1] = ds; if ($1 + 0 > rmax) rmax = $1 + 0
+            if (!($1 in P)) { if (np[ds]++ < 2) fail("datasets/" ds ".tsv: row #" $1 " is not in provenance.tsv") }
+            else if (P[$1] != ds) { if (wp[ds]++ < 2) fail("datasets/" ds ".tsv: row #" $1 " is provenance.tsv'"'"'s row of " P[$1]) }
+            else if (FMT >= 3 && cap2 && $2 != C[$1]) {
+                if (FMT >= 4) { if (wc[ds]++ < 2) fail("datasets/" ds ".tsv: row #" $1 " says capture \"" $2 "\", provenance.tsv says " C[$1]) }
+                else w3[ds]++
+            } }
+        END {
+            for (d in w3) note("datasets/" d ".tsv: " w3[d] " row(s) whose column 2 is not their capture: format 3'"'"'s known fault (PV-015), put right by the migration to format 4")
+            for (d in PDS) if (!(d in SEEN)) fail("provenance.tsv names dataset " d ", which has no file")
+            m = (rmax > pmax) ? rmax : pmax
+            if (NEXT > 0 && NEXT <= m) fail(".next_row_id is " NEXT ", but row #" m " is already used")
+            print "R\t" length(R) + 0 "\t" m + 0
+        }' "$tmp/prov" ${dsf[@]+"${dsf[@]}"} > "$tmp/ds" || _sfail "could not read the datasets"
+    local kind msg rest nrows=0 rmax=0
+    while IFS=$'\t' read -r kind msg rest; do
+        case "$kind" in
+            F) _sfail "$msg" ;;
+            N) _snote "$msg" ;;
+            R) nrows="$msg"; rmax="$rest" ;;
+        esac
+    done < "$tmp/ds"
+
+    # 6. the captures: each directory's files and meta.tsv, and its tag
+    local -a caps=()
+    for f in "$(_cap_dir)"/*/; do [[ -d "$f" ]] && { f="${f%/}"; caps+=("${f##*/}"); }; done
+    _git for-each-ref --format='%(refname:short)' 'refs/tags/capture-*' 2>/dev/null | sed 's/^capture-//' | sort > "$tmp/tags" || true
+    local c m cmax=0 key val ntrunc=0 nfiles=0
+    for c in ${caps[@]+"${caps[@]}"}; do
+        if [[ ! "$c" =~ $_RE_CAPID ]]; then _sfail "captures/$c: not a capture id"; continue; fi
+        (( 10#${c#c} > cmax )) && cmax=$((10#${c#c}))
+        m="$(_cap_dir)/$c"
+        [[ -f "$m/output.txt" ]] || _sfail "captures/$c: output.txt is missing"
+        if [[ ! -f "$m/meta.tsv" ]]; then _sfail "captures/$c: meta.tsv is missing"; continue; fi
+        grep -qxF -- "$c" "$tmp/tags" || (( detached )) || _sfail "captures/$c: there is no tag capture-$c"
+        # meta.tsv: key<TAB>value lines; the keys every provost writes; the
+        # ones whose form is fixed
+        awk -F'\t' -v C="$c" '
+            function fail(m) { print "captures/" C "/meta.tsv: " m }
+            NF < 2 || $1 !~ /^[a-z][a-z0-9_]*$/ { if (b++ < 2) fail("line " NR " is not key<TAB>value"); next }
+            { K[$1] = substr($0, length($1) + 2) }
+            $1 ~ /^(input|output|raw)_sha256$/ && (length($2) != 64 || $2 ~ /[^0-9a-f]/) { fail($1 " is not a sha256") }
+            $1 ~ /^(input_bytes|raw_bytes|parsed_bytes)$/ && $2 !~ /^[0-9]+$/ { fail($1 " is not a byte count") }
+            END {
+                n = split("id ts source dataset row_ids", Q, " ")
+                for (i = 1; i <= n; i++) if (!(Q[i] in K)) fail("it has no " Q[i])
+                if (("id" in K) && K["id"] != C) fail("its id is " K["id"])
+                if (("row_ids" in K) && K["row_ids"] != "none" && K["row_ids"] !~ /^[0-9]+-[0-9]+$/) fail("row_ids is \"" K["row_ids"] "\"")
+                if (K["truncated"] != "") {
+                    if (K["truncated"] != "1") fail("truncated is \"" K["truncated"] "\", not 1")
+                    n = split("parsed_bytes raw_artifact raw_sha256 raw_bytes raw_redacted", Q, " ")
+                    for (i = 1; i <= n; i++) if (!(Q[i] in K)) fail("it is truncated but has no " Q[i])
+                }
+            }' "$m/meta.tsv" > "$tmp/meta"
+        while IFS= read -r msg; do _sfail "$msg"; done < "$tmp/meta"
+        val="$(awk -F'\t' '$1 == "context" { print $2; exit }' "$m/meta.tsv")"
+        [[ -z "$val" || -f "$m/$val" ]] || _sfail "captures/$c: meta.tsv names $val, which is missing"
+        val="$(awk -F'\t' '$1 == "units_columns" { print $2; exit }' "$m/meta.tsv")"
+        [[ -z "$val" || -f "$m/$val" ]] || _sfail "captures/$c: meta.tsv names $val, which is missing"
+        # a truncated capture's whole input, kept by hash beside the store
+        if grep -q $'^truncated\t' "$m/meta.tsv"; then
+            ntrunc=$((ntrunc + 1))
+            _artifact_check "$(cat "$m/meta.tsv")" > "$tmp/art" 2>/dev/null \
+                || _sfail "captures/$c: $(sed 's/^raw_check: //' "$tmp/art")"
+        fi
+    done
+    if [[ -n "$ncap" ]] && (( ${#caps[@]} > 0 )); then
+        # (a restored capture's counter predates the later captures' tags)
+        local tmax=0
+        (( detached )) || tmax="$(sed 's/^c//' "$tmp/tags" | awk '/^[0-9]+$/ && $1 + 0 > m { m = $1 + 0 } END { print m + 0 }')"
+        (( tmax > cmax )) && cmax=$tmax
+        (( 10#$ncap > cmax )) || _sfail ".next_capture_id is $ncap, but capture c$(printf '%04d' "$cmax") is already used"
+    fi
+    if (( ! detached )); then
+        local orphan; orphan="$(printf '%s\n' ${caps[@]+"${caps[@]}"} | sort | comm -13 - "$tmp/tags" | head -n 5 | tr '\n' ' ')"
+        [[ -z "$orphan" ]] || _snote "tags for captures no longer in the store (removed?): $orphan"
+    fi
+    # files-* tags (a controlled directory's files, PV-028): each a commit
+    while IFS= read -r f; do
+        nfiles=$((nfiles + 1))
+        [[ "$(_git cat-file -t "refs/tags/$f^{}" 2>/dev/null)" == commit ]] || _sfail "tag $f does not name a commit"
+    done < <(_git for-each-ref --format='%(refname:short)' 'refs/tags/files-*' 2>/dev/null)
+
+    # 7. the rest of the layout: a controlled directory's context, the store's
+    # LLM templates and their ledgers
+    if [[ -f "$ws/context/manifest.tsv" ]]; then
+        IFS= read -r f < "$ws/context/manifest.tsv" || true
+        [[ "$f" == $'path\tsize\tmtime\tsha1' ]] || _sfail "context/manifest.tsv: header is not path, size, mtime, sha1"
+    fi
+    for f in "$ws"/llm-templates/*.seen.tsv; do
+        [[ -f "$f" ]] || continue
+        IFS= read -r m < "$f" || true
+        [[ "$m" == $'capture\thow\ttemplate\tread\tunread\tskipped\tunjudged\tinput_sha256' ]] \
+            || _sfail "llm-templates/${f##*/}: not a template ledger header"
+    done
+
+    printf '   %d dataset(s), %d row(s), %d capture(s)' "${#dsf[@]}" "$nrows" "${#caps[@]}"
+    (( ntrunc > 0 )) && printf ' (%d truncated, kept input checked)' "$ntrunc"
+    (( nfiles > 0 )) && printf ', %d files-* tag(s)' "$nfiles"
+    printf '\n'
+    if (( nfail > 0 )); then
+        printf '%sstore check: %d finding(s) against store format %d%s\n' "$C_ERR" "$nfail" "$fmt" "$C_RST"
+        return 1
+    fi
+    printf '%s ok%s store check: the store is a valid format-%d store\n' "$C_OK" "$C_RST" "$fmt"
     return 0
 }
 
@@ -5765,6 +6044,8 @@ COMMANDS
     provost verify [--capture ID]  check the store's integrity: git fsck, each
                                    capture's output against its recorded
                                    sha256, tags, and gaps in capture ids
+    provost store check [DIR]      check a store against the store format
+                                   (docs/store-format.md); reads only
     provost help [advanced]        the short help / this text
     provost COMMAND --help         one command's usage
 
@@ -5843,6 +6124,14 @@ THE STORE
     'files' and 'diff' read any capture straight from git without moving the
     store. 'export' bundles everything, tags included ('export --redact': a
     copy with host names and addresses pseudonymised); 'import' opens it.
+
+    The store's layout is a versioned format, written in .store_format and
+    set out in docs/store-format.md. Every provost reads every older format.
+    A write (a capture, rm, annotate, restore, control) first migrates an
+    older store to this provost's format, in a commit of its own; a command
+    that only reads (ls, show, source, log, search, files, diff, stats,
+    triage, verify, doctor, export, store check) never changes the store,
+    and works on a store it cannot write. 'store check' validates one.
 
 DATASET NAMES
     'provost run CMD ...' files into a dataset named after CMD's basename
@@ -6338,7 +6627,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify store help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -6369,7 +6658,7 @@ main () {
     # instead of silently waiting on stdin.
     if [[ $# -eq 0 && -t 0 ]]; then cmd_help; exit 0; fi
     case "$verb" in
-        doctor|log|verify) ;;                     # these show the failures themselves / read only
+        doctor|log|verify|store) ;;               # these show the failures themselves / read only
         *) _warn_failures ;;
     esac
     case "$verb" in
@@ -6398,6 +6687,7 @@ main () {
         check-manifest) shift; cmd_check_manifest "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
         verify)        shift; cmd_verify "$@" ;;
+        store)         shift; cmd_store "$@" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
         ""|-*)         cmd_inject "$@" ;;          # default verb (options only)
         *)
