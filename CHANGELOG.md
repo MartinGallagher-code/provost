@@ -1,5 +1,54 @@
 # provost — Changelog
 
+## 2.17.0 — 2026-11-11 — `--llm` through OpenAI-compatible and local endpoints, and an offline mode that never sends a capture (PV-019)
+
+`VERSION` 2.16.0 → 2.17.0, and the `man/provost.1` header. Minor: three new
+settings and a store-level switch. With none of them set, `--llm` sends the
+same request to the same place as before.
+
+- **`PROVOST_LLM_API`** (`extract/llm/template.py`, `provost`): `anthropic`,
+  the default, is the Messages API exactly as before (`POST /v1/messages`,
+  `x-api-key`, `anthropic-version`, the same body). `openai` speaks Chat
+  Completions, as vLLM, llama.cpp's server, Ollama and Azure deployments do:
+  `POST BASE/v1/chat/completions`, a bearer key, the guide as the system
+  message, the reply read from `choices[0].message` (a `refusal` is held like
+  Anthropic's). Both go through one adapter (`_request` / `_reply`) under
+  `call_claude`, so `learn`, the skip audit, `repair` and the judge are
+  unchanged and send the same prompt. With `openai`, `PROVOST_LLM_BASE_URL` is
+  required (with or without `/v1`; there is no default host),
+  `ANTHROPIC_API_KEY` is never sent (only `PROVOST_LLM_API_KEY`; any value for
+  a server that takes none), and `PROVOST_LLM_MODEL` may be a local id with
+  `/` or `:` (`org/model:q4`). `PROVOST_LLM_LOG` lines now carry `api`.
+- **Offline mode.** `PROVOST_LLM_OFFLINE=1`, or a file named `llm-offline` at
+  the top of a store (hand-made, committed with the next capture; no
+  environment turns it off): `--llm` uses stored templates and never opens a
+  connection. The refusal is in `call_claude` itself, before a request is
+  built, whatever key or base URL is set; provost also skips `learn` and
+  `repair`, exports `PROVOST_LLM_OFFLINE=1` to `template.py`, and the held line
+  and `meta.tsv`'s `llm_template` say offline mode stopped it. **Off by
+  default** (owner's question 2, answered conservatively on his behalf: the
+  acceptance criteria require unset settings to behave as today).
+  `docs/store-format.md` documents `llm-offline` under Other files.
+- **`PROVOST_LLM_ALLOW_HOSTS`** (optional): the only hosts a request may go
+  to; a base URL on another host is refused before anything is sent.
+- Help (`LLM TEMPLATES`, ENDPOINTS and OFFLINE MODE; the settings list), the
+  man page and the README settings table document all of it.
+- **Tests.** `ml/tests/test_llm_endpoints.py` (13): both wire formats against
+  a stub HTTP server on loopback (request path, headers and body, reply
+  parsing, refusals, the `/v1` base, the key rule, the log's `api`); offline
+  mode with `urllib.request.urlopen` and `socket.socket` patched to fail the
+  test if called, by the environment and by the store's file, for `call_claude`,
+  `learn`, `repair` and `judge`; the allow-list. `tests/fake_openai.py`, an
+  OpenAI-compatible stand-in, and 29 smoke checks in the `llm` part: a template
+  written and then repaired through it, offline with a key and a listening
+  server (held as before with the offline note; a generic parse filed as the
+  engine read it; the store's file overriding `PROVOST_LLM_OFFLINE=0`; nothing
+  reaching the server), and the allow-list.
+- **Not measured:** whether a local model writes templates good enough to
+  keep. That is PV-007's rating run (owner's question 1: this did not wait for
+  it). Every template, from any model, still passes the same gate before it
+  is kept.
+
 ## 2.16.0 — 2026-11-11 — the store format as a versioned spec, with a compatibility promise and `provost store check` (PV-022)
 
 `VERSION` 2.15.0 → 2.16.0, and the `man/provost.1` header. Minor: a new
