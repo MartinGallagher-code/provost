@@ -2493,11 +2493,11 @@ ometa () { printf '<%s>' "$(awk -F'\t' -v k="$2" '$1 == k { print substr($0, len
 # <...> around a value, so a check matches all of it, or that it is empty (<>).
 ov () { printf '<%s>' "$*"; }
 OD="$(dirname "$OWS")"
-# 12 MB against the default 10 MiB cap: a two-line table, then one 12 MB line
+# 12 MB against the default 10 MiB cap: a two-line table, then one 12 MB run of x
 # with no newline (cut back to whole lines, only the table is parsed, so the
 # check stays fast).
-awk 'BEGIN { print "a,b"; print "1,2"; s = sprintf("%1000000s", ""); gsub(/ /, "x y ", s)
-             for (i = 1; i <= 3; i++) printf "%s", s }' > "$OD/big.txt"
+# (Not built with awk: mawk's gsub on a long string is quadratic.)
+{ printf 'a,b\n1,2\n'; head -c 12000000 /dev/zero | tr '\0' x; } > "$OD/big.txt"
 osize="$(wc -c < "$OD/big.txt" | tr -d ' ')"
 bsha="$(osha < "$OD/big.txt")"
 op --name small <<< $'k,v\n1,2' >/dev/null           # the store exists before the big one
