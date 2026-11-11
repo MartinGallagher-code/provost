@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-10" "provost 2.6.0" "User Commands"
+.TH PROVOST 1 "2026-11-10" "provost 2.7.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -78,6 +78,14 @@ A missing required key is a warning.
 .BR --strict-manifest ", " --no-strict-manifest
 Refuse to file a capture whose run manifest lacks a required key (exit 1;
 in \fBbatch\fR, that input is not captured). Or \fBPROVOST_MANIFEST_STRICT=1\fR.
+.TP
+.BR --env ", " --env=modules ", " --no-env
+Record where the capture was taken in its \fB#%\fR prologue: the host,
+kernel, architecture, OS release, loaded environment modules, user, the Slurm
+job, and the variables \fBPROVOST_ENV_VARS\fR allows, never one that looks
+like a secret. \fB--env=modules\fR adds the loaded kernel modules. Or
+\fBPROVOST_ENV=1\fR / \fBmodules\fR; \fB--no-env\fR, the default, records
+nothing. See \fBENVIRONMENT CAPTURE\fR.
 .TP
 .BR --auto-multi ", " --no-auto-multi
 Before the quality gate holds a parse, try segmenting the input and file the
@@ -326,6 +334,26 @@ else \fBPROVOST_MANIFEST_PROFILE\fR, else the store's own
 \fIextract/manifests\fR. A value holding spaces is double-quoted:
 \fB#% build.toolchain="gcc 13.2"\fR. Nothing is checked unless a profile is
 asked for.
+.SH ENVIRONMENT CAPTURE
+With \fB--env\fR, provost adds where a capture was taken to its prologue as
+\fBenv.*\fR keys: \fBenv.host\fR, \fBenv.kernel\fR (\fBuname -sr\fR),
+\fBenv.arch\fR, \fBenv.os\fR (\fI/etc/os-release\fR, or \fBsw_vers\fR on
+macOS), \fBenv.modules\fR (Lmod's \fB$LOADEDMODULES\fR), \fBenv.user\fR, and
+inside a Slurm job \fBenv.slurm.job\fR, \fBenv.slurm.nodes\fR,
+\fBenv.slurm.cluster\fR and \fBenv.slurm.partition\fR.
+\fB--env=modules\fR adds \fBenv.kernel.modules\fR (\fBlsmod\fR). A
+manifest profile's optional fifth column, \fIenv\fR, claims a reading for one
+of its keys: the Slurm job id is written as \fBsched.job\fR under the default
+profile and \fBjob_id\fR under \fBproposal\fR. A key the input's own
+prologue or \fB--manifest\fR sets is left to them.
+.PP
+Environment variables come only from the allow-list \fBPROVOST_ENV_VARS\fR,
+each as \fBenv.var.\fINAME\fR, and a variable whose name or value looks like
+a secret (\fIextract/secrets.tsv\fR) is never recorded, even when
+allow-listed: provost warns and lists its name in \fBenv.withheld\fR. The
+readings describe the host provost runs on, read once per command; for a
+\fBbatch\fR of files gathered from other hosts, that is the host that filed
+them.
 .SH DATASET NAMES
 .B provost run
 \fIcmd\fR ... files into a dataset named after \fIcmd\fR's basename, looking
@@ -542,6 +570,16 @@ The run-manifest profile, a \fINAME\fR or a \fI.tsv\fR file (same as
 .B PROVOST_MANIFEST_STRICT
 \fB1\fR: refuse to file a capture whose manifest lacks a required key (same
 as \fB--strict-manifest\fR); \fB0\fR, the default: warn.
+.TP
+.B PROVOST_ENV
+\fB1\fR: record where each capture was taken (same as \fB--env\fR);
+\fBmodules\fR: and the kernel modules (\fB--env=modules\fR); \fB0\fR, the
+default: nothing.
+.TP
+.B PROVOST_ENV_VARS
+The environment variables \fB--env\fR records: names or glob patterns,
+separated by spaces or commas (default: \fBOMP_* MPI_* OMPI_MCA_* I_MPI_*
+MPICH_* UCX_* CUDA_* NCCL_*\fR). Set but empty, none.
 .TP
 .B PROVOST_BATCH_REUSE
 \fB0\fR: \fBprovost batch\fR detects every input's format from scratch.

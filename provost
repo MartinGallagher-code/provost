@@ -110,6 +110,10 @@ PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an
 PROVOST_CONTEXT_COLUMNS="${PROVOST_CONTEXT_COLUMNS:-0}" # 1 = '#% key=value' context becomes row columns (--context-columns)
 PROVOST_MANIFEST_PROFILE="${PROVOST_MANIFEST_PROFILE:-}" # run-manifest profile: NAME or path ('' = the store's manifest-profile.tsv, else default)
 PROVOST_MANIFEST_STRICT="${PROVOST_MANIFEST_STRICT:-0}" # 1 = refuse to file a capture whose manifest lacks a required key (--strict-manifest)
+PROVOST_ENV="${PROVOST_ENV:-0}"                      # 1 = record where a capture was taken in its prologue (--env); modules = and the kernel modules (--env=modules)
+# The variables --env records (glob patterns, space- or comma-separated); set
+# but empty records none. Set means set: an empty value is not the default.
+PROVOST_ENV_VARS="${PROVOST_ENV_VARS-OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*}"
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
@@ -139,6 +143,8 @@ usage_die () { printf 'provost: %s\n' "$*" >&2; exit 2; }
 # Locale-proof character classes ([A-Z] ranges are collation-dependent).
 _ALNUM='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 _NAME_RE="^[${_ALNUM}][${_ALNUM}._-]*\$"
+# A PROVOST_ENV_VARS pattern: a variable name, or a glob over names.
+_ENV_PAT_RE="^[][${_ALNUM}_*?!^-]+\$"
 
 # _validate_uint LABEL VALUE MIN [MAX] — whole number in range, else exit 2.
 _validate_uint () {
@@ -174,6 +180,12 @@ _validate_settings () {
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_CONTEXT_COLUMNS" == 0 || "$PROVOST_CONTEXT_COLUMNS" == 1 ]] || usage_die "PROVOST_CONTEXT_COLUMNS must be 0 or 1 (got '$PROVOST_CONTEXT_COLUMNS')."
     [[ "$PROVOST_MANIFEST_STRICT" == 0 || "$PROVOST_MANIFEST_STRICT" == 1 ]] || usage_die "PROVOST_MANIFEST_STRICT must be 0 or 1 (got '$PROVOST_MANIFEST_STRICT')."
+    case "$PROVOST_ENV" in 0|1|modules) ;; *) usage_die "PROVOST_ENV must be 0, 1 or modules (got '$PROVOST_ENV')." ;; esac
+    local _p; local -a _ps=()
+    read -ra _ps <<< "${PROVOST_ENV_VARS//,/ }"   # (read: no pathname expansion of the globs)
+    for _p in ${_ps[@]+"${_ps[@]}"}; do
+        [[ "$_p" =~ $_ENV_PAT_RE ]] || usage_die "PROVOST_ENV_VARS holds '$_p', which is not a variable name or glob pattern (letters, digits, '_', and * ? [ ] ! ^ -)."
+    done
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
@@ -1048,6 +1060,7 @@ _manifest_capture_setup () {
     if [[ -n "$_O_MANIFEST" || -n "$_O_MPROFILE" || -n "${PROVOST_MANIFEST_PROFILE:-}" || "$PROVOST_MANIFEST_STRICT" == 1 ]]; then
         _O_MPROF_PATH="$(_manifest_profile "$_O_MPROFILE")" || exit 1
     fi
+    _env_capture_setup
     return 0
 }
 # _manifest_apply IN LABEL -- prepend the --manifest lines to the input IN,
@@ -1055,9 +1068,14 @@ _manifest_capture_setup () {
 # warning, or with --strict-manifest an error: return 1, and the input is
 # not to be filed.
 _manifest_apply () {
-    local in="$1" label="$2" missing
-    if [[ -n "$_O_MANIFEST_TEXT" ]]; then
-        { printf '%s\n' "$_O_MANIFEST_TEXT"; cat -- "$in"; } > "$in.manifest" && mv -- "$in.manifest" "$in"
+    local in="$1" label="$2" missing env=""
+    # --env's lines go first, then --manifest's, then the input's own
+    # prologue; an --env key either of the others sets is left out.
+    [[ -z "$_O_ENV_TEXT" ]] || env="$(_env_unset_lines "$in")"
+    if [[ -n "$_O_MANIFEST_TEXT" || -n "$env" ]]; then
+        { [[ -z "$env" ]] || printf '%s\n' "$env"
+          [[ -z "$_O_MANIFEST_TEXT" ]] || printf '%s\n' "$_O_MANIFEST_TEXT"
+          cat -- "$in"; } > "$in.manifest" && mv -- "$in.manifest" "$in"
     fi
     [[ -n "$_O_MPROF_PATH" ]] || return 0
     awk '!/^#%/ { exit } { print }' "$in" > "$in.prologue"
@@ -1071,6 +1089,169 @@ _manifest_apply () {
     fi
     warn "$label: the run manifest (profile $prof) lacks required key(s): $missing -- filed anyway; 'provost annotate ID KEY=VALUE' adds one later."
     return 0
+}
+
+# ---------------------------------------------------------------------------
+# ENVIRONMENT CAPTURE (PV-028). --env (PROVOST_ENV=1) adds where a capture was
+# taken to its '#%' prologue, as env.* keys: the host, kernel, architecture
+# and OS release, the loaded environment modules (Lmod or Environment
+# Modules: $LOADEDMODULES), the user, and the Slurm job, node list, cluster
+# and partition inside a Slurm job. Variables come only from the allow-list
+# PROVOST_ENV_VARS (glob patterns), each as env.var.NAME, never all of them;
+# one whose name or value looks like a secret (extract/secrets.tsv) is not
+# recorded even when allow-listed, and its name goes to env.withheld.
+# --env=modules (PROVOST_ENV=modules) adds the kernel modules (lsmod) as
+# env.kernel.modules. A run-manifest profile can claim a reading for a key of
+# its own (its 'env' column: default.tsv's sched.job is the Slurm job id), and
+# a key the --manifest FILE or the input's own prologue sets is theirs.
+# Everything is read once, when the options are checked, so every input of a
+# batch carries the same. Nothing here runs without --env.
+# ---------------------------------------------------------------------------
+# The readings, in the order they are written.
+_ENV_READINGS="host kernel arch os modules user slurm.job slurm.nodes slurm.cluster slurm.partition kernel.modules"
+_SR_KIND=(); _SR_FIELD=(); _SR_CASE=(); _SR_RE=()
+
+# _env_os -- the OS release: "Ubuntu 24.04.1 LTS" (os-release's PRETTY_NAME,
+# else NAME and VERSION_ID), "macOS 14.5" (sw_vers); nothing when neither.
+_env_os () {
+    local f k v name="" ver="" pretty=""
+    if [[ "$(uname -s 2>/dev/null || true)" == Darwin ]] && command -v sw_vers >/dev/null 2>&1; then
+        name="$(sw_vers -productName 2>/dev/null || true)"; ver="$(sw_vers -productVersion 2>/dev/null || true)"
+        printf '%s' "${name:-macOS}${ver:+ $ver}"
+        return 0
+    fi
+    for f in /etc/os-release /usr/lib/os-release; do
+        [[ -r "$f" ]] || continue
+        while IFS='=' read -r k v || [[ -n "$k" ]]; do
+            v="${v%\"}"; v="${v#\"}"; v="${v%\'}"; v="${v#\'}"
+            case "$k" in PRETTY_NAME) pretty="$v" ;; NAME) name="$v" ;; VERSION_ID) ver="$v" ;; esac
+        done < "$f"
+        if [[ -n "$pretty" ]]; then printf '%s' "$pretty"; else printf '%s' "$name${ver:+ $ver}"; fi
+        return 0
+    done
+    return 0
+}
+
+# _env_kmods -- the loaded kernel modules, sorted, comma-separated: lsmod's
+# first column, else /proc/modules'; nothing when neither is there (macOS).
+_env_kmods () {
+    {
+        if command -v lsmod >/dev/null 2>&1; then lsmod 2>/dev/null | awk 'NR > 1 && $1 != "" { print $1 }'
+        elif [[ -r /proc/modules ]]; then awk '$1 != "" { print $1 }' /proc/modules
+        fi
+    } | LC_ALL=C sort -u | paste -sd , - || true
+}
+
+# _env_secret_rules -- load extract/secrets.tsv into the _SR_* arrays (once).
+_env_secret_rules () {
+    (( ${#_SR_RE[@]} == 0 )) || return 0
+    local f="$PROVOST_ROOT/extract/secrets.tsv" kind field cs re n=0
+    [[ -r "$f" ]] || die "cannot read $f -- the secret patterns --env checks every variable against; nothing was captured."
+    while IFS=$'\t' read -r kind field cs re || [[ -n "$kind" ]]; do
+        n=$((n + 1))
+        [[ -z "$kind" || "$kind" == '#'* ]] && continue
+        [[ ( "$field" == name || "$field" == value ) && ( "$cs" == i || "$cs" == - ) && -n "$re" ]] \
+            || die "$f, line $n: want KIND<TAB>name|value<TAB>i|-<TAB>PATTERN; nothing was captured."
+        _SR_KIND+=("$kind"); _SR_FIELD+=("$field"); _SR_CASE+=("$cs"); _SR_RE+=("$re")
+    done < "$f"
+    (( ${#_SR_RE[@]} > 0 )) || die "$f holds no patterns; nothing was captured."
+}
+
+# _env_secret_kind NAME VALUE -- succeeds, printing "name (KIND)" or
+# "value (KIND)", when the variable's name or value matches a secret pattern.
+_env_secret_kind () {
+    local up="${1^^}" v="$2" i hit=""
+    for (( i = 0; i < ${#_SR_RE[@]}; i++ )); do
+        if [[ "${_SR_FIELD[i]}" == name ]]; then
+            if [[ "$up" =~ ${_SR_RE[i]} ]]; then hit="name (${_SR_KIND[i]})"; fi
+        else
+            [[ "${_SR_CASE[i]}" != i ]] || shopt -s nocasematch
+            if [[ "$v" =~ ${_SR_RE[i]} ]]; then hit="value (${_SR_KIND[i]})"; fi
+            shopt -u nocasematch
+        fi
+        if [[ -n "$hit" ]]; then printf '%s\n' "$hit"; return 0; fi
+    done
+    return 1
+}
+
+# _env_capture_setup -- with --env, the prologue lines it adds, one
+# '#% key=value' a line, in _O_ENV_TEXT ('' without --env).
+_env_capture_setup () {
+    _O_ENV_TEXT=""
+    [[ "$PROVOST_ENV" != 0 ]] || return 0
+    local -A R=() claim=()
+    local -a lines=() withheld=() pats=() names=()
+    local k v key prof n p kind
+    R[host]="${HOSTNAME:-}"; [[ -n "${R[host]}" ]] || R[host]="$(uname -n 2>/dev/null || true)"
+    R[kernel]="$(uname -sr 2>/dev/null || true)"
+    R[arch]="$(uname -m 2>/dev/null || true)"
+    R[os]="$(_env_os)"
+    R[modules]="${LOADEDMODULES:-}"
+    R[user]="$(id -un 2>/dev/null || true)"; [[ -n "${R[user]}" ]] || R[user]="${USER:-${LOGNAME:-}}"
+    R[slurm.job]="${SLURM_JOB_ID:-${SLURM_JOBID:-}}"
+    R[slurm.nodes]="${SLURM_JOB_NODELIST:-${SLURM_NODELIST:-}}"
+    R[slurm.cluster]="${SLURM_CLUSTER_NAME:-}"
+    R[slurm.partition]="${SLURM_JOB_PARTITION:-}"
+    if [[ "$PROVOST_ENV" == modules ]]; then
+        R[kernel.modules]="$(_env_kmods)"
+        [[ -n "${R[kernel.modules]}" ]] || warn "--env=modules: no kernel module list on this system (no lsmod or /proc/modules); env.kernel.modules not recorded."
+    fi
+    # The profile's claims (its 'env' column): reading -> the key(s) it fills.
+    prof="${_O_MPROF_PATH:-}"
+    [[ -n "$prof" ]] || prof="$(_manifest_profile "$_O_MPROFILE")" || exit 1
+    while IFS=$'\t' read -r n key k; do
+        if [[ " $_ENV_READINGS " == *" $k "* ]]; then claim[$k]="${claim[$k]:+${claim[$k]} }$key"
+        else warn "manifest profile $prof, line $n: its env column names '$k', which --env does not read (one of: $_ENV_READINGS) -- ignored."; fi
+    done < <(awk -F'\t' '/^#/ || /^[ \t]*$/ { next } NF >= 5 && $5 != "" && $5 != "-" { print FNR "\t" $1 "\t" $5 }' "$prof")
+    for k in $_ENV_READINGS; do
+        v="${R[$k]:-}"; [[ -n "$v" ]] || continue
+        v="${v//[$'\n\r\t']/ }"
+        if [[ -n "${claim[$k]:-}" ]]; then
+            for key in ${claim[$k]}; do lines+=("#% $(_prologue_word "$key" "$v")"); done
+        else
+            lines+=("#% $(_prologue_word "env.$k" "$v")")
+        fi
+    done
+    # The allow-listed variables (exported ones: what a command run here sees).
+    read -ra pats <<< "${PROVOST_ENV_VARS//,/ }"
+    if (( ${#pats[@]} > 0 )); then
+        _env_secret_rules
+        while IFS= read -r n; do
+            for p in "${pats[@]}"; do
+                # (unquoted on the right: a glob, as PROVOST_ENV_VARS means it)
+                # shellcheck disable=SC2053
+                if [[ "$n" == $p ]]; then names+=("$n"); break; fi
+            done
+        done < <(compgen -e | LC_ALL=C sort -u)
+        for n in ${names[@]+"${names[@]}"}; do
+            v="${!n-}"
+            if kind="$(_env_secret_kind "$n" "$v")"; then
+                withheld+=("$n")
+                warn "--env: \$$n not recorded: its $kind looks like a secret."
+                continue
+            fi
+            v="${v//[$'\n\r\t']/ }"
+            lines+=("#% $(_prologue_word "env.var.$n" "$v")")
+        done
+    fi
+    if (( ${#withheld[@]} > 0 )); then
+        lines+=("#% env.withheld=$(IFS=,; printf '%s' "${withheld[*]}")")
+    fi
+    (( ${#lines[@]} == 0 )) || _O_ENV_TEXT="$(printf '%s\n' "${lines[@]}")"
+    return 0
+}
+
+# _env_unset_lines IN -- the --env lines whose key neither the --manifest
+# lines nor IN's own prologue sets (theirs are the values that count).
+_env_unset_lines () {
+    local in="$1"
+    { [[ -z "$_O_MANIFEST_TEXT" ]] || printf '%s\n' "$_O_MANIFEST_TEXT"
+      awk '!/^#%/ { exit } { print }' "$in"; } > "$in.given"
+    _prologue_kv "$in.given" | cut -f1 > "$in.keys"
+    printf '%s\n' "$_O_ENV_TEXT" > "$in.env"
+    awk 'FILENAME == ARGV[1] { S[$0] = 1; next }
+         { k = $0; sub(/^#% /, "", k); sub(/=.*/, "", k); if (!(k in S)) print }' "$in.keys" "$in.env"
+    rm -f -- "$in.given" "$in.keys" "$in.env"
 }
 
 # Snapshot a controlled directory's contents as commit context: a manifest of
@@ -2407,6 +2588,11 @@ options:
                           such as default or proposal, or a .tsv file)
   --strict-manifest       refuse to file a capture whose manifest lacks a
                           required key (PROVOST_MANIFEST_STRICT=1)
+  --env                   record where the capture was taken in its '#%'
+                          prologue: host, kernel, OS, environment modules,
+                          Slurm job, user, and the variables PROVOST_ENV_VARS
+                          allows (never one that looks like a secret);
+                          --env=modules adds the kernel modules (PROVOST_ENV)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   --show                  show the command's output as it runs, as well
@@ -2449,6 +2635,11 @@ options:
                           such as default or proposal, or a .tsv file)
   --strict-manifest       refuse to file a capture whose manifest lacks a
                           required key (PROVOST_MANIFEST_STRICT=1)
+  --env                   record where the capture was taken in its '#%'
+                          prologue: host, kernel, OS, environment modules,
+                          Slurm job, user, and the variables PROVOST_ENV_VARS
+                          allows (never one that looks like a secret);
+                          --env=modules adds the kernel modules (PROVOST_ENV)
   -q, --silent            no progress output
 EOF
             ;;
@@ -2472,6 +2663,9 @@ options:
   --manifest FILE, --manifest-profile P, --strict-manifest
                           as for piped input; under --strict-manifest an input
                           lacking a required key is not captured
+  --env, --env=modules    as for piped input: read once, and every input
+                          carries it -- the host provost runs on, which for
+                          files gathered from other hosts is not theirs
   --min-confidence N, --min-coverage N, --min-consistency N, --plugin-dir DIR,
   --multi, --no-auto-multi, --model, --llm, -q
                           as for piped input ('provost inject --help')
@@ -2670,6 +2864,10 @@ _capture_opt () {
         --manifest-profile=*) _O_MPROFILE="${1#*=}" ;;
         --strict-manifest) PROVOST_MANIFEST_STRICT=1 ;;
         --no-strict-manifest) PROVOST_MANIFEST_STRICT=0 ;;
+        --env) PROVOST_ENV=1 ;;
+        --env=modules) PROVOST_ENV=modules ;;
+        --env=*) usage_die "--env takes no value, or 'modules' (--env=modules); got '$1'." ;;
+        --no-env) PROVOST_ENV=0 ;;
         --async) _O_ASYNC=1 ;;
         --sync|--wait) _O_ASYNC=0 ;;
         --show|--tee) _O_SHOW=1 ;;
@@ -4802,6 +5000,9 @@ CAPTURE OPTIONS (run, piped input, FILE)
     --strict-manifest, --no-strict-manifest
                             refuse to file a capture whose manifest lacks a
                             required key (default: file it, with a warning)
+    --env, --env=modules, --no-env
+                            record where the capture was taken in its
+                            prologue (ENVIRONMENT CAPTURE below; default off)
 
 THE STORE
     Captures go to a GLOBAL git store, so you can capture from any directory:
@@ -5064,6 +5265,35 @@ RUN MANIFEST
     does not already use), so the two never share a name, and meta.tsv
     records it ('renamed_columns', DATASET:#=#_2,...).
 
+ENVIRONMENT CAPTURE
+    --env (PROVOST_ENV=1) adds where a capture was taken to its prologue, as
+    env.* keys: env.host, env.kernel (uname -sr), env.arch, env.os (the OS
+    release: /etc/os-release, or sw_vers on macOS), env.modules (the loaded
+    environment modules, Lmod's \$LOADEDMODULES), env.user, and inside a
+    Slurm job its id, node list, cluster and partition (env.slurm.job,
+    .nodes, .cluster, .partition). A reading the run-manifest profile claims
+    is written under the profile's key instead (its 'env' column): the
+    Slurm job id is sched.job under the default profile, job_id under
+    proposal. --env=modules (PROVOST_ENV=modules) adds the loaded kernel
+    modules (lsmod) as env.kernel.modules. Nothing is recorded that is not
+    set, and nothing at all without --env.
+
+    Environment variables come only from an allow-list, PROVOST_ENV_VARS:
+    names or glob patterns, space- or comma-separated (default: OMP_* MPI_*
+    OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*; set it empty for none),
+    each as env.var.NAME. Never all of them: an environment carries tokens
+    and passwords. A variable whose name or value looks like a secret
+    (extract/secrets.tsv: tokens, keys, passwords, credentials in a URL) is
+    not recorded even when allow-listed: provost warns, and lists its name
+    in env.withheld. A tab or line break in a value becomes a space.
+
+    The readings are of the host provost runs on, taken once per command:
+    for a batch of files gathered from other hosts they describe the host
+    that filed them. A key the input's own prologue or --manifest FILE sets
+    is theirs, and --env leaves it out. As with --manifest, input_sha256 is
+    of the input as received and output_sha256 of what is stored, the
+    readings included.
+
 BATCH CAPTURE (provost batch)
     'provost batch FILE...' files each FILE as a capture of its own, as
     'provost FILE' would, but parses them in parallel (--jobs, default the
@@ -5104,6 +5334,11 @@ SETTINGS (environment)
                               (as --manifest-profile; asks for a check)
     PROVOST_MANIFEST_STRICT   1 = refuse a capture lacking a required manifest
                               key (as --strict-manifest; asks for a check)
+    PROVOST_ENV               1 = record where each capture was taken (as
+                              --env); modules = and the kernel modules
+    PROVOST_ENV_VARS          the variables --env records: names or globs
+                              (default: OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_*
+                              UCX_* CUDA_* NCCL_*; empty = none)
     PROVOST_BATCH_REUSE       0 = batch detects every input from scratch
                               (default 1: the rest of a name's inputs try its
                               first one's strategy)

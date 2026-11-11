@@ -13,7 +13,8 @@ unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIE
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_CONTEXT_COLUMNS PROVOST_PLUGIN_DIR \
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
       PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY \
-      PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT
+      PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT PROVOST_ENV PROVOST_ENV_VARS \
+      LOADEDMODULES SLURM_JOB_ID SLURM_JOBID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_CLUSTER_NAME SLURM_JOB_PARTITION
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -1925,6 +1926,137 @@ check "...files the rest" "1 input(s)" "$out"
 check "...and exits 1" "rc=1" "$out"
 check "PROVOST_MANIFEST_STRICT must be 0 or 1 (exit 2)" "2" "$(PROVOST_MANIFEST_STRICT=x PROVOST_WORKSPACE="$MWS" rc_of "$PROVOST" ls)"
 check "check-manifest --help" "usage: provost check-manifest" "$(mp check-manifest --help)"
+fi
+
+if _part env; then
+echo "== environment capture (PV-028): --env, the allow-list, secrets withheld =="
+EWS="$(mktemp -d)/.ews"; ED="$(mktemp -d)"
+ep () { PROVOST_WORKSPACE="$EWS" "$PROVOST" "$@" 2>&1; }
+# the context.txt of the store's latest capture
+ectx () { cat "$EWS/captures/$(ep log | tail -n 1 | awk '{print $1}')/context.txt" 2>/dev/null || true; }
+printf 'Name,Load\nx,1\n' > "$ED/plain.txt"
+# without --env, nothing changes, whatever the environment holds
+out="$(LOADEDMODULES=gcc/13.2.0 SLURM_JOB_ID=4242 OMP_NUM_THREADS=8 ep --name plain "$ED/plain.txt"; echo "rc=$?")"
+check "without --env a capture files as before" "rc=0" "$out"
+check_not "...says nothing about the environment" "env" "$out"
+check "...and keeps no context" "no context" "$([[ -e "$EWS/captures/c0001/context.txt" ]] && echo context || echo no context)"
+check "...and stores the input as it came" "$(cat "$ED/plain.txt")" "$(cat "$EWS/captures/c0001/output.txt")"
+check "--env then --no-env records nothing" "no context" "$(ep --env --no-env --name plain "$ED/plain.txt" >/dev/null; [[ -e "$EWS/captures/c0002/context.txt" ]] && echo context || echo no context)"
+# --env: the fixed set, the Slurm job id under the profile's own key
+out="$(LOADEDMODULES=gcc/13.2.0:openmpi/4.1.6 SLURM_JOB_ID=4242 SLURM_JOB_NODELIST='node[01-04]' \
+       SLURM_CLUSTER_NAME=frontier SLURM_JOB_PARTITION=batch OMP_NUM_THREADS=8 UCX_TLS=rc,sm FOO_BAR=1 \
+       ep --env --name e "$ED/plain.txt"; echo "rc=$?")"
+check "--env files the capture" "rc=0" "$out"
+check_not "...with no warning when nothing looks like a secret" "warning" "$out"
+ctx="$(ectx)"
+check "--env records the host" "#% env.host=${HOSTNAME:-$(uname -n)}" "$ctx"
+check "--env records the kernel (uname -sr, quoted)" "#% env.kernel=\"$(uname -sr)\"" "$ctx"
+check "--env records the architecture" "#% env.arch=$(uname -m)" "$ctx"
+check "--env records the user" "#% env.user=$(id -un)" "$ctx"
+if [[ -r /etc/os-release ]]; then
+    check "--env records the OS release (PRETTY_NAME)" "#% env.os=\"$(. /etc/os-release; printf '%s' "$PRETTY_NAME")\"" "$ctx"
+fi
+check "--env records the loaded environment modules" "#% env.modules=gcc/13.2.0:openmpi/4.1.6" "$ctx"
+check "--env records the Slurm job id under the default profile's sched.job" "#% sched.job=4242" "$ctx"
+check_not "...and not again as env.slurm.job" "env.slurm.job" "$ctx"
+check "--env records the Slurm node list" "#% env.slurm.nodes=node[01-04]" "$ctx"
+check "--env records the Slurm cluster and partition" "#% env.slurm.cluster=frontier" "$ctx"
+check "...partition" "#% env.slurm.partition=batch" "$ctx"
+check "an allow-listed variable is recorded (default list: OMP_*)" "#% env.var.OMP_NUM_THREADS=8" "$ctx"
+check "...and UCX_*" "#% env.var.UCX_TLS=rc,sm" "$ctx"
+check_not "a variable not on the allow-list is absent" "FOO_BAR" "$ctx"
+check_not "kernel modules only with --env=modules" "env.kernel.modules" "$ctx"
+check "the data still parses as before" "Load" "$(ep show e)"
+c_e="$(ep log | tail -n 1 | awk '{print $1}')"
+check "input_sha256 is of the input as received, before --env's lines" "input_sha256	$(sha256sum < "$ED/plain.txt" | cut -d' ' -f1)" "$(cat "$EWS/captures/$c_e/meta.tsv")"
+check "verify passes on a store with --env captures" "0" "$(PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" verify)"
+# the proposal profile's name for the job id
+SLURM_JOB_ID=4242 ep --env --manifest-profile proposal --name e "$ED/plain.txt" >/dev/null
+check "under the proposal profile the job id is job_id" "#% job_id=4242" "$(ectx)"
+check_not "...not sched.job" "sched.job" "$(ectx)"
+# a key the input's own prologue or --manifest sets is theirs
+printf '#%% sched.job=99 env.host=elsewhere\nName,Load\nx,2\n' > "$ED/pro.txt"
+SLURM_JOB_ID=4242 ep --env --name e "$ED/pro.txt" >/dev/null
+ctx="$(ectx)"
+check "the input's own sched.job is kept" "#% sched.job=99" "$ctx"
+check_not "...and --env's is left out" "sched.job=4242" "$ctx"
+check_not "...as is its env.host" "env.host=${HOSTNAME:-$(uname -n)}" "$ctx"
+check "...while the other readings are added" "#% env.arch=" "$ctx"
+printf 'sched.job=77\n' > "$ED/m.txt"
+SLURM_JOB_ID=4242 ep --env --manifest "$ED/m.txt" --name e "$ED/plain.txt" >/dev/null
+check "a --manifest FILE's key wins over --env's" "#% sched.job=77" "$(ectx)"
+check_not "...which is left out" "sched.job=4242" "$(ectx)"
+# the manifest check sees what --env filled
+printf 'sched.job\trun\tyes\tthe job\tslurm.job\n' > "$ED/job.tsv"
+out="$(SLURM_JOB_ID=4242 ep --env --manifest-profile "$ED/job.tsv" --name e "$ED/plain.txt")"
+check_not "a required key --env fills passes the capture-time check" "lacks required" "$out"
+out="$(ep --env --manifest-profile "$ED/job.tsv" --name e "$ED/plain.txt")"
+check "...and outside a Slurm job it is reported missing" "lacks required key(s): sched.job" "$out"
+printf 'sched.job\trun\tno\tthe job\tslurm.jbo\n' > "$ED/typo.tsv"
+check "a profile's env column naming no reading is a warning" "names 'slurm.jbo', which --env does not read" "$(SLURM_JOB_ID=1 ep --env --manifest-profile "$ED/typo.tsv" --name e "$ED/plain.txt")"
+check "...and the reading keeps its env. name" "#% env.slurm.job=1" "$(ectx)"
+# secrets: refused even when allow-listed, by value and by name
+tok="ghp_$(printf 'A1b2C3d4%.0s' 1 2 3 4 5)"
+out="$(NCCL_DEBUG=INFO NCCL_SOCKET_IFNAME="$tok" OMP_AUTH_TOKEN=plain ep --env --name e "$ED/plain.txt"; echo "rc=$?")"
+check "an allow-listed variable holding a token is refused, with a warning" "\$NCCL_SOCKET_IFNAME not recorded: its value (github-token) looks like a secret" "$out"
+check "a variable with a secret's name is refused" "\$OMP_AUTH_TOKEN not recorded: its name (secret-name)" "$out"
+check "...and the capture is still filed" "rc=0" "$out"
+ctx="$(ectx)"
+check "the refused names are listed in env.withheld" "#% env.withheld=NCCL_SOCKET_IFNAME,OMP_AUTH_TOKEN" "$ctx"
+check "...beside the variables that were recorded" "#% env.var.NCCL_DEBUG=INFO" "$ctx"
+check_not "the token is nowhere in the store's files" "$tok" "$(grep -r --exclude-dir=.git -- "$tok" "$EWS" || true)"
+check_not "...nor in its history" "$tok" "$(tgit "$EWS" log -p --all 2>&1)"
+for v in 'Bearer abcdefghijklmnopqrstuvwxyz' 'https://jo:hunter2@example.com/x' 'AKIAABCDEFGHIJKLMNOP' \
+         $'-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXk=' 'password=hunter2' 'sk-ant-api03-abcdefghijklmnopqrstuvwxyz'; do
+    check "a value like '${v%%$'\n'*}' is refused" "not recorded" "$(MPI_X="$v" ep --env --name e "$ED/plain.txt")"
+done
+check_not "ordinary values are not taken for secrets (GPU UUID, paths)" "warning" \
+    "$(CUDA_VISIBLE_DEVICES=GPU-8a1f2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d CUDA_HOME=/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/cuda I_MPI_PIN_DOMAIN=core ep --env --name e "$ED/plain.txt")"
+# the allow-list
+out="$(FOO_BAR=1 FOO_BAZ=2 OMP_NUM_THREADS=8 PROVOST_ENV_VARS='FOO_*' ep --env --name e "$ED/plain.txt")"
+check "PROVOST_ENV_VARS replaces the default allow-list" "#% env.var.FOO_BAR=1" "$(ectx)"
+check_not "...so the default's OMP_* is not recorded" "OMP_NUM_THREADS" "$(ectx)"
+OMP_NUM_THREADS=8 PROVOST_ENV_VARS= ep --env --name e "$ED/plain.txt" >/dev/null
+check_not "PROVOST_ENV_VARS set empty records no variables" "env.var." "$(ectx)"
+check "...but still the host" "#% env.host=" "$(ectx)"
+ITS_TOKEN=x PROVOST_ENV_VARS='ITS_TOKEN, FOO_BAR' FOO_BAR=1 ep --env --name e "$ED/plain.txt" >/dev/null
+check "a variable named outright is still refused when it looks like a secret" "#% env.withheld=ITS_TOKEN" "$(ectx)"
+check "...and a comma separates patterns too" "#% env.var.FOO_BAR=1" "$(ectx)"
+mkdir -p "$ED/cwd"; : > "$ED/cwd/OMP_file"
+(cd "$ED/cwd" && OMP_NUM_THREADS=4 PROVOST_WORKSPACE="$EWS" "$PROVOST" --env --name e "$ED/plain.txt" >/dev/null 2>&1)
+check "an allow-list glob is never matched against file names" "#% env.var.OMP_NUM_THREADS=4" "$(ectx)"
+CUDA_X=$'one\ttwo\nthree' PROVOST_ENV_VARS='CUDA_X' ep --env --name e "$ED/plain.txt" >/dev/null
+check "a value's tabs and line breaks become spaces (one prologue line)" '#% env.var.CUDA_X="one two three"' "$(ectx)"
+# --env=modules, PROVOST_ENV, run and batch
+mkdir -p "$ED/bin"
+printf '#!/bin/sh\nprintf "Module                  Size  Used by\\nzfs 1 0\\nbridge 2 1\\naes 3 0\\n"\n' > "$ED/bin/lsmod"; chmod +x "$ED/bin/lsmod"
+PATH="$ED/bin:$PATH" ep --env=modules --name e "$ED/plain.txt" >/dev/null
+check "--env=modules adds the kernel modules, sorted" "#% env.kernel.modules=aes,bridge,zfs" "$(ectx)"
+PROVOST_ENV=1 ep --name e "$ED/plain.txt" >/dev/null
+check "PROVOST_ENV=1 is --env" "#% env.host=" "$(ectx)"
+PATH="$ED/bin:$PATH" PROVOST_ENV=modules ep --name e "$ED/plain.txt" >/dev/null
+check "PROVOST_ENV=modules is --env=modules" "#% env.kernel.modules=aes,bridge,zfs" "$(ectx)"
+SLURM_JOB_ID=5 ep run --env --name re printf 'a,b\n1,2\n' >/dev/null
+check "run --env records the environment" "#% sched.job=5" "$(ectx)"
+printf 'Name,Load\nx,3\n' > "$ED/b2.txt"
+out="$(SLURM_JOB_ID=6 ep batch --env --name be "$ED/plain.txt" "$ED/b2.txt"; echo "rc=$?")"
+check "batch --env files every input" "rc=0" "$out"
+n_be=0; for c in "$EWS"/captures/c*; do grep -q '^#% sched.job=6$' "$c/context.txt" 2>/dev/null && n_be=$((n_be + 1)); done
+check "...each carrying the environment" "2" "$n_be"
+out="$(ep --env --context-columns --name ecol "$ED/plain.txt"; ep show ecol)"
+check "--context-columns makes the readings columns" "env.arch" "$out"
+# macOS: no /etc/os-release there, so sw_vers (a stand-in uname and sw_vers)
+mkdir -p "$ED/mac"
+printf '#!/bin/sh\nif [ "$*" = -s ]; then echo Darwin; else exec %s "$@"; fi\n' "$(command -v uname)" > "$ED/mac/uname"
+printf '#!/bin/sh\ncase "$1" in -productName) echo macOS ;; -productVersion) echo 14.5 ;; esac\n' > "$ED/mac/sw_vers"
+chmod +x "$ED/mac/uname" "$ED/mac/sw_vers"
+PATH="$ED/mac:$PATH" ep --env --name e "$ED/plain.txt" >/dev/null
+check "on macOS the OS release comes from sw_vers" '#% env.os="macOS 14.5"' "$(ectx)"
+# bad settings
+check "--env=other is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" --env=all "$ED/plain.txt")"
+check "PROVOST_ENV must be 0, 1 or modules (exit 2)" "2" "$(PROVOST_ENV=yes PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" ls)"
+check "PROVOST_ENV_VARS refuses what is not a name pattern (exit 2)" "2" "$(PROVOST_ENV_VARS='OMP_*=8' PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" ls)"
+check "--help names --env" "--env" "$(ep inject --help)"
 fi
 
 echo "smoke: $pass passed, $fail failed"

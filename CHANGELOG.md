@@ -1,5 +1,74 @@
 # provost — Changelog
 
+## 2.7.0 — 2026-11-10 — opt-in environment capture, `--env` (PV-028)
+
+`VERSION` 2.6.0 → 2.7.0, and the `man/provost.1` header. Minor: a new
+capture option. Off unless asked for: without `--env` a capture files
+exactly as before, and no tidy output or golden can move.
+
+The outside assessment (QD-006, second batch) asked for a flag that records
+the hostname, kernel, loaded modules and selected environment variables with
+a capture, covering most of what a run manifest promises. As refined in the
+ticket: a small fixed set, variables only from an allow-list, and never a
+value that looks like a secret.
+
+- **`--env`** (run, piped input, FILE, batch; `PROVOST_ENV=1`) adds `#%`
+  prologue lines to the capture: `env.host`, `env.kernel` (`uname -sr`),
+  `env.arch` (`uname -m`), `env.os` (`/etc/os-release`'s `PRETTY_NAME`, or
+  `sw_vers` on macOS), `env.modules` (`$LOADEDMODULES`: the HPC meaning of
+  modules, Lmod or Environment Modules), `env.user` (`id -un`), and inside
+  a Slurm job its id, `env.slurm.nodes`, `env.slurm.cluster` and
+  `env.slurm.partition`. A reading that is not set is not written.
+  `--env=modules` (`PROVOST_ENV=modules`) adds the kernel modules
+  (`lsmod`, else `/proc/modules`) as `env.kernel.modules`; `--no-env` turns
+  it off. `_env_capture_setup`, `_env_os`, `_env_kmods` in `provost`.
+- **The key names PV-020 settled:** a manifest profile has an optional fifth
+  column, `env`, that claims a reading for one of its keys. `default.tsv`
+  claims the Slurm job id for `sched.job`, `proposal.tsv` for `job_id`; a
+  reading no key claims is written as `env.READING`. A store's own profile
+  can claim more (`sut` from `host`). A claimed key is a manifest key like
+  any other, so the capture-time check and `check-manifest` see it.
+- **Variables only from an allow-list**, `PROVOST_ENV_VARS`: names or glob
+  patterns, space- or comma-separated, each recorded as `env.var.NAME`.
+  Default `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` (the
+  families the ticket names, with each MPI's own tuning prefix); set but
+  empty, none. The patterns are matched against variable names only, never
+  expanded against files. A pattern with other characters is refused at
+  startup (exit 2).
+- **Never a secret.** `extract/secrets.tsv` (new; shipped in the wheel) lists
+  what a secret looks like, as patterns on a variable's name (`TOKEN`,
+  `SECRET`, `PASSW`, `KEY`, `AUTH`, ...) and on its value (a PEM private
+  key, an `Authorization:` header, a bearer or basic token, AWS, GitHub,
+  GitLab, Slack, `sk-` and Google API keys, a JWT, credentials in a URL,
+  `password=`). An allow-listed variable that matches one is not recorded:
+  provost warns (`$NAME not recorded: its value (github-token) looks like a
+  secret`) and lists its name in `env.withheld`. PV-033's redaction rules
+  are to start from this file; its patterns are Bash `[[ =~ ]]` EREs, not
+  awk, so they may use `{n}`.
+- **Who wins:** `--env`'s lines go first, then `--manifest FILE`'s, then the
+  input's own prologue, and an `--env` key either of the others sets is left
+  out, so a key appears once. The readings are taken once per command:
+  `batch --env` puts the same ones on every input, which describes the host
+  provost runs on, not the hosts gathered files came from (help, man and
+  `docs/usage.md` say so). A tab or line break in a value becomes a space.
+- Hashes (PV-026): as with `--manifest`, `input_sha256` is of the input as
+  received, before the readings are prepended; `output_sha256` is of what
+  is stored, readings included, and `verify` passes on such a store.
+- Docs: `--help` for run, inject and batch, `help advanced` (a new
+  ENVIRONMENT CAPTURE section, the option and both settings), the man page,
+  completions, README, `docs/usage.md` ("Environment capture"), the profile
+  header in `extract/manifests/default.tsv`. Tests: a new `env` part in
+  `tests/smoke.sh` (71 checks: without `--env` nothing changes; each
+  reading; the profile's claim under default and proposal; the input's and
+  `--manifest`'s keys winning; the capture-time check seeing a claimed key;
+  a token-like value, a secret-looking name and six other secret shapes
+  refused and listed in `env.withheld`, and absent from the store's files
+  and history; a GPU UUID and paths not taken for secrets; the allow-list
+  replaced, emptied, comma-separated and not globbed against files;
+  `--env=modules` with a stand-in `lsmod`; `PROVOST_ENV`; run and batch;
+  `--context-columns`; macOS through stand-in `uname` and `sw_vers`; bad
+  settings exit 2).
+
 ## 2.6.0 — 2026-11-10 — an offline install bundle with an SBOM for each release (PV-025)
 
 `VERSION` 2.5.3 → 2.6.0, and the `man/provost.1` header. Minor: something

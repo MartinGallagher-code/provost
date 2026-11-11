@@ -5,21 +5,21 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.6.0 is everything through 2026-11-10** (`VERSION`, man header, the
-`## 2.6.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
+**provost 2.7.0 is everything through 2026-11-10** (`VERSION`, man header, the
+`## 2.7.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
 outputs (PV-030, below, 2.5.0), the generalisation decision record (PV-006,
 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules (PV-010,
 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f; 2.5.3);
-the offline install bundle with an SBOM (PV-025, below; 2.6.0). 2.4.0 added
-`provost
+the offline install bundle with an SBOM (PV-025, below; 2.6.0); opt-in
+environment capture, `--env` (PV-028, below; 2.7.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.6.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.6.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.6.0`, creating
+2.7.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.7.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.7.0`, creating
 that release on a dispatched run. 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
 faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
@@ -48,6 +48,33 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.7.0: environment capture, `--env` (PV-028, 2026-11-10; not published).**
+Off unless asked for. `--env` (`PROVOST_ENV=1`) prepends `#% env.*` lines:
+host, kernel, arch, OS release (os-release or `sw_vers`), `$LOADEDMODULES`,
+user, and the Slurm job's id, nodes, cluster and partition; `--env=modules`
+adds the kernel modules. A manifest profile's optional fifth column (`env`)
+claims a reading for one of its keys, so the Slurm job id lands as
+`sched.job` (default) or `job_id` (proposal). Variables only from
+`PROVOST_ENV_VARS` (globs; default `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_*
+UCX_* CUDA_* NCCL_*`); any whose name or value matches `extract/secrets.tsv`
+is withheld, warned about and named in `env.withheld`. The input's own
+prologue and `--manifest` win over `--env`. Code: `_env_capture_setup` and
+`_env_unset_lines`, called from `_manifest_capture_setup` and
+`_manifest_apply`. Open:
+- **The default allow-list** is the ticket's guess (OMP, MPI, UCX, CUDA,
+  NCCL, plus each MPI's own prefix): the owner was asked which variables
+  matter at the test events.
+- **`operator` and `sut` are not filled** by `--env`, though `user` and
+  `host` could be: operator is PV-027's (a commit trailer) and the system
+  under test is often a cluster or partition, not the host. A profile can
+  claim either in its `env` column.
+- **PV-033 (redaction)** should grow `extract/secrets.tsv` rather than start
+  a second list; its patterns are Bash EREs today.
+- Conbench-style "comparable or only recorded" marking of the readings
+  (QD-025's survey) is not done: every reading is just recorded.
+- quarterdeck should not pass `--env` where it already has `qd probe
+  facts`; nothing in qd passes it today.
 
 **2.5.2: the two gate rules that cost `--llm` a FAIL each (PV-010,
 2026-11-10; not published).** The fragments rule (auto-multi parts, model
