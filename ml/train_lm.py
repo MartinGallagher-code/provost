@@ -189,16 +189,17 @@ def load(path):
 
 
 # -- prediction ----------------------------------------------------------------------
-def predict_doc(model, enc, ex, decoder=False):
+def predict_doc(model, enc, ex, decoder=False, role_probs=False):
     """(roles, starts, probs) like crossval.predict_doc: probs is per line
-    {candidate offset: p}, None for a line without candidates."""
+    {candidate offset: p}, None for a line without candidates. With
+    role_probs, a fourth item: per line {role: p} (lm_runtime.run)."""
     lines = ex["lines"]
-    roles, probs = LMR.run((model, enc), lines)
+    roles, probs, rprobs = LMR.run((model, enc), lines, role_probs=True)
     starts = [None if p is None else [c for c, q in p.items() if q > 0.5] for p in probs]
     if decoder:
         for j, st in DEC.decode(lines, roles, probs).items():
             starts[j] = st
-    return roles, starts, probs
+    return (roles, starts, probs, rprobs) if role_probs else (roles, starts, probs)
 
 
 def pick_device(name="auto"):

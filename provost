@@ -5676,12 +5676,15 @@ LAYOUT MODEL (--model, PROVOST_MODEL=1)
     when it passes the gate, keeps at least as many lines as the parse the
     gate held, and the input is one table or one key/value record. Where the
     engine also read the lines, an arbiter keeps the engine's field split on
-    the lines it trusts more. Before that, AUTO-MULTI asks the model to
-    re-read any part of its split the gate rejects; and when the
-    whole-capture table is declined, the model cuts the report into its own
-    uniform sections (a key/value block, a table, a list), filed under
-    AUTO-MULTI's rules. meta.tsv records 'layout_model' (filed or declined,
-    and why). Needs python3 (no packages); declines inputs over 600 lines.
+    the lines it trusts more, and with the tiny LM also its call of header
+    or data row (the LM's own arbiter, fitted to the provost-model release
+    it names, or shipped in the model's directory). Before that,
+    AUTO-MULTI asks the model to re-read any part of its split the gate
+    rejects; and when the whole-capture table is declined, the model cuts
+    the report into its own uniform sections (a key/value block, a table,
+    a list), filed under AUTO-MULTI's rules. meta.tsv records
+    'layout_model' (filed or declined, and why). Needs python3 (no
+    packages); declines inputs over 600 lines.
 
 LLM TEMPLATES (--llm, PROVOST_LLM=1)
     Claude writes a parser for a tool once; provost reuses it offline.

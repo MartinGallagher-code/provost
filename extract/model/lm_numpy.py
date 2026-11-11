@@ -167,10 +167,12 @@ def load(path):
     return NumpyLM(cfg, w), LME.Encoder(tok, cfg["bos"], cfg["max_tok"])
 
 
-def run(lm, lines):
-    """lm_runtime.run's answers, from the numpy model."""
+def run(lm, lines, role_probs=False):
+    """lm_runtime.run's answers, from the numpy model (with role_probs, also
+    each line's role probabilities, as lm_runtime.run gives them)."""
     model, enc = lm
     roles = ["blank" if is_blank(ln) else None for ln in lines]
+    rprobs = [None] * len(lines)
     probs = [None] * len(lines)
     for j, ln in enumerate(lines):
         cs = candidates(ln)
@@ -183,6 +185,11 @@ def run(lm, lines):
             for (j, c), q in zip(it["cref"], 1.0 / (1.0 + np.exp(-z))):
                 probs[j][c] = float(q)
         if it["rpos"]:
-            for j, k in zip(it["rref"], model.head("role", h[it["rpos"]]).argmax(-1)):
+            z = model.head("role", h[it["rpos"]])
+            for j, k, zr in zip(it["rref"], z.argmax(-1), z):
                 roles[j] = PREDICTED[int(k)]
-    return [r or "skip" for r in roles], probs
+                if role_probs:
+                    e = np.exp(zr - zr.max())
+                    rprobs[j] = {r: float(q) for r, q in zip(PREDICTED, e / e.sum())}
+    roles = [r or "skip" for r in roles]
+    return (roles, probs, rprobs) if role_probs else (roles, probs)

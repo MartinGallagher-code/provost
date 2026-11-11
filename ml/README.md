@@ -36,7 +36,7 @@ they mean are in
 | `eval/` | those sets, plus the LLM labels of the whole corpus (`llm-labels-*.jsonl.gz`) and the pilot's labels and review sheet (`llm-pilot-*`) — committed, because they are review work, not regenerable | data |
 | `export_model.py` | compiles the trained trees into `extract/model/layout-model.json.gz` (the shipped model) | lightgbm |
 | `export_lm.py` | turns a `train_lm.py` model into the numpy runtime's (`extract/model/lm_numpy.py`): the adapter merged, 8-bit weights in `.npz` shards, the tokenizer for `extract/model/bpe.py`; `--check N` compares it with torch. The `provost-model` package is its output | torch, transformers, peft, numpy |
-| `arbiter.py` | picks the engine's or the model's split per line (logistic regression) | numpy, scikit-learn to train |
+| `arbiter.py` | picks the engine's or the model's split per line, and for the tiny LM its header-or-row call too (logistic regressions), fitted on out-of-fold predictions and scored nested by fold: the trees' `extract/model/arbiter.json`, the LM's `arbiter-lm.json` (PV-012) | numpy, scikit-learn to train |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
 | `llm/GUIDE.md` | the labelling guide the LLM teacher follows (also the API run's system prompt) | text |
 | `llm/check.py` | validates one LLM label and turns it into roles + field starts | stdlib |
@@ -67,6 +67,13 @@ python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
 .venv/bin/python ml/fold_eval.py --fold 0 --learner lm --lm-load ml/models/lm-f0/best
 .venv/bin/python ml/train_lm.py --fold 0 --epochs 2 --layers 6 --save ml/models/lm6-f0   # the first 6 of 30 layers: 51M weights
 .venv/bin/python ml/export_lm.py --model ml/models/lm-all-l18 --out ../provost_model/src/provost_model/model --check 200   # the provost-model package
+# the LM's arbiter (PV-012): five fold models of the shipped recipe (~45 min each on 4 cores), each fold's
+# held-out predictions with their role probabilities, then a fit pinned to the installed provost-model
+for k in 0 1 2 3 4; do .venv/bin/python ml/train_lm.py --fold $k --epochs 2 --layers 18 --save ml/models/lm18-f$k; done
+for k in 0 1 2 3 4; do .venv/bin/python ml/fold_eval.py --fold $k --learner lm --lm-load ml/models/lm18-f$k --out ml/data/oof-lm-f$k.jsonl; done
+.venv/bin/python ml/arbiter.py --crossval ml/data/oof-lm-f*.jsonl --meta DIR --target llm --threshold auto \
+    --for-model provost-model --save extract/model/arbiter-lm.json   # DIR: engine --batch --generic metas
+# a new provost-model can carry its own: export_lm.py ... --arbiter FILE writes it into the export as arbiter.json
 # fold_eval keeps LightGBM and torch in separate processes (the torch learner trains in a
 # spawned child): on macOS their two libomp copies in one process crashed it (PV-014)
 python3 -m unittest discover -s ml/tests         # stdlib tests

@@ -16,6 +16,11 @@ against 84 at 8 bits.
 Shards (weights-N.npz) are cut under --shard-mb. tokenizer.json is the
 tokenizer as transformers loads it, which extract/model/bpe.py reads.
 
+--arbiter FILE copies an ml/arbiter.py fit into the export as arbiter.json,
+so the model carries its own arbiter (extract/model/arbitrate.load_for_lm
+uses it before provost's own arbiter-lm.json). Fit it for this model:
+out-of-fold predictions of the same recipe (PV-012).
+
 --check N runs the first N corpus captures through both runtimes and reports
 how often their decisions agree, and checks the tokenizer on every piece of
 the corpus. Needs torch, transformers and peft (dev-only).
@@ -168,6 +173,19 @@ def check(model, tok, out_dir, n):
           f"largest probability gap {worst:.4f}; torch {tt:.1f}s, numpy {tn:.1f}s")
 
 
+def write_arbiter(src, out_dir):
+    """src's coefficients as out_dir/arbiter.json; its "model" fingerprint is
+    dropped, since a file inside the model's directory belongs to that model."""
+    with open(src, encoding="utf-8") as fh:
+        m = json.load(fh)
+    if not isinstance(m.get("coef"), list) or "intercept" not in m:
+        raise SystemExit(f"{src}: not an ml/arbiter.py --save file")
+    m.pop("model", None)
+    with open(os.path.join(out_dir, "arbiter.json"), "w", encoding="utf-8") as fh:
+        json.dump(m, fh, indent=1)
+        fh.write("\n")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--model", required=True, help="a train_lm.py --save directory")
@@ -176,8 +194,11 @@ def main(argv=None):
     ap.add_argument("--embed", type=int, choices=[4, 8], default=8, help="bits for the vocabulary table")
     ap.add_argument("--shard-mb", type=float, default=45)
     ap.add_argument("--check", type=int, default=0, metavar="N", help="compare with torch on N captures")
+    ap.add_argument("--arbiter", help="an ml/arbiter.py --save file to ship in the export as arbiter.json")
     a = ap.parse_args(argv)
     model, tok, names = export(a.model, a.out, a.quant, a.embed, a.shard_mb)
+    if a.arbiter:
+        write_arbiter(a.arbiter, a.out)
     total = sum(os.path.getsize(os.path.join(a.out, f)) for f in names)
     print(f"wrote {a.out}: {len(names)} shard(s), {total / 1e6:.1f} MB of weights")
     if a.check:

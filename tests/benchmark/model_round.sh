@@ -11,8 +11,14 @@
 ## engine parse: this is what the model alone makes of every capture, to rate
 ## on the round's CRITERIA.md against the default engine's ratings.
 ##
+## With --engine, each input is first parsed by the engine (-f tsv
+## --emit-meta, its single best parse), and the model's whole-input table is
+## arbitrated line by line with it, as provost's --model does with the parse
+## the gate held (PV-012). The model's own sections are not arbitrated, as at
+## capture time. --arbiter FILE picks the arbiter (else the model's own).
+##
 ## Usage:
-##   bash tests/benchmark/model_round.sh --round4 outdir [--lm DIR]
+##   bash tests/benchmark/model_round.sh --round4 outdir [--lm DIR] [--engine] [--arbiter FILE]
 ##
 ## Writes, per input NAME, under outdir:
 ##   NAME.out        one line: what the model filed (or that it read nothing)
@@ -21,18 +27,22 @@
 ##                   table or one key/value record; else, as provost's
 ##                   --model does, NAME.layout-model.segK.tsv for each of the
 ##                   model's own sections
-## and outdir/summary.tsv: name, rows, how it was filed, coverage, consistency.
+## and outdir/summary.tsv: name, rows, how it was filed, coverage, consistency;
+## outdir/labelled.tsv: name, whole-input records, sections, and lines the
+## arbiter switched to the engine's reading (0 without --engine).
 ################################################################################
 set -uo pipefail
 
 here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd -- "$here/../.." && pwd)
 
-round=""; outdir=""; lm=""
+round=""; outdir=""; lm=""; engine=0; arbiter=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --round[0-9]*) round="${1#--}"; shift ;;
         --lm) lm="$2"; shift 2 ;;
+        --engine) engine=1; shift ;;
+        --arbiter) arbiter="$2"; shift 2 ;;
         -*) echo "unknown option: $1" >&2; exit 2 ;;
         *) outdir="$1"; shift ;;
     esac
@@ -42,8 +52,20 @@ set_dir="$here/$round/inputs"
 [[ -d "$set_dir" ]] || { echo "no such inputs directory: $set_dir" >&2; exit 2; }
 mkdir -p "$outdir/.rec"
 
-python3 "$here/model_records.py" ${lm:+--lm "$lm"} "$outdir/.rec" "$set_dir"/*.txt > "$outdir/.rec/list" \
-    || { echo "labelling failed" >&2; exit 1; }
+eng=()
+if (( engine )); then
+    mkdir -p "$outdir/.eng"
+    for in_file in "$set_dir"/*.txt; do
+        stem="$(basename "$in_file" .txt)"
+        PROVOST_NO_RC=1 bash "$root/extract/provost-extract" -f tsv --emit-meta --max-strategies 1 "$in_file" \
+            > "$outdir/.eng/$stem.wide" 2> "$outdir/.eng/$stem.meta" || true
+    done
+    eng=(--engine "$outdir/.eng" ${arbiter:+--arbiter "$arbiter"})
+fi
+
+"${PROVOST_PYTHON:-python3}" "$here/model_records.py" ${lm:+--lm "$lm"} ${eng[@]+"${eng[@]}"} "$outdir/.rec" \
+    "$set_dir"/*.txt > "$outdir/.rec/list" || { echo "labelling failed" >&2; exit 1; }
+cp "$outdir/.rec/list" "$outdir/labelled.tsv"
 
 # shellcheck source=../../transform/melt.sh
 source "$root/transform/melt.sh"
@@ -93,7 +115,7 @@ for in_file in "$set_dir"/*.txt; do
         "${how:-nothing}" "$cov" "$cons" > "$outdir/$stem.meta"
     printf '%s\t%s\t%s\t%s\t%s\n' "$stem" "$rows" "${how:-nothing}" "$cov" "$cons" >> "$outdir/summary.tsv"
 done
-rm -rf "$outdir/.rec"
+rm -rf "$outdir/.rec" "$outdir/.eng"
 echo "wrote $outdir/summary.tsv"
 awk -F'\t' 'NR > 1 { n++; if ($2 > 0) f++ } END { printf "  %d inputs, %d filed, %d read nothing\n", n, f, n - f }' \
     "$outdir/summary.tsv"

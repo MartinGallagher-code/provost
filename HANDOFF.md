@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.13.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.13.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.14.0 is everything through 2026-11-11** (`VERSION`, man header,
+the `## 2.14.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -17,15 +17,16 @@ repair (PV-009, Next steps 1g; 2.9.0); the `--llm` skip audit and the template
 ledger (PV-008, Next steps 1h; 2.10.0); units as data, `--units base` (PV-032,
 below; 2.11.0); a dataset from Python, `provost_data.load` and `load_df`
 (PV-031, Next steps 1i; 2.12.0); secrets scrubbed at capture, host names
-pseudonymised on export (PV-033, below; 2.13.0). 2.4.0 added `provost
+pseudonymised on export (PV-033, below; 2.13.0); the tiny LM's arbiter
+(PV-012, below; 2.14.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.13.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.13.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.13.0`, creating
+2.14.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.14.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.14.0`, creating
 that release on a dispatched run.
 
 **2.8.0: recipes for test frameworks (PV-023, 2026-11-10; not published).**
@@ -67,6 +68,17 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.14.0: the tiny LM's arbiter (PV-012, 2026-11-11; not published).**
+`--model` with the LM now arbitrates the LM's field splits against the
+engine's parse, with `extract/model/arbiter-lm.json` (fitted across five
+fold models; out of fold 0.865 → 0.894 per line, better on every fold),
+pinned to provost-model 0.1.0. Round 5 model-first: 10 / 23 / 74 →
+11 / 26 / 70; on the gate-held 7 no change. Header/row arbitration is
+built but not shipped (the corpus does not support it), so `sge-qhost` is
+unchanged. Open: whether to add the hand rule for a second header
+(`docs/lm-2026-10-29-tiny-labeller.md`, "An arbiter fitted to the LM"); a
+new provost-model needs its arbiter refitted (`ml/README.md`, Reproduce).
 
 **2.13.0: secrets and redaction (PV-033, 2026-11-10; not published).** Every
 input is scrubbed of known secret patterns before it is stored
@@ -606,8 +618,9 @@ Suites (all CI-enforced):
          against 0 / 5 / 13. One regression: `sge-qhost` took a data row as
          the header. The lever is the output shape (nesting, multi-line
          records, logs) or an arbiter, not more training.
-      5. an arbiter fitted to the LM's probabilities, so `--model` keeps the
-         engine's split where it trusts it more;
+      5. ~~an arbiter fitted to the LM's probabilities, so `--model` keeps the
+         engine's split where it trusts it more;~~ Done 2026-11-11 (PV-012,
+         2.6.0): splits only; header/row left out (see 2.6.0 above);
       6. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
          for `extract/model/` is the likelier route.
       7. Train on a GPU when one is to hand: `--device auto` picks cuda or

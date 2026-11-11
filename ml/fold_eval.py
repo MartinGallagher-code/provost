@@ -7,6 +7,7 @@ development yardstick for comparing learners and training sets.
     python3 ml/fold_eval.py [--fold 0] [--learner trees|grid|both|lm]
         [--extra ml/data/gen.jsonl ...] [--epochs 9] [--hybrid]
         [--lm-load ml/models/lm/best] [--lm-base HuggingFaceTB/SmolLM2-135M]
+        [--out ml/data/oof-lm-f0.jsonl]
 
 Every learner trains on the LLM labels (ml/data/corpus-llm.jsonl) of the
 other folds, plus any --extra sets (synthetic or generated layouts, which
@@ -20,6 +21,13 @@ model (train_lm.py): trained here for --lm-epochs, or a saved one scored with
 --lm-load (train it with train_lm.py --fold N for a fair score). The fresh
 hand-labelled test set is not read.
 
+--out FILE keeps the held-out predictions, one JSON line per document in
+crossval.py --out's shape (name, roles, decoded starts, start probabilities
+as [offset, p] pairs per line, and for the LM each line's role
+probabilities, rprobs): the learner's own (lm, grid, or the trees
+for --learner trees/both). Five folds' files together are out-of-fold
+predictions for the whole corpus, which is what ml/arbiter.py is fitted on.
+
 LightGBM and torch never share a process. Each bundles its own OpenMP
 runtime, and on macOS the two copies of libomp in one process crash it
 (exit 139). When a run needs both (--learner both, or lm with --lm-trees),
@@ -27,6 +35,7 @@ the torch learner trains in a child process of its own, started fresh
 (spawn), and the trees train here.
 """
 import argparse
+import json
 import multiprocessing
 import os
 import sys
@@ -127,7 +136,25 @@ def predict(k, a, eng, tr, extra):
     else:
         lm, enc = LM.fit(tr, a.lm_epochs, base=a.lm_base or LM.BASE, extra=extra,
                          log=lambda m: print("  lm: " + m, file=sys.stderr))
-    return {n: LM.predict_doc(lm, enc, e) for n, e in eng.items()}
+    return {n: LM.predict_doc(lm, enc, e, role_probs=True) for n, e in eng.items()}
+
+
+def out_learner(a):
+    """The learner whose predictions --out keeps."""
+    return {"both": "trees"}.get(a.learner, a.learner)
+
+
+def write_out(path, eng, preds, out, k):
+    """One JSON line per held-out document: crossval.py --out's shape."""
+    with open(path, "w", encoding="utf-8") as fh:
+        for n in eng:
+            roles, _, probs = preds[k][n][:3]
+            pr = [None if q is None else sorted([int(c), float(p)] for c, p in q.items()) for q in probs]
+            st = [None if s is None else sorted(s) for s in out[k][n]]
+            row = {"name": n, "roles": roles, "starts": st, "probs": pr}
+            if len(preds[k][n]) > 3:                    # the LM's role probabilities
+                row["rprobs"] = preds[k][n][3]
+            fh.write(json.dumps(row) + "\n")
 
 
 def main(argv=None):
@@ -147,6 +174,7 @@ def main(argv=None):
     ap.add_argument("--lm-trees", action="store_true",
                     help="with --learner lm: also train the trees and score the average of the two")
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 1, help="torch threads")
+    ap.add_argument("--out", help="write the learner's held-out predictions here (JSON lines)")
     ap.add_argument("--show", nargs=2, metavar=("LEARNER", "N"),
                     help="print N held-out lines where LEARNER's split differs from the LLM label")
     a = ap.parse_args(argv)
@@ -160,7 +188,7 @@ def main(argv=None):
 
     out = {}
     for k, P in preds.items():
-        out[k] = {n: starts_from(eng[n]["lines"], r, pr) for n, (r, _, pr) in P.items()}
+        out[k] = {n: starts_from(eng[n]["lines"], v[0], v[2]) for n, v in P.items()}
     pair = ("grid" if "grid" in preds else "lm") if "trees" in preds else None
     if pair in preds:
         out["avg"] = {}
@@ -170,6 +198,8 @@ def main(argv=None):
                    for x, y in zip(pt, pg)]
             out["avg"][n] = starts_from(e["lines"], preds[pair][n][0], avg)
     out["engine"] = {n: e["starts"] for n, e in eng.items()}
+    if a.out:
+        write_out(a.out, eng, preds, out, out_learner(a))
 
     shown, show_k, show_n = 0, *(a.show if a.show else (None, 0))
     show_n = int(show_n)

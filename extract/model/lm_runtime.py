@@ -140,16 +140,19 @@ def load(path):
         return None
 
 
-def run(lm, lines):
+def run(lm, lines, role_probs=False):
     """(roles, probs): a role per line ("blank" by rule) and, per line with
-    field-start candidates, {candidate offset: p} (0.0 past MAX_LINE)."""
+    field-start candidates, {candidate offset: p} (0.0 past MAX_LINE). With
+    role_probs, (roles, probs, rprobs): rprobs per line is {role: p} over the
+    predicted roles (None for a line the model gave no role, e.g. blank)."""
     model, enc = lm
     if getattr(model, "numpy", False):
         import lm_numpy
-        return lm_numpy.run(lm, lines)
+        return lm_numpy.run(lm, lines, role_probs)
     model.eval()
     dev = next(model.parameters()).device
     roles = ["blank" if is_blank(ln) else None for ln in lines]
+    rprobs = [None] * len(lines)
     probs = [None] * len(lines)
     for j, ln in enumerate(lines):
         cs = candidates(ln)
@@ -164,7 +167,11 @@ def run(lm, lines):
                 for (j, c), q in zip(it["cref"], p):
                     probs[j][c] = float(q)
             if it["rpos"]:
-                r = model.role(h[torch.tensor(it["rpos"], device=dev)]).argmax(-1).tolist()
-                for j, k in zip(it["rref"], r):
+                z = model.role(h[torch.tensor(it["rpos"], device=dev)])
+                pr = torch.softmax(z, -1).tolist()
+                for j, k, q in zip(it["rref"], z.argmax(-1).tolist(), pr):
                     roles[j] = PREDICTED[k]
-    return [r or "skip" for r in roles], probs
+                    if role_probs:
+                        rprobs[j] = {r: float(x) for r, x in zip(PREDICTED, q)}
+    roles = [r or "skip" for r in roles]
+    return (roles, probs, rprobs) if role_probs else (roles, probs)

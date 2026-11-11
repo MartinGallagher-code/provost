@@ -1,5 +1,46 @@
 # provost — Changelog
 
+## 2.14.0 — 2026-11-11 — the tiny LM gets its own arbiter (PV-012)
+
+`VERSION` 2.13.0 → 2.14.0, and the `man/provost.1` header. Minor: `--model`
+with the tiny LM now keeps the engine's field split on the lines an arbiter
+fitted to the LM trusts more, where it used no arbiter. Nothing changes
+without the LM, and no corpus golden moved.
+
+- **The arbiter** (`extract/model/arbiter-lm.json`): fitted across five
+  18-layer fold models of the shipped recipe, on their held-out
+  predictions, to the LLM labels. Out of fold, per line against the LLM
+  labels: LM 0.865 → **0.894**, better on every fold; hand labels 247 →
+  255 of 300; of 326 captures where the engine's splits beat the LM's, 229
+  brought level or better (290 captures better, 84 worse). It is pinned to
+  provost-model 0.1.0 by a fingerprint of the model's files
+  (`arbitrate.fingerprint`), so a different model never gets it; a model
+  directory's own `arbiter.json` wins (`ml/export_lm.py --arbiter`).
+- **Round 5, model-first with the engine's parse handed over**
+  (`model_round.sh --engine`): 17 outputs changed, rated blind 1 / 11 / 5
+  against 0 / 10 / 7 without it; the model-first total 10 / 23 / 74 →
+  11 / 26 / 70. One real regression (`012-flake8-benchmark`). On the 7
+  captures the gate holds, `provost --model` gives identical output with and
+  without it.
+- **Header/row arbitration built, not shipped.** `sge-qhost`'s regression is
+  a role (a data line called a second header). The arbiter can carry a
+  `roles` part, but the corpus has 69 such disputes (LM right on 50, engine
+  on 12) and the fitted part did harm out of fold (1 line right, 3 wrong), so
+  `ml/arbiter.py` leaves it out unless it helps. `sge-qhost` is unchanged.
+- **Code:** `ml/fold_eval.py --out` (a fold's held-out predictions, with
+  the LM's role probabilities); `ml/arbiter.py` rewritten (out-of-fold
+  input from several files, `--target llm|gold`, nested scoring per fold,
+  `--threshold auto`, the roles part, `--for-model`); `extract/model/
+  arbitrate.py` (threshold, `fingerprint`, `load_for_lm`, the roles part);
+  `layout_model.py` (arbitrates the LM's labels; `lm_dir`,
+  `engine_labels`); `lm_runtime.run` / `lm_numpy.run` / `train_lm.
+  predict_doc` gain `role_probs` (default answers unchanged);
+  `ml/export_lm.py --arbiter`; `tests/benchmark/model_round.sh --engine
+  [--arbiter FILE]` and `model_records.py --engine`; help text and man page.
+- **Tests:** `ml/tests/test_arbiter.py` (new), more in `test_runtime.py`
+  and `test_lm_numpy.py`. Write-up: `docs/lm-2026-10-29-tiny-labeller.md`,
+  "An arbiter fitted to the LM".
+
 ## 2.13.0 — 2026-11-10 — secrets scrubbed at capture, host names pseudonymised on export (PV-033)
 
 `VERSION` 2.12.0 → 2.13.0, and the `man/provost.1` header. Minor: a new

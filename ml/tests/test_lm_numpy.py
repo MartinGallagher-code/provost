@@ -148,6 +148,14 @@ class Numpy(unittest.TestCase):
             self.assertTrue(all(r in PREDICTED or r == "blank" for r in roles))
             self.assertEqual(sorted(probs[0]), candidates(lines[0]))
             self.assertTrue(all(0.0 <= p <= 1.0 for p in probs[0].values()))
+            # role_probs (PV-012): the same answers, plus each line's role probabilities
+            r2, p2, rp = LMR.run(lm, lines, role_probs=True)
+            self.assertEqual((r2, p2), (roles, probs))
+            self.assertIsNone(rp[2])
+            for j in (0, 1, 3):
+                self.assertEqual(sorted(rp[j]), sorted(PREDICTED))
+                self.assertAlmostEqual(sum(rp[j].values()), 1.0, places=5)
+                self.assertEqual(max(rp[j], key=rp[j].get), roles[j])
 
     def test_the_numpy_runtime_never_imports_torch(self):
         here = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "extract", "model")

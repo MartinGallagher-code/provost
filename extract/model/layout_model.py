@@ -22,9 +22,11 @@ The tiny pretrained language model labels instead (lm_runtime.py) when
 PROVOST_LAYOUT_LM names its directory, or, unset, when the provost-model
 package is installed (its numpy export, lm_numpy.py; ml/train_lm.py saves
 need torch, transformers and peft). PROVOST_LAYOUT_LM=0 keeps the trees.
-The arbiter is left out with the LM: it was fitted to the trees'
-probabilities. Without the packages a model needs, or with no model where
-named, the trees label as before.
+Each labeller has its own arbiter, fitted to its own probabilities
+(arbitrate.py): the trees' arbiter.json, and the LM's when one ships with it
+(arbiter.json in its directory) or arbiter-lm.json names it; an LM with
+neither labels without one. Without the packages a model needs, or with no
+model where named, the trees label as before.
 
 Exit status: 0 with records on stdout; 1 when nothing usable was found;
 3 when the input is too large to label here (MAX_LINES).
@@ -103,32 +105,41 @@ def label(model, lines):
     return roles, starts, probs
 
 
-def label_lm(lm, lines):
+def label_lm(lm, lines, role_probs=False):
     """label() with the tiny LM (lm_numpy.run or lm_runtime.run): the same
-    three answers."""
+    three answers, and with role_probs a fourth, each line's {role: p}."""
     if getattr(lm[0], "numpy", False):
         import lm_numpy as runtime            # never imports torch
     else:
         import lm_runtime as runtime
-    roles, probs = runtime.run(lm, lines)
+    roles, probs, rprobs = runtime.run(lm, lines, role_probs=True)
     starts = [None if p is None else sorted(i for i, q in p.items() if q > 0.5) for p in probs]
     for j, st in decode(lines, roles, probs).items():
         starts[j] = st
-    return roles, starts, probs
+    return (roles, starts, probs, rprobs) if role_probs else (roles, starts, probs)
+
+
+def lm_dir(env=os.environ):
+    """The tiny LM's directory: PROVOST_LAYOUT_LM, else the installed
+    provost-model package's, else "" (PROVOST_LAYOUT_LM=0, or neither)."""
+    path = env.get("PROVOST_LAYOUT_LM", "")
+    if path == "0":
+        return ""
+    if not path:
+        try:
+            import provost_model
+        except ImportError:
+            return ""
+        path = provost_model.MODEL_DIR
+    return path
 
 
 def load_lm(env=os.environ):
     """The tiny LM in the directory PROVOST_LAYOUT_LM names, else the
     installed provost-model package's, or None (the trees label)."""
-    path = env.get("PROVOST_LAYOUT_LM", "")
-    if path == "0":
-        return None
+    path = lm_dir(env)
     if not path:
-        try:
-            import provost_model
-        except ImportError:
-            return None
-        path = provost_model.MODEL_DIR
+        return None
     import lm_encode
     if lm_encode.is_numpy_dir(path):
         try:
@@ -140,24 +151,40 @@ def load_lm(env=os.environ):
     return lm_runtime.load(path)
 
 
-def engine_starts(lines, wide):
-    """Per-line field starts of the ENGINE's parse of these lines (its -f tsv
-    output), found by lining its records back up with the input."""
+def engine_labels(lines, wide):
+    """(roles, starts) per line of the ENGINE's parse of these lines (its
+    -f tsv output), found by lining its records back up with the input;
+    (None, ...) per line when it has no records."""
     cols, rows = rows_from_wide(wide)
     if not rows:
-        return [None] * len(lines)
+        return [None] * len(lines), [None] * len(lines)
     lab = Labeller(lines, cols, rows)
     lab.label()
-    return lab.starts
+    return lab.roles, lab.starts
 
 
-def arbitrate_with_engine(lines, roles, starts, probs, env=os.environ):
+def engine_starts(lines, wide):
+    """Per-line field starts of the ENGINE's parse of these lines."""
+    return engine_labels(lines, wide)[1]
+
+
+def arbitrate_with_engine(lines, roles, starts, probs, env=os.environ, coeffs=None, rprobs=None):
     """When provost hands over the engine's own parse of this input
     (PROVOST_LM_ENGINE_WIDE: its -f tsv output; PROVOST_LM_ENGINE_META:
     strategy, confidence, coverage, consistency), keep the engine's split on
-    the lines where the arbiter trusts it more. Returns (starts, switched)."""
+    the lines where the arbiter trusts it more. coeffs: the labeller's
+    arbiter (default: the trees', arbiter.json); "" for none. With rprobs
+    (the model's role probabilities) and an arbiter that has a "roles"
+    part, header/row disputes are settled first, and `roles` is changed in
+    place. Returns (starts, lines switched: roles and splits together)."""
     path = env.get("PROVOST_LM_ENGINE_WIDE", "")
-    if not path or not os.path.isfile(path) or not os.path.isfile(arbitrate.COEFFS):
+    if not path or not os.path.isfile(path):
+        return starts, 0
+    if coeffs is None:
+        if not os.path.isfile(arbitrate.COEFFS):
+            return starts, 0
+        coeffs = arbitrate.load()
+    if not coeffs:
         return starts, 0
     with open(path, encoding="utf-8", errors="replace") as fh:
         wide = fh.read()
@@ -169,9 +196,14 @@ def arbitrate_with_engine(lines, roles, starts, probs, env=os.environ):
             return float(v)
         except ValueError:
             return -1.0
-    es = engine_starts(lines, wide)
-    return arbitrate.choose(arbitrate.load(), roles, es, starts, probs,
-                            [num(meta[1]), num(meta[2]), num(meta[3])], strategy)
+    er, es = engine_labels(lines, wide)
+    m = [num(meta[1]), num(meta[2]), num(meta[3])]
+    nr = 0
+    if rprobs is not None and coeffs.get("roles"):
+        new, nr = arbitrate.choose_roles(coeffs, lines, er, roles, rprobs, m, strategy)
+        roles[:] = new
+    out, ns = arbitrate.choose(coeffs, roles, es, starts, probs, m, strategy)
+    return out, nr + ns
 
 
 # -- turning labels into records ---------------------------------------------
@@ -536,8 +568,9 @@ def main(argv=None):
     if len(lines) > MAX_LINES:
         return 3
     lm = load_lm()
+    rprobs = None
     if lm is not None:
-        roles, starts, probs = label_lm(lm, lines)
+        roles, starts, probs, rprobs = label_lm(lm, lines, role_probs=True)
     else:
         roles, starts, probs = label(load(), lines)
     if segdir is not None:
@@ -556,11 +589,15 @@ def main(argv=None):
             with open(os.path.join(segdir, f"seg.{n}.rec"), "w", encoding="utf-8") as fh:
                 fh.write("\n".join(rec) + "\n")
         return 0 if n >= 2 else 1
-    switched = 0
     if lm is None:
         starts, switched = arbitrate_with_engine(lines, roles, starts, probs)
+    elif os.environ.get("PROVOST_LM_ENGINE_WIDE"):
+        starts, switched = arbitrate_with_engine(lines, roles, starts, probs,
+                                                 coeffs=arbitrate.load_for_lm(lm_dir()) or "", rprobs=rprobs)
+    else:
+        switched = 0
     if debug:
-        sys.stderr.write(f"arbiter: {switched} line(s) kept the engine's split\n")
+        sys.stderr.write(f"arbiter: {switched} line(s) kept the engine's reading (role or split)\n")
         for ln, r, st in zip(lines, roles, starts):
             sys.stderr.write(f"{r:8}|{ln}\n" + (f"{'':8}|{' ' * min(st)}{'^'} {st}\n" if st else ""))
     out = records(lines, roles, starts)
