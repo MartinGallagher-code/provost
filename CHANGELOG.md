@@ -1,5 +1,46 @@
 # provost — Changelog
 
+## 2.6.0 — 2026-11-10 — an offline install bundle with an SBOM for each release (PV-025)
+
+`VERSION` 2.5.3 → 2.6.0, and the `man/provost.1` header. Minor: something
+new a user can use (the bundle). The tool itself does not change.
+
+An outside assessment asked for a "high-side transfer bundle": provost on an
+air-gapped host with no PyPI, with an SBOM and the release's signatures as the
+supply-chain story. Each release now carries one.
+
+- **`tools/offline_bundle.py`** (stdlib, Python 3.8+; nothing ships in the
+  wheel) builds `provost-X.Y.Z-offline/`: the wheel and sdist PyPI has, byte
+  for byte; `provost-X.Y.Z.cdx.json`, a CycloneDX 1.5 SBOM listing each
+  package file with its SHA-256 and the system tools provost runs (bash, git,
+  awk, python3, coreutils, sed, grep, findutils required; util-linux `script`
+  and less optional); `INSTALL.md`; and `SHA256SUMS`. `check` fails a bundle
+  whose checksums, SBOM or requirements disagree (`--schema` adds the CycloneDX
+  schema, CI only); `pack` writes a reproducible `.tar.gz`.
+- **`release.yml`** gains a `bundle` job after the PyPI upload: build from the
+  same files, sign every file and the tarball with Sigstore (keyless, the
+  workflow's identity), verify each signature, install with networking off on
+  `python:3.8-slim` and RHEL 9 UBI, attach everything to the GitHub release
+  `vX.Y.Z`. A dispatched run (how 2.0.0-2.3.0 were published) has no release,
+  so it creates one tagging the commit it built.
+- **`ci.yml`** gains an `offline bundle` job doing the same on every pull
+  request, signing and verifying `SHA256SUMS` only, and running
+  `tests/offline_bundle/` (21 unit tests).
+- **`tools/offline-install-check.sh`** is the high-side install as a test:
+  `sha256sum -c`, `pip install --no-index --find-links`, `provost --version`, a
+  capture; `tools/offline-install-test.sh` runs it in a container with
+  `--network none`, after proving pypi.org cannot be reached.
+- **`docs/offline-install.md`** (also `INSTALL.md` in the bundle): verify on the
+  connected side (`sigstore verify github --repository
+  MartinGallagher-code/provost --name "Release to PyPI"`), check `SHA256SUMS` on
+  the high side, install.
+- PyPI's PEP 740 attestations for 2.3.0 were checked on 2026-11-10: both the
+  wheel and the sdist carry one, signed by `release.yml` on `main` through
+  Trusted Publishing. The release workflow needed no change for them.
+
+Not in the bundle: `provost[lm]` (numpy and the 85 MB `provost-model`) and an
+RPM. Both are open questions for the owner on PV-025.
+
 ## 2.5.3 — 2026-11-10 — auto-multi's guards: tighter on tool-specific parts, looser on headerless tables (PV-013)
 
 `VERSION` 2.5.2 → 2.5.3, and the `man/provost.1` header. Patch: a fix to when

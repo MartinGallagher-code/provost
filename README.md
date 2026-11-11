@@ -34,6 +34,13 @@ fine-tuned on provost's own labels. It comes as the
 package (85 MB) and runs on numpy, with no torch or GPU. Without it,
 `--model` uses the small decision trees provost ships.
 
+**No network?** Each release from 2.6.0 on has an offline bundle attached to
+its [GitHub release](https://github.com/MartinGallagher-code/provost/releases):
+the wheel, the sdist, a CycloneDX SBOM, `SHA256SUMS` and a Sigstore signature
+for every file, for an air-gapped host. Verify it, carry it across, then
+`pip install --no-index --find-links . provost`. The steps:
+[docs/offline-install.md](docs/offline-install.md).
+
 ## Quick start
 
 ```bash

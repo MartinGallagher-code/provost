@@ -5,19 +5,22 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.3 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.3` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
-benchmark outputs (PV-030, below, 2.5.0), the generalisation decision
-record (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm`
-gate rules (PV-010, 2.5.2, below) and auto-multi's retuned guards
-(PV-013, Next steps 1f; 2.5.3). 2.4.0 added `provost
+**provost 2.6.0 is everything through 2026-11-10** (`VERSION`, man header, the
+`## 2.6.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
+outputs (PV-030, below, 2.5.0), the generalisation decision record (PV-006,
+2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules (PV-010,
+2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f; 2.5.3);
+the offline install bundle with an SBOM (PV-025, below; 2.6.0). 2.4.0 added
+`provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
-the top of CHANGELOG is always the version `main` is at. Neither 2.4.0 nor
-2.5.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.5.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
+the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
+2.6.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.6.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.6.0`, creating
+that release on a dispatched run. 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
 faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
 added the quality gate and auto-multi, the engine fixes, removal of the
@@ -25,6 +28,17 @@ legacy names, store format 3, browsing and search, `batch`, the opt-in
 `--llm` and `--model`, and the 2026-10-29 readers. 2.1.0 (2026-10-16) was
 the first release with the rename, store format 2, line coverage and the
 2026-10-14 parser work.
+
+**In 2.6.0: the offline install bundle (PV-025, 2026-11-10).** For
+air-gapped hosts: `tools/offline_bundle.py` builds `provost-X.Y.Z-offline/`
+(wheel, sdist, CycloneDX 1.5 SBOM naming the system tools too, `INSTALL.md`,
+`SHA256SUMS`), `release.yml`'s `bundle` job signs every file with Sigstore,
+installs it with networking off (`python:3.8-slim`, RHEL 9 UBI) and attaches
+it to the GitHub release; CI's `offline bundle` job does the same on each pull
+request. User steps: `docs/offline-install.md`. Open, for the owner: whether
+the bundle should carry `provost[lm]` (numpy is per-platform and per-Python,
+so that is a bundle per target), SPDX as well as CycloneDX, and an RPM. The
+first real run of the `bundle` job is the next release.
 
 **In 2.4.0: the run manifest (PV-020, 2026-11-09).** Profiles
 of reserved `#%` keys in `extract/manifests/` (`default`, `proposal`),
