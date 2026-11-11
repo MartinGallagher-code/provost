@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-10" "provost 2.5.1" "User Commands"
+.TH PROVOST 1 "2026-11-10" "provost 2.5.2" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -376,8 +376,10 @@ files the parts instead when the split is clearly better: it is a real split
 coverage, consistency); together the parts keep at least \fB--min-coverage\fR
 percent of the lines and 10 points more than the single parse; no part is a
 table under positional A/B/C... columns only; a part read by the parser the
-gate rejected has judged column types; and parts of three or more lines hold at
-least half the lines, so the input is not shattered into fragments. Otherwise
+gate rejected has judged column types; and parts of three or more lines or rows
+hold at least half of it, so the input is not shattered into fragments (a part's
+size is its lines or its rows, whichever is more: one line holding many records
+is no fragment). Otherwise
 the capture is held as before and the reason segmenting did not help is printed
 and recorded as \fBauto_multi\fR (\fIdeclined: ...\fR) in \fImeta.tsv\fR.
 .PP
@@ -426,7 +428,10 @@ write one from this capture; \fBthat step sends the capture's text to the
 Anthropic API\fR (at most 400 lines / 64 KB), once per tool. The template is
 tried first: on a capture the gate would hold, before segmenting and the
 layout model; and on a generic parse the gate passed, before that parse is
-trusted (never over an exact-format or tool-specific parser). What a template
+trusted (never over an exact-format or tool-specific parser, save that a
+\fByaml\fR parse may be bettered by a template already stored for the tool, since
+plain \fILabel: text\fR output is valid YAML; Claude is never asked to write one
+over it). What a template
 yields is measured by the engine and filed only under the gate's rules;
 against a generic parse the gate passed it must keep that parse's share of the
 data lines within 10 points (20 against \fBtext-lines\fR or \fBline-records\fR;

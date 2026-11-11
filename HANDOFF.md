@@ -5,10 +5,11 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.1 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.1` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
-benchmark outputs (PV-030, below, 2.5.0) and the generalisation decision
-record (PV-006, 2.5.1: docs only, see "Next steps" 1e). 2.4.0 added `provost
+**provost 2.5.2 is everything through 2026-11-10** (`VERSION`, man header,
+the `## 2.5.2` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (PV-030, below, 2.5.0), the generalisation decision
+record (PV-006, 2.5.1: docs only, see "Next steps" 1e) and the two `--llm`
+gate rules (PV-010, 2.5.2, below). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -32,6 +33,17 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.5.2: the two gate rules that cost `--llm` a FAIL each (PV-010,
+2026-11-10; not published).** The fragments rule (auto-multi parts, model
+sections, template blocks) sizes a part by its lines or its table's rows,
+whichever is more (`_am_frag_add`, `_AM_FRAG_MIN`, was `_AM_FRAG_LINES`): a
+one-line block of six records (round 4's 132, a ServerQuery client list) is
+no fragment. And a `yaml` parse is no longer beyond a template already
+stored for the tool (plain `Label: text` output is valid YAML: round 4's
+020, golangci-lint's linter list, was one 110-column record); Claude is
+never asked to write one over a yaml parse, so a real YAML document costs
+nothing. Both files now; see CHANGELOG for the round-4 before/after.
 
 **2.5.0: the HPC benchmark outputs (PV-030, 2026-11-10; not published).**
 OSU, IOR, mdtest, HPL, HPCG, STREAM's full printout, lnet_selftest `lst stat`,
@@ -537,7 +549,10 @@ Suites (all CI-enforced):
          PASS or a list of fixes, fed back once.
       2. **Two gate rules still cost a FAIL each:** the `yaml` exemption
          (020 never reaches a template) and `_AM_FRAG_LINES` counting lines,
-         not records (132 is held on every run).
+         not records (132 is held on every run). *(Done 2026-11-10, PV-010:
+         both file from their stored templates. Still open: on FIRST contact
+         Claude is not asked to write a template over a yaml parse, so 020
+         needs its template stored, by `learn` or by hand.)*
       3. Then the library (plan step 5) and round 5, built and frozen before
          anything runs. Round 4 is spent for `--llm`.
     - Small: the melt should rename a template column colliding with the
