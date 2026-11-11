@@ -14,6 +14,7 @@ unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIE
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
       PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY \
       PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT PROVOST_REDACT PROVOST_ENV PROVOST_ENV_VARS \
+      PROVOST_OVERSIZE PROVOST_ARTIFACT_DIR \
       LOADEDMODULES SLURM_JOB_ID SLURM_JOBID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_CLUSTER_NAME SLURM_JOB_PARTITION
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
@@ -1480,10 +1481,11 @@ if command -v df >/dev/null 2>&1; then
         "$(PROVOST_WORKSPACE="$NMWS" "$PROVOST" show df 2>&1)"
 fi
 
-# run honours PROVOST_MAX_INPUT like inject does.
+# run honours PROVOST_MAX_INPUT like inject does (under --refuse-oversize,
+# as before PV-021; the default keeps it: the oversize part).
 MX="$(mktemp -d)/.max"
-mx_out="$(PROVOST_WORKSPACE="$MX" PROVOST_MAX_INPUT=10 "$PROVOST" run printf 'a=0123456789abcdef\n' 2>&1 || true)"
-check "run refuses output larger than PROVOST_MAX_INPUT" "too large" "$mx_out"
+mx_out="$(PROVOST_WORKSPACE="$MX" PROVOST_MAX_INPUT=10 "$PROVOST" run --refuse-oversize printf 'a=0123456789abcdef\n' 2>&1 || true)"
+check "run --refuse-oversize refuses output larger than PROVOST_MAX_INPUT" "too large" "$mx_out"
 check "nothing is captured for oversized run output" "0" "$(find "$MX/captures" -mindepth 1 2>/dev/null | wc -l | tr -d ' ')"
 
 # meta.tsv 'command' is shell-quoted and TSV-safe (tabs/newlines escaped).
@@ -1858,10 +1860,13 @@ before="$(tgit "$BTWS" rev-list --count HEAD)"
 check "a missing input refuses the whole batch" "no such file" "$(bt batch "$BTD/web01.txt" "$BTD/nosuch.txt" || true)"
 check "...and nothing is filed" "same" "$([[ "$(tgit "$BTWS" rev-list --count HEAD)" == "$before" ]] && echo same || echo changed)"
 head -c 3000 /dev/zero | tr '\0' x > "$BTD/big.txt"
-oout="$(PROVOST_MAX_INPUT=2000 bt batch --name ov "$BTD/web01.txt" "$BTD/big.txt"; echo "rc=$?")"
-check "an oversized input is reported" "big.txt: too large" "$oout"
+oout="$(PROVOST_MAX_INPUT=2000 bt batch --refuse-oversize --name ov "$BTD/web01.txt" "$BTD/big.txt"; echo "rc=$?")"
+check "under --refuse-oversize an oversized input is reported" "big.txt: too large" "$oout"
 check "...the rest are filed" "dataset 'ov'" "$oout"
 check "...and batch exits 1" "rc=1" "$oout"
+oout="$(PROVOST_MAX_INPUT=2000 bt batch --name ov2 "$BTD/web01.txt" "$BTD/big.txt"; echo "rc=$?")"
+check "by default batch keeps an oversized input and files its head (PV-021)" "rc=0" "$oout"
+check "...kept beside the store" "the whole of it is kept at $BTWS.artifacts/" "$oout"
 J1="$(mktemp -d)/.j1"; J8="$(mktemp -d)/.j8"
 PROVOST_WORKSPACE="$J1" "$PROVOST" batch -q -j 1 --context-columns --name load "$BTD/web01.txt" "$BTD/web02.txt" "$BTD/db01.txt" >/dev/null 2>&1 || true
 PROVOST_WORKSPACE="$J8" "$PROVOST" batch -q -j 8 --context-columns --name load "$BTD/web01.txt" "$BTD/web02.txt" "$BTD/db01.txt" >/dev/null 2>&1 || true
@@ -2476,6 +2481,100 @@ check "--env=other is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$EWS" rc
 check "PROVOST_ENV must be 0, 1 or modules (exit 2)" "2" "$(PROVOST_ENV=yes PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" ls)"
 check "PROVOST_ENV_VARS refuses what is not a name pattern (exit 2)" "2" "$(PROVOST_ENV_VARS='OMP_*=8' PROVOST_WORKSPACE="$EWS" rc_of "$PROVOST" ls)"
 check "--help names --env" "--env" "$(ep inject --help)"
+fi
+
+if _part oversize; then
+# Inputs over PROVOST_MAX_INPUT kept by reference (PV-021).
+OWS="$(mktemp -d)/.oversize"; OART="$OWS.artifacts"
+op () { PROVOST_WORKSPACE="$OWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+orc () { PROVOST_WORKSPACE="$OWS" PROVOST_ASYNC=0 rc_of "$PROVOST" "$@"; }
+osha () { if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi | awk '{ print $1 }'; }
+ometa () { printf '<%s>' "$(awk -F'\t' -v k="$2" '$1 == k { print substr($0, length(k) + 2); exit }' "$OWS/captures/$1/meta.tsv")"; }
+# <...> around a value, so a check matches all of it, or that it is empty (<>).
+ov () { printf '<%s>' "$*"; }
+OD="$(dirname "$OWS")"
+# 12 MB against the default 10 MiB cap: a two-line table, then one 12 MB line
+# with no newline (cut back to whole lines, only the table is parsed, so the
+# check stays fast).
+awk 'BEGIN { print "a,b"; print "1,2"; s = sprintf("%1000000s", ""); gsub(/ /, "x y ", s)
+             for (i = 1; i <= 3; i++) printf "%s", s }' > "$OD/big.txt"
+osize="$(wc -c < "$OD/big.txt" | tr -d ' ')"
+bsha="$(osha < "$OD/big.txt")"
+op --name small <<< $'k,v\n1,2' >/dev/null           # the store exists before the big one
+check "an input within the cap makes no artifact directory" "no" "$([[ -e "$OART" ]] && echo yes || echo no)"
+kb0="$(tgit "$OWS" count-objects -v | awk '$1 == "size:" || $1 == "size-pack:" { s += $2 } END { print s + 0 }')"
+oout="$(op --name big "$OD/big.txt"; echo "rc=$?")"
+check "a 12 MB input over a 10 MiB cap is filed, not refused" "rc=0" "$oout"
+check "...and says it is truncated" "truncated: only the first 8 of the input's $osize bytes were parsed" "$oout"
+check "...meta.tsv marks it truncated" "<1>" "$(ometa c0002 truncated)"
+check "...records the bytes parsed" "<8>" "$(ometa c0002 parsed_bytes)"
+check "...and the whole input's size" "<$osize>" "$(ometa c0002 raw_bytes)"
+check "...input_sha256 is the whole input's, as received" "<$bsha>" "$(ometa c0002 input_sha256)"
+check "...raw_sha256 names the kept copy" "<$bsha>" "$(ometa c0002 raw_sha256)"
+check "...kept at <store>.artifacts/<sha256>" "<$OART/$bsha>" "$(ometa c0002 raw_artifact)"
+check "the kept copy's sha256 matches" "$bsha" "$(osha < "$OART/$bsha")"
+check "...and it is read-only" "no" "$([[ -w "$OART/$bsha" ]] && echo yes || echo no)"
+check "output.txt holds only the parsed head" "<8>" "$(ov "$(wc -c < "$OWS/captures/c0002/output.txt" | tr -d ' ')")"
+kb1="$(tgit "$OWS" count-objects -v | awk '$1 == "size:" || $1 == "size-pack:" { s += $2 } END { print s + 0 }')"
+check "git's object store did not grow by the 12 MB (KiB grown < 1024)" "yes" "$(( kb1 - kb0 < 1024 )) && echo yes || echo no)"
+check "nothing under the store holds the big input" "<>" "$(ov "$(find "$OWS" -type f -size +1000k -print)")"
+check "the dataset has the parsed rows" "a b" "$(op show big | sq)"
+check "source says where the whole input is and verifies it" "raw_check: ok: the full raw input is $OART/$bsha" "$(op source c0002)"
+check "...by row number too" "raw_check: ok" "$(op source 2)"
+check "verify checks the kept copy" "1 truncated capture(s) whose whole input was checked" "$(op verify)"
+# The same bytes piped, and run: one kept copy, shared.
+cat "$OD/big.txt" | op --name big >/dev/null
+check "a piped oversize input is kept the same way" "<$bsha>" "$(ometa c0003 raw_sha256)"
+op run cat "$OD/big.txt" >/dev/null || true
+check "run keeps an oversize output too" "<$bsha>" "$(ometa c0004 raw_sha256)"
+check "...and run's command still exits as it did" "<0>" "$(ov "$(orc run cat "$OD/big.txt")")"
+check "the same bytes are kept once" "<1>" "$(ov "$(find "$OART" -type f | wc -l | tr -d ' ')")"
+check "nothing is left staged in the artifact directory" "<>" "$(ov "$(find "$OART" -name '.incoming.*' -print)")"
+# Exactly at the cap, and one byte over it.
+printf 'p,q\n' > "$OD/edge.txt"; for i in $(seq 1 30); do printf '%s,%s\n' "$i" "$((i * 7))"; done >> "$OD/edge.txt"
+esize="$(wc -c < "$OD/edge.txt" | tr -d ' ')"
+check "an input exactly at the cap is filed whole, as before" "rc=0" "$(PROVOST_MAX_INPUT="$esize" op --name edge "$OD/edge.txt"; echo "rc=$?")"
+check "...not marked truncated" "<>" "$(ometa c0006 truncated)"
+check "...with nothing kept" "<1>" "$(ov "$(find "$OART" -type f | wc -l | tr -d ' ')")"
+check "one byte over the cap is kept and truncated" "<1>" "$(PROVOST_MAX_INPUT=$((esize - 1)) op --name edge "$OD/edge.txt" >/dev/null; ometa c0007 truncated)"
+check "...its head cut back to the last whole line" "<$((esize - $(tail -n 1 "$OD/edge.txt" | wc -c | tr -d ' ')))>" "$(ometa c0007 parsed_bytes)"
+check "...and the kept copy is the whole input" "<$(osha < "$OD/edge.txt")>" "$(ometa c0007 raw_sha256)"
+# The old behaviour, behind a flag.
+rout="$(PROVOST_MAX_INPUT="$((esize - 1))" op --refuse-oversize --name edge "$OD/edge.txt"; echo "rc=$?")"
+check "--refuse-oversize refuses it, as before" "input too large (max $((esize - 1)) bytes; raise PROVOST_MAX_INPUT)" "$rout"
+check "...exit 1" "rc=1" "$rout"
+check "PROVOST_OVERSIZE=refuse too, for run" "command output too large" "$(PROVOST_OVERSIZE=refuse PROVOST_MAX_INPUT=10 op run cat "$OD/edge.txt")"
+check "a bad PROVOST_OVERSIZE is refused (exit 2)" "<2>" "$(ov "$(PROVOST_OVERSIZE=maybe orc ls)")"
+# The artifact directory: configurable, never inside the store.
+check "PROVOST_ARTIFACT_DIR moves it" "<$OD/elsewhere/" "$(PROVOST_ARTIFACT_DIR="$OD/elsewhere" PROVOST_MAX_INPUT=40 op --name edge "$OD/edge.txt" >/dev/null; ometa c0008 raw_artifact)"
+check "...one inside the store is refused" "is the store or inside it" "$(PROVOST_ARTIFACT_DIR="$OWS/art" PROVOST_MAX_INPUT=40 op --name edge "$OD/edge.txt")"
+check "...and nothing was filed" "no" "$([[ -e "$OWS/art" ]] && echo yes || echo no)"
+# Missing and altered.
+chmod u+w "$OART/$bsha"; printf 'x' >> "$OART/$bsha"
+check "source reports an altered kept copy" "raw_check: ALTERED" "$(op source c0002)"
+check "...exit 1" "<1>" "$(ov "$(orc source c0002)")"
+check "verify reports it" "its full raw input at $OART/$bsha hashes to" "$(op verify)"
+rm -f "$OART/$bsha"
+check "source reports a missing kept copy" "raw_check: MISSING" "$(op source c0002)"
+check "...exit 1" "<1>" "$(ov "$(orc source c0002)")"
+check "verify reports it" "c0002: its full raw input (sha256 ${bsha:0:16}…) is missing" "$(op verify)"
+check "an export never carries a kept copy" "no" "$(op export "$OD/x.bundle" >/dev/null; [[ $(wc -c < "$OD/x.bundle") -gt 1000000 ]] && echo yes || echo no)"
+# A controlled directory: <dir>/.provost.artifacts, left out of its files.
+CD="$(mktemp -d)/ctl"; mkdir -p "$CD"; printf 'k v\n1 2\n' > "$CD/notes.txt"
+( cd "$CD" && env -u PROVOST_WORKSPACE "$PROVOST" control . >/dev/null 2>&1
+  env -u PROVOST_WORKSPACE PROVOST_ASYNC=0 PROVOST_MAX_INPUT=40 "$PROVOST" --name edge "$OD/edge.txt" >/dev/null 2>&1
+  env -u PROVOST_WORKSPACE PROVOST_ASYNC=0 PROVOST_MAX_INPUT=40 "$PROVOST" --name edge "$OD/edge.txt" >/dev/null 2>&1 ) || true
+check "a controlled directory keeps them in DIR/.provost.artifacts" "<1>" "$(ov "$(find "$CD/.provost.artifacts" -type f 2>/dev/null | wc -l | tr -d ' ')")"
+check "...its files commit was made" "notes.txt" "$(tgit "$CD/.provost" ls-tree -r --name-only files-c0002 2>/dev/null)"
+check_not "...without the kept copies" "artifacts" "$(tgit "$CD/.provost" ls-tree -r --name-only files-c0002 2>/dev/null)"
+check "...its manifest was made" "notes.txt" "$(cat "$CD/.provost/context/manifest.tsv" 2>/dev/null)"
+check_not "...without them" "artifacts" "$(cat "$CD/.provost/context/manifest.tsv" 2>/dev/null)"
+check "the repository ignores a kept-input directory, so no handover bundle (git archive) carries one" \
+    ".provost.artifacts/" "$(git -C "$HERE/.." check-ignore -v --no-index .provost.artifacts/x sub/.provost.artifacts/x ws.artifacts/x 2>/dev/null)"
+check "...whatever its store is called" "*.artifacts/" "$(git -C "$HERE/.." check-ignore -v --no-index ws.artifacts/x 2>/dev/null)"
+check "help advanced documents it" "OVERSIZE INPUTS" "$("$PROVOST" help advanced)"
+check "inject --help names --refuse-oversize" "--refuse-oversize" "$("$PROVOST" inject --help)"
+check "doctor says where they are kept" "kept whole, outside git, in $OART" "$(op doctor)"
 fi
 
 echo "smoke: $pass passed, $fail failed"

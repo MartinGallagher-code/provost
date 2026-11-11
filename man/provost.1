@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-11" "provost 2.14.0" "User Commands"
+.TH PROVOST 1 "2026-11-11" "provost 2.15.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -119,6 +119,11 @@ Scrub known secret patterns (private keys, Authorization headers, tokens,
 default, or \fBPROVOST_REDACT=1\fR); \fB--no-redact\fR stores it as it
 comes. See \fBSECRETS AND REDACTION\fR.
 .TP
+.BR --refuse-oversize ", " --keep-oversize
+Over \fBPROVOST_MAX_INPUT\fR, refuse the input with "input too large", as
+provost did before 2.15.0, or keep it whole outside git and parse its head
+(the default, or \fBPROVOST_OVERSIZE=keep\fR). See \fBOVERSIZE INPUTS\fR.
+.TP
 .BR --sync ", " --wait
 Capture in the foreground and print the resulting dataset and \fI#N\fR range.
 This is the default when stderr is not a terminal (scripts, pipelines).
@@ -137,9 +142,9 @@ No progress output (or \fBPROVOST_QUIET=1\fR).
 .TP
 .B run [\fIoptions\fR] [--] \fIcommand\fR [args...]
 Execute a command, capture its combined output as a commit, auto-detect the
-format, and file it as a dataset named after the command. The output is capped
-at \fBPROVOST_MAX_INPUT\fR bytes, like injection. provost exits with the
-command's own exit status.
+format, and file it as a dataset named after the command. Output over
+\fBPROVOST_MAX_INPUT\fR bytes is treated as injection's is (see
+\fBOVERSIZE INPUTS\fR). provost exits with the command's own exit status.
 .TP
 .I command
 | \fBprovost\fR [\fIoptions\fR]
@@ -200,6 +205,9 @@ Stop capturing \fIcmd\fR.
 Show the original captured input behind dataset row \fI#N\fR, or behind
 capture \fIid\fR (\fBc0007\fR, \fBcapture-c0007\fR) with its details; a
 capture the store is not checked out at is read from its commit.
+For a truncated capture it re-hashes the whole input kept outside git and
+adds \fBraw_check:\fR ok, MISSING or ALTERED; it exits 1 when that copy is
+missing or altered (see \fBOVERSIZE INPUTS\fR).
 .TP
 .B control \fR[\fIdir\fR]
 Make \fIdir\fR (default: cwd) its own capture instance; captures run inside it
@@ -328,7 +336,9 @@ and left uncommitted; every \fBcapture-\fR* tag on the store's history; each
 capture's \fBoutput.txt\fR is the one its tag filed and re-hashes to the
 sha256 recorded in its \fBmeta.tsv\fR (\fBoutput_sha256\fR) and its commit's
 \fBOutput-SHA256\fR trailer; and no capture id is missing from the history
-(an id \fBrm\fR removed is counted, not failed). Exits 0 with no findings, 1
+(an id \fBrm\fR removed is counted, not failed); and a truncated capture's
+whole input, kept outside git, is there and hashes to its \fBraw_sha256\fR.
+Exits 0 with no findings, 1
 with them. Captures filed before hashes were recorded are counted as unhashed.
 It proves the store is consistent, not that its history was never rewritten:
 record the head commit it prints somewhere the store's writers cannot change.
@@ -337,6 +347,28 @@ record the head commit it prints somewhere the store's writers cannot change.
 Print the short help to stdout; \fBhelp advanced\fR prints every command,
 option and setting, and how a capture is filed. \fIsubcommand\fR \fB--help\fR
 prints that command's usage.
+.SH OVERSIZE INPUTS
+\fBPROVOST_MAX_INPUT\fR (10 MiB by default) is how much of an input is parsed.
+A larger input is not refused: the whole of it, scrubbed of secrets as a
+stored input is, is kept outside the store's git history, in the artifact
+directory, as a read-only file named by its sha256. Its first
+\fBPROVOST_MAX_INPUT\fR bytes, cut back to the last whole line, are parsed
+and stored as the capture's \fBoutput.txt\fR, and \fBmeta.tsv\fR records
+\fBtruncated\fR (1), \fBparsed_bytes\fR, \fBraw_artifact\fR (the path),
+\fBraw_sha256\fR, \fBraw_bytes\fR and \fBraw_redacted\fR;
+\fBinput_sha256\fR and \fBinput_bytes\fR are the whole input's, as received.
+\fBsource\fR and \fBverify\fR re-hash the kept copy; one moved with the
+artifact directory is found there by its hash.
+.PP
+The artifact directory is \fBPROVOST_ARTIFACT_DIR\fR, or
+\fIstore\fB.artifacts\fR beside the store (\fB~/.provost.artifacts\fR, or
+\fIdir\fB/.provost.artifacts\fR for a controlled directory, which is left
+out of its files and manifest). It is never the store or inside it, so no
+clone, \fBexport\fR or handover of the store carries it. \fBrm\fR leaves it
+alone: one kept file serves every capture of the same bytes. Inputs within
+the cap are read and filed exactly as before. \fB--refuse-oversize\fR
+(\fBPROVOST_OVERSIZE=refuse\fR) refuses an input over the cap, as every
+provost before 2.15.0 did.
 .SH SECRETS AND REDACTION
 Secrets never belong in a store. Before an input is stored, every known secret
 pattern in it is replaced by \fB[REDACTED:\fIkind\fB]\fR:
@@ -763,7 +795,17 @@ A file to append one JSON line per API reply to (what it was for, the tool,
 the model that answered, its token usage), to add up what \fB--llm\fR cost.
 .TP
 .B PROVOST_MAX_INPUT
-Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).
+Maximum input bytes parsed, for injection and \fBrun\fR output (default:
+10485760). A larger input is kept by hash (\fBOVERSIZE INPUTS\fR).
+.TP
+.B PROVOST_OVERSIZE
+\fBkeep\fR (the default): an input over \fBPROVOST_MAX_INPUT\fR is kept whole
+outside git and its head parsed; \fBrefuse\fR: it is refused (as
+\fB--refuse-oversize\fR).
+.TP
+.B PROVOST_ARTIFACT_DIR
+Where inputs over the cap are kept (default: \fIstore\fB.artifacts\fR, beside
+the store). It may not be the store or inside it.
 .TP
 .B PROVOST_LAYOUT_LM
 With \fB--model\fR, label lines with the tiny pretrained language model in

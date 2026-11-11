@@ -279,7 +279,9 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_LLM_BASE_URL` | `https://api.anthropic.com` | API base URL |
 | `PROVOST_LLM_TEMPLATE_DIRS` | — | colon-separated directories of templates to look in after the store's `llm-templates/` and before the ones shipped with provost |
 | `PROVOST_LLM_LOG` | — | a file to append one JSON line per API reply to (purpose, tool, model, token usage), to add up what `--llm` cost |
-| `PROVOST_MAX_INPUT` | `10485760` | max input bytes (inject and `run`) |
+| `PROVOST_MAX_INPUT` | `10485760` | max input bytes parsed (inject and `run`); a larger input is kept whole, outside git, by hash |
+| `PROVOST_OVERSIZE` | `keep` | `refuse` = refuse an input over the cap, as before 2.15.0 (same as `--refuse-oversize`) |
+| `PROVOST_ARTIFACT_DIR` | `<store>.artifacts` | where inputs over the cap are kept (never inside the store) |
 | `PROVOST_LOCK_TIMEOUT` | `30` | seconds to wait for the store lock |
 | `PROVOST_LOCK_MAX_AGE` | `3600` | seconds after which a lock is presumed stale |
 | `PROVOST_RECONCILE_OVERLAP` | `60` | % column overlap to union vs split a variant |

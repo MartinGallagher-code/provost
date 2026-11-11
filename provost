@@ -102,6 +102,9 @@ PROVOST_MIN_COVERAGE="${PROVOST_MIN_COVERAGE:-80}"
 PROVOST_MIN_CONSISTENCY="${PROVOST_MIN_CONSISTENCY:-70}"
 PROVOST_MAX_INPUT="${PROVOST_MAX_INPUT:-10485760}"   # 10 MiB
 PROVOST_FILES_MAX_SIZE="${PROVOST_FILES_MAX_SIZE:-1048576}"  # a controlled dir's files kept per run up to this size (0 = none)
+PROVOST_OVERSIZE="${PROVOST_OVERSIZE:-keep}"         # over PROVOST_MAX_INPUT: keep = keep the whole input by hash, parse its head (PV-021); refuse = refuse it (--refuse-oversize)
+PROVOST_ARTIFACT_DIR="${PROVOST_ARTIFACT_DIR:-}"     # where inputs over the cap are kept ('' = <store>.artifacts, beside the store)
+[[ -z "$PROVOST_ARTIFACT_DIR" ]] || PROVOST_ARTIFACT_DIR="$(_abspath "$PROVOST_ARTIFACT_DIR")"
 PROVOST_TEMP_DIR="${TMPDIR:-/tmp}"
 PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
 PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any lock is stale
@@ -195,6 +198,8 @@ _validate_settings () {
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
     [[ "$PROVOST_LLM_JUDGE" == 0 || "$PROVOST_LLM_JUDGE" == 1 ]] || usage_die "PROVOST_LLM_JUDGE must be 0 or 1 (got '$PROVOST_LLM_JUDGE')."
     [[ "$PROVOST_REDACT" == 0 || "$PROVOST_REDACT" == 1 ]] || usage_die "PROVOST_REDACT must be 0 or 1 (got '$PROVOST_REDACT')."
+    [[ "$PROVOST_OVERSIZE" == keep || "$PROVOST_OVERSIZE" == refuse ]] || usage_die "PROVOST_OVERSIZE must be keep or refuse (got '$PROVOST_OVERSIZE')."
+    [[ "$PROVOST_ARTIFACT_DIR" != *[$'\t\n\r']* ]] || usage_die "PROVOST_ARTIFACT_DIR cannot hold a tab or a line break."
     [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
@@ -385,19 +390,186 @@ _sha256 () {
 }
 
 # _receive RAW IN — the input exactly as received (RAW, already bounded by
-# PROVOST_MAX_INPUT) becomes IN with its CRs stripped, as provost has always
+# PROVOST_MAX_INPUT, or the head of a larger input kept by hash) becomes IN with its CRs stripped, as provost has always
 # stored it, and its secrets scrubbed (PV-033, unless PROVOST_REDACT=0); the
 # sha256 and size of RAW, before any change, are kept beside it in
 # IN.received ("sha256<TAB>bytes") for _ingest_store to record, and what the
 # scrub found in IN.redacted ("kind<TAB>n" lines, or "off"). RAW goes.
 _receive () {
     local raw="$1" in="$2" h n
-    h="$(_sha256 "$raw")"
-    n="$(wc -c < "$raw")"; n="${n//[!0-9]/}"
+    if [[ -f "$raw.oversize" ]]; then
+        # An input over the cap (PV-021): what was received is the whole of
+        # it, kept by hash in the artifact directory; RAW is only its head.
+        IFS=$'\t' read -r h n _ < "$raw.oversize" || true
+        mv -f "$raw.oversize" "$in.oversize"
+    else
+        h="$(_sha256 "$raw")"
+        n="$(wc -c < "$raw")"; n="${n//[!0-9]/}"
+    fi
     printf '%s\t%s\n' "$h" "$n" > "$in.received"
     tr -d '\r' < "$raw" > "$in"; rm -f "$raw"
     if [[ "$PROVOST_REDACT" == 1 ]]; then : > "$in.redacted"; _scrub "$in" "$in.redacted"
     else echo off > "$in.redacted"; fi
+}
+
+# --- inputs over the cap, kept by reference (PV-021) -------------------------
+# Over PROVOST_MAX_INPUT an input is not refused (PROVOST_OVERSIZE=keep, the
+# default): the whole of it is kept OUTSIDE the store's git history, in the
+# artifact directory, under its sha256, and the capture parses only its first
+# PROVOST_MAX_INPUT bytes (cut back to the last whole line) and says it is
+# truncated and where the rest is. PROVOST_OVERSIZE=refuse
+# (--refuse-oversize) refuses it, as every provost before 2.15.0 did.
+# The artifact directory is PROVOST_ARTIFACT_DIR, else <store>.artifacts
+# beside the store (~/.provost.artifacts; <dir>/.provost.artifacts for a
+# controlled directory). Never the store or inside it: git would commit it,
+# and an export or a handover bundle would carry it.
+_artifact_dir () {
+    if [[ -n "${PROVOST_ARTIFACT_DIR:-}" ]]; then printf '%s\n' "${PROVOST_ARTIFACT_DIR%/}"
+    else printf '%s.artifacts\n' "${PROVOST_WORKSPACE%/}"; fi
+}
+# _artifact_dir_ok — true when the artifact directory is outside the store.
+_artifact_dir_ok () {
+    local a ws; a="$(_artifact_dir)"; ws="${PROVOST_WORKSPACE%/}"
+    [[ "$a" != "$ws" && "$a" != "$ws"/* ]]
+}
+
+# _stage_file FALLBACK — a new empty file to stage a whole input in, in
+# $_STAGED (not via $(...): what it registers must be in THIS shell): in the
+# artifact directory, so a large input is written once, on the disk it is
+# kept on, and never into TMPDIR; else in the dir FALLBACK. It is removed on
+# any exit unless it is kept. _STAGE_MADE is set when making it created the
+# artifact directory.
+_STAGED=""
+_STAGE_MADE=0
+_stage_file () {
+    local a
+    a="$(_artifact_dir)"; _STAGED=""
+    if _artifact_dir_ok; then
+        [[ -d "$a" ]] || { mkdir -p "$a" 2>/dev/null && _STAGE_MADE=1; }
+        [[ -d "$a" ]] && _STAGED="$(mktemp "$a/.incoming.XXXXXX" 2>/dev/null)" || _STAGED=""
+    fi
+    [[ -n "$_STAGED" ]] || _STAGED="$(mktemp "$1/stage.XXXXXX")" \
+        || die "cannot stage the input (set TMPDIR or PROVOST_ARTIFACT_DIR) — nothing captured."
+    _TMPDIRS+=("$_STAGED")
+}
+# _unstage_dir — an artifact directory this capture created only to stage
+# an input within the cap goes again (rmdir: only while it is empty).
+_unstage_dir () {
+    if (( _STAGE_MADE )); then rmdir -- "$(_artifact_dir)" 2>/dev/null || true; _STAGE_MADE=0; fi
+    return 0
+}
+
+# _take_stdin RAW FALLBACK — stdin into RAW. Under refuse, its first
+# PROVOST_MAX_INPUT+1 bytes, as provost always read it; under keep, all of
+# it, and when that is over the cap _keep_oversize keeps the whole and RAW
+# gets its head. (head -c on a pipe may read past its count, so the rest of
+# a pipe cannot be picked up after it: the input is staged whole.)
+_take_stdin () {
+    local raw="$1" st
+    if [[ "$PROVOST_OVERSIZE" == refuse ]]; then
+        head -c "$((PROVOST_MAX_INPUT + 1))" > "$raw"; return 0
+    fi
+    _stage_file "$2"; st="$_STAGED"
+    cat > "$st"
+    _take_staged "$st" "$raw"
+}
+# _take_file FILE RAW FALLBACK — FILE into RAW, as _take_stdin; a file within
+# the cap (or under refuse) is read exactly as it always was.
+_take_file () {
+    local f="$1" raw="$2" n st
+    n="$(wc -c < "$f")"; n="${n//[!0-9]/}"
+    if [[ "$PROVOST_OVERSIZE" == refuse ]] || (( n <= PROVOST_MAX_INPUT )); then
+        head -c "$((PROVOST_MAX_INPUT + 1))" < "$f" > "$raw"; return 0
+    fi
+    _stage_file "$3"; st="$_STAGED"
+    cat < "$f" > "$st"
+    _take_staged "$st" "$raw"
+}
+# _take_staged STAGED RAW — a whole input, staged: within the cap it becomes
+# RAW; over it, _keep_oversize.
+_take_staged () {
+    local st="$1" raw="$2" n
+    n="$(wc -c < "$st")"; n="${n//[!0-9]/}"
+    if (( n <= PROVOST_MAX_INPUT )); then
+        mv -f -- "$st" "$raw"; _unstage_dir; return 0
+    fi
+    _keep_oversize "$st" "$raw"
+}
+
+# _keep_oversize STAGED RAW — STAGED holds a whole input over the cap. RAW
+# gets the part that is parsed: its first PROVOST_MAX_INPUT bytes, cut back
+# to the last whole line when there is one. STAGED, with its secrets
+# scrubbed as a stored input's are (PV-033; not under PROVOST_REDACT=0),
+# becomes <artifact dir>/<its sha256>, read-only. RAW.oversize records, for
+# _receive and _ingest_store, one line: the input's sha256 and bytes as
+# received, the kept copy's sha256 and bytes, its path, the bytes parsed,
+# and what the scrub replaced.
+_keep_oversize () {
+    local st="$1" raw="$2" a rsha rn asha an p k dest red
+    a="$(_artifact_dir)"
+    _artifact_dir_ok \
+        || die "the artifact directory ($a) is the store or inside it, where git would commit it — nothing captured (set PROVOST_ARTIFACT_DIR elsewhere)."
+    mkdir -p "$a" 2>/dev/null \
+        || die "cannot create the artifact directory $a — nothing captured (set PROVOST_ARTIFACT_DIR, or --refuse-oversize to refuse an input this large)."
+    rsha="$(_sha256 "$st")"
+    [[ -n "$rsha" ]] \
+        || die "no sha256 tool (sha256sum, shasum or openssl): an input over PROVOST_MAX_INPUT cannot be kept by hash — nothing captured."
+    rn="$(wc -c < "$st")"; rn="${rn//[!0-9]/}"
+    head -c "$PROVOST_MAX_INPUT" "$st" > "$raw"
+    p="$PROVOST_MAX_INPUT"
+    if [[ "$(tail -c 1 "$raw" | od -An -tx1 | tr -d ' \n')" != 0a ]]; then
+        k="$(tail -n 1 "$raw" | wc -c)"; k="${k//[!0-9]/}"
+        if (( k < p )); then
+            p=$((p - k)); head -c "$p" "$raw" > "$raw.cut" && mv -f "$raw.cut" "$raw"
+        fi
+    fi
+    if [[ "$PROVOST_REDACT" == 1 ]]; then
+        : > "$raw.keptred"; _scrub "$st" "$raw.keptred"
+        red="$(_redacted_summary "$raw.keptred")"; rm -f "$raw.keptred"
+    else
+        red=off
+    fi
+    asha="$(_sha256 "$st")"
+    an="$(wc -c < "$st")"; an="${an//[!0-9]/}"
+    dest="$a/$asha"
+    if [[ -f "$dest" && "$(_sha256 "$dest")" == "$asha" ]]; then
+        rm -f -- "$st"                    # the same bytes are kept already
+    else
+        mv -f -- "$st" "$dest" || die "could not keep the input at $dest — nothing captured."
+    fi
+    # Read-only, and readable as the umask allows (mktemp made it 0600): a
+    # shared store's group reads it as it reads the store.
+    chmod "$(printf '%o' $(( 8#444 & ~8#$(umask) )))" "$dest" 2>/dev/null || true
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$rsha" "$rn" "$asha" "$an" "$(_meta_safe "$dest")" "$p" "$red" > "$raw.oversize"
+    info "the input is $rn bytes, over PROVOST_MAX_INPUT ($PROVOST_MAX_INPUT): the whole of it is kept at $dest, and its first $p bytes are parsed (the capture is marked truncated)."
+}
+
+# _artifact_check META — META (a capture's meta.tsv text) names a kept raw
+# input (PV-021): one line saying where it is and whether it still hashes to
+# what was kept, in meta.tsv's "key: value" form. Status 1 (and a warning)
+# when it is missing or altered; 0, and nothing, for a capture that kept none.
+# A copy moved with its directory is found by hash in today's artifact dir.
+_artifact_check () {
+    local meta="$1" sha path bytes alt got
+    sha="$(printf '%s\n' "$meta" | awk -F'\t' '$1 == "raw_sha256" { print $2; exit }')"
+    [[ "$sha" =~ ^[0-9a-f]{64}$ ]] || return 0
+    path="$(printf '%s\n' "$meta" | awk -F'\t' '$1 == "raw_artifact" { print substr($0, 14); exit }')"
+    bytes="$(printf '%s\n' "$meta" | awk -F'\t' '$1 == "raw_bytes" { print $2; exit }')"
+    if [[ ! -f "$path" ]]; then
+        alt="$(_artifact_dir)/$sha"; [[ -f "$alt" ]] && path="$alt"
+    fi
+    if [[ ! -f "$path" ]]; then
+        printf 'raw_check: MISSING: the full raw input (%s bytes, sha256 %s) is not at %s\n' "$bytes" "$sha" "$path"
+        warn "the full raw input of this capture is missing (not at $path, nor in $(_artifact_dir))."
+        return 1
+    fi
+    got="$(_sha256 "$path")"
+    if [[ "$got" != "$sha" ]]; then
+        printf 'raw_check: ALTERED: %s hashes to %s, not the %s that was kept\n' "$path" "${got:-(no sha256 tool)}" "$sha"
+        warn "the full raw input of this capture at $path is not what was kept (its sha256 differs)."
+        return 1
+    fi
+    printf 'raw_check: ok: the full raw input is %s (%s bytes, sha256 verified)\n' "$path" "$bytes"
 }
 
 # --- the secret scrub (PV-033) ------------------------------------------------
@@ -1338,7 +1510,8 @@ _snapshot_context () {
                 sha="${sha%% *}"
             fi
             printf '%s\t%s\t%s\t%s\n' "$(_meta_safe "${f#"$dir"/}")" "$sz" "$mt" "$sha"
-        done < <(find "$dir" -type f -not -path '*/.provost/*' -not -path '*/.git/*' -print0 2>/dev/null)
+        done < <(find "$dir" -type f -not -path '*/.provost/*' -not -path '*/.git/*' \
+                     -not -path "$(_artifact_dir)/*" -print0 2>/dev/null)
     } > "$mani.tmp"
     # sort the rows (header stays first) for a stable manifest
     { IFS= read -r f; printf '%s\n' "$f"; LC_ALL=C sort; } < "$mani.tmp" > "$mani"
@@ -1365,10 +1538,15 @@ _snapshot_files () {
     git_dir="$PROVOST_WORKSPACE/.git"
     idx="$git_dir/provost-files.index"; spec="$git_dir/provost-files.pathspec"
     rm -f "$idx" "$spec"
+    # The artifact directory (PV-021), when it is inside the controlled
+    # directory (<dir>/.provost.artifacts by default), never goes in.
+    local art; art="$(_artifact_dir)"
+    case "$art" in "${dir%/}"/*) art="${art#"${dir%/}"/}" ;; *) art="" ;; esac
     {
         printf ':/\0:(top,exclude,literal).provost\0'
+        [[ -z "$art" ]] || printf ':(top,exclude,literal)%s\0' "$art"
         while IFS= read -r -d '' f; do printf ':(top,exclude,literal)%s\0' "${f#./}"; done \
-            < <(cd "$dir" && find . \( -path ./.provost -o -path ./.git \) -prune -o \
+            < <(cd "$dir" && find . \( -path ./.provost -o -path ./.git -o -path "./${art:-.provost}" \) -prune -o \
                     -type f -size +"${PROVOST_FILES_MAX_SIZE}"c -print0 2>/dev/null)
     } > "$spec"
     out="$(_GIT_INDEX="$idx" _git --work-tree="$dir" add -A \
@@ -2331,6 +2509,12 @@ _ingest_store () {
     # of output.txt as stored, which is what 'provost verify' re-hashes.
     local in_sha="" in_bytes="" out_sha=""
     if [[ -f "$in.received" ]]; then IFS=$'\t' read -r in_sha in_bytes < "$in.received" || true; fi
+    # An input over the cap, kept whole by hash outside git (PV-021).
+    local ov_asha="" ov_abytes="" ov_path="" ov_parsed="" ov_red=""
+    if [[ -f "$in.oversize" ]]; then
+        IFS=$'\t' read -r _ _ ov_asha ov_abytes ov_path ov_parsed ov_red < "$in.oversize" || true
+        [[ "$ov_asha" =~ ^[0-9a-f]{64}$ ]] || ov_asha=""
+    fi
     # What the secret scrub replaced (PV-033): kind=n,..., none, or off.
     local redacted=""
     if [[ -f "$in.redacted" ]]; then redacted="$(_redacted_summary "$in.redacted")"; fi
@@ -2516,6 +2700,14 @@ _ingest_store () {
         [[ "$in_sha" =~ ^[0-9a-f]{64}$ ]] && printf 'input_sha256\t%s\n' "$in_sha"
         [[ "$in_bytes" =~ ^[0-9]+$ ]] && printf 'input_bytes\t%s\n' "$in_bytes"
         [[ -n "$out_sha" ]] && printf 'output_sha256\t%s\n' "$out_sha"
+        if [[ -n "$ov_asha" ]]; then
+            printf 'truncated\t1\n'
+            printf 'parsed_bytes\t%s\n' "$ov_parsed"
+            printf 'raw_artifact\t%s\n' "$ov_path"
+            printf 'raw_sha256\t%s\n' "$ov_asha"
+            printf 'raw_bytes\t%s\n' "$ov_abytes"
+            printf 'raw_redacted\t%s\n' "$ov_red"
+        fi
     } > "$capd/meta.tsv"
     # the template that filed it records the capture (its ledger)
     [[ -n "$llm_how" ]] && _llm_seen "$id"
@@ -2576,6 +2768,9 @@ _ingest_store () {
             info "      only $cov% of the input's lines reached '$final'; the whole input stays with capture $id ('provost source'), and --multi files each section as a dataset of its own."
         fi
     fi
+    if [[ -n "$ov_asha" ]]; then
+        info "      truncated: only the first $ov_parsed of the input's $in_bytes bytes were parsed; the whole input is kept, outside git, at $ov_path ('provost source $id' checks it)."
+    fi
     if [[ "$redacted" == *=* ]]; then
         info "      secrets scrubbed before filing: ${redacted//,/, } ('provost source' shows [REDACTED:kind] in their place)."
     fi
@@ -2599,6 +2794,7 @@ _ingest_async () {
     cp "$in" "$spool/in.txt" || { rm -rf "$spool"; die "cannot spool the input to $spool"; }
     if [[ -f "$in.received" ]]; then cp "$in.received" "$spool/in.txt.received" 2>/dev/null || true; fi
     if [[ -f "$in.redacted" ]]; then cp "$in.redacted" "$spool/in.txt.redacted" 2>/dev/null || true; fi
+    if [[ -f "$in.oversize" ]]; then cp "$in.oversize" "$spool/in.txt.oversize" 2>/dev/null || true; fi
     (
         trap '' HUP                                   # survive the shell exiting
         _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()  # nothing of the parent's
@@ -2817,6 +3013,11 @@ options:
                           headers, tokens and password=... values first, the
                           default, PROVOST_REDACT; SECRETS AND REDACTION in
                           'provost help advanced')
+  --refuse-oversize       refuse an input over PROVOST_MAX_INPUT, as provost
+                          did before 2.15.0 (--keep-oversize: keep it whole
+                          outside git and parse its head, the default,
+                          PROVOST_OVERSIZE; OVERSIZE INPUTS in 'provost help
+                          advanced')
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   --show                  show the command's output as it runs, as well
@@ -2873,6 +3074,11 @@ options:
                           headers, tokens and password=... values first, the
                           default, PROVOST_REDACT; SECRETS AND REDACTION in
                           'provost help advanced')
+  --refuse-oversize       refuse an input over PROVOST_MAX_INPUT, as provost
+                          did before 2.15.0 (--keep-oversize: keep it whole
+                          outside git and parse its head, the default,
+                          PROVOST_OVERSIZE; OVERSIZE INPUTS in 'provost help
+                          advanced')
   -q, --silent            no progress output
 EOF
             ;;
@@ -2902,7 +3108,7 @@ options:
                           carries it -- the host provost runs on, which for
                           files gathered from other hosts is not theirs
   --min-confidence N, --min-coverage N, --min-consistency N, --plugin-dir DIR,
-  --multi, --no-auto-multi, --model, --llm, --no-redact, -q
+  --multi, --no-auto-multi, --model, --llm, --no-redact, --refuse-oversize, -q
                           as for piped input ('provost inject --help')
   An empty input is skipped; one that cannot be read or parsed is reported and
   the rest are filed. Exits 1 if any input was not captured, 0 otherwise.
@@ -2912,6 +3118,10 @@ EOF
 usage: provost source <#N | ID>
   The original captured input behind dataset row #N, or behind capture ID
   (c0007 or capture-c0007), with that capture's details.
+  A capture of an input over PROVOST_MAX_INPUT is marked 'truncated: 1': only
+  its first parsed_bytes are shown and parsed, and the whole input is kept
+  outside git, at raw_artifact. source re-hashes that copy and adds a line,
+  raw_check: ok, MISSING or ALTERED; exit 1 when it is missing or altered.
 EOF
             ;;
         control) echo "usage: provost control [<dir>]    make <dir> (default: cwd) its own capture instance" ;;
@@ -3057,7 +3267,9 @@ usage: provost verify [--capture ID[,ID...]]...
   (and every files-* tag a commit); each capture's output.txt is the one its tag filed and re-hashes
   to the sha256 in its meta.tsv and its commit's Output-SHA256 trailer; and
   capture ids have no gap the history cannot explain (an id 'rm' removed is
-  counted, not failed). Exit 0 with no findings, 1 with a list of them.
+  counted, not failed); and a truncated capture's whole input, kept outside
+  git (OVERSIZE INPUTS in 'provost help advanced'), is still there and still
+  hashes to raw_sha256. Exit 0 with no findings, 1 with a list of them.
   Captures filed before provost recorded hashes (2.3.0 and earlier) are
   counted as unhashed, not failed.
 options:
@@ -3130,6 +3342,8 @@ _capture_opt () {
         --units=*) _units_mode "${1#*=}" ;;
         --redact) PROVOST_REDACT=1 ;;
         --no-redact) PROVOST_REDACT=0 ;;
+        --keep-oversize) PROVOST_OVERSIZE=keep ;;
+        --refuse-oversize) PROVOST_OVERSIZE=refuse ;;
         --manifest)
             [[ $# -ge 2 ]] || usage_die "--manifest needs a file of KEY=VALUE lines."
             _O_MANIFEST="$2"; _CO_N=2 ;;
@@ -3208,17 +3422,25 @@ cmd_inject () {
     _require_on_branch
     _mktempd provost; local tmp="$_MKTEMPD"
     local in="$tmp/in.txt" size
+    # Within PROVOST_MAX_INPUT as provost always read it; over it, the whole
+    # input is kept by hash and its head parsed (PV-021), or refused under
+    # PROVOST_OVERSIZE=refuse (--refuse-oversize).
     if [[ -n "$file" ]]; then
-        head -c "$((PROVOST_MAX_INPUT + 1))" < "$file" > "$in.raw"
+        _take_file "$file" "$in.raw" "$tmp"
         _receive "$in.raw" "$in"
         (( _O_SHOW )) && cat -- "$file"
     elif (( _O_SHOW )); then
         # --show: pass all of stdin through to stdout (a tee), keep the bound.
-        tee "$tmp/full"
-        head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" > "$in.raw"; rm -f "$tmp/full"
+        if [[ "$PROVOST_OVERSIZE" == refuse ]]; then
+            tee "$tmp/full"
+            head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" > "$in.raw"; rm -f "$tmp/full"
+        else
+            _stage_file "$tmp"; tee "$_STAGED"
+            _take_staged "$_STAGED" "$in.raw"
+        fi
         _receive "$in.raw" "$in"
     else
-        head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
+        _take_stdin "$in.raw" "$tmp"
         _receive "$in.raw" "$in"
     fi
     [[ -s "$in" ]] || die "no input to provost (empty)."
@@ -3249,7 +3471,17 @@ cmd_run () {
     # bounded by PROVOST_MAX_INPUT exactly as inject is.
     local -a st=()
     set +e
-    if (( _O_SHOW )); then
+    if [[ "$PROVOST_OVERSIZE" != refuse ]]; then
+        # All of the output, staged; over the cap it is kept by hash and its
+        # head parsed (PV-021).
+        _stage_file "$tmp"
+        if (( _O_SHOW )); then "$@" 2>&1 | tee "$_STAGED"
+        else "$@" 2>&1 | cat > "$_STAGED"; fi
+        st=("${PIPESTATUS[@]}")
+        set -e
+        _take_staged "$_STAGED" "$in.raw"
+        set +e
+    elif (( _O_SHOW )); then
         # --show: the output goes to the terminal as it comes, as well.
         "$@" 2>&1 | tee "$in.full"
         st=("${PIPESTATUS[@]}")
@@ -3392,7 +3624,7 @@ cmd_batch () {
     # that printed nothing; an oversized one is an error for that input.
     for (( i = 0; i < ${#files[@]}; i++ )); do
         d="$broot/$i"; mkdir -p "$d"
-        head -c "$((PROVOST_MAX_INPUT + 1))" < "${files[i]}" > "$d/in.raw"
+        _take_file "${files[i]}" "$d/in.raw" "$d"
         _receive "$d/in.raw" "$d/in.txt"
         if [[ ! -s "$d/in.txt" ]]; then
             info "${files[i]}: empty -- nothing captured."; skipped=$((skipped + 1)); continue
@@ -4358,8 +4590,10 @@ cmd_source () {
     local capd; capd="$(_cap_dir)/$cap"
 
     info "row #$n — dataset '$ds', from capture $cap"
+    local arc=0
     if [[ -f "$capd/meta.tsv" ]]; then
         echo; sed 's/\t/: /' "$capd/meta.tsv"
+        _artifact_check "$(cat "$capd/meta.tsv")" || arc=1
     fi
     if [[ -f "$capd/output.txt" ]]; then
         echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$cap" "$C_RST"
@@ -4367,6 +4601,7 @@ cmd_source () {
     else
         die "capture $cap has no stored output (workspace may be detached — try 'provost restore latest')."
     fi
+    return "$arc"
 }
 
 # _source_capture ID — a capture's meta and original output: from the store's
@@ -4386,12 +4621,17 @@ _source_capture () {
             || die "capture $id has no stored output."
     fi
     info "capture $id"
-    if [[ -n "$meta" ]]; then echo; printf '%s\n' "$meta" | sed 's/\t/: /'; fi
+    local arc=0
+    if [[ -n "$meta" ]]; then
+        echo; printf '%s\n' "$meta" | sed 's/\t/: /'
+        _artifact_check "$meta" || arc=1
+    fi
     if [[ -f "$capd/annotations.txt" ]]; then
         echo; printf '%sannotations (added after the capture):%s\n' "$C_DIM" "$C_RST"; cat "$capd/annotations.txt"
     fi
     echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$id" "$C_RST"
     cat "$out"
+    return "$arc"
 }
 
 # ---------------------------------------------------------------------------
@@ -5236,9 +5476,11 @@ cmd_verify () {
     for id in ${ids[@]+"${ids[@]}"}; do
         printf 'capture-%s:captures/%s/meta.tsv %s\n' "$id" "$id" "$id"
     done | _git cat-file --batch='@@@ %(rest) %(objecttype)' 2>/dev/null \
-        | awk '/^@@@ c[0-9]+ / { id = $2; next }
+        | awk -v K="$tmp/kept" '/^@@@ c[0-9]+ / { id = $2; next }
                / missing$/ { next }
-               $1 == "output_sha256" && id != "" { print id "\t" $2 }' > "$tmp/recorded"
+               $1 == "output_sha256" && id != "" { print id "\t" $2 }
+               $1 == "raw_sha256" && id != "" { print id "\t" $2 > K }' > "$tmp/recorded"
+    touch "$tmp/kept"
     local hashed=0 matched=0 unhashed=0 rec trl tblob mblob got
     for id in ${ids[@]+"${ids[@]}"}; do
         if ! tblob="$(_git rev-parse -q --verify "refs/tags/capture-$id^{commit}:captures/$id/output.txt" 2>/dev/null)"; then
@@ -5275,6 +5517,22 @@ cmd_verify () {
         fi
     done
 
+    # 4b. A truncated capture's whole input, kept outside git (PV-021): still
+    # there, and still the bytes that were kept.
+    local nkept=0 kpath
+    while IFS=$'\t' read -r id rec; do
+        [[ "$rec" =~ ^[0-9a-f]{64}$ ]] || continue
+        nkept=$((nkept + 1))
+        kpath="$(_git show "capture-$id:captures/$id/meta.tsv" 2>/dev/null | awk -F'\t' '$1 == "raw_artifact" { print substr($0, 14); exit }')"
+        [[ -f "$kpath" ]] || kpath="$(_artifact_dir)/$rec"
+        if [[ ! -f "$kpath" ]]; then
+            _vfail "$id: its full raw input (sha256 ${rec:0:16}…) is missing from the artifact directory"
+        else
+            got="$(_sha256 "$kpath")"
+            [[ "$got" == "$rec" ]] || _vfail "$id: its full raw input at $kpath hashes to ${got:0:16}…, not the ${rec:0:16}… that was kept"
+        fi
+    done < "$tmp/kept"
+
     # 5. the id sequence (the whole store; not narrowed by --capture)
     local removed=0 gaps=0 max
     _git log "$tip" --format= --name-only --diff-filter=A -- 'captures/*/meta.tsv' 2>/dev/null \
@@ -5296,6 +5554,7 @@ cmd_verify () {
     [[ ${#want[@]} -gt 0 ]] || scope="all ${#ids[@]} capture(s)"
     printf '   checked %s: %d of %d hashed matching their record' "$scope" "$matched" "$hashed"
     (( unhashed > 0 )) && printf ', %d filed before hashes were recorded (no hash to check)' "$unhashed"
+    (( nkept > 0 )) && printf '; %d truncated capture(s) whose whole input was checked' "$nkept"
     printf '\n'
     (( removed > 0 )) && printf '   %d capture id(s) removed by rm (in the history, not on %s): not a failure\n' "$removed" "$main"
     printf '   %s at %s\n' "$main" "$tip"
@@ -5360,6 +5619,13 @@ cmd_doctor () {
         else printf '%serror%s secret scrub: on, but %s/lib/provost_redact.awk is missing: captures will fail\n' "$C_ERR" "$C_RST" "$PROVOST_ROOT"; rc=1; fi
     else
         printf '   secret scrub: off (PROVOST_REDACT=0): inputs are stored as they come\n'
+    fi
+    if [[ "$PROVOST_OVERSIZE" == refuse ]]; then
+        printf '   inputs over %s bytes (PROVOST_MAX_INPUT): refused (PROVOST_OVERSIZE=refuse)\n' "$PROVOST_MAX_INPUT"
+    elif _artifact_dir_ok; then
+        printf '   inputs over %s bytes (PROVOST_MAX_INPUT): kept whole, outside git, in %s; their head is parsed\n' "$PROVOST_MAX_INPUT" "$(_artifact_dir)"
+    else
+        printf '   %swarning%s PROVOST_ARTIFACT_DIR (%s) is inside the store: an input over %s bytes would not be captured\n' "$C_ERR" "$C_RST" "$(_artifact_dir)" "$PROVOST_MAX_INPUT"
     fi
     if [[ -s "$(_faillog)" ]]; then
         printf '   %swarning%s failed background captures:\n' "$C_ERR" "$C_RST"
@@ -5538,6 +5804,10 @@ CAPTURE OPTIONS (run, piped input, FILE)
                             prologue (ENVIRONMENT CAPTURE below; default off)
     --redact, --no-redact   scrub secrets before storing (SECRETS AND
                             REDACTION below; default on)
+    --refuse-oversize, --keep-oversize
+                            over PROVOST_MAX_INPUT, refuse the input, or
+                            keep it whole outside git and parse its head
+                            (OVERSIZE INPUTS below; default keep)
 
 THE STORE
     Captures go to a GLOBAL git store, so you can capture from any directory:
@@ -5877,6 +6147,34 @@ BATCH CAPTURE (provost batch)
     meta.tsv says 'detection  reused (...)' where it was. Off with
     PROVOST_BATCH_REUSE=0, and under --multi, --model and --llm.
 
+OVERSIZE INPUTS
+    PROVOST_MAX_INPUT (10 MiB by default) is how much of an input is parsed.
+    An input larger than that is not refused: the whole of it, scrubbed of
+    secrets as a stored input is, is kept OUTSIDE the store's git history,
+    in the artifact directory, as a read-only file named by its sha256. Its
+    first PROVOST_MAX_INPUT bytes, cut back to the last whole line, are
+    parsed and stored as the capture's output.txt, and meta.tsv says so:
+      truncated     1
+      parsed_bytes  how much of it was parsed
+      raw_artifact  where the whole input is kept
+      raw_sha256    that file's sha256 (its name), raw_bytes its size
+      raw_redacted  what the scrub replaced in it
+    input_sha256 and input_bytes are the whole input's, as received.
+    'provost source' re-hashes the kept copy (raw_check: ok, MISSING or
+    ALTERED; exit 1 if not ok), and 'provost verify' counts a missing or
+    altered one as a finding. A copy moved with the artifact directory is
+    found there by its hash.
+
+    The artifact directory is PROVOST_ARTIFACT_DIR, or <store>.artifacts
+    beside the store: ~/.provost.artifacts, or DIR/.provost.artifacts for a
+    controlled directory (left out of its files and manifest). It is never
+    the store itself or inside it, so no clone, 'export' or handover of the
+    store carries it; copy it yourself if the copy needs the whole inputs.
+    'rm' leaves it alone: a kept file is shared by every capture of the same
+    bytes. Inputs within the cap are read and filed exactly as before.
+    --refuse-oversize (PROVOST_OVERSIZE=refuse) refuses an input over the
+    cap with "input too large", as every provost before 2.15.0 did.
+
 SECRETS AND REDACTION
     Secrets never belong in a store. Before an input is stored, every known
     secret pattern in it becomes [REDACTED:kind]:
@@ -6000,7 +6298,14 @@ SETTINGS (environment)
     PROVOST_LLM_LOG           a file to append each API reply's usage to (one
                               JSON line: purpose, tool, model, tokens)
     PROVOST_PLUGIN_DIR        an extra strategy directory (as --plugin-dir)
-    PROVOST_MAX_INPUT         max input bytes, piped or run (default: 10485760)
+    PROVOST_MAX_INPUT         max input bytes parsed, piped or run (default:
+                              10485760); a larger input is kept by hash
+    PROVOST_OVERSIZE          keep (the default): an input over
+                              PROVOST_MAX_INPUT is kept whole outside git and
+                              its head parsed; refuse: it is refused (as
+                              --refuse-oversize)
+    PROVOST_ARTIFACT_DIR      where such inputs are kept (default:
+                              <store>.artifacts, beside the store)
     PROVOST_FILES_MAX_SIZE    in a controlled directory, the largest file kept
                               with each run (bytes; default: 1048576; 0 = none)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
