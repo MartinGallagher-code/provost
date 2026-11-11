@@ -181,6 +181,8 @@ check "triage decodes the raw input (readable)" "a=1;b=2" "$unsorted_triage"
 PROVOST_WORKSPACE="$UWS" "$PROVOST" --min-confidence 101 <<<$'p\tq\nsecond line' >/dev/null 2>&1
 check "unsorted decode escapes embedded tabs/newlines" 'p\tq\nsecond line' \
     "$(PROVOST_WORKSPACE="$UWS" "$PROVOST" show unsorted 2>&1)"
+check "show unsorted --tsv decodes too, one input per line" $'c0002\tp\\tq\\nsecond line' \
+    "$(PROVOST_WORKSPACE="$UWS" "$PROVOST" show unsorted --tsv 2>&1)"
 fi
 
 if _part rm; then
@@ -1760,6 +1762,23 @@ check "search --output finds a line of captured output" "c0004 1 a=1" "$(PROVOST
 check "-e takes a pattern that starts with a dash" "no dataset rows match '-x'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -e -x 2>&1)"
 check "search --files searches the latest run's files" "m.py:1:v = 2" "$(fr search --files 'v =')"
 check "--files --at searches that run's" "m.py:1:v = 1" "$(fr search --files 'v =' --at 1)"
+
+# show --tsv: the rows as stored, for a program to read (provost_data.load
+# reads this way, PV-031). A store of its own: the checks above count captures.
+TWS="$(mktemp -d)/.tsv"
+printf 'k\tv\tw\nx\t\ty\nz\t1\t\n' | PROVOST_WORKSPACE="$TWS" "$PROVOST" --sync --name blanks >/dev/null 2>&1
+printf 'k\tv\tw\nq\t2\t3\n' | PROVOST_WORKSPACE="$TWS" "$PROVOST" --sync --name blanks >/dev/null 2>&1
+# Lines joined with '|' first: grep -F takes a newline in a pattern as two.
+bs="$(PROVOST_WORKSPACE="$TWS" "$PROVOST" show blanks --tsv 2>&1 | tr '\n' '|')"
+check "show --tsv prints the header tab-separated" $'[#\tcapture\tn\tk\tv\tw|' "[$bs"
+check "a blank cell stays blank, mid-row" $'|1\tc0001\t1\tx\t\ty|' "$bs"
+check "and at the end of a row" $'|2\tc0001\t2\tz\t1\t|' "$bs"
+check "show --tsv --capture keeps that capture's rows" $'[#\tcapture\tn\tk\tv\tw|3\tc0002\t1\tq\t2\t3|]' \
+    "[$(PROVOST_WORKSPACE="$TWS" "$PROVOST" show blanks --capture 2 --tsv 2>&1 | tr '\n' '|')]"
+check "show --tsv --capture with no rows prints the header alone" $'[#\tcapture\tn\tk\tv\tw|]' \
+    "[$(PROVOST_WORKSPACE="$TWS" "$PROVOST" show blanks --capture 9 --tsv 2>&1 | tr '\n' '|')]"
+check "show --tsv of no such dataset is refused" "no such dataset: nope" \
+    "$(PROVOST_WORKSPACE="$TWS" "$PROVOST" show nope --tsv 2>&1 || true)"
 fi
 
 if _part listen; then
