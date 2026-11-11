@@ -61,6 +61,26 @@ jobs:
       - name: smoke test
         run: bash tests/smoke.sh
 
+  integrations:
+    # The test-framework recipes in docs/integrations/ (PV-023), each run as
+    # a user would run it, so the pages cannot rot. ReFrame is pinned to the
+    # version the recipe was written against, and installed here only: it is
+    # never a dependency of provost. PROVOST_INTEGRATIONS_REQUIRE=1 makes a
+    # missing tool a failure rather than a skip.
+    name: integration recipes (ReFrame, pytest, GitLab CI)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install reframe-hpc==4.7.4 pytest pyyaml
+      - name: run every recipe against a stand-in
+        env:
+          PROVOST_INTEGRATIONS_REQUIRE: "1"
+        run: bash tests/integrations.sh
+
   quick-checks:
     # These four finish in 5-21 seconds each. Run as separate jobs they cost
     # four billable minutes, because GitHub rounds EVERY job up to a whole
@@ -82,6 +102,8 @@ jobs:
           exit $missing
       - name: transform unit test
         run: bash transform/tests/test_melt.sh
+      - name: units unit test (--units base, PV-032)
+        run: bash transform/tests/test_units.sh
       # stdlib only (no numpy/torch): the layout-model label builders
       - name: layout-model training-set tests
         run: python3 -m unittest discover -s ml/tests -v
@@ -144,8 +166,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install build twine pytest pytest-cov
-      - name: launcher unit tests (100% coverage enforced)
+      # pandas for provost_data.load_df's tests: without it they skip, and
+      # the coverage gate fails
+      - run: python -m pip install build twine pytest pytest-cov pandas
+      - name: launcher and Python API unit tests (100% coverage enforced)
         run: python -m pytest
       # numpy, but no torch: the tiny LM's tokenizer, numpy runtime and export
       # quantizers (ml/tests/test_lm_numpy.py; quick-checks skips them)
@@ -167,6 +191,12 @@ jobs:
           provost ls | grep aligned-columns
           provost run df -h
           provost show df
+          # the Python API reads it back through the wheel's bundled provost
+          python -c "import provost_data as p; r = p.load('df'); assert r and list(r[0])[:2] == ['#', 'capture'], r; print(len(r), 'rows via load')"
+          python -c "import provost_data as p; d = p.load_df('df'); assert len(d) and str(d['#'].dtype) == 'int64', d.dtypes; print(len(d), 'rows via load_df')"
+          # --env reads its secret patterns (extract/secrets.tsv) from the wheel
+          printf 'a,b\n1,2\n' | OMP_NUM_THREADS=8 provost --env --name envcheck
+          provost source "$(provost log | tail -n 1 | awk '{print $1}')" | grep 'env.var.OMP_NUM_THREADS=8'
           # the layout model ships in the wheel: a gated capture it can read
           provost --model tests/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt 2>&1 \
               | grep "strategy layout-model"
@@ -179,3 +209,49 @@ jobs:
           provost --llm extract/samples/llm-template/basic.txt 2>&1 \
               | grep "strategy llm-template"
 
+
+  # The offline install bundle for air-gapped hosts (PV-025,
+  # docs/offline-install.md): what release.yml attaches to each GitHub
+  # release, built from this commit and tested the way a high-side host uses
+  # it -- checksums, the SBOM against the CycloneDX 1.5 schema, one Sigstore
+  # signature made and verified, and a pip install with networking off on the
+  # Python floor (3.8) and on RHEL 9.
+  offline-bundle:
+    name: offline bundle (SBOM, checksums, signature, install with no network)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write   # Sigstore signs with this run's GitHub identity
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build "sigstore==4.5.1" "cyclonedx-python-lib[json-validation]==11.12.0"
+      - name: bundle tool unit tests
+        run: python -m unittest discover -s tests/offline_bundle -v
+      - run: python -m build
+      - name: build the bundle
+        run: |
+          dir="$(python tools/offline_bundle.py build --dist dist --out "$RUNNER_TEMP/bundle")"
+          echo "BUNDLE=$dir" >> "$GITHUB_ENV"
+          ls -l "$dir"
+      - name: SHA256SUMS, SBOM coverage and the CycloneDX 1.5 schema
+        run: python tools/offline_bundle.py check --schema "$BUNDLE"
+      - name: sign SHA256SUMS and verify the signature
+        # A pull request from a fork gets no id-token; the rest still runs.
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          IDENTITY: https://github.com/${{ github.workflow_ref }}
+        run: |
+          python -m sigstore sign "$BUNDLE/SHA256SUMS"
+          python -m sigstore verify identity --cert-identity "$IDENTITY" \
+              --cert-oidc-issuer https://token.actions.githubusercontent.com "$BUNDLE/SHA256SUMS"
+          python tools/offline_bundle.py check "$BUNDLE"
+      - name: pack it
+        run: python tools/offline_bundle.py pack "$BUNDLE"
+      - name: install with networking off (Python 3.8, the floor)
+        run: bash tools/offline-install-test.sh "$BUNDLE" python:3.8-slim
+      - name: install with networking off (RHEL 9 UBI)
+        run: bash tools/offline-install-test.sh "$BUNDLE" registry.access.redhat.com/ubi9/ubi

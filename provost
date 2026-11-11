@@ -108,13 +108,20 @@ PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any l
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 PROVOST_CONTEXT_COLUMNS="${PROVOST_CONTEXT_COLUMNS:-0}" # 1 = '#% key=value' context becomes row columns (--context-columns)
+PROVOST_UNITS="${PROVOST_UNITS:-off}"                # base = add a NAME[UNIT] column in base units beside each column with a readable unit (--units)
 PROVOST_MANIFEST_PROFILE="${PROVOST_MANIFEST_PROFILE:-}" # run-manifest profile: NAME or path ('' = the store's manifest-profile.tsv, else default)
 PROVOST_MANIFEST_STRICT="${PROVOST_MANIFEST_STRICT:-0}" # 1 = refuse to file a capture whose manifest lacks a required key (--strict-manifest)
+PROVOST_ENV="${PROVOST_ENV:-0}"                      # 1 = record where a capture was taken in its prologue (--env); modules = and the kernel modules (--env=modules)
+# The variables --env records (glob patterns, space- or comma-separated); set
+# but empty records none. Set means set: an empty value is not the default.
+PROVOST_ENV_VARS="${PROVOST_ENV_VARS-OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*}"
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
 PROVOST_LLM_MODEL="${PROVOST_LLM_MODEL:-claude-opus-5-5}"   # the model that writes templates
+PROVOST_LLM_JUDGE="${PROVOST_LLM_JUDGE:-1}"          # 1 = a review call after Claude writes or extends a template (see _llm_template)
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
+PROVOST_REDACT="${PROVOST_REDACT:-1}"                # 1 = scrub known secret patterns from each input before it is stored (--no-redact: 0)
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
 
 # ---------------------------------------------------------------------------
@@ -139,6 +146,8 @@ usage_die () { printf 'provost: %s\n' "$*" >&2; exit 2; }
 # Locale-proof character classes ([A-Z] ranges are collation-dependent).
 _ALNUM='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 _NAME_RE="^[${_ALNUM}][${_ALNUM}._-]*\$"
+# A PROVOST_ENV_VARS pattern: a variable name, or a glob over names.
+_ENV_PAT_RE="^[][${_ALNUM}_*?!^-]+\$"
 
 # _validate_uint LABEL VALUE MIN [MAX] — whole number in range, else exit 2.
 _validate_uint () {
@@ -173,10 +182,19 @@ _validate_settings () {
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_CONTEXT_COLUMNS" == 0 || "$PROVOST_CONTEXT_COLUMNS" == 1 ]] || usage_die "PROVOST_CONTEXT_COLUMNS must be 0 or 1 (got '$PROVOST_CONTEXT_COLUMNS')."
+    [[ "$PROVOST_UNITS" == off || "$PROVOST_UNITS" == base ]] || usage_die "PROVOST_UNITS must be off or base (got '$PROVOST_UNITS')."
     [[ "$PROVOST_MANIFEST_STRICT" == 0 || "$PROVOST_MANIFEST_STRICT" == 1 ]] || usage_die "PROVOST_MANIFEST_STRICT must be 0 or 1 (got '$PROVOST_MANIFEST_STRICT')."
+    case "$PROVOST_ENV" in 0|1|modules) ;; *) usage_die "PROVOST_ENV must be 0, 1 or modules (got '$PROVOST_ENV')." ;; esac
+    local _p; local -a _ps=()
+    read -ra _ps <<< "${PROVOST_ENV_VARS//,/ }"   # (read: no pathname expansion of the globs)
+    for _p in ${_ps[@]+"${_ps[@]}"}; do
+        [[ "$_p" =~ $_ENV_PAT_RE ]] || usage_die "PROVOST_ENV_VARS holds '$_p', which is not a variable name or glob pattern (letters, digits, '_', and * ? [ ] ! ^ -)."
+    done
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
+    [[ "$PROVOST_LLM_JUDGE" == 0 || "$PROVOST_LLM_JUDGE" == 1 ]] || usage_die "PROVOST_LLM_JUDGE must be 0 or 1 (got '$PROVOST_LLM_JUDGE')."
+    [[ "$PROVOST_REDACT" == 0 || "$PROVOST_REDACT" == 1 ]] || usage_die "PROVOST_REDACT must be 0 or 1 (got '$PROVOST_REDACT')."
     [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
@@ -263,6 +281,13 @@ if [[ -r "$PROVOST_ROOT/transform/melt.sh" ]]; then
     source "$PROVOST_ROOT/transform/melt.sh"
 else
     die "transform module not found (expected at $PROVOST_ROOT/transform/melt.sh)."
+fi
+# Units as data (`--units base`, `_core_units_base`): transform/units.sh.
+if [[ -r "$PROVOST_ROOT/transform/units.sh" ]]; then
+    # shellcheck source=transform/units.sh
+    source "$PROVOST_ROOT/transform/units.sh"
+else
+    die "transform module not found (expected at $PROVOST_ROOT/transform/units.sh)."
 fi
 
 _ds_dir ()  { printf '%s/datasets\n' "$PROVOST_WORKSPACE"; }
@@ -361,14 +386,63 @@ _sha256 () {
 
 # _receive RAW IN — the input exactly as received (RAW, already bounded by
 # PROVOST_MAX_INPUT) becomes IN with its CRs stripped, as provost has always
-# stored it; the sha256 and size of RAW, before any change, are kept beside it
-# in IN.received ("sha256<TAB>bytes") for _ingest_store to record. RAW goes.
+# stored it, and its secrets scrubbed (PV-033, unless PROVOST_REDACT=0); the
+# sha256 and size of RAW, before any change, are kept beside it in
+# IN.received ("sha256<TAB>bytes") for _ingest_store to record, and what the
+# scrub found in IN.redacted ("kind<TAB>n" lines, or "off"). RAW goes.
 _receive () {
     local raw="$1" in="$2" h n
     h="$(_sha256 "$raw")"
     n="$(wc -c < "$raw")"; n="${n//[!0-9]/}"
     printf '%s\t%s\n' "$h" "$n" > "$in.received"
     tr -d '\r' < "$raw" > "$in"; rm -f "$raw"
+    if [[ "$PROVOST_REDACT" == 1 ]]; then : > "$in.redacted"; _scrub "$in" "$in.redacted"
+    else echo off > "$in.redacted"; fi
+}
+
+# --- the secret scrub (PV-033) ------------------------------------------------
+# _scrub FILE COUNTS — FILE with every known secret pattern
+# (lib/provost_redact.awk: private keys, Authorization headers, tokens,
+# password=..., ...) replaced by [REDACTED:kind]; what was found is appended
+# to COUNTS as "kind<TAB>n" lines. A file with nothing to scrub is left byte
+# for byte as it was; a scrubbed one keeps a missing final newline missing.
+_scrub () {
+    local f="$1" counts="$2" c="$1.scrub-counts" n
+    [[ -f "$PROVOST_ROOT/lib/provost_redact.awk" ]] \
+        || die "the secret scrub is missing ($PROVOST_ROOT/lib/provost_redact.awk) — nothing captured (PROVOST_REDACT=0 files inputs unscrubbed)."
+    rm -f "$c"
+    LC_ALL=C awk -f "$PROVOST_ROOT/lib/provost_redact.awk" -v MODE=secrets -v COUNTS="$c" < "$f" > "$f.scrubbed" \
+        || { rm -f "$f.scrubbed" "$c"; die "the secret scrub failed — nothing captured."; }
+    if [[ -s "$c" ]]; then
+        if [[ -s "$f" && "$(tail -c 1 "$f" | od -An -tx1 | tr -d ' \n')" != 0a ]]; then
+            n="$(wc -c < "$f.scrubbed")"; n="${n//[!0-9]/}"
+            head -c "$((n - 1))" "$f.scrubbed" > "$f.scrubbed2" && mv -f "$f.scrubbed2" "$f.scrubbed"
+        fi
+        mv -f "$f.scrubbed" "$f"
+        cat "$c" >> "$counts"
+    else
+        rm -f "$f.scrubbed"
+    fi
+    rm -f "$c"
+}
+# _scrub_text TEXT COUNTS — TEXT (one line) scrubbed, on stdout; the counts
+# go to COUNTS, as _scrub's do (COUNTS.text is the scratch file).
+_scrub_text () {
+    local t="$2.text"
+    printf '%s\n' "$1" > "$t"
+    _scrub "$t" "$2"
+    cat "$t"; rm -f "$t"
+}
+# _redacted_summary FILE — an IN.redacted file as meta.tsv records it:
+# "kind=n,..." (sorted), "none", or "off".
+_redacted_summary () {
+    LC_ALL=C sort "$1" 2>/dev/null | awk -F'\t' '
+        $1 == "off" { off = 1; next }
+        NF == 2 { if (!($1 in n)) o[++k] = $1; n[$1] += $2 }
+        END { if (off) { print "off"; exit }
+              if (!k) { print "none"; exit }
+              for (i = 1; i <= k; i++) s = s (i > 1 ? "," : "") o[i] "=" n[o[i]]
+              print s }'
 }
 
 # _hash_trailers ID... — the commit-message trailer for these captures: a
@@ -1048,6 +1122,7 @@ _manifest_capture_setup () {
     if [[ -n "$_O_MANIFEST" || -n "$_O_MPROFILE" || -n "${PROVOST_MANIFEST_PROFILE:-}" || "$PROVOST_MANIFEST_STRICT" == 1 ]]; then
         _O_MPROF_PATH="$(_manifest_profile "$_O_MPROFILE")" || exit 1
     fi
+    _env_capture_setup
     return 0
 }
 # _manifest_apply IN LABEL -- prepend the --manifest lines to the input IN,
@@ -1055,9 +1130,19 @@ _manifest_capture_setup () {
 # warning, or with --strict-manifest an error: return 1, and the input is
 # not to be filed.
 _manifest_apply () {
-    local in="$1" label="$2" missing
-    if [[ -n "$_O_MANIFEST_TEXT" ]]; then
-        { printf '%s\n' "$_O_MANIFEST_TEXT"; cat -- "$in"; } > "$in.manifest" && mv -- "$in.manifest" "$in"
+    local in="$1" label="$2" missing env=""
+    # --env's lines go first, then --manifest's (scrubbed like the input,
+    # under --redact), then the input's own prologue; an --env key either of
+    # the others sets is left out.
+    [[ -z "$_O_ENV_TEXT" ]] || env="$(_env_unset_lines "$in")"
+    if [[ -n "$_O_MANIFEST_TEXT" || -n "$env" ]]; then
+        : > "$in.mlines"
+        [[ -z "$_O_MANIFEST_TEXT" ]] || printf '%s\n' "$_O_MANIFEST_TEXT" > "$in.mlines"
+        if [[ -s "$in.mlines" && "$PROVOST_REDACT" == 1 ]]; then _scrub "$in.mlines" "$in.redacted"; fi
+        { [[ -z "$env" ]] || printf '%s\n' "$env"
+          cat -- "$in.mlines"
+          cat -- "$in"; } > "$in.manifest" && mv -- "$in.manifest" "$in"
+        rm -f -- "$in.mlines"
     fi
     [[ -n "$_O_MPROF_PATH" ]] || return 0
     awk '!/^#%/ { exit } { print }' "$in" > "$in.prologue"
@@ -1071,6 +1156,169 @@ _manifest_apply () {
     fi
     warn "$label: the run manifest (profile $prof) lacks required key(s): $missing -- filed anyway; 'provost annotate ID KEY=VALUE' adds one later."
     return 0
+}
+
+# ---------------------------------------------------------------------------
+# ENVIRONMENT CAPTURE (PV-028). --env (PROVOST_ENV=1) adds where a capture was
+# taken to its '#%' prologue, as env.* keys: the host, kernel, architecture
+# and OS release, the loaded environment modules (Lmod or Environment
+# Modules: $LOADEDMODULES), the user, and the Slurm job, node list, cluster
+# and partition inside a Slurm job. Variables come only from the allow-list
+# PROVOST_ENV_VARS (glob patterns), each as env.var.NAME, never all of them;
+# one whose name or value looks like a secret (extract/secrets.tsv) is not
+# recorded even when allow-listed, and its name goes to env.withheld.
+# --env=modules (PROVOST_ENV=modules) adds the kernel modules (lsmod) as
+# env.kernel.modules. A run-manifest profile can claim a reading for a key of
+# its own (its 'env' column: default.tsv's sched.job is the Slurm job id), and
+# a key the --manifest FILE or the input's own prologue sets is theirs.
+# Everything is read once, when the options are checked, so every input of a
+# batch carries the same. Nothing here runs without --env.
+# ---------------------------------------------------------------------------
+# The readings, in the order they are written.
+_ENV_READINGS="host kernel arch os modules user slurm.job slurm.nodes slurm.cluster slurm.partition kernel.modules"
+_SR_KIND=(); _SR_FIELD=(); _SR_CASE=(); _SR_RE=()
+
+# _env_os -- the OS release: "Ubuntu 24.04.1 LTS" (os-release's PRETTY_NAME,
+# else NAME and VERSION_ID), "macOS 14.5" (sw_vers); nothing when neither.
+_env_os () {
+    local f k v name="" ver="" pretty=""
+    if [[ "$(uname -s 2>/dev/null || true)" == Darwin ]] && command -v sw_vers >/dev/null 2>&1; then
+        name="$(sw_vers -productName 2>/dev/null || true)"; ver="$(sw_vers -productVersion 2>/dev/null || true)"
+        printf '%s' "${name:-macOS}${ver:+ $ver}"
+        return 0
+    fi
+    for f in /etc/os-release /usr/lib/os-release; do
+        [[ -r "$f" ]] || continue
+        while IFS='=' read -r k v || [[ -n "$k" ]]; do
+            v="${v%\"}"; v="${v#\"}"; v="${v%\'}"; v="${v#\'}"
+            case "$k" in PRETTY_NAME) pretty="$v" ;; NAME) name="$v" ;; VERSION_ID) ver="$v" ;; esac
+        done < "$f"
+        if [[ -n "$pretty" ]]; then printf '%s' "$pretty"; else printf '%s' "$name${ver:+ $ver}"; fi
+        return 0
+    done
+    return 0
+}
+
+# _env_kmods -- the loaded kernel modules, sorted, comma-separated: lsmod's
+# first column, else /proc/modules'; nothing when neither is there (macOS).
+_env_kmods () {
+    {
+        if command -v lsmod >/dev/null 2>&1; then lsmod 2>/dev/null | awk 'NR > 1 && $1 != "" { print $1 }'
+        elif [[ -r /proc/modules ]]; then awk '$1 != "" { print $1 }' /proc/modules
+        fi
+    } | LC_ALL=C sort -u | paste -sd , - || true
+}
+
+# _env_secret_rules -- load extract/secrets.tsv into the _SR_* arrays (once).
+_env_secret_rules () {
+    (( ${#_SR_RE[@]} == 0 )) || return 0
+    local f="$PROVOST_ROOT/extract/secrets.tsv" kind field cs re n=0
+    [[ -r "$f" ]] || die "cannot read $f -- the secret patterns --env checks every variable against; nothing was captured."
+    while IFS=$'\t' read -r kind field cs re || [[ -n "$kind" ]]; do
+        n=$((n + 1))
+        [[ -z "$kind" || "$kind" == '#'* ]] && continue
+        [[ ( "$field" == name || "$field" == value ) && ( "$cs" == i || "$cs" == - ) && -n "$re" ]] \
+            || die "$f, line $n: want KIND<TAB>name|value<TAB>i|-<TAB>PATTERN; nothing was captured."
+        _SR_KIND+=("$kind"); _SR_FIELD+=("$field"); _SR_CASE+=("$cs"); _SR_RE+=("$re")
+    done < "$f"
+    (( ${#_SR_RE[@]} > 0 )) || die "$f holds no patterns; nothing was captured."
+}
+
+# _env_secret_kind NAME VALUE -- succeeds, printing "name (KIND)" or
+# "value (KIND)", when the variable's name or value matches a secret pattern.
+_env_secret_kind () {
+    local up="${1^^}" v="$2" i hit=""
+    for (( i = 0; i < ${#_SR_RE[@]}; i++ )); do
+        if [[ "${_SR_FIELD[i]}" == name ]]; then
+            if [[ "$up" =~ ${_SR_RE[i]} ]]; then hit="name (${_SR_KIND[i]})"; fi
+        else
+            [[ "${_SR_CASE[i]}" != i ]] || shopt -s nocasematch
+            if [[ "$v" =~ ${_SR_RE[i]} ]]; then hit="value (${_SR_KIND[i]})"; fi
+            shopt -u nocasematch
+        fi
+        if [[ -n "$hit" ]]; then printf '%s\n' "$hit"; return 0; fi
+    done
+    return 1
+}
+
+# _env_capture_setup -- with --env, the prologue lines it adds, one
+# '#% key=value' a line, in _O_ENV_TEXT ('' without --env).
+_env_capture_setup () {
+    _O_ENV_TEXT=""
+    [[ "$PROVOST_ENV" != 0 ]] || return 0
+    local -A R=() claim=()
+    local -a lines=() withheld=() pats=() names=()
+    local k v key prof n p kind
+    R[host]="${HOSTNAME:-}"; [[ -n "${R[host]}" ]] || R[host]="$(uname -n 2>/dev/null || true)"
+    R[kernel]="$(uname -sr 2>/dev/null || true)"
+    R[arch]="$(uname -m 2>/dev/null || true)"
+    R[os]="$(_env_os)"
+    R[modules]="${LOADEDMODULES:-}"
+    R[user]="$(id -un 2>/dev/null || true)"; [[ -n "${R[user]}" ]] || R[user]="${USER:-${LOGNAME:-}}"
+    R[slurm.job]="${SLURM_JOB_ID:-${SLURM_JOBID:-}}"
+    R[slurm.nodes]="${SLURM_JOB_NODELIST:-${SLURM_NODELIST:-}}"
+    R[slurm.cluster]="${SLURM_CLUSTER_NAME:-}"
+    R[slurm.partition]="${SLURM_JOB_PARTITION:-}"
+    if [[ "$PROVOST_ENV" == modules ]]; then
+        R[kernel.modules]="$(_env_kmods)"
+        [[ -n "${R[kernel.modules]}" ]] || warn "--env=modules: no kernel module list on this system (no lsmod or /proc/modules); env.kernel.modules not recorded."
+    fi
+    # The profile's claims (its 'env' column): reading -> the key(s) it fills.
+    prof="${_O_MPROF_PATH:-}"
+    [[ -n "$prof" ]] || prof="$(_manifest_profile "$_O_MPROFILE")" || exit 1
+    while IFS=$'\t' read -r n key k; do
+        if [[ " $_ENV_READINGS " == *" $k "* ]]; then claim[$k]="${claim[$k]:+${claim[$k]} }$key"
+        else warn "manifest profile $prof, line $n: its env column names '$k', which --env does not read (one of: $_ENV_READINGS) -- ignored."; fi
+    done < <(awk -F'\t' '/^#/ || /^[ \t]*$/ { next } NF >= 5 && $5 != "" && $5 != "-" { print FNR "\t" $1 "\t" $5 }' "$prof")
+    for k in $_ENV_READINGS; do
+        v="${R[$k]:-}"; [[ -n "$v" ]] || continue
+        v="${v//[$'\n\r\t']/ }"
+        if [[ -n "${claim[$k]:-}" ]]; then
+            for key in ${claim[$k]}; do lines+=("#% $(_prologue_word "$key" "$v")"); done
+        else
+            lines+=("#% $(_prologue_word "env.$k" "$v")")
+        fi
+    done
+    # The allow-listed variables (exported ones: what a command run here sees).
+    read -ra pats <<< "${PROVOST_ENV_VARS//,/ }"
+    if (( ${#pats[@]} > 0 )); then
+        _env_secret_rules
+        while IFS= read -r n; do
+            for p in "${pats[@]}"; do
+                # (unquoted on the right: a glob, as PROVOST_ENV_VARS means it)
+                # shellcheck disable=SC2053
+                if [[ "$n" == $p ]]; then names+=("$n"); break; fi
+            done
+        done < <(compgen -e | LC_ALL=C sort -u)
+        for n in ${names[@]+"${names[@]}"}; do
+            v="${!n-}"
+            if kind="$(_env_secret_kind "$n" "$v")"; then
+                withheld+=("$n")
+                warn "--env: \$$n not recorded: its $kind looks like a secret."
+                continue
+            fi
+            v="${v//[$'\n\r\t']/ }"
+            lines+=("#% $(_prologue_word "env.var.$n" "$v")")
+        done
+    fi
+    if (( ${#withheld[@]} > 0 )); then
+        lines+=("#% env.withheld=$(IFS=,; printf '%s' "${withheld[*]}")")
+    fi
+    (( ${#lines[@]} == 0 )) || _O_ENV_TEXT="$(printf '%s\n' "${lines[@]}")"
+    return 0
+}
+
+# _env_unset_lines IN -- the --env lines whose key neither the --manifest
+# lines nor IN's own prologue sets (theirs are the values that count).
+_env_unset_lines () {
+    local in="$1"
+    { [[ -z "$_O_MANIFEST_TEXT" ]] || printf '%s\n' "$_O_MANIFEST_TEXT"
+      awk '!/^#%/ { exit } { print }' "$in"; } > "$in.given"
+    _prologue_kv "$in.given" | cut -f1 > "$in.keys"
+    printf '%s\n' "$_O_ENV_TEXT" > "$in.env"
+    awk 'FILENAME == ARGV[1] { S[$0] = 1; next }
+         { k = $0; sub(/^#% /, "", k); sub(/=.*/, "", k); if (!(k in S)) print }' "$in.keys" "$in.env"
+    rm -f -- "$in.given" "$in.keys" "$in.env"
 }
 
 # Snapshot a controlled directory's contents as commit context: a manifest of
@@ -1180,39 +1428,116 @@ _tidy_cols () { head -n 1 "$1" | tr '\t' '\n' | awk 'NR == 1 && $0 == "n" { next
 #      it yields at least two datasets;
 #   2. every dataset passes the gate itself — confidence >= the threshold
 #      and, for a generic parser, its own coverage and consistency (measured
-#      by the engine against the dataset's own blocks) >= the gate's;
+#      by the engine against the dataset's own blocks) >= the gate's. A
+#      TOOL-SPECIFIC parser (bespoke or plugin) reading a part must keep the
+#      gate's coverage of that part's lines too (PV-013): exempt on a whole
+#      input, it is an accident on a fragment of some other tool's output
+#      (round 4's 048: git-annex-list read a pytest rule line as flags /
+#      path at 50%). The strict grammars (json, yaml, xml, toml, har) stay
+#      exempt: they validate what they read;
 #   3. together they cover MATERIALLY more of the input: the whole input's
 #      coverage by all the datasets is at least the gate's minimum and
 #      _AM_GAIN (10) points above the single parse's;
 #   4. no dataset is a POSITIONAL table — 2+ rows under nothing but generated
-#      A/B/C… column names: a header the split cut off (a rule line between
-#      header and rows), or box chrome read as cells. Filing values under
-#      positional names is the misplacement the gate exists to stop;
+#      A/B/C… column names — that shows a header was lost or rows shredded:
+#      a column of nothing but box chrome (| || +), cells mostly empty (prose
+#      split word-per-column, ragged rows), or a header-like line (2+ words,
+#      no digit) right above the part in the input, past blank and rule
+#      lines: a header the split cut off. Filing values under positional
+#      names there is the misplacement the gate exists to stop. A headerless
+#      table with none of these is filed: where the input supplies no header,
+#      positional names are the honest answer (the benchmark's rating rule 4;
+#      PV-013, round 4's 003, 029 and 137);
 #   5. the parser the gate just rejected does not come back unmeasured: a
 #      dataset (3+ lines) read by the same strategy must have a judged
 #      column-type consistency (a one-record flatten is not judged);
-#   6. it is not shattered into trivial fragments: datasets of 3+ input lines
-#      hold at least half the input's lines (a banner, a footer or a prompt
-#      may be a one-line dataset of its own; most of the input may not).
+#   6. it is not shattered into trivial fragments: datasets of 3+ lines or
+#      3+ rows hold at least half of it (a banner, a footer or a prompt may
+#      be a one-line dataset of its own; most of the input may not). A part's
+#      size is its input lines or its table's rows, whichever is more: one
+#      line can hold many records (a ServerQuery client list is one line of
+#      '|'-separated clients), and is no fragment (_am_frag_add).
 # Otherwise it returns 1 with the reason in am_note, and the capture is held
 # exactly as before. Works on _ingest's locals (dynamic scope): reads engine,
 # eargs, body, tmp, threshold, name, strategy, cov; fills ds_* and am_*.
 _AM_GAIN=10
 _LLM_CATCHALL_SLACK=20   # _llm_file: points a template may trail a catch-all parse by
-_AM_FRAG_LINES=3
+_AM_FRAG_MIN=3   # a part of fewer lines AND fewer rows than this is a fragment
 
-# _am_part_check I WIDE TSV — the per-part checks of _auto_multi (rules 2, 4
-# and 5) on part I's dstrat / dconf / dcov / dcons / dlines (the caller's
-# locals); melts WIDE into TSV. Sets _AMP_NOTE (empty = the part passes) and
+# _am_frag_add LINES ROWS — add one part to the fragments rule's totals (the
+# caller's tot / sub): its size is its non-blank input lines or the rows of
+# its table, whichever is more, and it counts as substantial (sub) at
+# _AM_FRAG_MIN or more.
+_am_frag_add () {
+    local n="$1"
+    [[ "$2" =~ ^[0-9]{1,9}$ ]] && (( $2 > n )) && n="$2"
+    tot=$(( tot + n )); (( n >= _AM_FRAG_MIN )) && sub=$(( sub + n ))
+    return 0
+}
+
+# _am_positional_why TSV TEXT INPUT — rule 4's evidence that a positional
+# table (TSV, tidy) lost its header or shredded its rows: prints why, or
+# nothing when the part reads as a genuinely headerless table. TEXT is the
+# part's own input lines (the engine's PROVOST_MULTI_TEXT_DIR) and INPUT the
+# whole input; without TEXT nothing places the part, so it is declined as
+# before.
+_am_positional_why () {
+    local tsv="$1" text="$2" inp="$3" first
+    awk -F'\t' '
+        NR == 1 { c0 = ($1 == "n") ? 2 : 1; nc = NF - c0 + 1; next }
+        $0 == "" { next }
+        { rows++
+          for (j = c0; j <= NF; j++) {
+              v = $j; gsub(/^[ \t]+|[ \t]+$/, "", v)
+              if (v != "") { fill++; if (v !~ /^[|+]+$/) word[j] = 1 } else empty[j] = 1
+          } }
+        END {
+            if (rows == 0 || nc < 1) exit
+            for (j = c0; j < c0 + nc; j++) if (!(j in word) && !(j in empty)) { print "box chrome read as cells"; exit }
+            if (fill * 3 < rows * nc * 2) print "its cells are mostly empty (prose split into words)"
+        }' "$tsv"
+    [[ -n "$text" && -s "$text" ]] || { printf 'its place in the input is unknown\n'; return 0; }
+    first="$(awk 'NF { print; exit }' "$text")"
+    [[ -n "$first" ]] || return 0
+    FIRST="$first" awk '
+        function rule(s) { return s ~ /^[ \t]*$/ || s ~ /^[ \t]*[-=+_|:*~.#]+([ \t]+[-=+_|:*~.#]+)*[ \t]*$/ }
+        function header(s,   n, k, t, w) {
+            n = split(s, t, /[ \t]+/); w = 0
+            for (k = 1; k <= n; k++) {
+                if (t[k] == "") continue
+                if (t[k] ~ /[0-9]/) return 0
+                if (t[k] ~ /[A-Za-z]/) w++
+            }
+            return w >= 2
+        }
+        { line[NR] = $0 }
+        $0 == ENVIRON["FIRST"] {
+            for (j = NR - 1; j >= 1 && rule(line[j]); j--) ;
+            if (j >= 1 && header(line[j])) { print "a header-like line sits right above it (a header the split cut off)"; exit }
+        }' "$inp"
+}
+
+# _am_part_check I WIDE TSV [TEXT] — the per-part checks of _auto_multi (rules
+# 2, 4 and 5) on part I's dstrat / dconf / dcov / dcons / dlines (the caller's
+# locals); melts WIDE into TSV. TEXT, the part's own input lines, lets rule 4
+# file a genuinely headerless table (see _am_positional_why); without it every
+# positional table is declined. Sets _AMP_NOTE (empty = the part passes) and
 # _AMP_ROWS.
 _am_part_check () {
-    local i="$1" wide="$2" tsv="$3" ncols nsyn
+    local i="$1" wide="$2" tsv="$3" text="${4:-}" ncols nsyn why
     _AMP_NOTE=""; _AMP_ROWS=0
     if [[ -z "$dstrat" ]]; then _AMP_NOTE="part $i has no strategy"; return 0; fi
     if (( dconf < threshold )); then
         _AMP_NOTE="part $i ($dstrat) is low-confidence ($dconf<$threshold)"; return 0
     fi
-    if ! _quality_exempt "$engine" "$dstrat"; then
+    if _quality_exempt "$engine" "$dstrat"; then
+        case "$dstrat" in
+            json|json-array|jsonl|yaml|xml|toml|har|llm-template) ;;
+            *)  if [[ "$dcov" != - ]] && (( PROVOST_MIN_COVERAGE > 0 && dcov < PROVOST_MIN_COVERAGE )); then
+                    _AMP_NOTE="part $i ($dstrat, a tool-specific parser) keeps $dcov% of its lines"; return 0
+                fi ;;
+        esac
+    else
         if [[ "$dcov" != - ]] && (( PROVOST_MIN_COVERAGE > 0 && dcov < PROVOST_MIN_COVERAGE )); then
             _AMP_NOTE="part $i ($dstrat) keeps $dcov% of its lines"; return 0
         fi
@@ -1220,14 +1545,15 @@ _am_part_check () {
             _AMP_NOTE="part $i ($dstrat) columns are $dcons% type-consistent"; return 0
         fi
     fi
-    if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_LINES )); then
+    if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_MIN )); then
         _AMP_NOTE="part $i is read by the rejected parser ($dstrat) and cannot be judged"; return 0
     fi
     _core_melt_tidy_file "$wide" "" "$tsv.renamed" > "$tsv"
     _AMP_ROWS=$(awk 'NR > 1 && $0 != "" { r++ } END { print r + 0 }' "$tsv")
     read -r ncols nsyn < <(_tidy_cols "$tsv" | awk '{ c++ } /^[A-Z][A-Z]?$/ { s++ } END { print c + 0, s + 0 }')
     if (( _AMP_ROWS >= 2 && ncols >= 2 && nsyn == ncols )); then
-        _AMP_NOTE="part $i ($dstrat) is a table with positional columns only"
+        why="$(_am_positional_why "$tsv" "$text" "$body" | head -n 1)"
+        [[ -n "$why" ]] && _AMP_NOTE="part $i ($dstrat) is a table with positional columns only: $why"
     fi
     return 0
 }
@@ -1256,8 +1582,10 @@ _model_table () {
 }
 
 _auto_multi () {
-    local mo="$tmp/am.txt" mm="$tmp/am.meta" kind="" n="" mcov="" mlines="" textdir=""
-    if [[ "$PROVOST_MODEL" == 1 ]]; then textdir="$tmp/amtext"; mkdir -p "$textdir"; fi
+    local mo="$tmp/am.txt" mm="$tmp/am.meta" kind="" n="" mcov="" mlines="" textdir="$tmp/amtext"
+    # Each part's own input lines: rule 4 places a positional part by them,
+    # and the layout model reads a part from them.
+    rm -rf "$textdir"; mkdir -p "$textdir"
     PROVOST_MULTI_TEXT_DIR="$textdir" _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
         ${eargs[@]+"${eargs[@]}"} --multi --emit-meta -f tsv --max-strategies 1 "$body" \
         >"$mo" 2>"$mm" || true
@@ -1293,7 +1621,7 @@ _auto_multi () {
         [[ "$dcov" =~ ^[0-9]{1,3}$ ]] || dcov="-"
         [[ "$dcons" =~ ^[0-9]{1,3}$ ]] || dcons="-"
         [[ "$dlines" =~ ^[0-9]{1,9}$ ]] || dlines=0
-        _am_part_check "$i" "$tmp/ds.$i.wide" "$tmp/ds.$i.tsv"
+        _am_part_check "$i" "$tmp/ds.$i.wide" "$tmp/ds.$i.tsv" "$textdir/ds.$i.txt"
         # LAYOUT MODEL, per part: a part the gate rejects is read again by
         # the model on just that part's lines (its text comes from the engine,
         # PROVOST_MULTI_TEXT_DIR), arbitrating with the engine's own parse of
@@ -1304,7 +1632,7 @@ _auto_multi () {
            _model_table "$tmp/amtext/ds.$i.txt" "$tmp/ds.$i.wide" "$dstrat"$'\t'"$dconf"$'\t'"$dcov"$'\t'"$dcons" "part$i"; then
             local _pnote="$_AMP_NOTE" _ostrat="$dstrat"
             dstrat=layout-model; dconf="$_MT_C"; dcov="$_MT_V"; dcons="${_MT_T:--}"
-            _am_part_check "$i" "$_MT_OUT" "$tmp/ds.$i.lm.tsv"
+            _am_part_check "$i" "$_MT_OUT" "$tmp/ds.$i.lm.tsv" "$textdir/ds.$i.txt"
             if [[ -z "$_AMP_NOTE" ]]; then
                 cp "$_MT_OUT" "$tmp/ds.$i.wide"; mv "$tmp/ds.$i.lm.tsv" "$tmp/ds.$i.tsv"
                 am_model=$((am_model + 1))
@@ -1314,13 +1642,13 @@ _auto_multi () {
         fi
         [[ -z "$_AMP_NOTE" ]] || { am_note="$_AMP_NOTE"; return 1; }
         nrows="$_AMP_ROWS"
-        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        _am_frag_add "$dlines" "$_AMP_ROWS"
         if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
         an+=("${name:+$name.}$dstrat"); as+=("$dstrat"); ac+=("$dconf"); af+=("$tmp/ds.$i.tsv")
         acv+=("$dcov"); acs+=("$dcons"); arows+=("$nrows")
     done
     if (( sub == 0 || sub * 2 < tot )); then
-        am_note="the parts are fragments ($sub of $tot lines in parts of $_AM_FRAG_LINES+ lines)"; return 1
+        am_note="the parts are fragments ($sub of $tot lines or rows in parts of $_AM_FRAG_MIN+)"; return 1
     fi
 
     # Naming. Every part is named as --multi names it: NAME.strategy for
@@ -1405,13 +1733,13 @@ _model_multi () {
         dlines=$(grep -c '[^[:space:]]' "$f" || true)
         _am_part_check "$i" "$_MT_OUT" "$segd/seg.$i.tsv"
         [[ -z "$_AMP_NOTE" ]] || { mm_note="${_AMP_NOTE/#part/section}"; return 1; }
-        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        _am_frag_add "$dlines" "$_AMP_ROWS"
         [[ "$dcov" == - ]] || covl=$(( covl + dcov * dlines ))
         an+=("${name:+$name.}layout-model"); as+=(layout-model); ac+=("$dconf"); af+=("$segd/seg.$i.tsv")
         acv+=("$dcov"); acs+=("$dcons")
     done
     if (( sub == 0 || sub * 2 < tot )); then
-        mm_note="its sections are fragments ($sub of $tot lines in sections of $_AM_FRAG_LINES+ lines)"; return 1
+        mm_note="its sections are fragments ($sub of $tot lines or rows in sections of $_AM_FRAG_MIN+)"; return 1
     fi
     alll=$(grep -c '[^[:space:]]' "$body" || true)
     (( alll > 0 )) || { mm_note="the input is empty"; return 1; }
@@ -1449,16 +1777,26 @@ _llm_table () {
 # the engine on that block's own lines and must pass the per-part checks
 # (_am_part_check); the blocks are not fragments; and together they keep at
 # least _AM_GAIN points more of the input than the held parse (and the gate's
-# minimum), the lines the template marks as decoration not counted. One block
-# replaces the held parse (wide.tsv); several are filed as the capture's
-# datasets, named NAME.<block>. Otherwise 1, the reason in llm_note.
+# minimum), the lines the template marks as decoration not counted — as the
+# SKIP AUDIT allows (template.py audit): a skipped line with no letter or
+# digit, or one of a kind Claude has judged decoration. A skipped line that
+# carries a word or a number and has not been judged counts as unread. One
+# block replaces the held parse (wide.tsv); several are filed as the
+# capture's datasets, named NAME.<block>. Otherwise 1, the reason in
+# llm_note; llm_audit holds the counts (skipped decoration judged unjudged
+# read unread).
 _llm_file () {
     local t="$1" py="$PROVOST_ROOT/extract/llm/template.py" bd="$tmp/llmblk" out n=0 skipped=0 i f bname
     local dstrat dconf dcov dcons dlines tot=0 sub=0 covl=0 alll jcov need
-    llm_notes=""; rm -rf "$bd"
+    local _ab _ac a_deco=0 a_judged=0 a_unj=0 a_read=0 a_unread=0 _v
+    llm_notes=""; llm_audit=""; rm -rf "$bd"
     out="$(python3 "$py" apply "$t" "$body" --out "$bd" 2>/dev/null)" \
         || { llm_note="it matches nothing in the input"; return 1; }
-    skipped="${out##*$'\t'}"; [[ "$skipped" =~ ^[0-9]{1,9}$ ]] || skipped=0
+    IFS=$'\t' read -r _ab _ac skipped a_deco a_judged a_unj a_read a_unread <<< "$out" || true
+    for _v in skipped a_deco a_judged a_unj a_read a_unread; do
+        [[ "${!_v}" =~ ^[0-9]{1,9}$ ]] || printf -v "$_v" 0
+    done
+    llm_audit="$skipped $a_deco $a_judged $a_unj $a_read $a_unread"
     while [[ -f "$bd/blk.$((n + 1)).rec" ]]; do n=$((n + 1)); done
     (( n >= 1 )) || { llm_note="it matches nothing in the input"; return 1; }
     # a nameless capture's datasets are named after the template's tool
@@ -1484,24 +1822,27 @@ _llm_file () {
         dlines=$(grep -c '[^[:space:]]' "$f" || true)
         _am_part_check "$i" "$_MT_OUT" "$bd/blk.$i.tsv"
         [[ -z "$_AMP_NOTE" ]] || { llm_note="${_AMP_NOTE/#part $i/block $bname}"; return 1; }
-        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        _am_frag_add "$dlines" "$_AMP_ROWS"
         [[ "$dcov" == - ]] || covl=$(( covl + dcov * dlines ))
         an+=("${dsbase:+$dsbase.}$bname"); as+=(llm-template); ac+=("$dconf"); af+=("$bd/blk.$i.tsv")
         acv+=("$dcov"); acs+=("$dcons"); aw+=("$_MT_OUT")
     done
     if (( n > 1 )) && (( sub == 0 || sub * 2 < tot )); then
-        llm_note="its blocks are fragments ($sub of $tot lines in blocks of $_AM_FRAG_LINES+ lines)"; return 1
+        llm_note="its blocks are fragments ($sub of $tot lines or rows in blocks of $_AM_FRAG_MIN+)"; return 1
     fi
     alll=$(grep -c '[^[:space:]]' "$body" || true)
-    # the lines a template marks as decoration are not counted against it:
-    # none is lost, since every one that carries a word or a number is filed
-    # in its NAME.notes (template.py notes) and the rest are rules and box
-    # glyphs. Against a CATCH-ALL parse the gate passed (text-lines,
-    # line-records: the engine's own lossless readings, _FR_COV_CATCHALL)
-    # it may trail by _LLM_CATCHALL_SLACK points rather than _AM_GAIN.
+    # the lines a template marks as decoration are not counted against it
+    # when the skip audit allows: rules and box glyphs, and set-aside lines of
+    # a kind Claude has judged decoration. None is lost: every skipped line
+    # that carries a word or a number is filed in its NAME.notes (template.py
+    # notes). A set-aside line not judged counts as unread (PV-008: a skip
+    # pattern that swallowed a diff once read as 100%). Against a CATCH-ALL
+    # parse the gate passed (text-lines, line-records: the engine's own
+    # lossless readings, _FR_COV_CATCHALL) it may trail by
+    # _LLM_CATCHALL_SLACK points rather than _AM_GAIN.
     local catchall=0
     case " $strategy " in *" text-lines "*|*" line-records "*) [[ "$llm_floor" == match ]] && catchall=1 ;; esac
-    alll=$(( alll - skipped ))
+    alll=$(( alll - a_deco - a_judged ))
     (( alll > 0 )) || { llm_note="it keeps none of the input's data lines"; return 1; }
     jcov=$(( covl / alll ))
     # against a held parse the template must gain _AM_GAIN points; against a
@@ -1540,14 +1881,35 @@ _llm_file () {
 # files what it yields (_llm_file). With an API key, a stored template that
 # meets a kind of line it has not met before is first sent back to Claude to
 # be extended (repair), and when none fits Claude writes one from this
-# capture — the steps that send the capture's text to the Anthropic API. A
-# new or extended template is kept only when what it yields passes the same
-# rules. Every later capture of the tool is then parsed offline. With LEARN=0
-# Claude is never asked (only a stored template can fit). Otherwise 1, the
-# reason in llm_note.
+# capture — the steps that send the capture's text to the Anthropic API.
+# After either, one more call reviews what the template makes of the capture
+# (the judge, PROVOST_LLM_JUDGE; template.py review_template) and may revise
+# it once; a revision that fails the gate falls back to the template as it
+# was before the review (NEW.before). A new or extended template is kept
+# only when what it yields passes the same rules. Every later capture of the
+# tool is then parsed offline. With LEARN=0 Claude is never asked (only a
+# stored template can fit). Otherwise 1, the reason in llm_note. On 0,
+# llm_seen_how (learned, extended, checked or read) and llm_seen_tpl (the
+# template file) say how, for the template's ledger (_llm_seen, written with
+# the capture).
+_llm_reviewed () { # NEW: file the template Claude wrote or extended; if the
+    # judge's revision fails the gate, the template as it was before the
+    # review. The review's line is in llm_rev (amended for a fallback).
+    local t="$1" n0
+    _llm_file "$t" && return 0
+    [[ -f "$t.before" ]] || return 1
+    n0="$llm_note"
+    _llm_file "$t.before" || { llm_note="$n0"; return 1; }
+    mv -f "$t.before" "$t"
+    llm_rev="${llm_rev:+$llm_rev, }but the revision fails the gate ($n0), so the template as it was is kept"
+    return 0
+}
 _llm_template () {
     local learn="${1:-1}" py="$PROVOST_ROOT/extract/llm/template.py" tdir="$PROVOST_WORKSPACE/llm-templates"
-    local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev
+    local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev out jflag=""
+    [[ "$PROVOST_LLM_JUDGE" == 1 ]] || jflag="--no-judge"
+    local llm_rev=""
+    llm_seen_how=""; llm_seen_tpl=""
     command -v python3 >/dev/null 2>&1 || { llm_note="python3 is not installed"; return 1; }
     [[ -z "$tool" && -n "$cmd" ]] && { tool="${cmd%% *}"; tool="${tool##*/}"; }
     kf="$(python3 "$py" key "$body" --name "$tool" 2>/dev/null)" || { llm_note="the input could not be read"; return 1; }
@@ -1568,17 +1930,33 @@ _llm_template () {
         local miss="" rnote="" rstat=""
         if (( learn )) && [[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] \
             && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
-            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>"$tmp/llm-repair.err")"; then
-                if _llm_file "$new"; then
+            # every other capture the template was written from that the store
+            # still has (its ledger names them): the extension (and a judge's
+            # revision of it) must still read them too, though only its
+            # examples are sent
+            local -a earlier=(); local _c _h _r
+            if [[ -f "$tdir/$(_llm_seen_stem "$tpl").seen.tsv" ]]; then
+                while IFS=$'\t' read -r _c _h _r; do
+                    case "$_h" in learned|extended|checked) ;; *) continue ;; esac
+                    [[ "$_c" =~ ^c[0-9]{4,}$ && -f "$(_cap_dir)/$_c/output.txt" ]] \
+                        && earlier+=(--earlier "$(_cap_dir)/$_c/output.txt")
+                done < "$tdir/$(_llm_seen_stem "$tpl").seen.tsv"
+            fi
+            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag \
+                    ${earlier[@]+"${earlier[@]}"} 2>"$tmp/llm-repair.err")"; then
+                [[ "$rstat" == *$'\n'* ]] && llm_rev="${rstat#*$'\n'}"
+                if _llm_reviewed "$new"; then
                     # kept even when unchanged: it now holds this capture, so
                     # these lines are not sent again
                     mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
-                    if [[ "$rstat" == unchanged ]]; then
-                        llm_how="template ${tpl##*/}, which Claude checked for $miss and left as it was (llm-templates/$kf)"
+                    if [[ "${rstat%%$'\n'*}" == unchanged ]]; then
+                        llm_how="template ${tpl##*/}, which Claude checked for $miss and left as it was (llm-templates/$kf)${llm_rev:+, $llm_rev}"
+                        llm_seen_how=checked
                     else
-                        llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)"
+                        llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)${llm_rev:+, $llm_rev}"
+                        llm_seen_how=extended
                     fi
-                    llm_learned="llm-templates/$kf"
+                    llm_learned="llm-templates/$kf"; llm_seen_tpl="$tdir/$kf"
                     return 0
                 fi
                 rnote="the template Claude extended for $miss fails the gate: $llm_note"
@@ -1587,7 +1965,10 @@ _llm_template () {
                 rnote="Claude could not extend it for $miss: ${err#template: }"
             fi
         fi
-        if _llm_file "$tpl"; then llm_how="template ${tpl##*/}${rnote:+ ($rnote)}"; return 0; fi
+        if _llm_file "$tpl"; then
+            llm_how="template ${tpl##*/}${rnote:+ ($rnote)}"; llm_seen_how=read; llm_seen_tpl="$tpl"
+            return 0
+        fi
         llm_note="template ${tpl##*/} does not fit: $llm_note${rnote:+; $rnote}"
         # a repair was tried: don't also have Claude start the tool's template over
         [[ -z "$rnote" ]] || return 1
@@ -1598,15 +1979,55 @@ _llm_template () {
         return 1
     fi
     prev="$llm_note"
-    if ! err="$(python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>&1 >/dev/null)"; then
+    if ! out="$(python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag 2>"$tmp/llm-learn.err")"; then
+        err="$(cat "$tmp/llm-learn.err" 2>/dev/null)"
         llm_note="${prev:+$prev; }Claude wrote no usable template: ${err#template: }"; return 1
     fi
-    if ! _llm_file "$new"; then
+    [[ "$out" == *$'\n'* ]] && llm_rev="${out#*$'\n'}"
+    if ! _llm_reviewed "$new"; then
         llm_note="${prev:+$prev; }the template Claude wrote fails the gate: $llm_note"; return 1
     fi
     mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
-    llm_how="a new template Claude wrote (llm-templates/$kf)"; llm_learned="llm-templates/$kf"
+    llm_how="a new template Claude wrote (llm-templates/$kf)${llm_rev:+, $llm_rev}"; llm_learned="llm-templates/$kf"
+    llm_seen_how=learned; llm_seen_tpl="$tdir/$kf"
     return 0
+}
+
+# THE LEDGER: every capture an LLM template files is recorded beside the
+# store's templates, in llm-templates/NAME.seen.tsv (NAME: the template's file
+# name without .json, whichever directory it came from), one row a capture:
+#   capture  how  template  read  unread  skipped  unjudged  input_sha256
+# how: learned (Claude wrote it from this capture), extended or checked (a
+# repair: Claude saw this capture and changed the template, or left it as it
+# was), read (filed by it as it was). template: llm-templates/NAME.json, or
+# shipped:NAME.json, or the library path it came from. The counts are its
+# lines on this capture (template.py audit): read, left unread, skipped, and
+# of the skipped those set aside unjudged (counted as unread). A repair reads
+# it for the captures the template was written from (learned, extended,
+# checked) and checks the extension against every one the store still has.
+# Written by _ingest_store under the store lock, with the capture's id;
+# committed with the capture. A capture `rm --capture` purges keeps its row
+# (as its commit keeps its Input-SHA256 trailer); a repair skips it.
+_llm_seen_stem () { local b="${1##*/}"; printf '%s\n' "${b%.json}"; }
+
+# _llm_seen ID — append this capture's row to its template's ledger.
+_llm_seen () {
+    local cid="$1" tdir="$PROVOST_WORKSPACE/llm-templates" led src
+    [[ -n "${llm_seen_how:-}" && -n "${llm_seen_tpl:-}" ]] || return 0
+    led="$tdir/$(_llm_seen_stem "$llm_seen_tpl").seen.tsv"
+    case "$llm_seen_tpl" in
+        "$tdir"/*) src="llm-templates/${llm_seen_tpl##*/}" ;;
+        "$PROVOST_ROOT/extract/llm/templates"/*) src="shipped:${llm_seen_tpl##*/}" ;;
+        *) src="$llm_seen_tpl" ;;
+    esac
+    src="${src//[$'\t\r\n']/ }"
+    local _s _d _j _u _r _n
+    read -r _s _d _j _u _r _n <<< "${llm_audit:-}" || true
+    mkdir -p "$tdir"
+    [[ -s "$led" ]] || printf 'capture\thow\ttemplate\tread\tunread\tskipped\tunjudged\tinput_sha256\n' > "$led"
+    local sha="${in_sha:-}"; [[ "$sha" =~ ^[0-9a-f]{64}$ ]] || sha=""
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$cid" "$llm_seen_how" "$src" \
+        "${_r:-}" "${_n:-}" "${_s:-}" "${_u:-}" "$sha" >> "$led"
 }
 
 # Core ingest pipeline shared by `inject` (pipe/file), `run` (a command) and
@@ -1691,6 +2112,7 @@ _ingest_parse () {
     # was declined; single_cov / single_cons = the held parse's measures.
     local lm_reason="" lm_note="" single_cov="" single_cons="" mm_note=""
     local llm_reason="" llm_note="" llm_how="" llm_learned="" llm_multi=0 llm_floor=gain llm_notes="" llm_notes_base=""
+    local llm_audit="" llm_seen_how="" llm_seen_tpl=""
 
     if [[ "$PROVOST_MULTI" == 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
@@ -1775,7 +2197,13 @@ _ingest_parse () {
         # fallbacks on a held capture, and before a GENERIC parse the gate
         # passed is trusted (the gate cannot see a title or prompt read as the
         # header; a template written for the tool's layout can). Never over an
-        # exact-format or tool-specific parser. See _llm_template, _llm_file.
+        # exact-format or tool-specific parser, with one exception: yaml. Its
+        # grammar is lax enough that plain `Label: text` output is valid YAML
+        # (golangci-lint's linter list reads as one 110-column record, its
+        # section titles lost), so a template ALREADY STORED for the tool may
+        # better a yaml parse under the same rule as a generic one. Claude is
+        # never asked to write one for it: a real YAML document has no
+        # template and costs nothing. See _llm_template, _llm_file.
         if [[ "$PROVOST_LLM" == 1 ]]; then
             single_cov="$cov"; single_cons="$tcons"
             if [[ "$reason" == low-coverage* || "$reason" == low-consistency* ]]; then
@@ -1783,10 +2211,11 @@ _ingest_parse () {
                     if (( llm_multi )); then am_reason="$reason"; else llm_reason="$reason"; fi
                     reason=""
                 fi
-            elif [[ -z "$reason" ]] && ! _quality_exempt "$engine" "$strategy"; then
-                local _held="passed over (the engine read it as $strategy, coverage ${cov:--}%): a template"
+            elif [[ -z "$reason" ]] && { [[ "$strategy" == yaml ]] || ! _quality_exempt "$engine" "$strategy"; }; then
+                local _held="passed over (the engine read it as $strategy, coverage ${cov:--}%): a template" _learn=1
+                [[ "$strategy" == yaml ]] && _learn=0
                 llm_floor=match
-                if _llm_template 1; then
+                if _llm_template "$_learn"; then
                     if [[ -n "$llm_learned" ]]; then _held="$_held Claude wrote for this tool fits"
                     else _held="$_held stored for this tool fits"; fi
                     if (( llm_multi )); then am_reason="$_held"; else llm_reason="$_held"; fi
@@ -1841,6 +2270,32 @@ _ingest_parse () {
         ds_file[nk]="$llm_notes"; ds_cov[nk]="-"; ds_cons[nk]="-"
     fi
 
+    # UNITS (--units base, PROVOST_UNITS=base; transform/units.sh): beside
+    # each column whose unit can be read exactly (from its name, from a
+    # NAME_unit column, or from its cells), a NAME[UNIT] column of the same
+    # values as plain numbers in a base unit (B, B/s, bit, bit/s, s); the
+    # original column is kept as it was. Off by default: tidy output does not
+    # change unasked. A held capture (`unsorted`) and an LLM template's notes
+    # are left as they are. Each dataset's record (ds_units[k], a file of
+    # column, unit_column, base, from, read) becomes the capture's units.tsv.
+    local -a ds_units=(); local units_mode=off uk
+    if [[ "$PROVOST_UNITS" == base && -z "$reason" ]]; then
+        units_mode=base
+        for (( uk=0; uk<${#ds_file[@]}; uk++ )); do
+            ds_units[uk]=""
+            [[ "${ds_name[uk]}" == unsorted ]] && continue
+            [[ -n "$llm_notes" && "${ds_file[uk]}" == "$llm_notes" ]] && continue
+            if _core_units_base "${ds_file[uk]}" "${ds_file[uk]}.u" "${ds_file[uk]}.units" \
+                "${ds_strategy[uk]}" "${ds_name[uk]%%.*}" ${name:+"$name"}; then
+                mv "${ds_file[uk]}.u" "${ds_file[uk]}"
+                [[ -s "${ds_file[uk]}.units" ]] && ds_units[uk]="${ds_file[uk]}.units"
+            else
+                rm -f "${ds_file[uk]}.u"
+                warn "could not read the units of dataset ${ds_name[uk]}; it is filed without NAME[UNIT] columns."
+            fi
+        done
+    fi
+
     # The verdict, for the store half: every variable it reads, as `declare -p`
     # (sourced inside _ingest_store, each comes back as a local there).
     local detection=""
@@ -1848,7 +2303,8 @@ _ingest_parse () {
     declare -p ds_name ds_strategy ds_conf ds_file ds_cov ds_cons reason \
         strategy conf cov tcons am_reason am_note am_cov am_kind am_model \
         single_strategy single_conf single_cov single_cons lm_reason lm_note \
-        llm_reason llm_note llm_how llm_learned ctxf detection > "$tmp/state.sh"
+        llm_reason llm_note llm_how llm_learned llm_audit llm_seen_how llm_seen_tpl ctxf detection \
+        ds_units units_mode > "$tmp/state.sh"
 }
 
 # _ingest_store IN SOURCE CMD RC WORKDIR COMMIT — the store half of a capture
@@ -1875,6 +2331,9 @@ _ingest_store () {
     # of output.txt as stored, which is what 'provost verify' re-hashes.
     local in_sha="" in_bytes="" out_sha=""
     if [[ -f "$in.received" ]]; then IFS=$'\t' read -r in_sha in_bytes < "$in.received" || true; fi
+    # What the secret scrub replaced (PV-033): kind=n,..., none, or off.
+    local redacted=""
+    if [[ -f "$in.redacted" ]]; then redacted="$(_redacted_summary "$in.redacted")"; fi
     out_sha="$(_sha256 "$capd/output.txt")"
     local prov; prov="$(_prov_file)"
     [[ -f "$prov" ]] || printf '#\tdataset\tcapture\n' > "$prov"
@@ -1954,6 +2413,11 @@ _ingest_store () {
         _store_append "${ds_name[k]}" "$tmp/id.tsv"
         final="$_SA_TARGET"
         out_names+=("$final")
+        # the columns --units base added, as units.tsv (see _ingest_parse)
+        if [[ -n "${ds_units[k]:-}" && -s "${ds_units[k]}" ]]; then
+            [[ -f "$capd/units.tsv" ]] || printf 'dataset\tcolumn\tunit_column\tbase\tfrom\tread\n' > "$capd/units.tsv"
+            DS="$final" awk 'BEGIN { ds = ENVIRON["DS"] } { print ds "\t" $0 }' "${ds_units[k]}" >> "$capd/units.tsv"
+        fi
         if (( nrows > 0 )); then out_ranges+=("#${startid}..$((startid+nrows-1))"); else out_ranges+=("none"); fi
         # a data column the melt renamed off the row id (`#` -> `#_2`, see
         # transform/melt.sh): recorded as DATASET:old=new,...
@@ -2014,6 +2478,14 @@ _ingest_store () {
         [[ -n "$lm_note" ]] && printf 'layout_model\t%s\n' "$(_meta_safe "declined: $lm_note")"
         if [[ -n "$llm_how" ]]; then
             printf 'llm_template\t%s\n' "$(_meta_safe "filed by $llm_how")"
+            # the skip audit: what the template skipped, and how much of it
+            # counted against it (set aside, of a kind not judged decoration)
+            if [[ -n "${llm_audit:-}" ]]; then
+                local _as _ad _aj _au _ar _an
+                read -r _as _ad _aj _au _ar _an <<< "$llm_audit" || true
+                printf 'llm_skip_audit\t%s skipped: %s decoration, %s judged decoration, %s not judged (counted as unread)\n' \
+                    "${_as:-0}" "${_ad:-0}" "${_aj:-0}" "${_au:-0}"
+            fi
             if [[ -n "$llm_reason" ]]; then
                 printf 'single_strategy\t%s\n' "$(_meta_safe "$single_strategy")"
                 printf 'single_confidence\t%s\n' "$single_conf"
@@ -2034,12 +2506,19 @@ _ingest_store () {
         fi
         if [[ -s "$ctxf" ]]; then printf 'context\tcontext.txt\n'; fi
         if [[ -n "$ctx_map" ]]; then printf 'context_columns\t%s\n' "$ctx_map"; fi
+        if [[ "${units_mode:-off}" == base ]]; then
+            printf 'units\tbase\n'
+            [[ -f "$capd/units.tsv" ]] && printf 'units_columns\tunits.tsv\n'
+        fi
         if [[ -n "$renamed" ]]; then printf 'renamed_columns\t%s\n' "$(_meta_safe "$renamed")"; fi
         if [[ -n "${detection:-}" ]]; then printf 'detection\t%s\n' "$(_meta_safe "$detection")"; fi
+        [[ -n "$redacted" ]] && printf 'redacted\t%s\n' "$redacted"
         [[ "$in_sha" =~ ^[0-9a-f]{64}$ ]] && printf 'input_sha256\t%s\n' "$in_sha"
         [[ "$in_bytes" =~ ^[0-9]+$ ]] && printf 'input_bytes\t%s\n' "$in_bytes"
         [[ -n "$out_sha" ]] && printf 'output_sha256\t%s\n' "$out_sha"
     } > "$capd/meta.tsv"
+    # the template that filed it records the capture (its ledger)
+    [[ -n "$llm_how" ]] && _llm_seen "$id"
     startid="$firstid"; nrows="$totalrows"; final="$all_names"; strategy="$all_strats"; conf="$all_confs"
 
     if (( commit )); then
@@ -2097,6 +2576,9 @@ _ingest_store () {
             info "      only $cov% of the input's lines reached '$final'; the whole input stays with capture $id ('provost source'), and --multi files each section as a dataset of its own."
         fi
     fi
+    if [[ "$redacted" == *=* ]]; then
+        info "      secrets scrubbed before filing: ${redacted//,/, } ('provost source' shows [REDACTED:kind] in their place)."
+    fi
     # (the messages above end in `[[ ]] &&` tests; the capture itself is filed)
     return 0
 }
@@ -2116,6 +2598,7 @@ _ingest_async () {
         || die "cannot create a spool dir in $PROVOST_TEMP_DIR (set TMPDIR)."
     cp "$in" "$spool/in.txt" || { rm -rf "$spool"; die "cannot spool the input to $spool"; }
     if [[ -f "$in.received" ]]; then cp "$in.received" "$spool/in.txt.received" 2>/dev/null || true; fi
+    if [[ -f "$in.redacted" ]]; then cp "$in.redacted" "$spool/in.txt.redacted" 2>/dev/null || true; fi
     (
         trap '' HUP                                   # survive the shell exiting
         _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()  # nothing of the parent's
@@ -2314,12 +2797,26 @@ options:
                           or holding the capture (sends the capture to the
                           Anthropic API; needs python3 and an API key; --no-llm:
                           don't, the default, PROVOST_LLM)
+  --units MODE            base: after each column whose unit can be read, a
+                          NAME[UNIT] column of the same values in base units
+                          (B, B/s, bit, bit/s, s); off: none, the default
+                          (PROVOST_UNITS; 'provost help advanced', UNITS)
   --manifest FILE         prepend FILE's KEY=VALUE lines as the '#%' run
                           manifest, and check it against the profile
   --manifest-profile P    check the run manifest against profile P (a NAME
                           such as default or proposal, or a .tsv file)
   --strict-manifest       refuse to file a capture whose manifest lacks a
                           required key (PROVOST_MANIFEST_STRICT=1)
+  --env                   record where the capture was taken in its '#%'
+                          prologue: host, kernel, OS, environment modules,
+                          Slurm job, user, and the variables PROVOST_ENV_VARS
+                          allows (never one that looks like a secret);
+                          --env=modules adds the kernel modules (PROVOST_ENV)
+  --no-redact             store the output as it comes, secrets and all
+                          (--redact: scrub private keys, Authorization
+                          headers, tokens and password=... values first, the
+                          default, PROVOST_REDACT; SECRETS AND REDACTION in
+                          'provost help advanced')
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   --show                  show the command's output as it runs, as well
@@ -2356,12 +2853,26 @@ options:
   --context-columns       make each 'key=value' in a '#%' prologue a column
                           on every row (--no-context-columns: don't, the
                           default, PROVOST_CONTEXT_COLUMNS)
+  --units MODE            base: after each column whose unit can be read, a
+                          NAME[UNIT] column of the same values in base units
+                          (B, B/s, bit, bit/s, s); off: none, the default
+                          (PROVOST_UNITS; 'provost help advanced', UNITS)
   --manifest FILE         prepend FILE's KEY=VALUE lines as the '#%' run
                           manifest, and check it against the profile
   --manifest-profile P    check the run manifest against profile P (a NAME
                           such as default or proposal, or a .tsv file)
   --strict-manifest       refuse to file a capture whose manifest lacks a
                           required key (PROVOST_MANIFEST_STRICT=1)
+  --env                   record where the capture was taken in its '#%'
+                          prologue: host, kernel, OS, environment modules,
+                          Slurm job, user, and the variables PROVOST_ENV_VARS
+                          allows (never one that looks like a secret);
+                          --env=modules adds the kernel modules (PROVOST_ENV)
+  --no-redact             store the output as it comes, secrets and all
+                          (--redact: scrub private keys, Authorization
+                          headers, tokens and password=... values first, the
+                          default, PROVOST_REDACT; SECRETS AND REDACTION in
+                          'provost help advanced')
   -q, --silent            no progress output
 EOF
             ;;
@@ -2382,11 +2893,16 @@ options:
                           CPUs, at most 16; --llm parses one at a time)
   --context-columns       make each 'key=value' in a '#%' prologue a column
                           on every row (PROVOST_CONTEXT_COLUMNS)
+  --units MODE            base: add NAME[UNIT] columns in base units, as for
+                          piped input (PROVOST_UNITS; default off)
   --manifest FILE, --manifest-profile P, --strict-manifest
                           as for piped input; under --strict-manifest an input
                           lacking a required key is not captured
+  --env, --env=modules    as for piped input: read once, and every input
+                          carries it -- the host provost runs on, which for
+                          files gathered from other hosts is not theirs
   --min-confidence N, --min-coverage N, --min-consistency N, --plugin-dir DIR,
-  --multi, --no-auto-multi, --model, --llm, -q
+  --multi, --no-auto-multi, --model, --llm, --no-redact, -q
                           as for piped input ('provost inject --help')
   An empty input is skipped; one that cannot be read or parsed is reported and
   the rest are filed. Exits 1 if any input was not captured, 0 otherwise.
@@ -2401,7 +2917,39 @@ EOF
         control) echo "usage: provost control [<dir>]    make <dir> (default: cwd) its own capture instance" ;;
         uncontrol) echo "usage: provost uncontrol [<dir>]    release a controlled directory (its data is kept)" ;;
         instances) echo "usage: provost instances    list controlled directories" ;;
-        export) echo "usage: provost export [<file>]    bundle the whole store into a portable git bundle" ;;
+        export) cat <<'EOF'
+usage: provost export [--redact POLICY] [FILE]
+  Bundle the whole store -- datasets, captures, history and tags -- into one
+  portable git bundle, FILE (default: provost-export-<time>.bundle here).
+  'provost import FILE DEST' opens it elsewhere.
+options:
+  --redact POLICY         export a copy to take across a boundary: every host
+                          name and address POLICY picks out becomes a
+                          pseudonym (host-1a2b3c4d5e6f, ip4-..., ip6-...)
+                          made with a key that stays here, in every file,
+                          message and dataset name, and secrets are scrubbed
+                          again. The same key gives the same pseudonyms, so
+                          two exports still join. The history is rewritten;
+                          each capture's input_sha256 and a controlled
+                          directory's own files (files-* tags) are left out;
+                          'provost verify' passes on the import.
+the policy (KEY = VALUE lines; '#' starts a comment line):
+  key = FILE              the key: its first line, 32 characters or more
+                          (default ~/.config/provost/redact.key; made, at
+                          random, when it does not exist; never in the store)
+  ipv4 = yes|no           IPv4 addresses (default yes; never 0.0.0.0, 127.x
+                          or a netmask, nor part of 1.3.6.1.2.1)
+  ipv6 = yes|no           IPv6 addresses (default yes; never :: or ::1)
+  domain = example.com    every name in the domain, and the domain itself
+  host = PATTERN          every name the awk regular expression matches,
+                          whole and lower-cased: host = node[0-9]+
+  column = NAME           every value in a dataset column called NAME
+  hosts = FILE            every name or address in FILE, one a line
+  domain, host, column and hosts can be given more than once. A name is
+  replaced wherever it stands as a word or a part of one between . _ : -
+  (node7 in node7-ib0 and node7.cluster.local); a name has a letter in it.
+EOF
+            ;;
         import) echo "usage: provost import <file.bundle> [<dest-dir>]    reconstitute a bundle to browse" ;;
         log) cat <<'EOF'
 usage: provost log [--failed]
@@ -2454,13 +3002,16 @@ EOF
         prev) echo "usage: provost prev    step the store back one capture (from the latest: the last capture)" ;;
         ls) echo "usage: provost ls    list datasets" ;;
         show) cat <<'EOF'
-usage: provost show NAME [--capture ID] [--at ID]
+usage: provost show NAME [--capture ID] [--at ID] [--tsv]
   Present a dataset as a table: '#' is each row's index in the store,
   'capture' the capture it came from, 'n' its record number in that capture.
 options:
   --capture ID            only the rows capture ID filed (c0007, or 7)
   --at ID                 the dataset as it stood just after capture ID, read
                           from git (the store stays where it is)
+  --tsv                   tab-separated, as stored, for a program to read: a
+                          blank cell stays blank, and no matching rows print
+                          the header alone (Python: provost_data.load)
 EOF
             ;;
         rm) cat <<'EOF'
@@ -2573,6 +3124,12 @@ _capture_opt () {
         --no-llm) PROVOST_LLM=0 ;;
         --context-columns) PROVOST_CONTEXT_COLUMNS=1 ;;
         --no-context-columns) PROVOST_CONTEXT_COLUMNS=0 ;;
+        --units)
+            [[ $# -ge 2 ]] || usage_die "--units needs a mode: base or off."
+            _units_mode "$2"; _CO_N=2 ;;
+        --units=*) _units_mode "${1#*=}" ;;
+        --redact) PROVOST_REDACT=1 ;;
+        --no-redact) PROVOST_REDACT=0 ;;
         --manifest)
             [[ $# -ge 2 ]] || usage_die "--manifest needs a file of KEY=VALUE lines."
             _O_MANIFEST="$2"; _CO_N=2 ;;
@@ -2583,6 +3140,10 @@ _capture_opt () {
         --manifest-profile=*) _O_MPROFILE="${1#*=}" ;;
         --strict-manifest) PROVOST_MANIFEST_STRICT=1 ;;
         --no-strict-manifest) PROVOST_MANIFEST_STRICT=0 ;;
+        --env) PROVOST_ENV=1 ;;
+        --env=modules) PROVOST_ENV=modules ;;
+        --env=*) usage_die "--env takes no value, or 'modules' (--env=modules); got '$1'." ;;
+        --no-env) PROVOST_ENV=0 ;;
         --async) _O_ASYNC=1 ;;
         --sync|--wait) _O_ASYNC=0 ;;
         --show|--tee) _O_SHOW=1 ;;
@@ -2590,6 +3151,15 @@ _capture_opt () {
         *) _CO_N=0 ;;
     esac
     return 0
+}
+
+# --units MODE: base (a NAME[UNIT] column in base units beside each column
+# whose unit can be read; transform/units.sh) or off (the default).
+_units_mode () {
+    case "$1" in
+        base|off) PROVOST_UNITS="$1" ;;
+        *) usage_die "--units must be base or off (got '$1')." ;;
+    esac
 }
 
 _parse_capture_opts () {
@@ -2698,6 +3268,8 @@ cmd_run () {
     # The command as a shell-quoted, TSV-safe string (printf %q never emits a
     # raw tab or newline), so meta.tsv and 'provost log' show it faithfully.
     local cmd; cmd="$(_shell_quote "$@")"
+    # ...with its secrets scrubbed too (mysql --password=..., curl -H 'Authorization: ...').
+    if [[ "$PROVOST_REDACT" == 1 ]]; then cmd="$(_scrub_text "$cmd" "$in.redacted")"; fi
     [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
     local name="$_O_NAME"
     [[ -n "$name" ]] || name="$(_run_name "$@")"
@@ -3494,10 +4066,24 @@ cmd_instances () {
 # export / import — a portable bundle of the whole store (datasets + commits).
 # ---------------------------------------------------------------------------
 cmd_export () {
-    case "${1:-}" in -h|--help) _cmd_help export ;; esac
-    [[ $# -le 1 ]] || _cmd_usage_die export
+    local policy="" out="" gout
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help export ;;
+            --redact) [[ $# -ge 2 ]] || usage_die "--redact needs a policy FILE (see 'provost export --help')."
+                      policy="$2"; shift 2 ;;
+            --redact=*) policy="${1#--redact=}"; shift ;;
+            --) shift; [[ $# -le 1 ]] || _cmd_usage_die export; out="${1:-}"; shift $# ;;
+            -?*) usage_die "export: unknown option: $1 (see 'provost export --help')." ;;
+            *) [[ -z "$out" ]] || _cmd_usage_die export; out="$1"; shift ;;
+        esac
+    done
     _ensure_workspace
-    local out="${1:-}" gout
+    if [[ -n "$policy" ]]; then
+        [[ -n "$out" ]] || out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ)-redacted.bundle"
+        _export_redacted "$policy" "$out"
+        return 0
+    fi
     if [[ -z "$out" ]]; then out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
     _git rev-parse HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
     _lock
@@ -3506,6 +4092,218 @@ cmd_export () {
     [[ -f "$out" ]] || die "export failed."
     local sz; sz=$(stat -c '%s' "$out" 2>/dev/null || echo '?')
     ok "exported store → $out ($sz bytes). Import elsewhere with: provost import $(printf '%q' "$out") <dest>"
+}
+
+# --- redacted export (PV-033) ---------------------------------------------------
+# 'provost export --redact POLICY' writes a copy of the store, history and
+# all, in which every host name and address the policy picks out is replaced
+# by a pseudonym made with a key that stays behind (host-1a2b3c4d5e6f,
+# ip4-..., ip6-...), and every secret the capture-time scrub knows is
+# scrubbed again (for captures filed with --no-redact or before 2.13.0). The
+# same key gives the same pseudonyms, so two exports still join.
+#
+# _redact_policy FILE — read a policy: "KEY = VALUE" lines, '#' lines and
+# blank lines skipped. Sets _RP_KEYFILE, _RP_IPV4, _RP_IPV6, _RP_DOMAINS,
+# _RP_HOSTRES, _RP_COLS (newline-separated) and _RP_HOSTFILES (an array).
+# A relative path is relative to the policy file's directory.
+_RP_KEYS="key, ipv4, ipv6, domain, host, column, hosts"
+_redact_policy () {
+    local f="$1" dir line k v n=0
+    [[ -f "$f" ]] || die "no such redaction policy: $f"
+    dir="$(cd "$(dirname -- "$f")" && pwd)"
+    _RP_KEYFILE=""; _RP_IPV4=1; _RP_IPV6=1; _RP_DOMAINS=""; _RP_HOSTRES=""; _RP_COLS=""; _RP_HOSTFILES=()
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        n=$((n + 1)); line="${line%$'\r'}"
+        [[ "$line" =~ ^[[:blank:]]*$ || "$line" =~ ^[[:blank:]]*# ]] && continue
+        [[ "$line" == *=* ]] || die "$f, line $n: want KEY = VALUE ($_RP_KEYS), got: $line"
+        k="${line%%=*}"; v="${line#*=}"
+        k="${k//[[:blank:]]/}"
+        v="${v#"${v%%[![:blank:]]*}"}"; v="${v%"${v##*[![:blank:]]}"}"
+        [[ -n "$v" ]] || die "$f, line $n: '$k' has no value."
+        case "$v" in "~/"*) v="$HOME/${v#\~/}" ;; esac
+        case "$k" in
+            key) case "$v" in /*) _RP_KEYFILE="$v" ;; *) _RP_KEYFILE="$dir/$v" ;; esac ;;
+            ipv4|ipv6)
+                case "$v" in
+                    yes|on|1) v=1 ;; no|off|0) v=0 ;;
+                    *) die "$f, line $n: $k is yes or no (got '$v')." ;;
+                esac
+                if [[ "$k" == ipv4 ]]; then _RP_IPV4="$v"; else _RP_IPV6="$v"; fi ;;
+            domain)
+                v="${v#\*.}"; v="${v#.}"
+                [[ "$v" =~ ^[A-Za-z0-9_]([A-Za-z0-9_.-]*[A-Za-z0-9_])?$ && "$v" != *..* ]] \
+                    || die "$f, line $n: '$v' is not a domain (example.com, cluster.local)."
+                _RP_DOMAINS+="$v"$'\n' ;;
+            host)
+                [[ "$v" != *$'\t'* ]] || die "$f, line $n: a host pattern cannot hold a tab."
+                if ! awk -v re="$v" 'BEGIN { if ("x" ~ ("^(" re ")$")) {} }' </dev/null >/dev/null 2>&1; then
+                    die "$f, line $n: '$v' is not a regular expression awk can read."
+                fi
+                _RP_HOSTRES+="$v"$'\n' ;;
+            column) _RP_COLS+="$v"$'\n' ;;
+            hosts)
+                case "$v" in /*) ;; *) v="$dir/$v" ;; esac
+                [[ -f "$v" && -r "$v" ]] || die "$f, line $n: no such hosts file: $v"
+                _RP_HOSTFILES+=("$v") ;;
+            *) die "$f, line $n: unknown key '$k' (the keys: $_RP_KEYS)." ;;
+        esac
+    done < "$f"
+    [[ -n "$_RP_KEYFILE" ]] || _RP_KEYFILE="${XDG_CONFIG_HOME:-$HOME/.config}/provost/redact.key"
+    return 0
+}
+
+# _redact_key FILE — the key (its first line) in _RP_KEY. A FILE that does
+# not exist is made: 32 random bytes as hex, readable by its owner only. The
+# key may not live in the store, or it would travel with every export.
+_redact_key () {
+    local f; f="$(_abspath "$1")"
+    local ws; ws="$(cd -P -- "$PROVOST_WORKSPACE" 2>/dev/null && pwd)" || ws="$PROVOST_WORKSPACE"
+    local fd; fd="$(cd -P -- "$(dirname -- "$f")" 2>/dev/null && pwd)" || fd="$(dirname -- "$f")"
+    case "$fd/" in "$ws"/*) die "the redaction key $f is inside the store ($PROVOST_WORKSPACE), and would travel with it: keep it outside." ;; esac
+    if [[ ! -e "$f" ]]; then
+        mkdir -p -- "$(dirname -- "$f")" || die "cannot create $(dirname -- "$f") for the redaction key."
+        ( umask 077; set -o noclobber; { od -An -tx1 -N32 /dev/urandom | tr -d ' \n'; echo; } > "$f" ) 2>/dev/null \
+            || die "cannot write a new redaction key to $f."
+        info "made a new redaction key: $f -- keep it: the same key gives the same pseudonyms, and it never goes into an export."
+    fi
+    [[ -r "$f" ]] || die "cannot read the redaction key $f."
+    _RP_KEY=""; IFS= read -r _RP_KEY < "$f" || true
+    _RP_KEY="${_RP_KEY%$'\r'}"
+    (( ${#_RP_KEY} >= 32 )) || die "the redaction key in $f is too short: it needs 32 characters or more (move the file away and provost makes a random one)."
+    [[ "$_RP_KEY" != *$'\t'* ]] || die "the redaction key in $f holds a tab."
+}
+
+# _sha256_many — for each file named on stdin (one a line; plain names),
+# "NAME<TAB>sha256", from as few processes as xargs needs.
+_sha256_many () {
+    local -a tool=()
+    if command -v sha256sum >/dev/null 2>&1; then tool=(sha256sum)
+    elif command -v shasum >/dev/null 2>&1; then tool=(shasum -a 256)
+    elif command -v openssl >/dev/null 2>&1; then tool=(openssl dgst -sha256 -r)
+    else return 1; fi
+    tr '\n' '\0' | xargs -0 "${tool[@]}" | awk '{ h = $1; f = substr($0, length(h) + 2); sub(/^[ *]/, "", f); print f "\t" tolower(h) }'
+}
+
+_export_redacted () {
+    local policy="$1" out="$2" main t lib="$PROVOST_ROOT/lib" kid ncap
+    [[ -f "$lib/provost_pseudo.awk" && -f "$lib/provost_redact.awk" ]] || die "provost's redaction code is missing from $lib."
+    _redact_policy "$policy"
+    _redact_key "$_RP_KEYFILE"
+    out="$(_abspath "$out")"
+    [[ ! -e "$out" ]] || die "$out already exists; name a new file."
+    _git rev-parse -q --verify HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
+    _mktempd redact; t="$_MKTEMPD"
+    main="$(_main_branch)"
+    # The history to rewrite: the main branch and the capture tags. A
+    # controlled directory's own files (files-* tags) stay behind.
+    _git for-each-ref --format='%(refname)' 'refs/tags/capture-*' > "$t/refs"
+    ncap="$(wc -l < "$t/refs")"; ncap="${ncap//[!0-9]/}"
+    echo "refs/heads/$main" >> "$t/refs"
+    _lock
+    if ! _git fast-export --no-data --reencode=yes --signed-tags=strip --tag-of-filtered-object=drop \
+            --stdin < "$t/refs" > "$t/stream" 2> "$t/err"; then
+        _unlock; printf 'git: %s\n' "$(cat "$t/err")" >&2; die "export failed: git fast-export."
+    fi
+    _unlock
+    # Every blob the history holds, and the paths it was filed under.
+    LC_ALL=C awk '/^M / { p = substr($0, 3); i = index(p, " "); p = substr(p, i + 1); i = index(p, " ")
+                         print substr(p, 1, i - 1) "\t" substr(p, i + 1) }' "$t/stream" | LC_ALL=C sort -u > "$t/paths"
+    cut -f1 "$t/paths" | LC_ALL=C sort -u > "$t/blobs"
+    LC_ALL=C awk -F'\t' '$2 ~ /^captures\/c[0-9]+\/meta[.]tsv$/ { print $1 }' "$t/paths" | LC_ALL=C sort -u > "$t/metablobs"
+    LC_ALL=C awk -F'\t' '$2 ~ /^datasets\/unsorted([.][^\/]*)?[.]tsv$/ { print $1 }' "$t/paths" | LC_ALL=C sort -u > "$t/heldblobs"
+    LC_ALL=C sort -u "$t/metablobs" "$t/heldblobs" | LC_ALL=C comm -23 "$t/blobs" - > "$t/otherblobs"
+    : > "$t/hosts"
+    local hf; for hf in ${_RP_HOSTFILES[@]+"${_RP_HOSTFILES[@]}"}; do cat -- "$hf" >> "$t/hosts"; echo >> "$t/hosts"; done
+    export RP_IPV4="$_RP_IPV4" RP_IPV6="$_RP_IPV6" RP_DOMAINS="$_RP_DOMAINS" RP_HOSTRES="$_RP_HOSTRES" RP_COLS="$_RP_COLS"
+    local -a aw=(env LC_ALL=C awk -f "$lib/provost_redact.awk" -f "$lib/provost_pseudo.awk")
+
+    # 1. The names: everything the policy's rules pick out, anywhere.
+    : > "$t/held"
+    _git cat-file --batch < "$t/blobs" | "${aw[@]}" -v MODE=collect -v PATHS="$t/paths" \
+        -v STREAM="$t/stream" -v HOSTS="$t/hosts" -v HELD="$t/held" > "$t/names.all" || die "export failed: collecting the names."
+    LC_ALL=C sort -u "$t/names.all" > "$t/names"; rm -f "$t/names.all"
+    # 2. A pseudonym for each: the first 12 hex digits of
+    #    sha256(key LF kind LF name), after the kind.
+    mkdir "$t/h"
+    _RP_KEY="$_RP_KEY" LC_ALL=C awk -F'\t' -v D="$t/h" '{ f = D "/" NR; printf "%s\n%s\n%s", ENVIRON["_RP_KEY"], $1, $2 > f; close(f) }' "$t/names"
+    printf '%s' "provost-redact-key-id"$'\n'"$_RP_KEY" > "$t/keyid"
+    kid="$(_sha256 "$t/keyid")"; rm -f "$t/keyid"
+    [[ -n "$kid" ]] || die "no sha256 tool (sha256sum, shasum or openssl) — cannot make pseudonyms."
+    kid="${kid:0:12}"
+    if [[ -s "$t/names" ]]; then
+        ( cd "$t/h" && ls ) | ( cd "$t/h" && _sha256_many ) > "$t/hashes" || die "export failed: hashing the names."
+    else
+        : > "$t/hashes"
+    fi
+    rm -rf "$t/h"
+    LC_ALL=C awk -F'\t' 'NR == FNR { H[$1] = $2; next }
+        { p = (($1 == "host") ? "host-" : $1 "-") substr(H[FNR], 1, 12)
+          if (H[FNR] == "") { print "provost: no hash for name " FNR > "/dev/stderr"; exit 3 }
+          if ((p in SEEN) && SEEN[p] != $1 "\t" $2) { print "provost: two names share the pseudonym " p > "/dev/stderr"; exit 3 }
+          SEEN[p] = $1 "\t" $2; print $1 "\t" $2 "\t" p }' "$t/hashes" "$t/names" > "$t/map" \
+        || die "export failed: making the pseudonyms."
+    # 3. Every blob but meta.tsv and 'unsorted', scrubbed and pseudonymised,
+    #    one file each.
+    mkdir "$t/new"
+    _git cat-file --batch < "$t/otherblobs" | "${aw[@]}" -v MODE=blobs -v MAP="$t/map" -v OUTDIR="$t/new" \
+        -v COUNTS="$t/c.blobs" -v USED="$t/u.blobs" || die "export failed: rewriting the files."
+    # 4. Each capture's output.txt as exported, hashed for its meta.tsv,
+    #    its commit's trailer, and 'provost verify'.
+    LC_ALL=C awk -F'\t' '$2 ~ /^captures\/c[0-9]+\/output[.]txt$/ { split($2, P, "/"); print P[2] "\t" $1 }' "$t/paths" > "$t/outblobs"
+    cut -f2 "$t/outblobs" | LC_ALL=C sort -u | ( cd "$t/new" && _sha256_many ) > "$t/out.sha" || true
+    LC_ALL=C awk -F'\t' 'NR == FNR { H[$1] = $2; next } ($2 in H) { print $1 "\t" H[$2] }' "$t/out.sha" "$t/outblobs" > "$t/out256"
+    # ...and, for a capture held in 'unsorted', in base64: that dataset's raw
+    # column is the capture's input, which is its output.txt.
+    local cid ob; : > "$t/b64"
+    LC_ALL=C sort -u "$t/held" | while IFS= read -r cid; do
+        ob="$(awk -F'\t' -v c="$cid" '$1 == c { print $2; exit }' "$t/outblobs")"
+        [[ -n "$ob" && -f "$t/new/$ob" ]] || continue
+        printf '%s\t' "$cid"
+        if ! base64 -w0 < "$t/new/$ob" 2>/dev/null; then base64 < "$t/new/$ob" | tr -d '\n'; fi
+        printf '\n'
+    done > "$t/b64"
+    # 5. meta.tsv: its values pseudonymised, input_sha256/input_bytes gone,
+    #    output_sha256 the exported output's, and 'pseudonymised' added.
+    _git cat-file --batch < "$t/metablobs" | RP_KEYID="$kid" "${aw[@]}" -v MODE=blobs -v META=1 -v MAP="$t/map" \
+        -v OUTDIR="$t/new" -v OUT256F="$t/out256" -v COUNTS="$t/c.meta" -v USED="$t/u.meta" \
+        || die "export failed: rewriting meta.tsv."
+    # 5b. 'unsorted': each raw cell the base64 of its capture's exported
+    #     output (of a row with no capture id, from before store format 3: a
+    #     placeholder), everything else as in step 3.
+    local gone; gone="$(printf '[REDACTED:held input, see its capture]\n' | { base64 -w0 2>/dev/null || base64 | tr -d '\n'; })"
+    _git cat-file --batch < "$t/heldblobs" | "${aw[@]}" -v MODE=blobs -v UNSORTED=1 -v MAP="$t/map" \
+        -v OUTDIR="$t/new" -v B64F="$t/b64" -v RAWGONE="$gone" -v COUNTS="$t/c.held" -v USED="$t/u.held" \
+        || die "export failed: rewriting the 'unsorted' dataset."
+    # 6. A new repository: the rewritten files, then the rewritten history.
+    local -a ngit=(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY -u GIT_COMMON_DIR
+                   git --git-dir="$t/new.git" -c core.hooksPath=/dev/null -c gc.auto=0)
+    git init -q --bare "$t/new.git" >/dev/null 2>&1 || die "export failed: cannot create a repository in $t."
+    ( cd "$t/new" && LC_ALL=C sort "$t/blobs" | "${ngit[@]}" hash-object -w --stdin-paths ) > "$t/newshas" \
+        || die "export failed: storing the rewritten files."
+    LC_ALL=C sort "$t/blobs" | paste - "$t/newshas" > "$t/gitmap"
+    "${aw[@]}" -v MODE=stream -v MAP="$t/map" -v GITMAP="$t/gitmap" -v OUT256F="$t/out256" \
+        -v COUNTS="$t/c.msgs" -v USED="$t/u.msgs" < "$t/stream" > "$t/stream.new" \
+        || die "export failed: rewriting the history."
+    rm -f "$t/stream"
+    if ! gout="$("${ngit[@]}" fast-import --quiet < "$t/stream.new" 2>&1)"; then
+        printf 'git: %s\n' "$gout" >&2; die "export failed: git fast-import."
+    fi
+    "${ngit[@]}" symbolic-ref HEAD "refs/heads/$main" >/dev/null 2>&1 || true
+    if ! gout="$("${ngit[@]}" fsck --no-progress 2>&1)"; then
+        printf 'git: %s\n' "$gout" >&2; die "export failed: the rewritten history does not pass git fsck."
+    fi
+    if ! gout="$("${ngit[@]}" bundle create "$out" --all 2>&1)"; then
+        rm -f -- "$out"; printf 'git: %s\n' "$gout" >&2; die "export failed: git bundle."
+    fi
+    # What was done.
+    local nh n4 n6 nsec
+    { cat "$t"/u.* 2>/dev/null || true; } | LC_ALL=C sort -u > "$t/used"
+    nh="$(awk -F'\t' '$1 == "host"' "$t/used" | wc -l)"; n4="$(awk -F'\t' '$1 == "ip4"' "$t/used" | wc -l)"
+    n6="$(awk -F'\t' '$1 == "ip6"' "$t/used" | wc -l)"
+    nsec="$({ cat "$t"/c.* 2>/dev/null || true; } | awk -F'\t' '{ n += $2 } END { print n + 0 }')"
+    ok "exported a redacted copy of the store → $out: $((10#${ncap:-0})) capture(s); $((nh)) host name(s), $((n4)) IPv4 and $((n6)) IPv6 address(es) pseudonymised; $((nsec)) secret(s) scrubbed; key id $kid."
+    info "      left out: each capture's input_sha256 (with it, a guessed name could be checked) and a controlled directory's own files (files-* tags)."
+    info "      import with: provost import $(printf '%q' "$out") <dest>   (the key, $_RP_KEYFILE, stays here)"
 }
 
 cmd_import () {
@@ -3789,10 +4587,16 @@ _table () { if command -v column >/dev/null 2>&1; then column -t -s $'\t'; else 
 
 cmd_show () {
     [[ $# -ge 1 ]] || _cmd_usage_die show
-    local name="" at="" cap="" v
+    local name="" at="" cap="" v out=_table
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help) _cmd_help show ;;
+            # --tsv: the rows as tab-separated text, exactly as stored (the
+            # 'unsorted' raw column still decoded), never through column(1):
+            # in an aligned table a blank cell is only spaces, and whether
+            # the table has tabs or spaces depends on column(1) being
+            # installed. What a program reads (provost_data.load, PV-031).
+            --tsv) out=cat; shift ;;
             --at|--capture)
                 [[ $# -ge 2 ]] || usage_die "$1 needs a capture id (e.g. c0007)."
                 v="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
@@ -3828,10 +4632,13 @@ cmd_show () {
             FNR == 1 { col = ($1 == "#" && $2 ~ /^_*capture$/); print; next }
             (col ? $2 : pc[$1]) == C' "$prov" "$f" > "$only"
         f="$only"
-        [[ "$(wc -l < "$f")" -gt 1 ]] || { info "no rows in '$name' from capture $cap."; return 0; }
+        # None: a table says so; --tsv prints the header alone (no rows).
+        if [[ "$(wc -l < "$f")" -le 1 && "$out" == _table ]]; then
+            info "no rows in '$name' from capture $cap."; return 0
+        fi
     fi
-    if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | _table
-    else _table < "$f"; fi
+    if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | "$out"
+    else "$out" < "$f"; fi
 }
 
 cmd_triage () {
@@ -4548,6 +5355,12 @@ cmd_doctor () {
         printf '   note: store lock held by: %s\n' "$(tr '\t' ' ' < "$PROVOST_WORKSPACE/.lock/owner" 2>/dev/null || echo unknown)"
     fi
     printf '   min-confidence: %s\n' "$PROVOST_MIN_CONFIDENCE"
+    if [[ "$PROVOST_REDACT" == 1 ]]; then
+        if [[ -f "$PROVOST_ROOT/lib/provost_redact.awk" ]]; then printf '   secret scrub: on (each input is scrubbed before it is stored; --no-redact or PROVOST_REDACT=0 turns it off)\n'
+        else printf '%serror%s secret scrub: on, but %s/lib/provost_redact.awk is missing: captures will fail\n' "$C_ERR" "$C_RST" "$PROVOST_ROOT"; rc=1; fi
+    else
+        printf '   secret scrub: off (PROVOST_REDACT=0): inputs are stored as they come\n'
+    fi
     if [[ -s "$(_faillog)" ]]; then
         printf '   %swarning%s failed background captures:\n' "$C_ERR" "$C_RST"
         _show_failures 2>/dev/null | sed 's/^/     /'
@@ -4666,7 +5479,9 @@ COMMANDS
     provost files [ID] [PATH] [--to DIR]
         A controlled directory's files as capture ID kept them: list them,
         print PATH, or write them all out into DIR.
-    provost export [FILE]          the whole store as one portable git bundle
+    provost export [--redact POLICY] [FILE]
+        The whole store as one portable git bundle; --redact: a copy with
+        host names and addresses pseudonymised (SECRETS AND REDACTION).
     provost import FILE [DEST]     open an exported store elsewhere to browse
   Upkeep
     provost rm [-f] [--no-purge] NAME...
@@ -4709,12 +5524,20 @@ CAPTURE OPTIONS (run, piped input, FILE)
     --context-columns, --no-context-columns
                             make a '#%' prologue's key=value words columns
                             (METADATA PROLOGUE below; default off)
+    --units MODE            base: a NAME[UNIT] column in base units after
+                            each column with a readable unit (UNITS below;
+                            off, the default, adds none)
     --manifest FILE         prepend FILE's KEY=VALUE lines as the run
                             manifest and check it (RUN MANIFEST below)
     --manifest-profile P    check the run manifest against profile P
     --strict-manifest, --no-strict-manifest
                             refuse to file a capture whose manifest lacks a
                             required key (default: file it, with a warning)
+    --env, --env=modules, --no-env
+                            record where the capture was taken in its
+                            prologue (ENVIRONMENT CAPTURE below; default off)
+    --redact, --no-redact   scrub secrets before storing (SECRETS AND
+                            REDACTION below; default on)
 
 THE STORE
     Captures go to a GLOBAL git store, so you can capture from any directory:
@@ -4744,7 +5567,8 @@ THE STORE
     and source then show the store as it was, and new captures are refused
     until 'provost restore latest'. 'show --at', 'source ID', 'search --at',
     'files' and 'diff' read any capture straight from git without moving the
-    store. 'export' bundles everything, tags included; 'import' opens it.
+    store. 'export' bundles everything, tags included ('export --redact': a
+    copy with host names and addresses pseudonymised); 'import' opens it.
 
 DATASET NAMES
     'provost run CMD ...' files into a dataset named after CMD's basename
@@ -4820,13 +5644,18 @@ AUTO-MULTI (segmenting a weak parse)
     split is clearly better:
       - it really is a split (2 or more datasets);
       - every part passes the gate on its own (confidence, coverage,
-        consistency);
+        consistency); a part read by a tool-specific parser must keep
+        --min-coverage % of its own lines too;
       - together the parts keep at least --min-coverage % of the lines, and
         10 points more than the single parse;
-      - no part is a table under positional A/B/C... columns only;
+      - no part is a table under positional A/B/C... columns only that
+        shows a lost header or shredded rows: a column of box chrome,
+        mostly empty cells, or a header-like line right above it (a
+        headerless table is filed, under A/B/C...);
       - a part read by the parser the gate rejected has judged column types;
-      - parts of 3+ lines hold at least half the lines (no shattering into
-        fragments).
+      - parts of 3+ lines or 3+ rows hold at least half of it (no
+        shattering into fragments; a part's size is its lines or its rows,
+        whichever is more, so one line holding many records is no fragment).
     Otherwise the capture is held as before, and why segmenting did not help
     is printed and recorded ('auto_multi declined: ...' in meta.tsv). A
     segmented capture says so in its ok line and records 'auto_multi' (why
@@ -4879,7 +5708,10 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     segmenting and the layout model), and on a GENERIC parse the gate passed,
     before that parse is trusted (the gate cannot see a title or prompt read
     as the header; a template written for the tool's layout can). Never in
-    place of an exact-format or tool-specific parser. Every block it yields
+    place of an exact-format or tool-specific parser, save one: a yaml parse
+    may be bettered by a template already stored for the tool (plain
+    'Label: text' output is valid YAML), but Claude is never asked to write
+    one over it. Every block it yields
     is measured and filed under the gate's rules: one block as the capture's
     dataset, several as NAME.<block>, AUTO-MULTI's way. Against a generic
     parse the gate passed, it must keep that parse's share of the data lines
@@ -4892,17 +5724,42 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     or an error between the rows is kept, never lost; only rules and box
     glyphs are dropped. A tab or newline inside a value becomes a space.
 
-    REPAIR: a template keeps the captures it was written from (its
+    SKIP AUDIT: a skipped line is not covered for free. One with no letter or
+    digit (a rule) is decoration; one that carries a word or a number counts
+    as unread until Claude has judged its kind decoration. When Claude writes
+    a template that sets such lines aside, it is shown their count and one
+    line of each kind, once, to read them or confirm them; the kinds it
+    confirms are kept in the template ("decoration").
+
+    REPAIR: a template keeps its first and latest captures (its
     "examples"). With a key, when a stored template meets a kind of line it
-    has not met before (one it leaves unread, or one a skip pattern drops),
-    provost sends the template, those captures and this one to Claude once,
-    to extend it. The extension is kept, with this capture added to its
-    examples, only if it still reads every line of the earlier captures the
-    template read and passes the same rules; otherwise the template is used
-    as it was. A capture whose lines the template has all met is never sent.
+    has not met before (one it leaves unread, or a set-aside one not judged,
+    or far more set-aside lines than before), provost sends the template,
+    those captures and this one to Claude once, to extend it. The extension
+    is kept, with this capture added to its examples, only if it still reads
+    every line the template read of every capture it was written from (the
+    store keeps them all) and passes the same rules; otherwise the template
+    is used as it was. A capture whose lines the template has all met is
+    never sent.
+
+    LEDGER: every capture a template files is recorded in the store's
+    llm-templates/NAME.seen.tsv (capture, how it was filed, line counts,
+    input hash), committed with the capture.
+
+    REVIEW (PROVOST_LLM_JUDGE=1, the default): after Claude writes or
+    extends a template, one more call shows Claude the capture, the template
+    and the tables it makes, and asks for PASS or up to five structural fixes:
+    a parent the rows do not keep (a section, a tree's parent, a trunk above
+    its members), a record split across tables, a header half applied, a
+    line kind misread, data set aside. The fixes go back to the writer once;
+    the revision is kept only if it reads the capture at least as well,
+    still reads the earlier captures and passes the gate, else the template
+    as it was before the review is used. A failed review costs nothing but
+    the call. The verdict is stored in the template ("judge").
 
     meta.tsv records 'llm_template' (filed by which template, or declined and
-    why). PROVOST_LLM_LOG names a file that gets one JSON line per API reply.
+    why) and 'llm_skip_audit'. PROVOST_LLM_LOG names a file that gets one
+    JSON line per API reply.
     Needs python3 (no packages).
 
 MULTIPLE DATASETS (--multi)
@@ -4972,6 +5829,35 @@ RUN MANIFEST
     does not already use), so the two never share a name, and meta.tsv
     records it ('renamed_columns', DATASET:#=#_2,...).
 
+ENVIRONMENT CAPTURE
+    --env (PROVOST_ENV=1) adds where a capture was taken to its prologue, as
+    env.* keys: env.host, env.kernel (uname -sr), env.arch, env.os (the OS
+    release: /etc/os-release, or sw_vers on macOS), env.modules (the loaded
+    environment modules, Lmod's \$LOADEDMODULES), env.user, and inside a
+    Slurm job its id, node list, cluster and partition (env.slurm.job,
+    .nodes, .cluster, .partition). A reading the run-manifest profile claims
+    is written under the profile's key instead (its 'env' column): the
+    Slurm job id is sched.job under the default profile, job_id under
+    proposal. --env=modules (PROVOST_ENV=modules) adds the loaded kernel
+    modules (lsmod) as env.kernel.modules. Nothing is recorded that is not
+    set, and nothing at all without --env.
+
+    Environment variables come only from an allow-list, PROVOST_ENV_VARS:
+    names or glob patterns, space- or comma-separated (default: OMP_* MPI_*
+    OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*; set it empty for none),
+    each as env.var.NAME. Never all of them: an environment carries tokens
+    and passwords. A variable whose name or value looks like a secret
+    (extract/secrets.tsv: tokens, keys, passwords, credentials in a URL) is
+    not recorded even when allow-listed: provost warns, and lists its name
+    in env.withheld. A tab or line break in a value becomes a space.
+
+    The readings are of the host provost runs on, taken once per command:
+    for a batch of files gathered from other hosts they describe the host
+    that filed them. A key the input's own prologue or --manifest FILE sets
+    is theirs, and --env leaves it out. As with --manifest, input_sha256 is
+    of the input as received and output_sha256 of what is stored, the
+    readings included.
+
 BATCH CAPTURE (provost batch)
     'provost batch FILE...' files each FILE as a capture of its own, as
     'provost FILE' would, but parses them in parallel (--jobs, default the
@@ -4991,12 +5877,80 @@ BATCH CAPTURE (provost batch)
     meta.tsv says 'detection  reused (...)' where it was. Off with
     PROVOST_BATCH_REUSE=0, and under --multi, --model and --llm.
 
+SECRETS AND REDACTION
+    Secrets never belong in a store. Before an input is stored, every known
+    secret pattern in it becomes [REDACTED:kind]:
+      private-key     a PEM or PGP private key block, BEGIN to END
+      authorization   the value of an Authorization: header
+      bearer          a token after 'Bearer' (16 characters or more)
+      url-password    the password in scheme://user:password@host
+      aws-access-key, github-token, slack-token, vault-token, jwt
+                      tokens in their own formats
+      password, secret, token, api-key
+                      the value after a key whose name ends that way:
+                      DB_PASSWORD=..., "token": "...", --api-key ...
+    The command line 'run' records, and --manifest lines, are scrubbed too.
+    A value that says it is hidden or empty (yes, none, ***, <hidden>,
+    \$VAR) is left alone, and so is a plain word after a token, secret or
+    key name, or after a --flag (help text). meta.tsv records what was
+    scrubbed as 'redacted': kind=n,... (password=1,private-key=1), none, or
+    off. --no-redact (PROVOST_REDACT=0) files the input as it comes.
+
+    The input's hashes: input_sha256 stays the hash of the input as it was
+    RECEIVED, secrets and all, so it still matches a hash taken where the
+    output was made; output_sha256 is of output.txt as stored, scrubbed,
+    and is what 'provost verify' re-checks. So input_sha256 can confirm a
+    guess at a weak password in a scrubbed capture: keep the store inside
+    the boundary, and take data out with 'export --redact'.
+
+    Host names and addresses are data -- a fleet dataset is keyed on them
+    -- so captures keep them. 'provost export --redact POLICY' takes them
+    out: in the copy it writes, every name the policy picks out (its
+    domains, host patterns, dataset columns and hosts files; IPv4 and IPv6
+    addresses) is replaced by a pseudonym made with a keyed hash
+    (host-1a2b3c4d5e6f, ip4-..., ip6-...), the same in every file, commit
+    message and dataset name. The key stays behind; the same key gives the
+    same pseudonyms, so datasets exported at different times still join.
+    Secrets are scrubbed again on the way out. input_sha256 does not go
+    (with it, a guessed name could be checked); output_sha256 and the
+    commit trailers are those of the exported output, so 'provost verify'
+    passes on the import, and each meta.tsv says 'pseudonymised' with the
+    key's id. 'provost export --help' lists the policy's keys.
+
+UNITS (--units base)
+    By default a unit stays where the tool printed it: in a column's name
+    (Bandwidth_(MB/s)), in each cell (482MiB/s), or in a column beside the
+    number (transfer + transfer_unit). Nothing is converted unasked.
+    With --units base (PROVOST_UNITS=base) each column whose unit can be
+    read exactly gains a column right after it, NAME[UNIT], with the same
+    values as plain numbers in a base unit: B, B/s, bit, bit/s or s. The
+    original column is kept. 9.4 GB/s and 9400 MB/s both become 9400000000
+    in a [B/s] column; 940 Mbits/sec is 940000000 in a [bit/s] one. Bits
+    are never turned into bytes, nor bytes into bits.
+    Units are read by the letter: B and Byte(s) are bytes, bit(s) bits, and
+    a short b bits only in a rate (Mb/s, Gbps); k, K, M, G, T, P, E are
+    powers of 1000, Ki, Mi, Gi, Ti, Pi, Ei powers of 1024; times are ns,
+    us (or µs), ms and s. A bare multiplier
+    (7.8Gi, 1.2G, as free -h and df -h print) names no quantity, so it is
+    not read; nor is a unit glued to a word in a column name (rxkB/s). The
+    one exception: iperf prints its powers of 1024 as KBytes, MBytes and
+    GBytes (its own source says so), so those are read as KiB, MiB and GiB
+    in a dataset its parser filed, or one named iperf or iperf3.
+    A column is converted only when every cell holding a digit can be read,
+    and the arithmetic is done on the decimal digits, never in floating
+    point, so the result is exact. meta.tsv says 'units  base', and the
+    capture's units.tsv lists each column added: dataset, column,
+    unit_column, base, from (name, cells or column NAME_unit) and read (each
+    unit with its exact factor: MB/s=10^6, MiB/s=2^20, ms=10^-3).
+
 SETTINGS (environment)
     PROVOST_HOME              the global store (default: ~/.provost)
     PROVOST_WORKSPACE         use this store, whatever the directory
     PROVOST_ASYNC             1 = always background, 0 = always foreground,
                               unset/auto = background only at a terminal
     PROVOST_QUIET             1 = no progress / ok messages (as --silent)
+    PROVOST_REDACT            0 = store inputs as they come, secrets and all
+                              (as --no-redact; default 1: scrub them)
     PROVOST_MIN_CONFIDENCE    file only at this confidence or more (0-101,
                               default: 50; 101 holds every capture)
     PROVOST_MIN_COVERAGE      quality gate: min line coverage % for a generic
@@ -5008,10 +5962,17 @@ SETTINGS (environment)
     PROVOST_MULTI             1 = file every dataset an input holds (--multi)
     PROVOST_CONTEXT_COLUMNS   1 = a '#%' prologue's key=value words become row
                               columns (as --context-columns)
+    PROVOST_UNITS             base = add NAME[UNIT] columns in base units (as
+                              --units base); off = none (the default)
     PROVOST_MANIFEST_PROFILE  the run-manifest profile, a NAME or a .tsv file
                               (as --manifest-profile; asks for a check)
     PROVOST_MANIFEST_STRICT   1 = refuse a capture lacking a required manifest
                               key (as --strict-manifest; asks for a check)
+    PROVOST_ENV               1 = record where each capture was taken (as
+                              --env); modules = and the kernel modules
+    PROVOST_ENV_VARS          the variables --env records: names or globs
+                              (default: OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_*
+                              UCX_* CUDA_* NCCL_*; empty = none)
     PROVOST_BATCH_REUSE       0 = batch detects every input from scratch
                               (default 1: the rest of a name's inputs try its
                               first one's strategy)
@@ -5028,6 +5989,8 @@ SETTINGS (environment)
     PROVOST_LLM               1 = use / have Claude write a template (as --llm)
     PROVOST_LLM_MODEL         the model that writes templates (default:
                               claude-opus-5-5)
+    PROVOST_LLM_JUDGE         1 = review a template Claude writes or extends,
+                              and revise it once (the default); 0 = don't
     PROVOST_LLM_API_KEY       Anthropic API key for --llm (else
                               ANTHROPIC_API_KEY; use this one where that is
                               taken, e.g. inside Claude Code)
