@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+#
+# A GitLab CI job that runs a benchmark through provost-wrap and keeps the
+# provost store as a job artifact. Commit provost-wrap as ci/provost-wrap
+# (executable), and put the benchmark's command in place of
+# ./run-benchmark.sh.
+benchmark:
+  stage: test
+  image: python:3.12
+  variables:
+    PROVOST_HOME: "$CI_PROJECT_DIR/provost-store"
+  cache:
+    # Carry the store from one pipeline to the next, best effort: a missed
+    # cache starts a new store, and every job's artifact still holds its own.
+    key: provost-store
+    paths:
+      - provost-store/
+  before_script:
+    - pip install provost
+  script:
+    - >-
+      ci/provost-wrap --name benchmark
+      run.id="$CI_PIPELINE_ID" sched.job="$CI_JOB_ID"
+      build.commit="$CI_COMMIT_SHA" sut="$CI_RUNNER_DESCRIPTION"
+      -- ./run-benchmark.sh
+    - provost show benchmark
+  artifacts:
+    when: always
+    paths:
+      - provost-store/

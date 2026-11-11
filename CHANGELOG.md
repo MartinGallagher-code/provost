@@ -1,8 +1,8 @@
 # provost — Changelog
 
-## 2.6.0 — 2026-11-10 — units as data, `--units base` (PV-032)
+## 2.11.0 — 2026-11-10 — units as data, `--units base` (PV-032)
 
-`VERSION` 2.5.0 → 2.6.0, and the `man/provost.1` header. Minor: a new
+`VERSION` 2.10.0 → 2.11.0, and the `man/provost.1` header. Minor: a new
 capture option. Without it nothing changes: no golden moved, and a capture
 filed without `--units` is byte for byte what 2.5.0 filed.
 
@@ -87,6 +87,435 @@ parse and store halves, help), `transform/tests/test_units.sh` (new),
 `tests/smoke.sh`, `.github/workflows/ci.yml`, `pyproject.toml` (the wheel
 carries `transform/units.sh`), `completions/provost.bash`, `man/provost.1`,
 `docs/usage.md`, README, HANDOFF, CLAUDE.md, `VERSION`.
+
+## 2.10.0 — 2026-11-10 — `--llm`: the skip audit, and a ledger of the captures each template filed (PV-008)
+
+`VERSION` 2.9.0 → 2.10.0, and the `man/provost.1` header. Minor: what a
+template's skipped lines count for changes (so which parse files a capture
+can change, which the versioning policy does not promise), and there is a
+new store file and a new `template.py` command. Nothing a user ran stops
+working; no corpus golden moved (`--llm` is off by default).
+
+PV-008 asked for three things from HANDOFF 0j's next steps. The first,
+**repair on a miss** (a stored template's unread lines on a new capture go
+back to Claude once; the extension is kept only if it still reads the
+captures it was written from), was built on 2026-10-27 (PR #87, HANDOFF 0k)
+and is unchanged except that it now checks *every* capture the template was
+written from, not only the three it keeps. This adds the other two.
+
+**The skip audit: a skipped line is not covered for free.** Round 4 found
+first-contact templates putting information in `skip` (a version banner, a
+summary count, a test's duration: about 15 PARTIALs), and one skip rule that
+swallowed a whole diff while coverage read 100% (060 systemd-delta).
+- A skipped line with no letter or digit (rules, box glyphs) is decoration.
+  One that carries a word or a number is *set aside*, and counts as covered
+  only once its kind (`_kind`: first word, shape of the rest) has been judged
+  decoration by Claude. The kinds judged are kept in the template as
+  `"decoration"`. Until then the line counts as **unread**: in the gate
+  (`_llm_file`: it is in the denominator, not the numerator), in `find`'s
+  choice between templates, and in `learn`'s and `repair`'s coverage.
+- **`learn` audits once:** when the template it wrote sets aside such lines,
+  Claude is shown their count and a sample (one line per kind, with how many
+  lines of that kind; at most 60 kinds) in the same conversation, and asked to
+  read any that carry data into a block or leave the template unchanged. The
+  reply is kept only if it still reads every line the first template read and
+  covers the capture; otherwise the first template stands with nothing judged.
+  One more API call per new tool, only when something is set aside.
+- **`repair` judges what is new:** `misses` now reports set-aside lines of a
+  kind not judged (it reported skipped lines of a kind the examples never
+  showed), and **all** set-aside lines when there are at least 3 and their
+  share of the capture is 25 points above the largest share on the
+  template's examples (the systemd-delta case, even when the kinds are
+  known). The repair request shows them by kind with counts; the kinds Claude
+  leaves in skip are judged.
+- `GUIDE.md` (the prompt) says a line that carries data is data even outside
+  the table, and that skipped lines with words are reviewed.
+- `template.py audit TEMPLATE INPUT` prints the counts and the sample.
+  `template.py apply` prints the counts after the block count and coverage
+  (skipped, decoration, judged, not judged, read, unread); provost reads them.
+- `meta.tsv` gets `llm_skip_audit` on every capture a template files: `N
+  skipped: D decoration, J judged decoration, U not judged (counted as
+  unread)`. The set-aside lines themselves are in `NAME.notes`, as before.
+- **Older templates:** a template with no `"decoration"` record (every one
+  written before this) counts the kinds *its examples* set aside as judged,
+  since the flow it came through accepted them, so an existing store's
+  templates read its captures as they did. A template with no examples (a
+  library one in `PROVOST_LLM_TEMPLATE_DIRS`, say) has nothing judged: its
+  set-aside lines count as unread until a repair (with a key) shows them to
+  Claude, and without a key it may now be declined where it was filed. The
+  two shipped templates skip nothing on their samples.
+
+**The ledger: each template records the captures it has seen.** Every
+capture a template files is recorded beside the store's templates in
+`llm-templates/NAME.seen.tsv` (`capture`, `how`: learned / extended /
+checked / read, `template`: `llm-templates/NAME.json`, `shipped:NAME.json`
+or the library path, its `read` / `unread` / `skipped` / `unjudged` line
+counts on that capture, and the capture's `input_sha256`). It is written
+under the store lock with the capture's id and committed with it. A
+template still keeps its first and latest captures as `"examples"` (what
+Claude is shown in a repair); a repair now also passes the store's copies
+of every other capture the ledger says it was written from (`template.py
+repair --earlier FILE`), and an extension that no longer reads one of them
+is refused like one that loses an example. A capture `rm --capture` purges
+keeps its ledger row (as its commit keeps its `Input-SHA256` trailer); a
+repair skips it.
+
+Also: `template.py find` passes over a stored template whose parser fails
+(a runaway or broken format-2 parser) instead of failing the whole search.
+
+**With the judge (2.9.0, PV-009).** Both run. After `learn` the audit's
+call (only when the template sets lines aside) comes before the judge's
+review; after `repair` the audit rides in the repair call and the review
+follows. A judge's revision is held to the same audited coverage (the kinds
+the template has judged count; a newly set-aside kind does not), keeps the
+template's `"decoration"`, and must still read the ledger's other captures
+(`template.py judge` and `repair` take `--earlier`; checked, not sent).
+`"examples"`, `"decoration"` and `"judge"` are what provost keeps beside a
+template's patterns: none is sent to Claude or compared to tell a change.
+
+Tests: `ml/tests/test_llm_template.py` (43, was 30) — the audit's three-way
+split and coverage, older templates, `find`, learn's audit (kept, refused,
+failed, not needed, one line per kind), unjudged and rising set-aside lines
+as misses, repair judging them, and repair against captures beyond the
+examples (API and CLI), all against the fake API. `tests/smoke.sh` (llm
+part, 71): learn's audit call, `decoration` and `llm_skip_audit`, the
+ledger (learned, read, extended, checked; shipped and library templates),
+an extension refused for a capture only the ledger names (and not sent), and
+the gate counting an unjudged set-aside line until it is judged. Merged
+with the judge: 57 unit tests and 94 smoke checks in the llm part; the
+judge's tests now expect learn's audit call before the review, and a
+revision is checked against a capture only the ledger names.
+
+Not measured: whether the audit lifts the PASS rate. That needs a key and a
+fresh frozen round (round 5 is spent for `--llm`; PV-007 is the
+open `--llm` measurement). One real API call was made while building this
+(a repair of a six-line made-up input).
+
+## 2.9.0 — 2026-11-10 — a structural judge after --llm learn and repair (PV-009)
+
+`VERSION` 2.8.0 → 2.9.0, and the `man/provost.1` header. Minor: a new
+review step under `--llm`, on by default, and a setting to turn it off
+(`PROVOST_LLM_JUDGE`).
+
+**What it does.** After Claude writes a template (`learn`) or extends one
+(`repair`), one more call shows Claude the capture, the template and the
+tables it makes of the capture (`extract/llm/JUDGE.md`), and asks for PASS or
+up to five structural fixes. The checks are the faults HANDOFF 0k found
+behind round 4's PARTIALs, which a coverage check cannot see: a parent the
+rows do not keep (a section, a tree's parent, a trunk above its members), a
+record split across tables, a header half applied, a line kind misread, data
+set aside as decoration. A fix list goes back to the template's writer once
+(one more try if the revision is invalid or falls short). The revision is
+kept only if it reads the capture at least as well, still reads every line
+of the template's earlier captures it read, and passes provost's gate; if
+it fails the gate, the template as it was before the review is filed and
+kept (`template.py` writes it beside the revision as `NEW.before`). A
+review that fails (an API error, an unreadable verdict) costs nothing but
+the call. The verdict is stored in the template as `"judge"`, and the
+capture's report and `meta.tsv` say what it did ("a review passed it",
+"revised after a review asked for 2 fixes", ...). The judge runs at
+effort `high`: at `medium`, Opus 5.5 answered reviews without thinking.
+
+**Measured on round 5** (`tests/benchmark/round5/llm-judge/`). Round 5's
+first-contact templates (`round5/llm-templates-learn/`, the ones rated on
+2026-11-04) were reviewed on their own inputs with the new
+`tests/benchmark/judge_round.sh`: 100 reviews, 74 PASS, 26 fix lists, all
+26 revisions held and passed the gate. 126 calls, 515,599 input and 80,469
+output tokens, about $3.70. The 26 changed outputs were rated blind before
+and after by four subagent raters on round 5's `CRITERIA.md` (no rater saw
+both versions of an input): **before 17 PASS / 9 PARTIAL, after 25 PASS /
+1 PARTIAL; 9 better, 1 worse, 16 the same.** Of the four template-filed
+inputs rated PARTIAL on 2026-11-04 that the judge flagged, all four now
+rate PASS. The one worse: `postfix-qshape`, where the revision moved the
+TOTAL row to a table of its own without its label. On round 5's own
+ratings this puts `--llm` first contact at 99 / 6 / 2 (was 96 / 9 / 2).
+Caveats: round 5 had been rated before this change (it is a seen set, not
+an unseen one); the raters, the writer and the judge are one model family;
+and repair's review could not be measured, as round 5 has no second
+captures.
+
+- `extract/llm/template.py`: `judge`, `revise`, `review_template`,
+  `review_summary`, `show` (what a template makes of a capture, as the judge
+  reads it); `learn` and `repair` review by default (`review=False` to
+  skip); the shared check a changed template must meet is `_shortfall`;
+  `template.py judge TEMPLATE INPUT --out NEW`, and `--no-judge` on `learn`
+  and `repair`, which now print what happened and the review's line.
+- `extract/llm/JUDGE.md`: the judge's instructions, shipped in the wheel
+  (`pyproject.toml`).
+- `provost`: `PROVOST_LLM_JUDGE` (0 or 1, default 1), `_llm_reviewed`; help,
+  `man/provost.1` and README document it.
+- `tests/fake_anthropic.py` answers a JSON list of replies in order;
+  `tests/smoke.sh` gives every existing learn and repair a PASS verdict and
+  adds checks for a revision kept, a revision the gate refuses, and
+  `PROVOST_LLM_JUDGE=0` / `2`; `ml/tests/test_llm_template.py` adds 13
+  judge tests.
+- `tests/benchmark/judge_round.sh`; `tests/benchmark/round5/llm-judge/`
+  (`judge.tsv`, `llm-log.jsonl`, the 26 revised templates, `ratings.tsv`).
+
+## 2.8.0 — 2026-11-10 — worked recipes for running provost from test frameworks (PV-023)
+
+`VERSION` 2.7.0 → 2.8.0, and the `man/provost.1` header. Minor: new recipes a
+user can copy and run; provost itself is unchanged, and no corpus golden moved.
+
+The outside assessment (QD-006) said provost "runs alongside" ReFrame and
+other harnesses, and asked for worked examples. They are in
+`docs/integrations/` (a new "Test frameworks" section of the docs site, linked
+from the README and the docs home page), each file shown whole on its page and
+kept in `docs/integrations/examples/`:
+
+- **`provost-wrap [--name NAME] [KEY=VALUE ...] -- CMD`** (`wrapper.md`): runs
+  CMD with its output passed through, files that output with a `#%` prologue
+  of the KEY=VALUE words and `rc`, and exits with CMD's own status even when
+  provost is missing or refuses the output (`provost run`'s status is
+  provost's when the filing fails). `run-suite.sh` is a plain shell harness
+  built on it.
+- **ReFrame** (`reframe.md`): a `ProvostCapture` mixin whose post-run hook
+  files each test's stdout with `test`, `system`, `partition`, `environ`,
+  `sched.job` and `rc` as columns (and `provost_context` for more), and a
+  `--perflogdir` per run plus `provost batch --from -` for the perflogs.
+  Tested with ReFrame 4.7.4.
+- **pytest** (`pytest.md`): a `provost_pytest` plugin (`-p provost_pytest
+  --provost`) that files each test's printed output with its id, outcome and
+  duration, in one `provost batch` at the end of the session; and the JUnit
+  XML route (a row per test case, from 2.5.0's `xml` record mode).
+- **GitLab CI** (`gitlab-ci.md`): a job that calls the wrapper with the
+  pipeline, job, commit and runner as manifest keys and keeps the store as an
+  artifact.
+
+**Tested in CI.** `tests/integrations.sh` (new CI job `integrations`) runs
+every recipe against a stand-in benchmark and a throwaway store and checks
+the rows carry their context columns: a real ReFrame 4.7.4 run of the example
+check (and of a failing one, whose output is still filed), a real pytest
+session, and the GitLab job's `script:` run with GitLab's variables stood in.
+It also fails if a page's copy of a file differs from the file. ReFrame,
+pytest and PyYAML are installed in that job only, never as provost
+dependencies. `tests/smoke.sh` has a new `wrap` part (18 checks): the wrapper
+files a capture with its columns and keeps the wrapped command's exit status.
+
+Not done: recipes for **bstf** and **QB**, which the assessment named but
+nobody here could identify; they wait for the owner's description (PV-023).
+
+## 2.7.0 — 2026-11-10 — opt-in environment capture, `--env` (PV-028)
+
+`VERSION` 2.6.0 → 2.7.0, and the `man/provost.1` header. Minor: a new
+capture option. Off unless asked for: without `--env` a capture files
+exactly as before, and no tidy output or golden can move.
+
+The outside assessment (QD-006, second batch) asked for a flag that records
+the hostname, kernel, loaded modules and selected environment variables with
+a capture, covering most of what a run manifest promises. As refined in the
+ticket: a small fixed set, variables only from an allow-list, and never a
+value that looks like a secret.
+
+- **`--env`** (run, piped input, FILE, batch; `PROVOST_ENV=1`) adds `#%`
+  prologue lines to the capture: `env.host`, `env.kernel` (`uname -sr`),
+  `env.arch` (`uname -m`), `env.os` (`/etc/os-release`'s `PRETTY_NAME`, or
+  `sw_vers` on macOS), `env.modules` (`$LOADEDMODULES`: the HPC meaning of
+  modules, Lmod or Environment Modules), `env.user` (`id -un`), and inside
+  a Slurm job its id, `env.slurm.nodes`, `env.slurm.cluster` and
+  `env.slurm.partition`. A reading that is not set is not written.
+  `--env=modules` (`PROVOST_ENV=modules`) adds the kernel modules
+  (`lsmod`, else `/proc/modules`) as `env.kernel.modules`; `--no-env` turns
+  it off. `_env_capture_setup`, `_env_os`, `_env_kmods` in `provost`.
+- **The key names PV-020 settled:** a manifest profile has an optional fifth
+  column, `env`, that claims a reading for one of its keys. `default.tsv`
+  claims the Slurm job id for `sched.job`, `proposal.tsv` for `job_id`; a
+  reading no key claims is written as `env.READING`. A store's own profile
+  can claim more (`sut` from `host`). A claimed key is a manifest key like
+  any other, so the capture-time check and `check-manifest` see it.
+- **Variables only from an allow-list**, `PROVOST_ENV_VARS`: names or glob
+  patterns, space- or comma-separated, each recorded as `env.var.NAME`.
+  Default `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` (the
+  families the ticket names, with each MPI's own tuning prefix); set but
+  empty, none. The patterns are matched against variable names only, never
+  expanded against files. A pattern with other characters is refused at
+  startup (exit 2).
+- **Never a secret.** `extract/secrets.tsv` (new; shipped in the wheel) lists
+  what a secret looks like, as patterns on a variable's name (`TOKEN`,
+  `SECRET`, `PASSW`, `KEY`, `AUTH`, ...) and on its value (a PEM private
+  key, an `Authorization:` header, a bearer or basic token, AWS, GitHub,
+  GitLab, Slack, `sk-` and Google API keys, a JWT, credentials in a URL,
+  `password=`). An allow-listed variable that matches one is not recorded:
+  provost warns (`$NAME not recorded: its value (github-token) looks like a
+  secret`) and lists its name in `env.withheld`. PV-033's redaction rules
+  are to start from this file; its patterns are Bash `[[ =~ ]]` EREs, not
+  awk, so they may use `{n}`.
+- **Who wins:** `--env`'s lines go first, then `--manifest FILE`'s, then the
+  input's own prologue, and an `--env` key either of the others sets is left
+  out, so a key appears once. The readings are taken once per command:
+  `batch --env` puts the same ones on every input, which describes the host
+  provost runs on, not the hosts gathered files came from (help, man and
+  `docs/usage.md` say so). A tab or line break in a value becomes a space.
+- Hashes (PV-026): as with `--manifest`, `input_sha256` is of the input as
+  received, before the readings are prepended; `output_sha256` is of what
+  is stored, readings included, and `verify` passes on such a store.
+- Docs: `--help` for run, inject and batch, `help advanced` (a new
+  ENVIRONMENT CAPTURE section, the option and both settings), the man page,
+  completions, README, `docs/usage.md` ("Environment capture"), the profile
+  header in `extract/manifests/default.tsv`. Tests: a new `env` part in
+  `tests/smoke.sh` (71 checks: without `--env` nothing changes; each
+  reading; the profile's claim under default and proposal; the input's and
+  `--manifest`'s keys winning; the capture-time check seeing a claimed key;
+  a token-like value, a secret-looking name and six other secret shapes
+  refused and listed in `env.withheld`, and absent from the store's files
+  and history; a GPU UUID and paths not taken for secrets; the allow-list
+  replaced, emptied, comma-separated and not globbed against files;
+  `--env=modules` with a stand-in `lsmod`; `PROVOST_ENV`; run and batch;
+  `--context-columns`; macOS through stand-in `uname` and `sw_vers`; bad
+  settings exit 2).
+
+## 2.6.0 — 2026-11-10 — an offline install bundle with an SBOM for each release (PV-025)
+
+`VERSION` 2.5.3 → 2.6.0, and the `man/provost.1` header. Minor: something
+new a user can use (the bundle). The tool itself does not change.
+
+An outside assessment asked for a "high-side transfer bundle": provost on an
+air-gapped host with no PyPI, with an SBOM and the release's signatures as the
+supply-chain story. Each release now carries one.
+
+- **`tools/offline_bundle.py`** (stdlib, Python 3.8+; nothing ships in the
+  wheel) builds `provost-X.Y.Z-offline/`: the wheel and sdist PyPI has, byte
+  for byte; `provost-X.Y.Z.cdx.json`, a CycloneDX 1.5 SBOM listing each
+  package file with its SHA-256 and the system tools provost runs (bash, git,
+  awk, python3, coreutils, sed, grep, findutils required; util-linux `script`
+  and less optional); `INSTALL.md`; and `SHA256SUMS`. `check` fails a bundle
+  whose checksums, SBOM or requirements disagree (`--schema` adds the CycloneDX
+  schema, CI only); `pack` writes a reproducible `.tar.gz`.
+- **`release.yml`** gains a `bundle` job after the PyPI upload: build from the
+  same files, sign every file and the tarball with Sigstore (keyless, the
+  workflow's identity), verify each signature, install with networking off on
+  `python:3.8-slim` and RHEL 9 UBI, attach everything to the GitHub release
+  `vX.Y.Z`. A dispatched run (how 2.0.0-2.3.0 were published) has no release,
+  so it creates one tagging the commit it built.
+- **`ci.yml`** gains an `offline bundle` job doing the same on every pull
+  request, signing and verifying `SHA256SUMS` only, and running
+  `tests/offline_bundle/` (21 unit tests).
+- **`tools/offline-install-check.sh`** is the high-side install as a test:
+  `sha256sum -c`, `pip install --no-index --find-links`, `provost --version`, a
+  capture; `tools/offline-install-test.sh` runs it in a container with
+  `--network none`, after proving pypi.org cannot be reached.
+- **`docs/offline-install.md`** (also `INSTALL.md` in the bundle): verify on the
+  connected side (`sigstore verify github --repository
+  MartinGallagher-code/provost --name "Release to PyPI"`), check `SHA256SUMS` on
+  the high side, install.
+- PyPI's PEP 740 attestations for 2.3.0 were checked on 2026-11-10: both the
+  wheel and the sdist carry one, signed by `release.yml` on `main` through
+  Trusted Publishing. The release workflow needed no change for them.
+
+Not in the bundle: `provost[lm]` (numpy and the 85 MB `provost-model`) and an
+RPM. Both are open questions for the owner on PV-025.
+
+## 2.5.3 — 2026-11-10 — auto-multi's guards: tighter on tool-specific parts, looser on headerless tables (PV-013)
+
+`VERSION` 2.5.2 → 2.5.3, and the `man/provost.1` header. Patch: a fix to when
+the automatic `--multi` fallback files a split. No new option, and no corpus
+golden moves: the corpus gate runs the engine, not auto-multi.
+
+- **Tightened (`_am_part_check`, rule 2).** A part read by a tool-specific
+  parser (bespoke or plugin) must keep `--min-coverage` % of its own lines.
+  On a whole input those parsers are exempt from the gate; on a fragment of
+  another tool's output a low reading is an accident. Round 4's 048 (`pytest
+  -ra`) was filed wrong when `git-annex-list` read a rule line as `flags` /
+  `path` at 50%; it is held now. The strict grammars (json, yaml, xml, toml,
+  har) stay exempt.
+- **Loosened (rule 4, `_am_positional_why`).** A table under positional
+  `A`/`B`/`C`… columns sank every split. It is now declined only on evidence
+  that a header was lost or rows shredded: a column of box chrome, cells under
+  two thirds filled, or a header-like line (2+ words, no digit) right above
+  the part in the input, past blank and rule lines. A headerless table is
+  filed, as the benchmark's rating rule 4 already accepts. Each part's own
+  input lines (the engine's `PROVOST_MULTI_TEXT_DIR`) are now always written
+  for auto-multi, so the part can be placed; the layout model's and `--llm`'s
+  own segment checks pass no text and stay as strict as before.
+- **Measured** (the postscript to
+  `docs/benchmark-2026-11-04-generalisation-round5.md`; a pointer in round 4's):
+  - Tuned on round 4 and checked on rounds 2 and 3.
+  - Committed and pushed before round 5 was run, then measured on round 5
+    once.
+  - Round 4: 2 rescues and 1 wrong table → 5 rescues and none.
+  - Round 5: 0 → 1 rescue of 3 possible (101 `aix lspv`, FAIL → PARTIAL by
+    its existing blind rating), no wrong table.
+  - Rounds 2 and 3: every input has the same outcome as before.
+- **`tests/benchmark/auto_multi_round.sh --roundN OUT`** (new): every input
+  captured through the CLI into a fresh store, with a `summary.tsv` of what
+  each was (filed / segmented / held, and why).
+- **Tests:** five smoke checks (`core`), on spent benchmark inputs:
+  - the tool-specific part (round 4's 048);
+  - a headerless table filed (round 4's 137);
+  - box chrome (round 2's 102);
+  - a cut-off header (round 3's 115);
+  - shredded rows (round 4's 031).
+- **Docs:** `provost help advanced`, `man/provost.1`, `docs/usage.md`,
+  HANDOFF (0a).
+
+## 2.5.2 — 2026-11-10 — the two gate rules that cost `--llm` a FAIL each (PV-010)
+
+`VERSION` 2.5.1 → 2.5.2, and the `man/provost.1` header. Patch: two gate
+fixes. Both were named in HANDOFF 0j / 0k as costing round 4 a FAIL apiece
+however good the template.
+
+- **The fragments rule counts rows, not only lines.** Auto-multi parts,
+  the layout model's sections and an LLM template's blocks are fragments
+  when the parts of 3+ hold under half of the input. A part's size was its
+  input lines (`_AM_FRAG_LINES`); it is now its lines or its table's rows,
+  whichever is more (`_am_frag_add`, `_AM_FRAG_MIN`). Round 4's 132, a
+  TeamSpeak ServerQuery client list, holds six clients on ONE line: its
+  template's blocks were "0 of 2 lines in blocks of 3+ lines" and the
+  capture was held on every run. It now files six client rows and the
+  `error id=0 msg=ok` status. Taking the larger of the two only makes a
+  part bigger; the one way a split that passed before could now be
+  declined is a small part of 1–2 lines with more rows than lines, still
+  under 3, which adds to the total but not to the substantial share. The
+  notes read "N of M lines or rows in parts of 3+".
+- **A yaml parse is no longer beyond a stored template.** `--llm` never ran
+  over an exact-format parser, and yaml is one, but its grammar is lax:
+  plain `Label: text` output is valid YAML. Round 4's 020 (golangci-lint's
+  linter list) was read as one 110-column record, its Enabled / Disabled
+  section titles lost and `wsl [deprecated]` dropped. A template already
+  stored for the tool (the store, `PROVOST_LLM_TEMPLATE_DIRS`, the shipped
+  ones) may now better a yaml parse under the rule for a generic parse the
+  gate passed (keep its share of the data lines within 10 points). Claude
+  is never asked to write one over a yaml parse, so a real YAML document
+  costs no API call and is filed as before. 020 now files 111 linter rows
+  with their state, status and flags. json, xml, toml and the tool-specific
+  parsers are untouched.
+
+Round 4 with its stored templates (`tests/benchmark/llm_round.sh`), main
+against this branch, on the first captures (`inputs/`) and the second
+(`variants/`): exactly 020 and 132 change in each (engine yaml → template;
+held → template), and every other capture's tidy files and meta are
+byte-identical but for the timestamp. First captures: 105 template / 1
+engine / 1 held → 107 template. Second captures: 101 / 5 / 1 → 103 / 4 / 0.
+Corpus gate: 3602 passed, 0 failed (no golden moved).
+
+Files: `provost` (`_am_frag_add`, `_AM_FRAG_MIN`, the LLM-first hook in
+`_ingest`, `provost help` AUTO-MULTI and LLM TEMPLATES), `man/provost.1`,
+`tests/smoke.sh` (5 checks in the `llm` part, failing on 2.5.0),
+`HANDOFF.md`, `VERSION`.
+
+## 2.5.1 — 2026-11-10 — a decision record on how provost should generalise (PV-006)
+
+`VERSION` 2.5.0 → 2.5.1, and the `man/provost.1` header. Patch: docs and a
+benchmark analysis script, no behaviour changed.
+
+- **`docs/0004-generalisation-approach.md`** weighs the four options HANDOFF
+  listed before another fix round (segment with `--multi` on weak signals;
+  let the quality signals decide more; narrow the claim and hold weak parses;
+  `--model` or `--llm` as the default fallback for held captures), plus
+  `--llm` first, against rounds 4 and 5. The findings:
+  - the signals cannot see 7–8 FAILs a round;
+  - no choice between the engine's own readers gets past 15–19 PASS of 107;
+  - `--model` adds nothing on held captures;
+  - `--llm` first is the only reader that changes the result (87 / 18 / 2 and
+    96 / 9 / 2).
+
+  It recommends that pick and narrowing the claim offline together. **The
+  owner's pick is pending.** When it is made, it gets its own version and
+  entry here, HANDOFF records it, and its follow-up tickets are filed.
+- **`tests/benchmark/what_if.py`** reproduces every figure in the note from
+  the rounds' rating sheets (stdlib, nothing re-run or re-rated).
+- `mkdocs.yml` lists the note under Design. HANDOFF "Next steps" 1 points to
+  it.
 
 ## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
 
