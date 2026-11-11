@@ -11,7 +11,7 @@ _provost_complete () {
     }
 
     local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor verify help"
-    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --manifest --manifest-profile --strict-manifest --no-strict-manifest --show --async --sync --wait --silent --help"
+    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --manifest --manifest-profile --strict-manifest --no-strict-manifest --env --env=modules --no-env --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
     # First word: complete the verb (or a capture option / file for inject).

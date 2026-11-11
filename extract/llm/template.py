@@ -42,6 +42,7 @@ builtins and imports, a CPU and memory limit, no files and no network.
     python3 template.py misses TEMPLATE INPUT              # line kinds in INPUT the template has not met
     python3 template.py audit TEMPLATE INPUT               # the skip audit: what it sets aside, and why
     python3 template.py repair TEMPLATE INPUT --out NEW [--tool NAME] [--earlier FILE ...]   # ask Claude to extend it
+    python3 template.py judge TEMPLATE INPUT --out NEW [--tool NAME] [--earlier FILE ...]    # have Claude review it
 
 The SKIP AUDIT: a skipped line is not covered for free. One with no letter
 or digit (a rule, box glyphs) is decoration; one that carries a word or a
@@ -52,9 +53,18 @@ a block or confirm; `repair` shows those of a kind not yet judged. Until a
 kind is judged its lines count as unread, and a capture that shows them, or
 far more set-aside lines than the template's earlier captures, is a miss.
 
-`learn` and `repair` send the capture's text (and repair, the captures a
-template was written from: its "examples") to the Anthropic API: provost only
-runs them under --llm with a key. Stdlib only.
+After `learn` and after `repair`, a second call reviews the result (the
+judge, JUDGE.md): Claude sees the capture, the template and the tables it
+makes, and answers PASS or a list of structural fixes (a parent the rows do
+not keep, a record split across tables, a header half applied, a line kind
+misread). A fix list goes back to the template's writer once; the revision
+is kept only if it reads the capture at least as well and still reads the
+earlier captures. The verdict is stored in the template ("judge").
+--no-judge (provost: PROVOST_LLM_JUDGE=0) skips it.
+
+`learn`, `repair` and `judge` send the capture's text (and repair, the
+captures a template was written from: its "examples") to the Anthropic API:
+provost only runs them under --llm with a key. Stdlib only.
 """
 import argparse
 import hashlib
@@ -73,6 +83,7 @@ import sandbox  # noqa: E402  (the static check; the parser itself runs in a sub
 
 SHIPPED = os.path.join(HERE, "templates")
 GUIDE = os.path.join(HERE, "GUIDE.md")
+JUDGE = os.path.join(HERE, "JUDGE.md")
 SANDBOX = os.path.join(HERE, "sandbox.py")
 PARSER_TIMEOUT = 10      # apply (format 2): wall-clock seconds for the boxed parser
 MAX_LINES = 400          # learn: larger captures are not sent
@@ -559,7 +570,7 @@ def _audit_learned(t, lines, messages, text, system, tool, model):
         t2 = _parse(call_claude(system, messages, model, purpose="audit", tool=tool))
         if not isinstance(t2, dict):
             raise TemplateError("not a format-1 or format-2 template")
-        t2 = {k: v for k, v in t2.items() if k not in ("examples", "decoration")}
+        t2 = _bare(t2)
         r2, s2, u2 = _classify(compile_template(t2), lines)
         if a["read"] - r2 or _cover(r2, s2, u2) < MIN_COVERAGE:
             raise TemplateError("the reply reads less of the capture")
@@ -580,11 +591,11 @@ def _numbered(lines, idx):
     return "\n".join(f"{j} |{lines[j]}" for j in idx)
 
 
-def learn(lines, tool="", model="claude-opus-5-5"):
+def learn(lines, tool="", model="claude-opus-5-5", review=True):
     """Ask Claude for a template for this capture, check it on the capture,
     and give it one more try with the lines it missed; then the skip audit
-    (one more call when it sets aside lines that carry words or numbers).
-    -> template dict."""
+    (one more call when it sets aside lines that carry words or numbers);
+    then (REVIEW) have the judge review it (review). -> template dict."""
     _too_large(lines)
     with open(GUIDE, encoding="utf-8") as fh:
         system = fh.read()
@@ -602,13 +613,13 @@ def learn(lines, tool="", model="claude-opus-5-5"):
                          {"role": "user", "content": f"That template is invalid: {exc}. Reply with the corrected JSON only."}]
             continue
         if cov >= MIN_COVERAGE:
-            t = {k: v for k, v in t.items() if k not in ("examples", "decoration")}
+            t = _bare(t)
             t.setdefault("tool", tool)
             t = _audit_learned(t, lines, messages, text, system, tool, model)
             # the capture it was written from: repair checks a changed
             # template still reads it
             t["examples"] = ["\n".join(lines)]
-            return t
+            return review_template(t, lines, tool, model) if review else t
         last = f"it covers {cov:.0%} of the lines"
         shown = "\n".join(f"{j} |{lines[j]}" for j in miss[:40])
         messages += [{"role": "assistant", "content": text},
@@ -638,7 +649,7 @@ REPAIR_ASK = (
     "It must still read every line of the earlier captures that it reads now. If the lines listed are only "
     "decoration, return the template unchanged. Reply with the complete template JSON only (format 1 or 2), "
     "without the earlier captures.")
-_KEPT = ("examples", "decoration")    # what provost keeps in a template beside its patterns
+_KEPT = ("examples", "decoration", "judge")    # what provost keeps in a template beside its patterns
 
 
 def _kind(ln):
@@ -664,7 +675,10 @@ def _examples(t):
 
 
 def _bare(t):
-    """The template's patterns: without what provost keeps beside them."""
+    """The template's patterns: without what provost keeps beside them (the
+    captures it was written from, the kinds the skip audit judged
+    decoration, the judge's verdict): what is sent to Claude, and what is
+    compared to tell a changed template."""
     return {k: v for k, v in t.items() if k not in _KEPT}
 
 
@@ -694,14 +708,15 @@ def misses(t, lines):
     return (sorted(j for j in a["unread"] if _kind(lines[j]) not in known_u), sorted(new_s))
 
 
-def repair(t, lines, tool="", model="claude-opus-5-5", earlier=()):
+def repair(t, lines, tool="", model="claude-opus-5-5", earlier=(), review=True):
     """Ask Claude to extend a stored template for what this capture shows
     that it has not met before (misses), and check the extension: it must
     cover this capture at least as well as the template did (and 80%), and
     still read every line the template read of its examples and of EARLIER
     (texts of the other captures it was written from: checked, not sent).
     One more try with what fell short. The set-aside kinds shown and left in
-    skip are judged decoration. -> the extended (or unchanged) template, with
+    skip are judged decoration. Then (REVIEW) have the judge review the
+    result on this capture (review). -> the extended (or unchanged) template, with
     this capture added to its examples."""
     _too_large(lines)
     ct = compile_template(t)
@@ -746,21 +761,10 @@ def repair(t, lines, tool="", model="claude-opus-5-5", earlier=()):
                 raise TemplateError("not a format-1 or format-2 template")
             t2 = _bare(t2)
             ct2 = compile_template(t2)
-            short, shown = [], []
             r2, s2, u2 = _classify(ct2, lines)
             judged2 = judged | (shown_kinds & {_kind(lines[j]) for j in s2 if _WORD.search(lines[j])})
-            cov = coverage(audit(t2, lines, ct2, (r2, s2, u2), judged2))
-            if cov < min(cov0, 1.0) - 1e-9 or cov < MIN_COVERAGE:
-                short.append(f"it covers {cov:.0%} of the new capture's non-blank lines "
-                             f"(the template covered {cov0:.0%}; at least {max(cov0, MIN_COVERAGE):.0%} is needed)")
-            for n, (el, was) in enumerate(zip(checks, before), 1):
-                lost = sorted(was - _classify(ct2, el)[0])
-                if not lost:
-                    continue
-                what = (f"earlier capture {n}" if n <= len(exl)
-                        else f"another capture it was written from ({n - len(exl)} of {len(more)}, not shown above)")
-                short.append(f"on {what} it no longer reads {len(lost)} line(s) the template read")
-                shown.append(f"{what[0].upper() + what[1:]}, lines it no longer reads:\n" + _numbered(el, lost[:SHOW]))
+            short, shown = _shortfall(t2, ct2, lines, cov0, checks, before, "the new capture", judged2,
+                                      sent=len(exl), classified=(r2, s2, u2))
         except TemplateError as exc:
             last = f"the template is invalid: {exc}"
             messages += [{"role": "assistant", "content": text},
@@ -771,7 +775,7 @@ def repair(t, lines, tool="", model="claude-opus-5-5", earlier=()):
             t2["decoration"] = sorted(judged2)
             keep = examples if len(examples) < MAX_EXAMPLES else examples[:1] + examples[len(examples) - MAX_EXAMPLES + 2:]
             t2["examples"] = keep + ["\n".join(lines)]
-            return t2
+            return review_template(t2, lines, tool, model, exl, more) if review else t2
         last = "; ".join(short)
         messages += [{"role": "assistant", "content": text},
                      {"role": "user", "content": "That template falls short: " + last + ".\n\n" + "\n\n".join(shown)
@@ -792,6 +796,225 @@ def audit_report(t, lines):
     return "\n".join(out)
 
 
+def _shortfall(t2, ct2, lines, cov0, checks, before, what, judged, sent=None, classified=None):
+    """How a changed template T2 (compiled: CT2) falls short of the one it
+    replaces: its coverage of LINES under the skip audit (with the kinds
+    JUDGED decoration) must be at least COV0 and MIN_COVERAGE, and it must
+    still read every line of the earlier captures CHECKS it read (BEFORE).
+    The first SENT of CHECKS were shown to Claude (all of them by default);
+    the rest were checked, not sent. CLASSIFIED: T2's (read, skipped,
+    unread) on LINES, when the caller has it.
+    -> (short: [reason], shown: [lines it no longer reads])."""
+    short, shown = [], []
+    sent = len(checks) if sent is None else sent
+    cov = coverage(audit(t2, lines, ct2, classified, judged))
+    if cov < min(cov0, 1.0) - 1e-9 or cov < MIN_COVERAGE:
+        short.append(f"it covers {cov:.0%} of {what}'s non-blank lines "
+                     f"(the template covered {cov0:.0%}; at least {max(cov0, MIN_COVERAGE):.0%} is needed)")
+    for n, (el, was) in enumerate(zip(checks, before), 1):
+        lost = sorted(was - _classify(ct2, el)[0])
+        if not lost:
+            continue
+        w = (f"earlier capture {n}" if n <= sent
+             else f"another capture it was written from ({n - sent} of {len(checks) - sent}, not shown above)")
+        short.append(f"on {w} it no longer reads {len(lost)} line(s) the template read")
+        shown.append(f"{w[0].upper() + w[1:]}, lines it no longer reads:\n" + _numbered(el, lost[:SHOW]))
+    return short, shown
+
+
+# -- the judge: a review of what a template makes of a capture ---------------
+# Coverage says a template reads the lines; it cannot say the tables keep the
+# capture's structure. After learn and after repair, one more call shows
+# Claude the capture, the template and the tables it makes (JUDGE.md), and
+# asks for PASS or a short list of structural fixes. The fixes go back to
+# the template's writer once (GUIDE.md); the revision is kept only if it
+# reads the capture at least as well and still reads the earlier captures.
+JUDGE_ROWS = 40          # rows of each table shown to the judge
+MAX_FIXES = 5
+JUDGE_EFFORT = "high"
+JUDGE_ASK = ("Review what the template makes of the capture, on the checks in your instructions. Reply with "
+             '{"verdict": "PASS"} or {"verdict": "FIX", "fixes": [...]} only.')
+REVISE_ASK = ("Revise the template to make these fixes, and keep what is right as it is. It must still read the "
+              "capture at least as well as it does now" + "{earlier}" + ". Reply with the complete template JSON "
+              "only (format 1 or 2), without the earlier captures.")
+
+
+def _ranges(idx):
+    """Line indexes as runs: [3, 4, 5, 9] -> '3-5, 9'."""
+    out, idx = [], sorted(idx)
+    i = 0
+    while i < len(idx):
+        j = i
+        while j + 1 < len(idx) and idx[j + 1] == idx[j] + 1:
+            j += 1
+        out.append(str(idx[i]) if i == j else f"{idx[i]}-{idx[j]}")
+        i = j + 1
+    return ", ".join(out)
+
+
+def show(t, lines):
+    """What a template makes of a capture, as the judge reads it: each block
+    as a table (its columns, its rows, the lines it read), then the lines it
+    sets aside (skipped as decoration, or left unread)."""
+    ct = t if _compiled(t) else compile_template(t)
+    if ct["format"] == 2:
+        blocks, used, skip, nonblank = _run_parser(ct, lines)
+        unread = nonblank - used - skip
+    else:
+        blocks = apply(ct, lines)[0]
+        _, skip, unread = _classify(ct, lines)
+    out = []
+    for n, b in enumerate(blocks, 1):
+        recs = b["records"]
+        out.append(f"Table {n}: {b['name']} ({b['kind']}, {len(recs)} {'row' if len(recs) == 1 else 'rows'}, "
+                   f"read from lines {_ranges(b['lines'])})")
+        if b["kind"] == "kv":
+            rows = ["key\tvalue"] + [ln.replace(" ", "\t", 1) for ln in flat_records(b)]
+            more = len(rows) - 1 - JUDGE_ROWS
+        else:
+            cols = []
+            for r in recs:
+                cols += [k for k in r if k not in cols]
+            rows = ["\t".join(cols)] + ["\t".join(str(_cell(r.get(c, ""))) for c in cols) for r in recs]
+            more = len(recs) - JUDGE_ROWS
+        out.append("\n".join(rows[:JUDGE_ROWS + 1]) + (f"\n... and {more} more" if more > 0 else ""))
+    if not blocks:
+        out.append("(no tables: the template reads nothing from this capture)")
+    aside = sorted(skip | unread)
+    if aside:
+        out.append(f"Lines set aside ({len(aside)}):\n" + "\n".join(
+            f"{j} |{lines[j]}    [{'skipped as decoration' if j in skip else 'unread'}]" for j in aside[:SHOW])
+            + (f"\n... and {len(aside) - SHOW} more" if len(aside) > SHOW else ""))
+    else:
+        out.append("Lines set aside: none")
+    return "\n\n".join(out)
+
+
+def _verdict(text):
+    v = _parse(text)
+    if not isinstance(v, dict) or v.get("verdict") not in ("PASS", "FIX"):
+        raise TemplateError('the review is not {"verdict": "PASS"} or {"verdict": "FIX", "fixes": [...]}')
+    if v["verdict"] == "PASS":
+        return "PASS", []
+    fixes = [f.strip() for f in v.get("fixes") or [] if isinstance(f, str) and f.strip()]
+    if not fixes:
+        raise TemplateError("the review asks for fixes but lists none")
+    return "FIX", fixes[:MAX_FIXES]
+
+
+def judge(t, lines, tool="", model="claude-opus-5-5"):
+    """One call: Claude reviews what template T makes of LINES (JUDGE.md).
+    -> ("PASS", []) or ("FIX", [fix, ...]); raises TemplateError."""
+    _too_large(lines)
+    with open(JUDGE, encoding="utf-8") as fh:
+        system = fh.read()
+    parts = [f"Tool: {tool or t.get('tool') or '(unnamed)'}",
+             f"The capture ({len(lines)} lines):", _numbered(lines, range(len(lines))),
+             "The template:", json.dumps(_bare(t), indent=1, ensure_ascii=False),
+             "What the template makes of the capture:", show(t, lines), JUDGE_ASK]
+    # a review is reasoning, not writing: at medium effort the model often
+    # answers without thinking at all
+    text = call_claude(system, [{"role": "user", "content": "\n\n".join(parts) + "\n"}], model,
+                       effort=JUDGE_EFFORT, purpose="judge", tool=tool)
+    return _verdict(text)
+
+
+def revise(t, lines, fixes, tool="", model="claude-opus-5-5", earlier=(), checked=()):
+    """The judge's FIXES go back to the template's writer once (one more try
+    when the revision is invalid or falls short). The revision must cover
+    LINES at least as well as T (under the skip audit, with the kinds T has
+    judged decoration) and still read every line T reads of the EARLIER
+    captures (sent) and of CHECKED (other captures it was written from:
+    checked, not sent). -> the revised template (without examples, a
+    verdict or decoration); raises TemplateError."""
+    ct = compile_template(t)
+    exl = list(earlier)
+    checks = exl + [el for el in checked if el not in exl]
+    before = [_classify(ct, el)[0] for el in checks]
+    judged = _judged(t, ct)
+    cov0 = coverage(audit(t, lines, ct, judged=judged))
+    with open(GUIDE, encoding="utf-8") as fh:
+        system = fh.read()
+    parts = [f"Tool: {tool or t.get('tool') or '(unnamed)'}",
+             "You wrote this template for the tool:", json.dumps(_bare(t), indent=1, ensure_ascii=False)]
+    for n, el in enumerate(exl, 1):
+        parts += [f"Earlier capture {n} ({len(el)} lines):", _numbered(el, range(len(el)))]
+    parts += [f"The capture ({len(lines)} lines):", _numbered(lines, range(len(lines))),
+              "A reviewer read what the template makes of this capture and asks for these fixes:",
+              "\n".join(f"{n}. {f}" for n, f in enumerate(fixes, 1)),
+              REVISE_ASK.format(earlier=", and every line of the earlier captures it reads now" if exl else "")]
+    messages = [{"role": "user", "content": "\n\n".join(parts) + "\n"}]
+    last = ""
+    for attempt in range(2):
+        text = call_claude(system, messages, model, purpose="revise", tool=tool)
+        try:
+            t2 = _parse(text)
+            if not isinstance(t2, dict):
+                raise TemplateError("not a format-1 or format-2 template")
+            t2 = _bare(t2)
+            short, shown = _shortfall(t2, compile_template(t2), lines, cov0, checks, before, "the capture",
+                                      judged, sent=len(exl))
+        except TemplateError as exc:
+            last = f"the template is invalid: {exc}"
+            messages += [{"role": "assistant", "content": text},
+                         {"role": "user", "content": f"That template is invalid: {exc}. Reply with the corrected JSON only."}]
+            continue
+        if not short:
+            return t2
+        last = "; ".join(short)
+        messages += [{"role": "assistant", "content": text},
+                     {"role": "user", "content": "That template falls short: " + last + ".\n\n" + "\n\n".join(shown)
+                      + "\n\nReply with the corrected complete template JSON only."}]
+    raise TemplateError(f"the revision does not hold ({last})")
+
+
+def review_template(t, lines, tool="", model="claude-opus-5-5", earlier=(), checked=()):
+    """The judge after learn or repair: one review of what T makes of LINES;
+    a FIX list is fed back once (revise). The template that comes out (T,
+    or the revision) carries the verdict as "judge":
+      {"verdict": "PASS"}
+      {"verdict": "FIX", "fixes": [...], "applied": true}
+      {"verdict": "FIX", "fixes": [...], "applied": false, "why": "..."}
+      {"verdict": "none", "why": "..."}    (the review itself failed)
+    A review that fails, or a revision that does not hold, never costs the
+    template: T is kept as it was. EARLIER: the other captures T was written
+    from (as lists of lines), shown to Claude with the fixes; CHECKED: more
+    of them, which the revision must still read but which are not sent. Its
+    examples, tool and decoration (the skip audit's judged kinds) carry
+    over."""
+    keep = {k: t[k] for k in ("tool", "examples", "decoration") if k in t}
+    try:
+        verdict, fixes = judge(t, lines, tool, model)
+    except TemplateError as exc:
+        return dict(_bare(t), judge={"verdict": "none", "why": str(exc)}, **keep)
+    if verdict == "PASS":
+        return dict(_bare(t), judge={"verdict": "PASS"}, **keep)
+    try:
+        t2 = revise(t, lines, fixes, tool, model, earlier, checked)
+    except TemplateError as exc:
+        return dict(_bare(t), judge={"verdict": "FIX", "fixes": fixes, "applied": False, "why": str(exc)}, **keep)
+    t2.setdefault("tool", t.get("tool") or tool)
+    return dict(t2, judge={"verdict": "FIX", "fixes": fixes, "applied": True},
+                **{k: keep[k] for k in ("examples", "decoration") if k in keep})
+
+
+def review_summary(t):
+    """One line on a template's review, for provost's report and meta.tsv."""
+    j = t.get("judge") if isinstance(t, dict) else None
+    if not isinstance(j, dict):
+        return ""
+    n = len(j.get("fixes") or [])
+    fx = f"{n} fix{'es' if n != 1 else ''}"
+    if j.get("verdict") == "PASS":
+        return "a review passed it"
+    j = dict(j, why=_CELL.sub(" ", str(j.get("why", ""))))
+    if j.get("verdict") == "FIX" and j.get("applied"):
+        return f"revised after a review asked for {fx}"
+    if j.get("verdict") == "FIX":
+        return f"a review asked for {fx} that did not hold: {j.get('why', '')}"
+    return f"not reviewed: {j.get('why', '')}"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -808,6 +1031,7 @@ def main(argv=None):
     p.add_argument("--out", required=True)
     p.add_argument("--tool", default="")
     p.add_argument("--model", default=os.environ.get("PROVOST_LLM_MODEL") or "claude-opus-5-5")
+    p.add_argument("--no-judge", action="store_true", help="no review of the template it writes")
     p = sub.add_parser("key")
     p.add_argument("input")
     p.add_argument("--name", default="")
@@ -825,6 +1049,15 @@ def main(argv=None):
     p.add_argument("--model", default=os.environ.get("PROVOST_LLM_MODEL") or "claude-opus-5-5")
     p.add_argument("--earlier", action="append", default=[], metavar="FILE",
                    help="another capture the template was written from: the extension must still read it")
+    p.add_argument("--no-judge", action="store_true", help="no review of the template it extends")
+    p = sub.add_parser("judge")
+    p.add_argument("template")
+    p.add_argument("input")
+    p.add_argument("--out", required=True)
+    p.add_argument("--tool", default="")
+    p.add_argument("--model", default=os.environ.get("PROVOST_LLM_MODEL") or "claude-opus-5-5")
+    p.add_argument("--earlier", action="append", default=[], metavar="FILE",
+                   help="another capture the template was written from: a revision must still read it")
     a = ap.parse_args(argv)
     lines = read_lines(a.input)
     try:
@@ -861,18 +1094,45 @@ def main(argv=None):
                                                sk and f"{len(sk)} skipped line(s) not judged decoration") if x))
         elif a.cmd == "audit":
             print(audit_report(load(a.template), lines))
-        elif a.cmd in ("learn", "repair"):
+        elif a.cmd in ("learn", "repair", "judge"):
+            # stdout: what happened (repair: extended | unchanged; learn:
+            # learned; judge: reviewed), then the review's one-line summary
+            bare = lambda x: {k: v for k, v in _bare(x).items() if k != "tool"}  # noqa: E731
+            earlier = []
+            # --earlier: other captures it was written from, checked and not sent
+            checked = []
+            for f in getattr(a, "earlier", None) or []:
+                with open(f, encoding="utf-8", errors="replace") as fh:
+                    checked.append(fh.read())
             if a.cmd == "learn":
-                t = learn(lines, a.tool, a.model)
-            else:
+                t = learn(lines, a.tool, a.model, review=False)
+                print("learned")
+            elif a.cmd == "repair":
                 old = load(a.template)
-                earlier = []
-                for f in a.earlier:
-                    with open(f, encoding="utf-8", errors="replace") as fh:
-                        earlier.append(fh.read())
-                t = repair(old, lines, a.tool, a.model, earlier)
-                bare = lambda x: {k: v for k, v in _bare(x).items() if k != "tool"}  # noqa: E731
+                earlier = [_split(e) for e in _examples(old)]
+                t = repair(old, lines, a.tool, a.model, checked, review=False)
                 print("unchanged" if bare(t) == bare(old) else "extended")
+            else:
+                t = load(a.template)
+                compile_template(t)
+                # its other captures must still read as they do; this one
+                # is the capture under review
+                earlier = [el for el in (_split(e) for e in _examples(t)) if el != lines]
+                print("reviewed")
+            before = a.out + ".before"
+            if os.path.exists(before):
+                os.remove(before)
+            if a.cmd == "judge" or not a.no_judge:
+                more = [el for el in map(_split, checked) if el != lines and el not in earlier]
+                t0, t = t, review_template(t, lines, a.tool, a.model, earlier, more)
+                print(review_summary(t))
+                if t["judge"].get("applied"):
+                    # the template as it was before the review, for a caller
+                    # whose own checks refuse the revision (provost's gate)
+                    with open(before, "w", encoding="utf-8") as fh:
+                        json.dump(dict(t0, judge=dict(t["judge"], applied=False, why="the revision was not kept")),
+                                  fh, indent=1, ensure_ascii=False)
+                        fh.write("\n")
             tmp = a.out + ".tmp"
             with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump(t, fh, indent=1, ensure_ascii=False)
