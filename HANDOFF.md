@@ -47,7 +47,7 @@ format must come with a migration, a `### Format N` section and a fixture:
 smoke fails `_STORE_FORMAT` without them. Open, for the owner: whether a
 provost should refuse to write to a store whose format is newer than its own
 (today it does not; the spec says so). quarterdeck's reader was checked
-against the spec; its gaps are a QD ticket (see PV-022).
+against the spec; its gaps are QD-031.
 
 **2.8.0: recipes for test frameworks (PV-023, 2026-11-10; not published).**
 `docs/integrations/`: `provost-wrap` (a generic wrapper that keeps the
