@@ -531,6 +531,12 @@ Round 4 has now been looked at for this change, so any further tuning of the
 guards against it would not be an honest measure. Re-measuring needs a round
 5.
 
+*2026-11-10 (PV-013):* the guards were retuned on this round, which was
+already spent for auto-multi, and then measured once on round 5. On round 4
+the change files 5 rescues (003, 026, 029, 106, 137) and no wrong table: 048
+is held. On round 5 it files 1 rescue of 3 and no wrong table. See the
+postscript to `docs/benchmark-2026-11-04-generalisation-round5.md`.
+
 
 ## Postscript, 2026-10-22: the layout-model fallback, measured once
 
