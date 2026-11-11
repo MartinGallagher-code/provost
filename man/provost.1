@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-11" "provost 2.16.0" "User Commands"
+.TH PROVOST 1 "2026-11-11" "provost 2.17.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -588,7 +588,9 @@ else any template whose detect pattern recognises the input), then in
 \fBPROVOST_LLM_TEMPLATE_DIRS\fR, then in the templates shipped with provost. When none fits, and \fBPROVOST_LLM_API_KEY\fR
 or \fBANTHROPIC_API_KEY\fR is set, it asks Claude (\fBPROVOST_LLM_MODEL\fR) to
 write one from this capture; \fBthat step sends the capture's text to the
-Anthropic API\fR (at most 400 lines / 64 KB), once per tool. The template is
+Anthropic API\fR, or to the server \fBPROVOST_LLM_API\fR and
+\fBPROVOST_LLM_BASE_URL\fR name (at most 400 lines / 64 KB), once per tool,
+and never in offline mode (below). The template is
 tried first: on a capture the gate would hold, before segmenting and the
 layout model; and on a generic parse the gate passed, before that parse is
 trusted (never over an exact-format or tool-specific parser, save that a
@@ -632,6 +634,21 @@ nothing but the call. The verdict is stored in the template (\fBjudge\fR).
 Every capture a template files is recorded in \fIllm-templates/NAME.seen.tsv\fR
 (its ledger). \fImeta.tsv\fR records \fBllm_template\fR and
 \fBllm_skip_audit\fR.
+\fBEndpoints:\fR \fBPROVOST_LLM_API=anthropic\fR (the default) speaks
+Anthropic's Messages API; \fBPROVOST_LLM_API=openai\fR speaks the Chat
+Completions API that OpenAI-compatible servers serve (vLLM, llama.cpp's
+server, Ollama, an Azure deployment), with \fBPROVOST_LLM_BASE_URL\fR naming the
+server, \fBPROVOST_LLM_MODEL\fR its model id and \fBPROVOST_LLM_API_KEY\fR its
+key (\fBANTHROPIC_API_KEY\fR is never sent to it). The prompt is the same
+either way, and a template from any model passes the same gate before it is
+kept.
+\fBOffline mode:\fR with \fBPROVOST_LLM_OFFLINE=1\fR, or a file named
+\fIllm-offline\fR at the top of the store (committed with the next capture;
+no environment turns it off), \fB--llm\fR never opens a network connection:
+stored templates are used, nothing is sent to be written or extended, and the
+held line and \fImeta.tsv\fR say offline mode stopped it. The refusal is in
+the request code itself, whatever key or base URL is set.
+\fBPROVOST_LLM_ALLOW_HOSTS\fR names the only hosts a request may go to.
 .SH UNITS
 By default a unit stays where the tool printed it: in a column's name
 (\fBBandwidth_(MB/s)\fR), in each cell (\fB482MiB/s\fR), or in a column
@@ -797,13 +814,29 @@ The model that writes templates (default \fBclaude-opus-5-5\fR).
 call reviews it and may revise it once (see \fBLLM TEMPLATES\fR, Review);
 \fB0\fR: no review.
 .TP
+.B PROVOST_LLM_API
+The API \fB--llm\fR speaks: \fBanthropic\fR (the default, the Messages API) or
+\fBopenai\fR (Chat Completions, for OpenAI-compatible and local servers such as
+vLLM, llama.cpp's server and Ollama).
+.TP
 .B PROVOST_LLM_API_KEY
-Anthropic API key for \fB--llm\fR (else \fBANTHROPIC_API_KEY\fR; prefer this one
-where \fBANTHROPIC_API_KEY\fR is taken, e.g. inside Claude Code, which keeps it
-for its own sign-in).
+API key for \fB--llm\fR (for \fBanthropic\fR, else \fBANTHROPIC_API_KEY\fR; prefer
+this one where \fBANTHROPIC_API_KEY\fR is taken, e.g. inside Claude Code, which
+keeps it for its own sign-in). For \fBopenai\fR only this one is used; any value
+for a server that takes no key.
 .TP
 .B PROVOST_LLM_BASE_URL
-API base URL (default \fBhttps://api.anthropic.com\fR).
+API base URL (default \fBhttps://api.anthropic.com\fR; \fBopenai\fR needs one,
+e.g. \fBhttp://127.0.0.1:8000/v1\fR).
+.TP
+.B PROVOST_LLM_OFFLINE
+\fB1\fR: \fB--llm\fR sends nothing, whatever key or base URL is set; stored
+templates only (default \fB0\fR). A store with an \fIllm-offline\fR file is
+always offline.
+.TP
+.B PROVOST_LLM_ALLOW_HOSTS
+The only hosts \fB--llm\fR may send to (comma-separated); a base URL on any
+other host is refused before anything is sent. Unset: any.
 .TP
 .B PROVOST_LLM_TEMPLATE_DIRS
 Colon-separated directories of templates to look in after the store's
@@ -811,7 +844,7 @@ Colon-separated directories of templates to look in after the store's
 .TP
 .B PROVOST_LLM_LOG
 A file to append one JSON line per API reply to (what it was for, the tool,
-the model that answered, its token usage), to add up what \fB--llm\fR cost.
+the API, the model that answered, its token usage), to add up what \fB--llm\fR cost.
 .TP
 .B PROVOST_MAX_INPUT
 Maximum input bytes parsed, for injection and \fBrun\fR output (default:

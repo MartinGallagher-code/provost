@@ -13,6 +13,7 @@ unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIE
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_CONTEXT_COLUMNS PROVOST_PLUGIN_DIR \
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
       PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY \
+      PROVOST_LLM_API PROVOST_LLM_OFFLINE PROVOST_LLM_ALLOW_HOSTS \
       PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT PROVOST_REDACT PROVOST_ENV PROVOST_ENV_VARS \
       PROVOST_OVERSIZE PROVOST_ARTIFACT_DIR \
       LOADEDMODULES SLURM_JOB_ID SLURM_JOBID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_CLUSTER_NAME SLURM_JOB_PARTITION
@@ -1279,6 +1280,87 @@ PY
         "$PROVOST" --sync --llm --name app-config "$LTD/conf.yaml" 2>&1)"
     check "a yaml document with no template is filed as yaml" "strategy yaml" "$lt_out"
     check_not "Claude is not asked to write a template over a yaml parse" "Claude" "$lt_out$(cat "$LTD/.yaml/captures/c0002/meta.tsv" 2>/dev/null)"
+    # ENDPOINTS (PROVOST_LLM_API, PV-019): openai speaks Chat Completions, as
+    # vLLM, llama.cpp's server and Ollama do. tests/fake_openai.py stands in
+    # for one: its reply file is a list of the replies' text.
+    check "PROVOST_LLM_API must be anthropic or openai" "2" "$(PROVOST_LLM_API=gopher rc_of "$PROVOST" --sync "$LT_SAMPLE")"
+    check "PROVOST_LLM_OFFLINE must be 0 or 1" "2" "$(PROVOST_LLM_OFFLINE=yes rc_of "$PROVOST" --sync "$LT_SAMPLE")"
+    check "openai takes a local model id (org/name:tag)" "0" "$(PROVOST_LLM_API=openai PROVOST_LLM_MODEL=org/model:q4 PROVOST_WORKSPACE="$LTD/.oaiv" rc_of "$PROVOST" --sync "$LT_SAMPLE")"
+    check "anthropic does not" "2" "$(PROVOST_LLM_MODEL=org/model:q4 rc_of "$PROVOST" --sync "$LT_SAMPLE")"
+    python3 - "$LTD/oai-v1.txt" "$LTD/oai-v2.txt" <<'EOP'
+import json, sys
+v1 = {"format": 1, "tool": "volumes", "detect": "^NAME\\s+SIZE\\s+USED\\s+MOUNT$", "skip": ["^Volumes on host "],
+      "blocks": [{"name": "volumes", "kind": "table", "header": "^NAME\\s+SIZE",
+                  "line": "^(?P<name>\\S+)\\s+(?P<size>[\\d.]+[KMGT]?)\\s+(?P<used>[\\d.]+[KMGT]?)\\s+(?P<mount>/\\S*)$"}]}
+v2 = dict(v1, blocks=[dict(v1["blocks"][0], line="^(?P<name>\\S+)\\s+(?P<size>[\\d.]+[KMGT]?)\\s+(?P<used>[\\d.]+[KMGT]?|-)\\s+(?P<mount>/\\S*|\\[SWAP\\])$")])
+open(sys.argv[1], "w").write(json.dumps(v1))
+open(sys.argv[2], "w").write(json.dumps(v2))
+EOP
+    LT_JPASS='{"verdict": "PASS"}'
+    python3 -c 'import json, sys; print(json.dumps([open(sys.argv[1]).read(), open(sys.argv[1]).read(), sys.argv[2]]))' "$LTD/oai-v1.txt" "$LT_JPASS" > "$LTD/oai.json"
+    rm -f "$LTD/oport" "$LTD/olog"
+    python3 "$HERE/fake_openai.py" "$LTD/oport" "$LTD/olog" "$LTD/oai.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/oport" ]] && break; sleep 0.1; done
+    LT_OURL="http://127.0.0.1:$(cat "$LTD/oport")/v1"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.oai" PROVOST_LLM_API=openai PROVOST_LLM_BASE_URL="$LT_OURL" PROVOST_LLM_API_KEY=k-local \
+        ANTHROPIC_API_KEY=sk-ant-never-sent PROVOST_LLM_MODEL=org/local-model:q4 \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
+    check "openai: an OpenAI-compatible server writes the template" "read by a new template Claude wrote (llm-templates/volumes.json)" "$lt_out"
+    check "openai: learn, its skip audit and its review, all Chat Completions" "3 3" "$(wc -l < "$LTD/olog" | tr -d ' ') $(grep -c '"path": "/v1/chat/completions"' "$LTD/olog")"
+    lt_req="$(head -n 1 "$LTD/olog")"
+    check "openai: a bearer key" '"authorization": "bearer k-local"' "${lt_req,,}"
+    check "openai: the model id as given" '"model": "org/local-model:q4"' "$lt_req"
+    check "openai: the guide is the system message" '"role": "system", "content": "' "$lt_req"
+    check_not "openai: no Anthropic headers" "anthropic-version" "${lt_req,,}"
+    check_not "openai: ANTHROPIC_API_KEY is never sent" "sk-ant-never-sent" "$(cat "$LTD/olog")"
+    # repair through it: a new kind of line (a swap volume) extends the template
+    python3 -c 'import json, sys; print(json.dumps([open(sys.argv[1]).read(), sys.argv[2]]))' "$LTD/oai-v2.txt" "$LT_JPASS" > "$LTD/oai.json"
+    : > "$LTD/olog"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.oai" PROVOST_LLM_API=openai PROVOST_LLM_BASE_URL="$LT_OURL" PROVOST_LLM_API_KEY=k-local \
+        PROVOST_LLM_MODEL=org/local-model:q4 "$PROVOST" --sync --llm --name volumes "$LTD/vol2.txt" 2>&1)"
+    check "openai: a stored template is repaired through it" "read by template volumes.json, which Claude extended for 1 unread line(s) of a kind it has not met (llm-templates/volumes.json)" "$lt_out"
+    check "openai: the repair reads the new line" "swap	8G	-	[SWAP]" "$(cat "$LTD/.oai/datasets/volumes.tsv")"
+    check "openai: the repair and its review, Chat Completions" "2 2" "$(wc -l < "$LTD/olog" | tr -d ' ') $(grep -c '"path": "/v1/chat/completions"' "$LTD/olog")"
+    # OFFLINE MODE (PROVOST_LLM_OFFLINE=1, or the store's llm-offline file):
+    # with a key and a server listening, nothing is sent; stored templates
+    # are still used, and the note says offline mode stopped it
+    : > "$LTD/olog"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.off1" PROVOST_LLM_OFFLINE=1 PROVOST_LLM_API=openai PROVOST_LLM_BASE_URL="$LT_OURL" \
+        PROVOST_LLM_API_KEY=k-local "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "offline: a held capture with no template is held as before" "queued in 'unsorted'" "$lt_out"
+    check "offline: the held line says offline mode stopped it" "offline mode is on (PROVOST_LLM_OFFLINE=1), so nothing was sent" "$lt_out"
+    check "offline: meta.tsv says so too" "offline mode is on (PROVOST_LLM_OFFLINE=1)" "$(grep '^llm_template' "$LTD/.off1/captures/c0001/meta.tsv")"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.off1" PROVOST_LLM_OFFLINE=1 PROVOST_LLM_API=openai PROVOST_LLM_BASE_URL="$LT_OURL" \
+        PROVOST_LLM_API_KEY=k-local "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
+    check "offline: a generic parse is filed as the engine read it" "strategy aligned-columns" "$lt_out"
+    check "offline: and its meta.tsv says why no template was written" "offline mode is on (PROVOST_LLM_OFFLINE=1)" "$(grep '^llm_template' "$LTD/.off1/captures/c0002/meta.tsv")"
+    check "offline: nothing reached the server" "0" "$(wc -l < "$LTD/olog" | tr -d ' ')"
+    # the store's own setting: no environment turns it off
+    mkdir -p "$LTD/.off2/llm-templates"
+    # (the template as first written, before the repair: vol2's swap line is a miss for it)
+    python3 -c 'import json, sys; t = json.load(open(sys.argv[1])); t["examples"] = [open(sys.argv[2]).read().rstrip("\n")]; t["decoration"] = ["Volumes a"]; json.dump(t, open(sys.argv[3], "w"), indent=1)' \
+        "$LTD/oai-v1.txt" "$LTD/vol.txt" "$LTD/.off2/llm-templates/volumes.json"
+    : > "$LTD/.off2/llm-offline"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.off2" PROVOST_LLM_OFFLINE=0 PROVOST_LLM_API=openai PROVOST_LLM_BASE_URL="$LT_OURL" \
+        PROVOST_LLM_API_KEY=k-local "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
+    check "store offline: a stored template is used" "read by template volumes.json" "$lt_out"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.off2" PROVOST_LLM_OFFLINE=0 PROVOST_LLM_API=openai PROVOST_LLM_BASE_URL="$LT_OURL" \
+        PROVOST_LLM_API_KEY=k-local "$PROVOST" --sync --llm --name volumes "$LTD/vol2.txt" 2>&1)"
+    check "store offline: a miss is not sent to be extended, and meta.tsv says why" "offline mode is on (the store's llm-offline file), so it was not sent to Claude to be extended for 1 unread line(s)" "$(grep '^llm_template' "$LTD/.off2/captures/c0002/meta.tsv")"
+    check "store offline: the setting is committed with the capture" "llm-offline" "$(git -C "$LTD/.off2" ls-files llm-offline 2>&1)"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.off2" PROVOST_LLM_OFFLINE=0 PROVOST_LLM_API_KEY=k-test PROVOST_LLM_BASE_URL="$LT_OURL" \
+        "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "store offline: PROVOST_LLM_OFFLINE=0 does not turn it off" "offline mode is on (the store's llm-offline file), so nothing was sent" "$lt_out"
+    check "store offline: nothing reached the server" "0" "$(wc -l < "$LTD/olog" | tr -d ' ')"
+    # and template.py itself refuses, whatever calls it
+    check "offline: template.py refuses before it sends" "offline mode is on (PROVOST_LLM_OFFLINE=1): nothing was sent" "$(PROVOST_LLM_OFFLINE=1 PROVOST_LLM_API_KEY=k PROVOST_LLM_BASE_URL="$LT_OURL" python3 "$HERE/../extract/llm/template.py" learn "$LTD/vol.txt" --out "$LTD/never.json" 2>&1)"
+    check "offline: and nothing reached the server" "0" "$(wc -l < "$LTD/olog" | tr -d ' ')"
+    # PROVOST_LLM_ALLOW_HOSTS: a base URL on another host is refused unsent
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.allow" PROVOST_LLM_ALLOW_HOSTS=llm.internal PROVOST_LLM_API=openai PROVOST_LLM_BASE_URL="$LT_OURL" \
+        PROVOST_LLM_API_KEY=k-local "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "allow-hosts: a host not listed is refused" "is not in PROVOST_LLM_ALLOW_HOSTS (llm.internal): nothing was sent" "$lt_out"
+    check "allow-hosts: nothing reached the server" "0" "$(wc -l < "$LTD/olog" | tr -d ' ')"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
 fi
 fi
 

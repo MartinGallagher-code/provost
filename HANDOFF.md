@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.16.0 is everything through 2026-11-11** (`VERSION`, man header,
-the `## 2.16.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.17.0 is everything through 2026-11-11** (`VERSION`, man header,
+the `## 2.17.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -21,15 +21,16 @@ pseudonymised on export (PV-033, below; 2.13.0); the tiny LM's arbiter
 (PV-012, below; 2.14.0); inputs over `PROVOST_MAX_INPUT` kept by reference
 instead of refused (PV-021, Next steps 1j; 2.15.0); the store format as a
 versioned spec, `provost store check` and reads that never touch a store
-(PV-022, below; 2.16.0). 2.4.0 added `provost
+(PV-022, below; 2.16.0); `--llm` through OpenAI-compatible and local
+endpoints, and an offline mode (PV-019, Next steps 1k; 2.17.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.16.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.16.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.16.0`, creating
+2.17.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.17.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.17.0`, creating
 that release on a dispatched run.
 
 **2.16.0: the store format as a spec (PV-022, 2026-11-11; not published).**
@@ -346,6 +347,22 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1k. **2026-11-11: `--llm` endpoints and offline mode** (PV-019, 2.17.0).
+    `PROVOST_LLM_API=openai` sends Chat Completions to the OpenAI-compatible
+    server `PROVOST_LLM_BASE_URL` names (vLLM, llama.cpp's server, Ollama,
+    Azure); unset, it is the Anthropic Messages API as before. Offline mode
+    (`PROVOST_LLM_OFFLINE=1`, or an `llm-offline` file in the store, which no
+    environment overrides) refuses in `template.py`'s `call_claude` before a
+    request is built; `PROVOST_LLM_ALLOW_HOSTS` limits the hosts. Built and
+    tested against fake servers only (`tests/fake_openai.py`,
+    `ml/tests/test_llm_endpoints.py`): no real endpoint, paid or local, has
+    been called. The owner's two questions were answered conservatively on
+    his behalf: it did not wait for PV-007, and offline mode is off by
+    default. **Open:** whether a local model writes templates worth keeping
+    is PV-007's measurement (run it once against one local model if the
+    owner wants the comparison); whether a fresh store should start offline;
+    whether a `provost` command should set `llm-offline` rather than `touch`.
 
 1j. **2026-11-11: inputs over the cap kept by reference** (PV-021, 2.15.0).
     Over `PROVOST_MAX_INPUT` an input is filed, not refused: the whole of it

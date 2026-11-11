@@ -355,6 +355,11 @@ history**, in the **artifact directory**:
 - **`CONTROLLED`** (controlled directories): one line, the directory's path.
 - **`manifest-profile.tsv`**: a store's own run-manifest profile, if one is
   put there (`check-manifest`). provost reads it; it never writes it.
+- **`llm-offline`**: if a file of this name is at the top of the store (its
+  content is not read), `--llm` is in offline mode for that store whatever
+  the environment says: no template is written or extended, nothing is sent.
+  Put there by hand and committed with the next capture; provost reads it
+  and never writes it. Since provost 2.17.0; an older provost ignores it.
 
 ## Runtime files
 

@@ -123,6 +123,8 @@ PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layou
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
 PROVOST_LLM_MODEL="${PROVOST_LLM_MODEL:-claude-opus-5-5}"   # the model that writes templates
 PROVOST_LLM_JUDGE="${PROVOST_LLM_JUDGE:-1}"          # 1 = a review call after Claude writes or extends a template (see _llm_template)
+PROVOST_LLM_API="${PROVOST_LLM_API:-anthropic}"      # the wire format --llm speaks: anthropic (Messages API) or openai (Chat Completions, for OpenAI-compatible and local servers)
+PROVOST_LLM_OFFLINE="${PROVOST_LLM_OFFLINE:-0}"      # 1 = --llm never sends anything: stored templates only (a store's llm-offline file does the same)
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
 PROVOST_REDACT="${PROVOST_REDACT:-1}"                # 1 = scrub known secret patterns from each input before it is stored (--no-redact: 0)
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
@@ -200,7 +202,14 @@ _validate_settings () {
     [[ "$PROVOST_REDACT" == 0 || "$PROVOST_REDACT" == 1 ]] || usage_die "PROVOST_REDACT must be 0 or 1 (got '$PROVOST_REDACT')."
     [[ "$PROVOST_OVERSIZE" == keep || "$PROVOST_OVERSIZE" == refuse ]] || usage_die "PROVOST_OVERSIZE must be keep or refuse (got '$PROVOST_OVERSIZE')."
     [[ "$PROVOST_ARTIFACT_DIR" != *[$'\t\n\r']* ]] || usage_die "PROVOST_ARTIFACT_DIR cannot hold a tab or a line break."
-    [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
+    [[ "$PROVOST_LLM_API" == anthropic || "$PROVOST_LLM_API" == openai ]] || usage_die "PROVOST_LLM_API must be anthropic or openai (got '$PROVOST_LLM_API')."
+    [[ "$PROVOST_LLM_OFFLINE" == 0 || "$PROVOST_LLM_OFFLINE" == 1 ]] || usage_die "PROVOST_LLM_OFFLINE must be 0 or 1 (got '$PROVOST_LLM_OFFLINE')."
+    if [[ "$PROVOST_LLM_API" == openai ]]; then
+        # a local server's model ids carry a '/' (org/model) or a ':' (a tag)
+        [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
+    else
+        [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
+    fi
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
 
@@ -2096,9 +2105,26 @@ _llm_reviewed () { # NEW: file the template Claude wrote or extended; if the
     llm_rev="${llm_rev:+$llm_rev, }but the revision fails the gate ($n0), so the template as it was is kept"
     return 0
 }
+# OFFLINE MODE: PROVOST_LLM_OFFLINE=1, or an llm-offline file at the top of
+# the store (put there by hand, committed with the next capture; so it holds
+# whatever the environment says). Stored templates are still used; nothing
+# is sent to be written or extended, and the note says so. The variable is
+# exported too, so template.py refuses before it opens a connection should
+# any path here reach it.
+_llm_offline_why () {
+    if [[ "$PROVOST_LLM_OFFLINE" == 1 ]]; then printf 'PROVOST_LLM_OFFLINE=1'
+    elif [[ -e "$PROVOST_WORKSPACE/llm-offline" ]]; then printf "the store's llm-offline file"
+    else return 1; fi
+}
+# A key for the API in use: ANTHROPIC_API_KEY counts only for Anthropic's
+# (it is never sent to an OpenAI-compatible server).
+_llm_has_key () {
+    [[ -n "${PROVOST_LLM_API_KEY:-}" ]] || [[ "$PROVOST_LLM_API" == anthropic && -n "${ANTHROPIC_API_KEY:-}" ]]
+}
 _llm_template () {
     local learn="${1:-1}" py="$PROVOST_ROOT/extract/llm/template.py" tdir="$PROVOST_WORKSPACE/llm-templates"
-    local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev out jflag=""
+    local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev out jflag="" offw=""
+    if offw="$(_llm_offline_why)"; then export PROVOST_LLM_OFFLINE=1; else offw=""; fi
     [[ "$PROVOST_LLM_JUDGE" == 1 ]] || jflag="--no-judge"
     local llm_rev=""
     llm_seen_how=""; llm_seen_tpl=""
@@ -2120,7 +2146,10 @@ _llm_template () {
         # reads the captures the template was written from and passes the
         # same rules. Otherwise the template stays as it was.
         local miss="" rnote="" rstat=""
-        if (( learn )) && [[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] \
+        if (( learn )) && [[ -n "$offw" ]] && _llm_has_key \
+            && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
+            rnote="offline mode is on ($offw), so it was not sent to Claude to be extended for $miss"
+        elif (( learn )) && _llm_has_key \
             && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
             # every other capture the template was written from that the store
             # still has (its ledger names them): the extension (and a judge's
@@ -2134,7 +2163,7 @@ _llm_template () {
                         && earlier+=(--earlier "$(_cap_dir)/$_c/output.txt")
                 done < "$tdir/$(_llm_seen_stem "$tpl").seen.tsv"
             fi
-            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag \
+            if rstat="$(PROVOST_WORKSPACE="$PROVOST_WORKSPACE" python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag \
                     ${earlier[@]+"${earlier[@]}"} 2>"$tmp/llm-repair.err")"; then
                 [[ "$rstat" == *$'\n'* ]] && llm_rev="${rstat#*$'\n'}"
                 if _llm_reviewed "$new"; then
@@ -2166,12 +2195,20 @@ _llm_template () {
         [[ -z "$rnote" ]] || return 1
     fi
     (( learn )) || { llm_note="${llm_note:-no stored template fits}"; return 1; }
-    if [[ -z "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]]; then
-        llm_note="${llm_note:-no stored template fits}; no API key to have Claude write one (PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY)"
+    if [[ -n "$offw" ]]; then
+        llm_note="${llm_note:-no stored template fits}; offline mode is on ($offw), so nothing was sent to have Claude write one"
+        return 1
+    fi
+    if ! _llm_has_key; then
+        if [[ "$PROVOST_LLM_API" == anthropic ]]; then
+            llm_note="${llm_note:-no stored template fits}; no API key to have Claude write one (PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY)"
+        else
+            llm_note="${llm_note:-no stored template fits}; no API key to have the model write one (PROVOST_LLM_API_KEY)"
+        fi
         return 1
     fi
     prev="$llm_note"
-    if ! out="$(python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag 2>"$tmp/llm-learn.err")"; then
+    if ! out="$(PROVOST_WORKSPACE="$PROVOST_WORKSPACE" python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag 2>"$tmp/llm-learn.err")"; then
         err="$(cat "$tmp/llm-learn.err" 2>/dev/null)"
         llm_note="${prev:+$prev; }Claude wrote no usable template: ${err#template: }"; return 1
     fi
@@ -6262,10 +6299,12 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     recognises the input), then PROVOST_LLM_TEMPLATE_DIRS, then the
     templates shipped with provost. When none fits and PROVOST_LLM_API_KEY
     or ANTHROPIC_API_KEY is set, Claude (PROVOST_LLM_MODEL) writes one from
-    this capture: THAT SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API (at most
-    400 lines / 64 KB), once per tool. A new template is kept, and committed
-    with the capture, only when it passes; from then on every capture of the
-    tool is parsed offline, deterministically and at no cost.
+    this capture: THAT SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API, or to
+    the server PROVOST_LLM_API and PROVOST_LLM_BASE_URL name (at most 400
+    lines / 64 KB), once per tool; never in OFFLINE MODE (below). A new
+    template is kept, and committed with the capture, only when it passes;
+    from then on every capture of the tool is parsed offline,
+    deterministically and at no cost.
 
     When it is used: FIRST, on a capture the gate would hold (before
     segmenting and the layout model), and on a GENERIC parse the gate passed,
@@ -6319,6 +6358,25 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     still reads the earlier captures and passes the gate, else the template
     as it was before the review is used. A failed review costs nothing but
     the call. The verdict is stored in the template ("judge").
+
+    ENDPOINTS: PROVOST_LLM_API=anthropic (the default) speaks Anthropic's
+    Messages API. PROVOST_LLM_API=openai speaks the Chat Completions API that
+    OpenAI-compatible servers serve (vLLM, llama.cpp's server, Ollama, an
+    Azure deployment): set PROVOST_LLM_BASE_URL to the server (with or
+    without /v1), PROVOST_LLM_MODEL to its model id and PROVOST_LLM_API_KEY
+    (any value for a server that takes none; ANTHROPIC_API_KEY is never sent
+    to it). The prompt is the same either way. A local model's templates
+    pass the same gate as Claude's before they are kept.
+
+    OFFLINE MODE: PROVOST_LLM_OFFLINE=1, or a file named llm-offline at the
+    top of the store (touch STORE/llm-offline; it is committed with the next
+    capture, and no environment turns it off), and --llm never opens a
+    network connection: stored templates are used, nothing is sent to be
+    written or extended, and the held line and meta.tsv say offline mode
+    stopped it. The refusal is in template.py's request code itself, so it
+    holds whatever key or base URL is set. PROVOST_LLM_ALLOW_HOSTS names the
+    only hosts a request may go to; a base URL on any other is refused
+    before anything is sent.
 
     meta.tsv records 'llm_template' (filed by which template, or declined and
     why) and 'llm_skip_audit'. PROVOST_LLM_LOG names a file that gets one
@@ -6582,14 +6640,24 @@ SETTINGS (environment)
                               claude-opus-5-5)
     PROVOST_LLM_JUDGE         1 = review a template Claude writes or extends,
                               and revise it once (the default); 0 = don't
-    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else
+    PROVOST_LLM_API           the API --llm speaks: anthropic (the default,
+                              the Messages API) or openai (Chat Completions:
+                              vLLM, llama.cpp's server, Ollama, Azure)
+    PROVOST_LLM_API_KEY       API key for --llm (for anthropic, else
                               ANTHROPIC_API_KEY; use this one where that is
-                              taken, e.g. inside Claude Code)
-    PROVOST_LLM_BASE_URL      API base URL (default: https://api.anthropic.com)
+                              taken, e.g. inside Claude Code). For openai only
+                              this one; any value for a server that takes none
+    PROVOST_LLM_BASE_URL      API base URL (default: https://api.anthropic.com;
+                              openai needs one, e.g. http://127.0.0.1:8000/v1)
+    PROVOST_LLM_OFFLINE       1 = --llm sends nothing, whatever key or URL is
+                              set: stored templates only (default 0). A store
+                              with an llm-offline file is always offline
+    PROVOST_LLM_ALLOW_HOSTS   the only hosts --llm may send to (comma-
+                              separated); a base URL elsewhere is refused
     PROVOST_LLM_TEMPLATE_DIRS colon-separated template directories, looked in
                               after the store's and before provost's own
     PROVOST_LLM_LOG           a file to append each API reply's usage to (one
-                              JSON line: purpose, tool, model, tokens)
+                              JSON line: purpose, tool, api, model, tokens)
     PROVOST_PLUGIN_DIR        an extra strategy directory (as --plugin-dir)
     PROVOST_MAX_INPUT         max input bytes parsed, piped or run (default:
                               10485760); a larger input is kept by hash

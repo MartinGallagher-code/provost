@@ -63,8 +63,13 @@ earlier captures. The verdict is stored in the template ("judge").
 --no-judge (provost: PROVOST_LLM_JUDGE=0) skips it.
 
 `learn`, `repair` and `judge` send the capture's text (and repair, the
-captures a template was written from: its "examples") to the Anthropic API:
-provost only runs them under --llm with a key. Stdlib only.
+captures a template was written from: its "examples") to the Anthropic API,
+or, with PROVOST_LLM_API=openai, to the OpenAI-compatible server
+PROVOST_LLM_BASE_URL names (vLLM, llama.cpp's server, Ollama): provost only
+runs them under --llm with a key. In OFFLINE MODE (PROVOST_LLM_OFFLINE=1, or
+an llm-offline file in the store PROVOST_WORKSPACE names) every request is
+refused before it is built; PROVOST_LLM_ALLOW_HOSTS limits the hosts one may
+go to. Stdlib only.
 """
 import argparse
 import hashlib
@@ -75,6 +80,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -350,18 +356,75 @@ def key(lines, name=""):
 
 
 # -- learning a template from Claude ---------------------------------------
-def _api_key():
-    return os.environ.get("PROVOST_LLM_API_KEY") or os.environ.get("ANTHROPIC_API_KEY") or ""
+# Two wire formats (PROVOST_LLM_API): "anthropic" (the default) is the
+# Messages API, POST BASE/v1/messages; "openai" is the Chat Completions API
+# that OpenAI-compatible servers speak (vLLM, llama.cpp's server, Ollama, an
+# Azure deployment), POST BASE/v1/chat/completions with a bearer key. The
+# prompt is the same for both: only the envelope differs (_request, _reply).
+#
+# OFFLINE MODE (PROVOST_LLM_OFFLINE=1, or a store's llm-offline file, which
+# provost turns into the variable): call_claude refuses before it builds a
+# request, so no --llm path opens a connection whatever key or base URL is
+# set. PROVOST_LLM_ALLOW_HOSTS (optional) names the only hosts a request
+# may go to; a base URL on any other host is refused the same way.
+APIS = ("anthropic", "openai")
+OFFLINE_FILE = "llm-offline"     # in a store: offline mode, whatever the environment says
 
 
-def _log_call(msg, purpose, tool, secs):
+def _api():
+    a = (os.environ.get("PROVOST_LLM_API") or "anthropic").strip().lower()
+    if a not in APIS:
+        raise TemplateError(f"PROVOST_LLM_API must be anthropic or openai (got '{a}')")
+    return a
+
+
+def _api_key(api=None):
+    """The key for this API. ANTHROPIC_API_KEY is only ever sent to the
+    Anthropic API: an OpenAI-compatible server gets PROVOST_LLM_API_KEY."""
+    k = os.environ.get("PROVOST_LLM_API_KEY") or ""
+    if not k and (api or os.environ.get("PROVOST_LLM_API") or "anthropic").strip().lower() == "anthropic":
+        k = os.environ.get("ANTHROPIC_API_KEY") or ""
+    return k
+
+
+def offline():
+    """Why offline mode is on ('' when it is off): PROVOST_LLM_OFFLINE set to
+    anything but '' or 0, or an llm-offline file in the store
+    (PROVOST_WORKSPACE) when the caller names one."""
+    v = (os.environ.get("PROVOST_LLM_OFFLINE") or "").strip()
+    if v not in ("", "0"):
+        return "PROVOST_LLM_OFFLINE=" + v
+    ws = os.environ.get("PROVOST_WORKSPACE") or ""
+    if ws and os.path.exists(os.path.join(ws, OFFLINE_FILE)):
+        return "the store's " + OFFLINE_FILE + " file"
+    return ""
+
+
+def _allowed(url):
+    """Refuse a base URL whose host is not in PROVOST_LLM_ALLOW_HOSTS (when
+    it is set: hosts separated by commas or spaces)."""
+    allow = [h.lower() for h in re.split(r"[\s,]+", os.environ.get("PROVOST_LLM_ALLOW_HOSTS") or "") if h]
+    if not allow:
+        return
+    host = (urllib.parse.urlsplit(url).hostname or "").lower()
+    if host not in allow:
+        raise TemplateError(f"the API host '{host or url}' is not in PROVOST_LLM_ALLOW_HOSTS ({', '.join(allow)}): "
+                            "nothing was sent")
+
+
+def _log_call(msg, purpose, tool, secs, api="anthropic"):
     """PROVOST_LLM_LOG names a file that gets one JSON line per API reply
-    (what it was for, the tool, the model that answered, its usage): the
-    cost of a run can be added up afterwards."""
+    (what it was for, the tool, the API and the model that answered, its
+    usage): the cost of a run can be added up afterwards."""
     path = os.environ.get("PROVOST_LLM_LOG")
     if not path:
         return
-    rec = {"purpose": purpose, "tool": tool, "model": msg.get("model"), "stop_reason": msg.get("stop_reason"),
+    if api == "openai":
+        ch = (msg.get("choices") or [{}])[0] if isinstance(msg.get("choices"), list) else {}
+        stop = ch.get("finish_reason") if isinstance(ch, dict) else None
+    else:
+        stop = msg.get("stop_reason")
+    rec = {"purpose": purpose, "tool": tool, "api": api, "model": msg.get("model"), "stop_reason": stop,
            "usage": msg.get("usage"), "seconds": round(secs, 1)}
     try:
         with open(path, "a", encoding="utf-8") as fh:
@@ -370,24 +433,73 @@ def _log_call(msg, purpose, tool, secs):
         pass
 
 
-def call_claude(system, messages, model, effort="medium", max_tokens=16000, timeout=300,
-                purpose="", tool=""):
-    """One Messages API request over plain HTTP (no SDK: provost stays
-    dependency-free), retried on a rate limit, an overload or a dropped
-    connection. Returns the reply's text; raises TemplateError."""
-    k = _api_key()
-    if not k:
-        raise TemplateError("no API key (set PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY)")
-    base = os.environ.get("PROVOST_LLM_BASE_URL", "https://api.anthropic.com").rstrip("/")
+def _request(api, base, k, system, messages, model, effort, max_tokens):
+    """-> (url, body, headers) for one request in API's wire format."""
+    if api == "openai":
+        # a base URL given as .../v1 (how most OpenAI-compatible servers
+        # document theirs) or without it: either works
+        root = base[:-3] if base.endswith("/v1") else base
+        body = {"model": model, "max_tokens": max_tokens,
+                "messages": [{"role": "system", "content": system}] + list(messages)}
+        headers = {"content-type": "application/json", "authorization": "Bearer " + k}
+        return root + "/v1/chat/completions", body, headers
     body = {"model": model, "max_tokens": max_tokens, "system": system, "messages": messages,
             "output_config": {"effort": effort},
             # a safety classifier can decline harmless tool output (seen on
             # security tools): let the API retry on its recommended fallback
             "fallbacks": "default"}
-    req = urllib.request.Request(base + "/v1/messages", data=json.dumps(body).encode(), method="POST",
-                                 headers={"content-type": "application/json", "x-api-key": k,
-                                          "anthropic-version": API_VERSION,
-                                          "anthropic-beta": FALLBACK_BETA})
+    headers = {"content-type": "application/json", "x-api-key": k,
+               "anthropic-version": API_VERSION, "anthropic-beta": FALLBACK_BETA}
+    return base + "/v1/messages", body, headers
+
+
+def _reply(api, msg):
+    """The text of a reply in API's wire format; raises TemplateError."""
+    if not isinstance(msg, dict):
+        raise TemplateError("the reply is not a JSON object")
+    if api == "openai":
+        ch = msg.get("choices")
+        ch = ch[0] if isinstance(ch, list) and ch and isinstance(ch[0], dict) else {}
+        m = ch.get("message") if isinstance(ch.get("message"), dict) else {}
+        if m.get("refusal"):
+            raise TemplateError(f"the model declined this capture (refusal: {str(m['refusal'])[:200]})")
+        text = m.get("content") if isinstance(m.get("content"), str) else ""
+        if not text.strip():
+            raise TemplateError(f"the reply has no text (finish reason {ch.get('finish_reason')})")
+        return text
+    if msg.get("stop_reason") == "refusal":
+        cat = (msg.get("stop_details") or {}).get("category") or "unspecified"
+        raise TemplateError(f"the model declined this capture (refusal: {cat})")
+    text = "".join(b.get("text", "") for b in msg.get("content", []) if b.get("type") == "text")
+    if not text.strip():
+        raise TemplateError(f"the reply has no text (stop reason {msg.get('stop_reason')})")
+    return text
+
+
+def call_claude(system, messages, model, effort="medium", max_tokens=16000, timeout=300,
+                purpose="", tool=""):
+    """One request to the model over plain HTTP (no SDK: provost stays
+    dependency-free), in the wire format PROVOST_LLM_API names, retried on a
+    rate limit, an overload or a dropped connection. Refused before anything
+    is built when offline mode is on, or the host is not allowed. Returns
+    the reply's text; raises TemplateError."""
+    why = offline()
+    if why:
+        raise TemplateError(f"offline mode is on ({why}): nothing was sent")
+    api = _api()
+    k = _api_key(api)
+    if not k:
+        raise TemplateError("no API key (set PROVOST_LLM_API_KEY" + (" or ANTHROPIC_API_KEY" if api == "anthropic" else "")
+                            + ")")
+    base = os.environ.get("PROVOST_LLM_BASE_URL", "")
+    if not base:
+        if api == "openai":
+            raise TemplateError("PROVOST_LLM_API=openai needs PROVOST_LLM_BASE_URL (the server to send to)")
+        base = "https://api.anthropic.com"
+    base = base.rstrip("/")
+    _allowed(base)
+    url, body, headers = _request(api, base, k, system, messages, model, effort, max_tokens)
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST", headers=headers)
     for attempt in range(RETRIES + 1):
         t0 = time.monotonic()
         try:
@@ -397,7 +509,7 @@ def call_claude(system, messages, model, effort="medium", max_tokens=16000, time
         except urllib.error.HTTPError as exc:
             try:
                 detail = json.loads(exc.read().decode("utf-8")).get("error", {}).get("message", "")
-            except (ValueError, OSError):
+            except (ValueError, OSError, AttributeError):
                 detail = ""
             err = f"the API answered {exc.code}" + (f": {detail}" if detail else "")
             if exc.code not in (408, 409, 429) and exc.code < 500:
@@ -415,14 +527,8 @@ def call_claude(system, messages, model, effort="medium", max_tokens=16000, time
         if attempt == RETRIES:
             raise TemplateError(err) from None
         time.sleep(min(60.0, max(wait, 2.0 * 2 ** attempt)))
-    _log_call(msg, purpose, tool, time.monotonic() - t0)
-    if msg.get("stop_reason") == "refusal":
-        cat = (msg.get("stop_details") or {}).get("category") or "unspecified"
-        raise TemplateError(f"the model declined this capture (refusal: {cat})")
-    text = "".join(b.get("text", "") for b in msg.get("content", []) if b.get("type") == "text")
-    if not text.strip():
-        raise TemplateError(f"the reply has no text (stop reason {msg.get('stop_reason')})")
-    return text
+    _log_call(msg, purpose, tool, time.monotonic() - t0, api)
+    return _reply(api, msg)
 
 
 def _parse(text):
