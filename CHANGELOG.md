@@ -1,5 +1,56 @@
 # provost — Changelog
 
+## 2.15.0 — 2026-11-11 — inputs over PROVOST_MAX_INPUT kept by reference, not refused (PV-021)
+
+`VERSION` 2.14.0 → 2.15.0, and the `man/provost.1` header. Minor: an input
+larger than `PROVOST_MAX_INPUT` used to be refused ("input too large"); now
+it is filed, and the evidence is kept. Inputs within the cap are read and
+filed exactly as before, and no corpus golden moved.
+
+- **Kept whole, outside git.** Over the cap (inject, a FILE, `run`, `batch`),
+  the whole input, scrubbed of secrets as a stored input is (PV-033), is kept
+  as a read-only file named by its sha256 in the artifact directory:
+  `PROVOST_ARTIFACT_DIR`, else `<store>.artifacts` beside the store
+  (`~/.provost.artifacts`; `DIR/.provost.artifacts` for a controlled
+  directory, left out of its `files-*` commit and its manifest). It is never
+  the store or inside it (refused), so git history, every clone, `export` and
+  a handover bundle stay small. The same bytes are kept once.
+- **Its head is parsed.** The first `PROVOST_MAX_INPUT` bytes, cut back to the
+  last whole line, become the capture's `output.txt`. `meta.tsv` records
+  `truncated 1`, `parsed_bytes`, `raw_artifact`, `raw_sha256`, `raw_bytes` and
+  `raw_redacted`; `input_sha256` / `input_bytes` are the whole input's as
+  received (the same hash PV-026 records, so the trailer covers it too).
+- **Checked.** `provost source` re-hashes the kept copy and adds `raw_check:`
+  ok, MISSING or ALTERED, exiting 1 when it is not ok; `provost verify`
+  counts a missing or altered kept copy as a finding. A copy moved with the
+  artifact directory is found there by hash. `provost doctor` says where they
+  are kept.
+- **The old behaviour, behind a flag.** `--refuse-oversize`
+  (`PROVOST_OVERSIZE=refuse`) refuses as before, with the same message; it
+  also reads a pipe or a command's output bounded, as before. `--keep-oversize`
+  / `PROVOST_OVERSIZE=keep` is the default.
+- **Staged where it is kept.** A piped input or a command's output is staged
+  whole in the artifact directory (not TMPDIR), since `head -c` on a pipe can
+  read past its count; within the cap it moves to the temp dir and an
+  artifact directory made only for it is removed again.
+- **Not done here:** `rm` leaves kept copies alone (one file can serve several
+  captures); there is no purge of unreferenced ones yet, and no upper bound on
+  what is kept besides the disk.
+- **Files:** `provost` (`_take_stdin`, `_take_file`, `_take_staged`,
+  `_keep_oversize`, `_artifact_check`; inject, run, batch, `_receive`,
+  `_ingest_store`, `_ingest_async`, source, verify, doctor, the controlled
+  directory's snapshots, help), `tests/smoke.sh` (a new `oversize` part: 12 MB
+  against the default 10 MiB cap, exactly at the cap and one byte over,
+  missing and altered copies, a controlled directory; the two old refusal
+  checks now pass `--refuse-oversize`, and batch checks the default keeps),
+  `.gitignore` (`*.artifacts/`, so `git archive` never carries one),
+  `man/provost.1`, `docs/usage.md`, `README.md`, `HANDOFF.md`.
+- **Decided for the owner, who was away** (ticket PV-021's two questions had
+  no suggested answers; the conservative choice each time): artifacts in a
+  directory beside the store, overridable by a configured path, and **no git
+  LFS**; over the cap, **parse the first `PROVOST_MAX_INPUT` bytes** and mark
+  the capture truncated, keeping the full raw copy by hash.
+
 ## 2.14.0 — 2026-11-11 — the tiny LM gets its own arbiter (PV-012)
 
 `VERSION` 2.13.0 → 2.14.0, and the `man/provost.1` header. Minor: `--model`

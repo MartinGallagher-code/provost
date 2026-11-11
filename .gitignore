@@ -1,6 +1,10 @@
 # provost runtime store (created on first capture; default ./.provost or ~/.provost)
 .provost/
 PROVOST_WORKSPACE/
+# ...and the inputs over PROVOST_MAX_INPUT kept beside it (PV-021): never
+# committed, so 'git archive' (and so every handover bundle) leaves them out.
+.provost.artifacts/
+*.artifacts/
 
 # Local backup snapshots
 *.bak

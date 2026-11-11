@@ -34,6 +34,7 @@ Capture flags (for `run` and inject):
 | `--context-columns` | make each `key=value` word of a `#%` prologue a column on every row (see [Metadata prologue](#metadata-prologue)) |
 | `--units base` | after each column whose unit can be read, add a `NAME[UNIT]` column of the same values in base units (see [Units](#units)); `--units off`, the default, adds none |
 | `--no-redact` | store the input as it comes; by default known secrets are scrubbed first (see [Secrets and redaction](#secrets-and-redaction)) |
+| `--refuse-oversize` | refuse an input over `PROVOST_MAX_INPUT`, as provost did before 2.15.0; by default it is kept whole outside git and its head parsed (see [Oversize inputs](#oversize-inputs)) |
 
 At an interactive terminal the capture runs in the background and the prompt
 returns at once; in a script or pipeline (stderr not a terminal) it runs in the
@@ -140,6 +141,38 @@ head commit `verify` prints (`main at …`), with the capture count, somewhere
 the store's writers cannot change: a test report, a ticket. A later `verify`
 that prints a head which does not contain that commit means the history was
 rewritten. Signed commits are the stronger anchor (PV-027).
+
+## Oversize inputs
+
+`PROVOST_MAX_INPUT` (10 MiB by default) is how much of an input is parsed. A
+larger input is not refused (since 2.15.0, PV-021): the whole of it, scrubbed
+of secrets as a stored input is, is kept **outside the store's git history**,
+in the artifact directory, as a read-only file named by its sha256. Its first
+`PROVOST_MAX_INPUT` bytes, cut back to the last whole line, are parsed and
+stored as the capture's `output.txt`, and `meta.tsv` says so:
+
+| key | what it holds |
+|---|---|
+| `truncated` | `1` |
+| `parsed_bytes` | how much of the input was parsed |
+| `raw_artifact` | where the whole input is kept |
+| `raw_sha256`, `raw_bytes` | the kept file's sha256 (its name) and size |
+| `raw_redacted` | what the secret scrub replaced in it |
+
+`input_sha256` and `input_bytes` are the whole input's, as received.
+`provost source` re-hashes the kept copy and adds `raw_check: ok`, `MISSING`
+or `ALTERED` (exit 1 when it is not ok); `provost verify` counts a missing or
+altered copy as a finding. A copy moved with the artifact directory is found
+there by its hash.
+
+The artifact directory is `PROVOST_ARTIFACT_DIR`, or `<store>.artifacts`
+beside the store: `~/.provost.artifacts`, or `DIR/.provost.artifacts` for a
+controlled directory (left out of its files and manifest). It is never the
+store or inside it, so no clone, `export` or handover of the store carries
+it. `provost rm` leaves it alone: one kept file serves every capture of the
+same bytes. Inputs within the cap are read and filed exactly as before;
+`--refuse-oversize` (`PROVOST_OVERSIZE=refuse`) refuses an input over the cap
+with "input too large", as every provost before 2.15.0 did.
 
 ## Secrets and redaction
 
@@ -251,7 +284,9 @@ it but the pseudonyms and its id leaves. In the copy:
 | `PROVOST_ENV` | `1` = record where each capture was taken (same as `--env`); `modules` = and the kernel modules (`--env=modules`) | `0` |
 | `PROVOST_ENV_VARS` | the variables `--env` records: names or glob patterns, space- or comma-separated; set but empty = none | `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` |
 | `PROVOST_AUTO_MULTI` | `1` = segment a parse the quality gate would hold, when the parts are clearly better; `0` = hold it (same as `--no-auto-multi`) | `1` |
-| `PROVOST_MAX_INPUT` | max input bytes, for inject and `run` | `10485760` |
+| `PROVOST_MAX_INPUT` | max input bytes parsed, for inject and `run`; a larger input is kept by hash (see [Oversize inputs](#oversize-inputs)) | `10485760` |
+| `PROVOST_OVERSIZE` | `keep`: an input over the cap is kept whole outside git and its head parsed; `refuse`: it is refused (same as `--refuse-oversize`) | `keep` |
+| `PROVOST_ARTIFACT_DIR` | where inputs over the cap are kept; never the store or inside it | `<store>.artifacts` |
 | `PROVOST_LOCK_TIMEOUT` | seconds to wait for the store lock | `30` |
 | `PROVOST_LOCK_MAX_AGE` | seconds after which a lock is presumed stale | `3600` |
 | `PROVOST_RECONCILE_OVERLAP` | % column overlap needed to merge a changed schema into a dataset instead of splitting `NAME.v2` | `60` |
