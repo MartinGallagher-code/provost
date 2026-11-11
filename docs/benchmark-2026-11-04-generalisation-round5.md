@@ -288,3 +288,33 @@ honest measure of auto-multi needs a round 6.
 - Nothing on rounds 2 to 4 separates those from the parts the same minimums
   rightly hold (022, 113 and round 3's 047), so loosening them would be a
   guess.
+
+## Addendum, 2026-11-10: the `--llm` judge on round 5's templates (PV-009)
+
+The judge (CHANGELOG 2.9.0) reviews a template after `learn` and `repair`.
+To measure it and nothing else, the 100 templates `--llm` kept on round 5
+(`round5/llm-templates-learn/`, rated above) were reviewed on their own
+inputs with `tests/benchmark/judge_round.sh --round5 OUT --jobs 8`: 74 PASS,
+26 fix lists, every revision held (`round5/llm-judge/judge.tsv`, the 26
+revised templates, the API log; 126 calls, about $3.70). `llm_round.sh` then
+ran round 5 through the old and the revised templates; only those 26 outputs
+changed. Each was put on a blind sheet as above and the 52 sheets split
+among four subagent raters so that no rater saw both versions of an input:
+
+| the 26 revised | PASS | PARTIAL | FAIL |
+|---|---:|---:|---:|
+| before the review | 17 | 9 | 0 |
+| after | **25** | 1 | 0 |
+
+9 better, 1 worse (`postfix-qshape`: the revision moved the TOTAL row to its
+own table without its label), 16 the same (`round5/llm-judge/ratings.tsv`).
+The four template-filed inputs rated PARTIAL on 2026-11-04 that the judge
+flagged all rate PASS after it; it did not flag the fifth. The re-rating also
+put five outputs at PARTIAL that were rated PASS on 2026-11-04, so the same
+outputs move between raters by about that much. On this document's ratings,
+`--llm` first contact becomes 99 / 6 / 2.
+
+Round 5 was rated before the judge was written, but it is a seen set now:
+this is a before/after on fixed templates, not an unseen measurement. That
+needs round 6.
+

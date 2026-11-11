@@ -1,0 +1,16 @@
+{
+ "format": 2,
+ "tool": "perl-xref",
+ "detect": "^\\s+Subroutine\\s+\\S|^File\\s+\\S",
+ "parser": "import re\n\ndef parse(lines):\n    rows = []\n    used = []\n    st = []\n    stused = []\n    f = ''\n    s = ''\n    p = ''\n    for i, l in enumerate(lines):\n        if not l.strip():\n            continue\n        m = re.match(r'^(?P<f>\\S.*?)\\s+(?P<st>syntax OK|had compilation errors.*?)\\s*$', l)\n        if m:\n            st.append({'File': m.group('f'), 'Status': m.group('st')})\n            stused.append(i)\n            continue\n        m = re.match(r'^File\\s+(?P<v>\\S.*?)\\s*$', l)\n        if m:\n            f = m.group('v'); s = ''; p = ''\n            used.append(i)\n            continue\n        m = re.match(r'^\\s+Subroutine\\s+(?P<v>\\S.*?)\\s*$', l)\n        if m:\n            s = m.group('v'); p = ''\n            used.append(i)\n            continue\n        m = re.match(r'^\\s+Package\\s+(?P<v>\\S.*?)\\s*$', l)\n        if m:\n            p = m.group('v')\n            used.append(i)\n            continue\n        m = re.match(r'^\\s+(?P<sym>\\S+)\\s+(?P<refs>\\S.*?)\\s*$', l)\n        if m:\n            rows.append({'File': f, 'Subroutine': s, 'Package': p, 'Symbol': m.group('sym'), 'Lines': m.group('refs')})\n            used.append(i)\n            continue\n    blocks = []\n    if st:\n        blocks.append({'name': 'status', 'kind': 'table', 'lines': stused, 'records': st})\n    if rows:\n        blocks.append({'name': 'symbols', 'kind': 'table', 'lines': used, 'records': rows})\n    return {'blocks': blocks, 'skip': []}\n",
+ "judge": {
+  "verdict": "FIX",
+  "fixes": [
+   "Line 0 ('slug.pl syntax OK') is the compile status of the file, and the tables hold it nowhere. The template also sets aside the '<file> had compilation errors' form, which would drop an error. Stop skipping these lines. Emit them as a separate 'status' block with columns `File` (the text before ' syntax OK' or ' had compilation errors') and `Status` (the rest of the line, e.g. 'syntax OK'), and list the line in that block's lines. Alternatively, carry the status onto the symbols rows of the same file as a `Status` column."
+  ],
+  "applied": true
+ },
+ "examples": [
+  "slug.pl syntax OK\nFile slug.pl\n  Subroutine (main)\n    Package (lexical)\n      $count            i5\n      %translit         i4\n    Package main\n      &report           &26\n  Subroutine report\n    Package (lexical)\n      $count            23\n      $n                23\n      @words            i18, 20, 21\n    Package main\n      $_                21\n      &slugify          &21\n  Subroutine slugify\n    Package (lexical)\n      $count            13\n      $s                14\n      $sep              i8, 9, 11, 12, 12\n      $text             i8, 10"
+ ]
+}

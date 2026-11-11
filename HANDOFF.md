@@ -5,14 +5,15 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.8.0 is everything through 2026-11-10** (`VERSION`, man header, the
-`## 2.8.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
+**provost 2.9.0 is everything through 2026-11-10** (`VERSION`, man header, the
+`## 2.9.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
 outputs (PV-030, below, 2.5.0), the generalisation decision record (PV-006,
 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules (PV-010,
 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f; 2.5.3);
 the offline install bundle with an SBOM (PV-025, below; 2.6.0); opt-in
 environment capture, `--env` (PV-028, below; 2.7.0); recipes for test
-frameworks (PV-023, below; 2.8.0). 2.4.0 added `provost
+frameworks (PV-023, below; 2.8.0); a structural judge after `--llm` learn and
+repair (PV-009, Next steps 1g; 2.9.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -236,6 +237,25 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1g. **2026-11-10: a structural judge after `--llm` learn and repair**
+    (PV-009; CHANGELOG 2.9.0; `extract/llm/JUDGE.md`). One review call
+    after Claude writes or extends a template: PASS or up to five
+    structural fixes, fed back to the writer once, kept only if the
+    revision reads as well, still reads the earlier captures and passes
+    the gate. On by default (`PROVOST_LLM_JUDGE=0` turns it off).
+    - **Measured on round 5's stored templates** (`round5/llm-judge/`,
+      `judge_round.sh`): 74 PASS, 26 revised; the 26 rated blind before and
+      after, 17 / 9 / 0 → 25 / 1 / 0 (9 better, 1 worse: `postfix-qshape`'s
+      TOTAL row lost its label). $3.70 for 126 calls. Round 5 was seen, so
+      this is not an unseen number.
+    - **Not measured:** the review after `repair` (no second captures in
+      round 5), and the judge inside a fresh `learn` run end to end.
+    - **Next:** a round 6, frozen first, with `--llm` (judge on) as one of
+      its readers; a new kind of line a pattern *reads* wrongly on a later
+      capture (0k's LXD rows) is still not caught, because `misses` only
+      sends unread or skipped lines to repair, and the judge runs only after
+      a repair.
 
 1f. **2026-11-10: auto-multi's guards retuned** (PV-013, 2.5.3; the postscript
     to `docs/benchmark-2026-11-04-generalisation-round5.md`).
@@ -613,7 +633,8 @@ Suites (all CI-enforced):
       rated lower. Not built: dropping empty columns (they are the tool's
       schema) or rule/header rows (none in 602 template tables).
     - **What is left, in order of how much it would lift:**
-      1. **The judge, aimed at structure.** The ~20 PARTIALs left are a
+      1. ~~**The judge, aimed at structure.**~~ Done 2026-11-10 (PV-009,
+         see 1e). The ~20 PARTIALs left are a
          parent the template does not keep (an op tree, iseq headers,
          trunk members, taxonomy depth, caller/callee links), a record
          split across tables, a two-layout header half applied; plus, on

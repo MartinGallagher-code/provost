@@ -960,6 +960,11 @@ if command -v python3 >/dev/null 2>&1; then
     LT_SAMPLE="$HERE/../extract/samples/llm-template/basic.txt"
     LT_IN="$HERE/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt"
     LTD="$(mktemp -d)"; LTWS="$LTD/.llm"
+    # after a template Claude writes or extends comes the judge's review: the
+    # fake API answers a list of replies in order (lt_then FILE REPLY...)
+    LT_PASS='{"id":"msg_j","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"verdict\": \"PASS\"}"}]}'
+    lt_then () { local f="$1"; shift
+        python3 -c 'import json, sys; print(json.dumps([json.load(open(sys.argv[1]))] + [json.loads(a) for a in sys.argv[2:]]))' "$f" "$@" > "$f.seq" && mv "$f.seq" "$f"; }
     # a shipped template wins over the engine's generic parse of its tool
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$LT_SAMPLE" 2>&1)"
     check "a shipped template reads its tool's output" "mcstatus.players  #1..9  (strategy llm-template" "$lt_out"
@@ -971,6 +976,7 @@ if command -v python3 >/dev/null 2>&1; then
     check "the held line says the key is missing" "no API key to have Claude write one" "$lt_out"
     # learn: Claude (the fake API) writes a template, provost checks it, files, keeps it
     printf '%s' '{"id":"msg_1","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"cmake-cache\", \"detect\": \"^[A-Za-z0-9_.-]+:(?:STRING|BOOL|FILEPATH|PATH|INTERNAL|STATIC)=\", \"skip\": [\"^-- \", \"^// \"], \"blocks\": [{\"name\": \"entries\", \"kind\": \"table\", \"line\": \"^(?P<name>[A-Za-z0-9_.-]+):(?P<type>[A-Z]+)=(?P<value>.*)$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$LT_PASS"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
     LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
@@ -991,7 +997,10 @@ if command -v python3 >/dev/null 2>&1; then
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
         "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
     check "the next capture uses the stored template, offline" "read by template cmake-cache.json" "$lt_out"
-    check "the API was called once in all" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the API was called twice in all: the template and its review" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the review is the judge's" "Reviewing what a parsing template makes of a capture" "$(sed -n 2p "$LTD/log")"
+    check "the ok line says the review passed it" "(llm-templates/cmake-cache.json), a review passed it" "$(cat "$LTWS/captures/c0003/meta.tsv")"
+    check "the template keeps the verdict" '"verdict": "PASS"' "$(cat "$LTWS/llm-templates/cmake-cache.json")"
     # a refusal: held, with the category
     printf '%s' '{"id":"msg_2","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"refusal","stop_details":{"type":"refusal","category":"cyber","explanation":"x"},"usage":{"input_tokens":1,"output_tokens":0},"content":[]}' > "$LTD/reply.json"
     rm -f "$LTD/port"
@@ -1011,6 +1020,7 @@ if command -v python3 >/dev/null 2>&1; then
     # lines aside). A title the heuristic took for data is decoration here.
     printf 'Volumes on host alpha\nNAME     SIZE   USED   MOUNT\ndata     100G   40G    /srv/data\nbackup   2T     1.5T   /srv/backup\nscratch  500G   12G    /scratch\n' > "$LTD/vol.txt"
     printf '%s' '{"id":"msg_3","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?)\\\\s+(?P<mount>/\\\\S*)$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$LT_PASS"
     rm -f "$LTD/port" "$LTD/log"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -1018,7 +1028,7 @@ if command -v python3 >/dev/null 2>&1; then
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
         "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
     kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
-    check "a generic parse the gate passed is offered to Claude first" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "a generic parse the gate passed is offered to Claude first (a template, then its review)" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
     check "the template Claude wrote wins over the heuristic" "was passed over (the engine read it as aligned-columns, coverage 100%): a template Claude wrote for this tool fits; read by a new template Claude wrote (llm-templates/volumes.json)" "$lt_out"
     check "the template's rows are filed" "backup	2T	1.5T	/srv/backup" "$(cat "$LTWS/datasets/volumes.tsv")"
     check "meta records the template over the heuristic" "llm_template	filed by a new template Claude wrote (llm-templates/volumes.json)" "$(cat "$LTWS/captures/c0006/meta.tsv")"
@@ -1035,6 +1045,7 @@ if command -v python3 >/dev/null 2>&1; then
     sed 's/alpha/gamma-7/' "$LTD/vol.txt" > "$LTD/vol1b.txt"
     check "another host in the banner is not" "[]" "[$(python3 "$HERE/../extract/llm/template.py" misses "$LTWS/llm-templates/volumes.json" "$LTD/vol1b.txt")]"
     printf '%s' '{"id":"msg_5","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?|-)\\\\s+(?P<mount>/\\\\S*|\\\\[SWAP\\\\])$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$LT_PASS"
     rm -f "$LTD/port" "$LTD/log"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -1044,7 +1055,8 @@ if command -v python3 >/dev/null 2>&1; then
     kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
     check "a stored template that meets a new kind of line is extended" "read by template volumes.json, which Claude extended for 1 unread line(s) of a kind it has not met (llm-templates/volumes.json)" "$lt_out"
     check "the extension reads the new line" "swap	8G	-	[SWAP]" "$(cat "$LTWS/datasets/volumes.tsv")"
-    check "the repair was one API call" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the repair was one API call, and its review one more" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the repaired template is reviewed on the new capture" "(llm-templates/volumes.json), a review passed it" "$lt_out"
     check "the request carries the capture the template was written from" "Earlier capture 1" "$(cat "$LTD/log")"
     check "the extended template keeps both captures" "2" "$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))["examples"]))' "$LTWS/llm-templates/volumes.json")"
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
@@ -1071,6 +1083,7 @@ if command -v python3 >/dev/null 2>&1; then
     # not data) is recorded as such, and the capture is remembered
     { printf 'NAME     SIZE   USED   MOUNT\n'; for i in 1 2 3 4 5 6 7 8 9 10; do printf 'd%s       %sG    1G     /srv/d%s\n' "$i" "$i" "$i"; done; printf '(snapshot taken at 12:00)\n'; } > "$LTD/vol4.txt"
     python3 -c 'import json, sys; t = json.load(open(sys.argv[1])); t.pop("examples"); print(json.dumps({"id": "msg_7", "type": "message", "role": "assistant", "model": "claude-opus-5-5", "stop_reason": "end_turn", "usage": {"input_tokens": 1, "output_tokens": 1}, "content": [{"type": "text", "text": json.dumps(t)}]}))' "$LTWS/llm-templates/volumes.json" > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$LT_PASS"
     rm -f "$LTD/port" "$LTD/log"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -1095,6 +1108,7 @@ if command -v python3 >/dev/null 2>&1; then
     # carry words are filed in NAME.notes, so none is lost
     printf 'The quick brown fox jumps over the lazy dog near the river bank.\nEvery morning the ferry leaves the harbour at six and returns at noon.\nNobody counted the gulls, though the keeper swore there were hundreds.\nRain came late in the season and the orchard did poorly that year.\nThe mill wheel still turns when the sluice is open, which is rarely.\nVisitors are asked to keep to the path and to close the gate.\nSummary of moorings:\nNAME     LENGTH\nkestrel  12m\nosprey   9m\n' > "$LTD/prose.txt"
     printf '%s' '{"id":"msg_4","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"moorings\", \"detect\": \"^NAME\\\\s+LENGTH$\", \"skip\": [\"^[A-Z].*[.:]$\"], \"blocks\": [{\"name\": \"moorings\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+LENGTH$\", \"line\": \"^(?P<name>[a-z]+)\\\\s+(?P<length>\\\\d+m)$\"}]}"}]}' > "$LTD/reply.json"
+    lt_then "$LTD/reply.json" "$LT_PASS"
     rm -f "$LTD/port"
     python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
     for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
@@ -1115,6 +1129,66 @@ if command -v python3 >/dev/null 2>&1; then
     check "a template that reads too little does not replace text-lines" "strategy text-lines" "$lt_out"
     check "meta says how much it read" "Claude's template does not fit this capture (it covers 30% of the lines)" "$(cat "$LTD/.fresh2/captures/c0001/meta.tsv")"
     check_not "such a template is not kept" "moorings" "$(ls "$LTD/.fresh2/llm-templates" 2>/dev/null)"
+    # THE JUDGE (PROVOST_LLM_JUDGE, default 1): after Claude writes or extends a
+    # template, one more call reviews the tables it makes of the capture and
+    # answers PASS or a list of structural fixes, fed back to the writer once.
+    # Here the review asks for the host on line 0 to be kept with the rows;
+    # the revision (a format-2 parser) carries it down, and is kept.
+    python3 - "$LTD" <<'PY'
+import json, os, sys
+d = sys.argv[1]
+def msg(text):
+    return {"id": "msg_j", "type": "message", "role": "assistant", "model": "claude-opus-5-5", "stop_reason": "end_turn",
+            "usage": {"input_tokens": 1, "output_tokens": 1}, "content": [{"type": "text", "text": text}]}
+tpl = {"format": 1, "tool": "jvol", "detect": "^NAME\\s+SIZE\\s+USED\\s+MOUNT$", "skip": ["^Volumes on host "],
+       "blocks": [{"name": "volumes", "kind": "table", "header": "^NAME\\s+SIZE",
+                   "line": "^(?P<name>\\S+)\\s+(?P<size>\\S+)\\s+(?P<used>\\S+)\\s+(?P<mount>/\\S*)$"}]}
+fix = {"verdict": "FIX", "fixes": ["line 0 names the host the volumes are on: add a host column to the volumes, filled from it (a format-2 parser)"]}
+parser = "\n".join([
+    "import re", "def parse(lines):", "    host, recs, used, skip = '', [], [], []",
+    "    for j, ln in enumerate(lines):",
+    "        m = re.match(r'^Volumes on host (\\S+)$', ln)",
+    "        if m:", "            host = m.group(1)", "            used.append(j)", "            continue",
+    "        if re.match(r'^NAME\\s+SIZE', ln):", "            skip.append(j)", "            continue",
+    "        m = re.match(r'^(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(/\\S*)$', ln)",
+    "        if m:", "            used.append(j)",
+    "            recs.append({'host': host, 'name': m.group(1), 'size': m.group(2), 'used': m.group(3), 'mount': m.group(4)})",
+    "    return {'blocks': [{'name': 'volumes', 'kind': 'table', 'lines': used, 'records': recs}], 'skip': skip}"])
+revised = {"format": 2, "tool": "jvol", "detect": "^NAME\\s+SIZE\\s+USED\\s+MOUNT$", "parser": parser}
+nothing = dict(tpl, skip=[".*"], blocks=[dict(tpl["blocks"][0], header=None, line="^(?P<a>never)$")])
+nothing["blocks"][0].pop("header")
+for name, seq in (("j-fix", [tpl, fix, revised]), ("j-nogate", [tpl, fix, nothing]), ("j-one", [tpl])):
+    with open(os.path.join(d, name + ".json"), "w") as fh:
+        json.dump([msg(json.dumps(x)) for x in seq], fh)
+PY
+    rm -f "$LTD/port" "$LTD/log"; cp "$LTD/j-fix.json" "$LTD/reply.json"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.j1" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name jvol "$LTD/vol.txt" 2>&1)"
+    check "the judge's fixes go back once: template, review, revision" "3" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the review is sent the tables the template makes" "Table 1: volumes (table, 3 rows, read from lines 1-4)" "$(sed -n 2p "$LTD/log")"
+    check "the revision is asked with the fixes" "1. line 0 names the host" "$(sed -n 3p "$LTD/log")"
+    check "the ok line says the template was revised" "(llm-templates/jvol.json), revised after a review asked for 1 fix" "$lt_out"
+    check "the revision is what is filed" "alpha	backup	2T	1.5T	/srv/backup" "$(cat "$LTD/.j1/datasets/jvol.tsv")"
+    check "the stored template records the review" '"applied": true' "$(cat "$LTD/.j1/llm-templates/jvol.json")"
+    # a revision that fails provost's gate: the template as it was before the
+    # review is filed and kept instead, and says so
+    cp "$LTD/j-nogate.json" "$LTD/reply.json"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.j2" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name jvol "$LTD/vol.txt" 2>&1)"
+    check "a revision that fails the gate falls back to the template before the review" "but the revision fails the gate (it matches nothing in the input), so the template as it was is kept" "$lt_out"
+    check "the template before the review is filed" "backup	2T	1.5T	/srv/backup" "$(cat "$LTD/.j2/datasets/jvol.tsv")"
+    check "and kept, with the review not applied" '"applied": false' "$(cat "$LTD/.j2/llm-templates/jvol.json")"
+    # PROVOST_LLM_JUDGE=0: no review, one call
+    cp "$LTD/j-one.json" "$LTD/reply.json"; : > "$LTD/log"
+    lt_out="$(PROVOST_LLM_JUDGE=0 PROVOST_WORKSPACE="$LTD/.j3" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name jvol "$LTD/vol.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "PROVOST_LLM_JUDGE=0: one call, no review" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check_not "PROVOST_LLM_JUDGE=0: no verdict stored" '"judge"' "$(cat "$LTD/.j3/llm-templates/jvol.json")"
+    check "PROVOST_LLM_JUDGE must be 0 or 1" "2" "$(PROVOST_LLM_JUDGE=2 rc_of "$PROVOST" --sync "$LT_SAMPLE")"
     # FORMAT 2: a template that is a small Python parser, for records that
     # span lines (ip-addr.json ships with provost), run in the sandbox
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$HERE/../extract/samples/llm-template/nested.txt" 2>&1)"

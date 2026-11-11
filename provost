@@ -118,6 +118,7 @@ PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the q
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
 PROVOST_LLM_MODEL="${PROVOST_LLM_MODEL:-claude-opus-5-5}"   # the model that writes templates
+PROVOST_LLM_JUDGE="${PROVOST_LLM_JUDGE:-1}"          # 1 = a review call after Claude writes or extends a template (see _llm_template)
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
 
@@ -189,6 +190,7 @@ _validate_settings () {
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
+    [[ "$PROVOST_LLM_JUDGE" == 0 || "$PROVOST_LLM_JUDGE" == 1 ]] || usage_die "PROVOST_LLM_JUDGE must be 0 or 1 (got '$PROVOST_LLM_JUDGE')."
     [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
@@ -1801,14 +1803,31 @@ _llm_file () {
 # files what it yields (_llm_file). With an API key, a stored template that
 # meets a kind of line it has not met before is first sent back to Claude to
 # be extended (repair), and when none fits Claude writes one from this
-# capture — the steps that send the capture's text to the Anthropic API. A
-# new or extended template is kept only when what it yields passes the same
-# rules. Every later capture of the tool is then parsed offline. With LEARN=0
-# Claude is never asked (only a stored template can fit). Otherwise 1, the
-# reason in llm_note.
+# capture — the steps that send the capture's text to the Anthropic API.
+# After either, one more call reviews what the template makes of the capture
+# (the judge, PROVOST_LLM_JUDGE; template.py review_template) and may revise
+# it once; a revision that fails the gate falls back to the template as it
+# was before the review (NEW.before). A new or extended template is kept
+# only when what it yields passes the same rules. Every later capture of the
+# tool is then parsed offline. With LEARN=0 Claude is never asked (only a
+# stored template can fit). Otherwise 1, the reason in llm_note.
+_llm_reviewed () { # NEW: file the template Claude wrote or extended; if the
+    # judge's revision fails the gate, the template as it was before the
+    # review. The review's line is in llm_rev (amended for a fallback).
+    local t="$1" n0
+    _llm_file "$t" && return 0
+    [[ -f "$t.before" ]] || return 1
+    n0="$llm_note"
+    _llm_file "$t.before" || { llm_note="$n0"; return 1; }
+    mv -f "$t.before" "$t"
+    llm_rev="${llm_rev:+$llm_rev, }but the revision fails the gate ($n0), so the template as it was is kept"
+    return 0
+}
 _llm_template () {
     local learn="${1:-1}" py="$PROVOST_ROOT/extract/llm/template.py" tdir="$PROVOST_WORKSPACE/llm-templates"
-    local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev
+    local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev out jflag=""
+    [[ "$PROVOST_LLM_JUDGE" == 1 ]] || jflag="--no-judge"
+    local llm_rev=""
     command -v python3 >/dev/null 2>&1 || { llm_note="python3 is not installed"; return 1; }
     [[ -z "$tool" && -n "$cmd" ]] && { tool="${cmd%% *}"; tool="${tool##*/}"; }
     kf="$(python3 "$py" key "$body" --name "$tool" 2>/dev/null)" || { llm_note="the input could not be read"; return 1; }
@@ -1829,15 +1848,16 @@ _llm_template () {
         local miss="" rnote="" rstat=""
         if (( learn )) && [[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] \
             && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
-            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>"$tmp/llm-repair.err")"; then
-                if _llm_file "$new"; then
+            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag 2>"$tmp/llm-repair.err")"; then
+                [[ "$rstat" == *$'\n'* ]] && llm_rev="${rstat#*$'\n'}"
+                if _llm_reviewed "$new"; then
                     # kept even when unchanged: it now holds this capture, so
                     # these lines are not sent again
                     mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
-                    if [[ "$rstat" == unchanged ]]; then
-                        llm_how="template ${tpl##*/}, which Claude checked for $miss and left as it was (llm-templates/$kf)"
+                    if [[ "${rstat%%$'\n'*}" == unchanged ]]; then
+                        llm_how="template ${tpl##*/}, which Claude checked for $miss and left as it was (llm-templates/$kf)${llm_rev:+, $llm_rev}"
                     else
-                        llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)"
+                        llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)${llm_rev:+, $llm_rev}"
                     fi
                     llm_learned="llm-templates/$kf"
                     return 0
@@ -1859,14 +1879,16 @@ _llm_template () {
         return 1
     fi
     prev="$llm_note"
-    if ! err="$(python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>&1 >/dev/null)"; then
+    if ! out="$(python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag 2>"$tmp/llm-learn.err")"; then
+        err="$(cat "$tmp/llm-learn.err" 2>/dev/null)"
         llm_note="${prev:+$prev; }Claude wrote no usable template: ${err#template: }"; return 1
     fi
-    if ! _llm_file "$new"; then
+    [[ "$out" == *$'\n'* ]] && llm_rev="${out#*$'\n'}"
+    if ! _llm_reviewed "$new"; then
         llm_note="${prev:+$prev; }the template Claude wrote fails the gate: $llm_note"; return 1
     fi
     mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
-    llm_how="a new template Claude wrote (llm-templates/$kf)"; llm_learned="llm-templates/$kf"
+    llm_how="a new template Claude wrote (llm-templates/$kf)${llm_rev:+, $llm_rev}"; llm_learned="llm-templates/$kf"
     return 0
 }
 
@@ -5194,6 +5216,17 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     template read and passes the same rules; otherwise the template is used
     as it was. A capture whose lines the template has all met is never sent.
 
+    REVIEW (PROVOST_LLM_JUDGE=1, the default): after Claude writes or
+    extends a template, one more call shows Claude the capture, the template
+    and the tables it makes, and asks for PASS or up to five structural fixes:
+    a parent the rows do not keep (a section, a tree's parent, a trunk above
+    its members), a record split across tables, a header half applied, a
+    line kind misread, data set aside. The fixes go back to the writer once;
+    the revision is kept only if it reads the capture at least as well,
+    still reads the earlier captures and passes the gate, else the template
+    as it was before the review is used. A failed review costs nothing but
+    the call. The verdict is stored in the template ("judge").
+
     meta.tsv records 'llm_template' (filed by which template, or declined and
     why). PROVOST_LLM_LOG names a file that gets one JSON line per API reply.
     Needs python3 (no packages).
@@ -5355,6 +5388,8 @@ SETTINGS (environment)
     PROVOST_LLM               1 = use / have Claude write a template (as --llm)
     PROVOST_LLM_MODEL         the model that writes templates (default:
                               claude-opus-5-5)
+    PROVOST_LLM_JUDGE         1 = review a template Claude writes or extends,
+                              and revise it once (the default); 0 = don't
     PROVOST_LLM_API_KEY       Anthropic API key for --llm (else
                               ANTHROPIC_API_KEY; use this one where that is
                               taken, e.g. inside Claude Code)
