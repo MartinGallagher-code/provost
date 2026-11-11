@@ -518,9 +518,13 @@ _keep_oversize () {
     head -c "$PROVOST_MAX_INPUT" "$st" > "$raw"
     p="$PROVOST_MAX_INPUT"
     if [[ "$(tail -c 1 "$raw" | od -An -tx1 | tr -d ' \n')" != 0a ]]; then
-        k="$(tail -n 1 "$raw" | wc -c)"; k="${k//[!0-9]/}"
-        if (( k < p )); then
-            p=$((p - k)); head -c "$p" "$raw" > "$raw.cut" && mv -f "$raw.cut" "$raw"
+        # Keep its whole lines: as many as it has newlines. (Not `tail -n 1 |
+        # wc -c` for the cut: on CI's coreutils that came out 64 KiB short on
+        # a 10 MB line; head -n and tr hold no line in memory.)
+        k="$(LC_ALL=C tr -cd '\n' < "$raw" | wc -c)"; k="${k//[!0-9]/}"
+        if [[ -n "$k" ]] && (( k > 0 )); then
+            head -n "$k" "$raw" > "$raw.cut" && mv -f "$raw.cut" "$raw"
+            p="$(wc -c < "$raw")"; p="${p//[!0-9]/}"
         fi
     fi
     if [[ "$PROVOST_REDACT" == 1 ]]; then
