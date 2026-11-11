@@ -5,9 +5,9 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.5.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.5.0` section at the top of CHANGELOG): 2.4.0 (BN-002) and the HPC
-benchmark outputs (PV-030, below). 2.4.0 added `provost
+**provost 2.6.0 is everything through 2026-11-11** (`VERSION`, man header,
+the `## 2.6.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+benchmark outputs (PV-030, below) and the tiny LM's arbiter (PV-012). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -31,6 +31,17 @@ asked for. Open: the owner's choice of key names (generic `default` or the
 proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
+
+**2.6.0: the tiny LM's arbiter (PV-012, 2026-11-11; not published).**
+`--model` with the LM now arbitrates the LM's field splits against the
+engine's parse, with `extract/model/arbiter-lm.json` (fitted across five
+fold models; out of fold 0.865 → 0.894 per line, better on every fold),
+pinned to provost-model 0.1.0. Round 5 model-first: 10 / 23 / 74 →
+11 / 26 / 70; on the gate-held 7 no change. Header/row arbitration is
+built but not shipped (the corpus does not support it), so `sge-qhost` is
+unchanged. Open: whether to add the hand rule for a second header
+(`docs/lm-2026-10-29-tiny-labeller.md`, "An arbiter fitted to the LM"); a
+new provost-model needs its arbiter refitted (`ml/README.md`, Reproduce).
 
 **2.5.0: the HPC benchmark outputs (PV-030, 2026-11-10; not published).**
 OSU, IOR, mdtest, HPL, HPCG, STREAM's full printout, lnet_selftest `lst stat`,
@@ -364,8 +375,9 @@ Suites (all CI-enforced):
          against 0 / 5 / 13. One regression: `sge-qhost` took a data row as
          the header. The lever is the output shape (nesting, multi-line
          records, logs) or an arbiter, not more training.
-      5. an arbiter fitted to the LM's probabilities, so `--model` keeps the
-         engine's split where it trusts it more;
+      5. ~~an arbiter fitted to the LM's probabilities, so `--model` keeps the
+         engine's split where it trusts it more;~~ Done 2026-11-11 (PV-012,
+         2.6.0): splits only; header/row left out (see 2.6.0 above);
       6. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
          for `extract/model/` is the likelier route.
       7. Train on a GPU when one is to hand: `--device auto` picks cuda or

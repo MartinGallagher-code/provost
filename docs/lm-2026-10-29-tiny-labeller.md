@@ -396,3 +396,96 @@ how well it reads lines.
 **So the labeller belongs where it is, behind `--model`** (opt in with
 `PROVOST_LAYOUT_LM`), as a better second reader for the captures the engine
 holds. The engine stays the first reader.
+
+## An arbiter fitted to the LM (PV-012, 2026-11-11)
+
+With the LM labelling, `--model` used no arbiter: the one it had
+(`extract/model/arbiter.json`) was fitted to the trees' probabilities. This
+fits one to the LM's, so where provost hands over the engine's own parse of a
+capture (the parse the gate held), the LM's labels keep the engine's field
+split on the lines the arbiter trusts it more.
+
+**How it was fitted** (in the cloud container, 4 cores, no GPU):
+- **Five fold models of the shipped recipe**: `train_lm.py --fold k --epochs 2
+  --layers 18`, 47 minutes a fold, each kept epoch 2. Out of fold they score
+  as the iMac's 18-layer folds did: 12,519 / 14,472 lines (0.865, against
+  0.862) and 238 / 287 gold lines (against 246).
+
+  | fold | 0 | 1 | 2 | 3 | 4 |
+  |---|---:|---:|---:|---:|---:|
+  | LM, split | 0.870 | 0.845 | 0.896 | 0.870 | 0.837 |
+  | engine | 0.814 | 0.785 | 0.832 | 0.828 | 0.803 |
+
+- **Their held-out predictions** (`fold_eval.py --out`): every corpus capture
+  labelled by a model that never saw its family, so its probabilities are as
+  sure of themselves as the shipped model is on a capture it has never seen.
+  The role probabilities are kept too (`lm_runtime.run(..., role_probs=True)`).
+- **The arbiter** (`ml/arbiter.py`): the same 13 inputs as the trees' arbiter
+  (`arbitrate.features`), fitted to the **LLM labels** on the 2,415 lines
+  where exactly one of the two splits is right. The hand labels give only 100
+  such lines; fitted to them it scored lower (0.884 against 0.894).
+- **Scored nested**: for each fold, fitted on the other four and scored on it.
+  `--threshold auto` picked 0.5 on four folds and 0.6 on one; the shipped
+  arbiter uses 0.5.
+
+**Out of fold:**
+
+| | lines vs LLM labels (14,472) | hand labels (300) |
+|---|---:|---:|
+| engine | 11,775 (0.814) | 193 |
+| LM alone | 12,519 (0.865) | 247 |
+| **LM + arbiter** | **12,934 (0.894)** | **255** |
+
+- **Better on every fold**: +92, +72, +40, +105 and +106 lines.
+- **Lines switched**: 1,191; 581 made right, 166 made wrong.
+- **Captures**: in 326 the engine's splits beat the LM's, and the arbiter
+  brings 229 of them level or better. It makes 290 captures better than the
+  LM alone and 84 worse.
+
+**It ships as `extract/model/arbiter-lm.json`, pinned to its model.** It
+records the fingerprint of provost-model 0.1.0's directory (`arbitrate.
+fingerprint`: SHA-256 of `config.json` and the weight shards), and
+`arbitrate.load_for_lm` applies it to that model only. A model directory
+may carry its own `arbiter.json`, which wins (`export_lm.py --arbiter FILE`
+writes one into an export), so a retrained provost-model can bring its own.
+Any other LM gets no arbiter, as before.
+
+**Header against row: built, measured, left out.** `sge-qhost`'s regression
+is a role, not a split: the LM calls the `global` data line a second header
+(p 0.83) and every column after it is renamed. A split arbiter cannot reach
+that, so the arbiter can carry a second part, `roles`, for lines one reader
+calls a header and the other a data row. The corpus has too few of those to
+fit it:
+- 69 disputes out of fold; the LM is right on 50, the engine on 12;
+- the fitted part switched 4 lines, 1 for the better and 3 for the worse.
+
+So `arbiter.py` keeps the roles part only when it beats the model alone out
+of fold, and this one does not. `sge-qhost` stays as it was. A hand rule
+(the LM calls a line a header right under another header in its block, at
+p < 0.9, and the engine reads it as a row) would fire on 3 corpus lines,
+2 right and 1 wrong (`polars-describe`, which really has two header lines),
+and would fix `sge-qhost`. That is too little evidence to ship on.
+
+**Round 5, model-first.** `model_round.sh --round5 OUT --lm DIR --engine`
+hands each input's engine parse to the arbiter, as `--model` does. Against
+the run without it:
+- it files 91 captures, against 89; 383 lines switched on 50 inputs;
+- 17 outputs changed (most switches land in captures the model files through
+  its own sections, which are not arbitrated, as at capture time);
+- both versions of those 17 were rated blind on `CRITERIA.md` by two
+  subagents, each seeing one version of each input, shuffled: without the
+  arbiter 0 / 10 / 7, with it **1 / 11 / 5**: 5 better, 3 worse, 9 the same;
+- of the 3 worse, one is real: `012-flake8-benchmark`'s first diagnostic
+  becomes a header and the rest flatten into one wide record. `057` got
+  better (`"0"` kept whole) and `127` differs by one character; those two
+  are the raters' noise (the same raters re-rated 2 of the unchanged 17
+  differently from round 5);
+- with round 5's own ratings for the 90 unchanged outputs, the model-first
+  total goes from 10 / 23 / 74 to **11 / 26 / 70**.
+
+**Where `--model` acts, it changes nothing on round 5.** On the 7 captures the
+gate holds, `provost --model` with the LM gives byte-identical output with
+and without the arbiter: the model's whole-capture table is declined on
+coverage, or the model files through its own sections, before the
+arbitrated table could be filed. Round 5 is spent; whether the arbiter earns
+its keep on held captures needs a round 6.
