@@ -5,17 +5,22 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.6.0 is everything through 2026-11-10** (`VERSION`, man header,
-the `## 2.6.0` section at the top of CHANGELOG): 2.5.0 and opt-in
-environment capture (`--env`, PV-028, below). 2.5.0 was 2.4.0 (BN-002) and
-the HPC benchmark outputs (PV-030, below). 2.4.0 added `provost
+**provost 2.7.0 is everything through 2026-11-10** (`VERSION`, man header, the
+`## 2.7.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC benchmark
+outputs (PV-030, below, 2.5.0), the generalisation decision record (PV-006,
+2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules (PV-010,
+2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f; 2.5.3);
+the offline install bundle with an SBOM (PV-025, below; 2.6.0); opt-in
+environment capture, `--env` (PV-028, below; 2.7.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
-the top of CHANGELOG is always the version `main` is at. Neither 2.4.0 nor
-2.5.0 nor 2.6.0 is published yet: run the "Release to PyPI" workflow on
-`main` (or a GitHub release tagged `v2.6.0`, not both). 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
+the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
+2.7.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.7.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.7.0`, creating
+that release on a dispatched run. 2.3.0 (2026-11-04, on PyPI) added `rm --capture`,
 `provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
 faster `batch` to 2.2.0. 2.2.0 (2026-10-30, on PyPI)
 added the quality gate and auto-multi, the engine fixes, removal of the
@@ -23,6 +28,17 @@ legacy names, store format 3, browsing and search, `batch`, the opt-in
 `--llm` and `--model`, and the 2026-10-29 readers. 2.1.0 (2026-10-16) was
 the first release with the rename, store format 2, line coverage and the
 2026-10-14 parser work.
+
+**In 2.6.0: the offline install bundle (PV-025, 2026-11-10).** For
+air-gapped hosts: `tools/offline_bundle.py` builds `provost-X.Y.Z-offline/`
+(wheel, sdist, CycloneDX 1.5 SBOM naming the system tools too, `INSTALL.md`,
+`SHA256SUMS`), `release.yml`'s `bundle` job signs every file with Sigstore,
+installs it with networking off (`python:3.8-slim`, RHEL 9 UBI) and attaches
+it to the GitHub release; CI's `offline bundle` job does the same on each pull
+request. User steps: `docs/offline-install.md`. Open, for the owner: whether
+the bundle should carry `provost[lm]` (numpy is per-platform and per-Python,
+so that is a bundle per target), SPDX as well as CycloneDX, and an RPM. The
+first real run of the `bundle` job is the next release.
 
 **In 2.4.0: the run manifest (PV-020, 2026-11-09).** Profiles
 of reserved `#%` keys in `extract/manifests/` (`default`, `proposal`),
@@ -33,7 +49,7 @@ proposal's flat names as the default profile) and whether a missing key
 should fail by default; quarterdeck filling `sched.job`, `run.id` and
 `operator` itself is its own follow-up.
 
-**2.6.0: environment capture, `--env` (PV-028, 2026-11-10; not published).**
+**2.7.0: environment capture, `--env` (PV-028, 2026-11-10; not published).**
 Off unless asked for. `--env` (`PROVOST_ENV=1`) prepends `#% env.*` lines:
 host, kernel, arch, OS release (os-release or `sw_vers`), `$LOADEDMODULES`,
 user, and the Slurm job's id, nodes, cluster and partition; `--env=modules`
@@ -59,6 +75,17 @@ prologue and `--manifest` win over `--env`. Code: `_env_capture_setup` and
   (QD-025's survey) is not done: every reading is just recorded.
 - quarterdeck should not pass `--env` where it already has `qd probe
   facts`; nothing in qd passes it today.
+
+**2.5.2: the two gate rules that cost `--llm` a FAIL each (PV-010,
+2026-11-10; not published).** The fragments rule (auto-multi parts, model
+sections, template blocks) sizes a part by its lines or its table's rows,
+whichever is more (`_am_frag_add`, `_AM_FRAG_MIN`, was `_AM_FRAG_LINES`): a
+one-line block of six records (round 4's 132, a ServerQuery client list) is
+no fragment. And a `yaml` parse is no longer beyond a template already
+stored for the tool (plain `Label: text` output is valid YAML: round 4's
+020, golangci-lint's linter list, was one 110-column record); Claude is
+never asked to write one over a yaml parse, so a real YAML document costs
+nothing. Both files now; see CHANGELOG for the round-4 before/after.
 
 **2.5.0: the HPC benchmark outputs (PV-030, 2026-11-10; not published).**
 OSU, IOR, mdtest, HPL, HPCG, STREAM's full printout, lnet_selftest `lst stat`,
@@ -124,6 +151,10 @@ Rounds 1 to 5 are all seen now (round 5 was rated for four readers on
 `docs/benchmark-2026-11-04-generalisation-round5.md`). The next honest number
 needs a **round 6**: build it, freeze it and rate it before the change it is
 to measure, as round 5 was.
+
+**What to do about it is the owner's pick:**
+`docs/0004-generalisation-approach.md` (PV-006) weighs the options against
+rounds 4 and 5 ("Next steps" 1e).
 
 ### This round (2026-10-16, PR #76)
 
@@ -191,6 +222,44 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1f. **2026-11-10: auto-multi's guards retuned** (PV-013, 2.5.3; the postscript
+    to `docs/benchmark-2026-11-04-generalisation-round5.md`).
+    - **The change:** a part read by a tool-specific parser must keep the
+      gate's coverage of its lines (048 held). A positional part sinks a split
+      only on evidence of a lost header or shredded rows (box chrome, mostly
+      empty cells, a header-like line just above it).
+    - **Measured:** round 4 (tuning set) 2 rescues and 1 wrong table → 5 and
+      none. Round 5, once, after the commit: 0 → 1 of 3 possible, no wrong
+      table. Rounds 2 and 3 unchanged.
+    - **Round 5 is spent for auto-multi now.**
+    - **Still held:** round 5's 104 and 109 (the cut-off-header evidence is
+      right, but raters took the `--multi` output as PARTIAL), and round 4's
+      031, 109 and 133 (the per-part coverage and consistency minimums).
+      Nothing seen separates those from the parts the minimums rightly hold.
+    - `tests/benchmark/auto_multi_round.sh --roundN` measures a round
+      through the CLI.
+
+1e. **2026-11-10: how to generalise, measured; the owner's pick is pending**
+    (PV-006, `docs/0004-generalisation-approach.md`, 2.5.1). It answers step 1
+    below with rounds 4 and 5; `python3 tests/benchmark/what_if.py`
+    reproduces every figure.
+    - **A** (`--multi` on weak signals) already ships as auto-multi, and it
+      never adds a PASS.
+    - **B** (the signals decide more) tops out at 15–19 PASS of 107. The
+      signals cannot see 7–8 FAILs a round.
+    - **C** (hold weak parses) halves the wrong tables filed, but holds
+      42–46% of unseen captures with the widest rule.
+    - **D:** `--model` adds nothing. `--llm` as the fallback for held
+      captures adds 6–14 PASS. **D′**, `--llm` first (what `PROVOST_LLM=1`
+      does), scores 87 / 18 / 2 and 96 / 9 / 2.
+
+    The note recommends **C and D′ together**: `--llm` first wherever a key or
+    local endpoint is configured (after PV-019), and offline, hold parses
+    under 95% coverage or with unjudged consistency. Once the owner picks,
+    record the pick here and in CHANGELOG (under a new version), set the
+    note's status, and file the follow-up tickets its last table lists,
+    including round 6.
 
 1d. **2026-11-10: every change moves the version** (shared_tools BN-002).
     2.3.0 → 2.4.0, numbering the twelve dated entries since 2.3.0 and this
@@ -539,7 +608,10 @@ Suites (all CI-enforced):
          PASS or a list of fixes, fed back once.
       2. **Two gate rules still cost a FAIL each:** the `yaml` exemption
          (020 never reaches a template) and `_AM_FRAG_LINES` counting lines,
-         not records (132 is held on every run).
+         not records (132 is held on every run). *(Done 2026-11-10, PV-010:
+         both file from their stored templates. Still open: on FIRST contact
+         Claude is not asked to write a template over a yaml parse, so 020
+         needs its template stored, by `learn` or by hand.)*
       3. Then the library (plan step 5) and round 5, built and frozen before
          anything runs. Round 4 is spent for `--llm`.
     - Small: the melt should rename a template column colliding with the
@@ -735,7 +807,7 @@ Suites (all CI-enforced):
       rescues. That is a small net gain.
     - **Next:** loosen the guards to recover more of the 8 possible rescues,
       tighten the per-part check that let 048 through, then measure on a
-      round 5.
+      round 5. *Done 2026-11-10 (PV-013): see 1e.*
 
 0. **Done 2026-10-20 (PR #77), not yet released.**
    - Six engine defects from round 3 are fixed: no-output fallback, tsv
@@ -747,7 +819,9 @@ Suites (all CI-enforced):
      `PROVOST_MIN_CONSISTENCY`, or turn it off with 0.
    - Release as 2.2.0 together with the 2026-10-16 work.
 
-1. **Rethink the approach before another fix round.** Two rounds of
+1. **Rethink the approach before another fix round.** *(Weighed 2026-11-10
+   in `docs/0004-generalisation-approach.md`, PV-006; the owner's pick is
+   pending: see 1e.)* Two rounds of
    pattern-level fixes, each developed against new examples, moved unseen
    FAIL by only 1–3 points while seen sets improved a lot. More heuristics in
    the same style will probably fit what we can see again. Options worth
