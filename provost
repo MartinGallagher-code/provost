@@ -3491,8 +3491,8 @@ options:
 EOF
             ;;
         archive) cat <<'EOF'
-usage: provost archive --to DIR (--before DATE | --older-than N[d]) [--dataset NAME]...
-                       [--as-of DATE] [--purge [--yes]]
+usage: provost archive --to DIR (--before DATE | --older-than N[d])
+                       [--dataset NAME]... [--as-of DATE] [--purge [--yes]]
        provost archive verify DIR [--allowed-signers FILE] [--require-signed]
        provost archive import DIR [DEST]
   Write the captures filed before DATE (or more than N days before now, or
@@ -7164,8 +7164,8 @@ COMMANDS
         Dispose of the captures a retention policy no longer keeps (a dry
         run without --yes), recording each in the disposal log
         (disposals.tsv). No policy, no pruning.
-    provost archive --to DIR (--before DATE | --older-than N[d]) [--dataset NAME]...
-                    [--purge [--yes]]
+    provost archive --to DIR (--before DATE | --older-than N[d])
+                    [--dataset NAME]... [--purge [--yes]]
         A verifiable archive of older captures: a git bundle, a manifest
         and SHA256SUMS (signed with PROVOST_SIGN). --purge --yes then
         disposes of them as prune does. 'archive verify DIR' checks one;
