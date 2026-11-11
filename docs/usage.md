@@ -149,6 +149,8 @@ rewritten. Signed commits are the stronger anchor (PV-027).
 | `PROVOST_CONTEXT_COLUMNS` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) | `0` |
 | `PROVOST_MANIFEST_PROFILE` | run-manifest profile, NAME or `.tsv` file; when set every capture is checked (same as `--manifest-profile`) | unset |
 | `PROVOST_MANIFEST_STRICT` | `1` = refuse a capture lacking a required manifest key (same as `--strict-manifest`) | `0` |
+| `PROVOST_ENV` | `1` = record where each capture was taken (same as `--env`); `modules` = and the kernel modules (`--env=modules`) | `0` |
+| `PROVOST_ENV_VARS` | the variables `--env` records: names or glob patterns, space- or comma-separated; set but empty = none | `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` |
 | `PROVOST_AUTO_MULTI` | `1` = segment a parse the quality gate would hold, when the parts are clearly better; `0` = hold it (same as `--no-auto-multi`) | `1` |
 | `PROVOST_MAX_INPUT` | max input bytes, for inject and `run` | `10485760` |
 | `PROVOST_LOCK_TIMEOUT` | seconds to wait for the store lock | `30` |
@@ -176,9 +178,13 @@ original input. `provost log` shows the comma-joined list; the capture's
 **Auto-multi.** Without `--multi`, provost still segments a capture when the
 quality gate would otherwise hold its single parse for low coverage or low
 consistency — but only when the split is clearly better: two or more parts,
-each passing the gate on its own, together keeping at least the gate's
-coverage and 10 points more than the single parse, no part a table under
-positional `A`/`B`/`C` columns only, and no shattering into fragments.
+each passing the gate on its own (a part read by a tool-specific parser
+must keep the gate's coverage of its own lines too), together keeping at
+least the gate's coverage and 10 points more than the single parse, no part a
+table under positional `A`/`B`/`C` columns that shows a lost header or
+shredded rows (a column of box chrome, mostly empty cells, or a header-like
+line right above it; a headerless table is filed), and no shattering into
+fragments.
 Otherwise the capture is held as before, with the reason. The ok line says it
 segmented and why; `meta.tsv` records `auto_multi`, the held single parse's
 `single_*` measures, and each part's `dataset_coverage` /
@@ -274,6 +280,70 @@ $ provost check-manifest --post --strict c0001          # exit 1 if any is incom
   `PROVOST_MANIFEST_PROFILE`, else the store's own `manifest-profile.tsv`,
   else `default`. A NAME is looked up in `~/.config/provost/manifests`, then
   in provost's `extract/manifests`.
+
+## Environment capture (`--env`)
+
+`--env` (or `PROVOST_ENV=1`) adds where a capture was taken to its prologue.
+Nothing is recorded without it.
+
+```
+$ module load gcc/13.2.0 openmpi/4.1.6
+$ OMP_NUM_THREADS=8 provost run --env ./stream
+$ provost source c0007
+...
+----- original source (capture c0007) -----
+#% env.host=node7
+#% env.kernel="Linux 5.14.0-427.el9.x86_64"
+#% env.arch=x86_64
+#% env.os="Rocky Linux 9.4 (Blue Onyx)"
+#% env.modules=gcc/13.2.0:openmpi/4.1.6
+#% env.user=jo
+#% sched.job=4242
+#% env.slurm.nodes=node[07-08]
+#% env.var.OMP_NUM_THREADS=8
+...
+```
+
+| key | what | from |
+|---|---|---|
+| `env.host` | the host provost ran on | `$HOSTNAME`, else `uname -n` |
+| `env.kernel` | kernel name and release | `uname -sr` |
+| `env.arch` | machine architecture | `uname -m` |
+| `env.os` | OS release | `/etc/os-release` (`PRETTY_NAME`), or `sw_vers` on macOS |
+| `env.modules` | loaded environment modules (Lmod, Environment Modules) | `$LOADEDMODULES` |
+| `env.user` | the user provost ran as | `id -un` |
+| `sched.job` | the Slurm job id (the manifest's key: `job_id` under `proposal`; `env.slurm.job` under a profile that claims no key for it) | `$SLURM_JOB_ID` |
+| `env.slurm.nodes`, `.cluster`, `.partition` | the job's node list, cluster and partition | `$SLURM_JOB_NODELIST`, `$SLURM_CLUSTER_NAME`, `$SLURM_JOB_PARTITION` |
+| `env.kernel.modules` | loaded kernel modules, sorted (only with `--env=modules`) | `lsmod`, else `/proc/modules` |
+| `env.var.NAME` | an allow-listed environment variable | `PROVOST_ENV_VARS` |
+| `env.withheld` | allow-listed variables not recorded because they look like secrets | `extract/secrets.tsv` |
+
+- **Variables only from an allow-list**, never all of them: an environment
+  carries tokens and passwords. `PROVOST_ENV_VARS` holds names or glob
+  patterns, separated by spaces or commas; the default is
+  `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*`, and set but
+  empty it records none.
+- **A variable that looks like a secret is never recorded**, even when
+  allow-listed by name. `extract/secrets.tsv` lists the patterns: a name
+  holding `TOKEN`, `SECRET`, `PASSWORD`, `KEY`, ...; a value holding a private
+  key, an `Authorization:` header or bearer token, an AWS, GitHub, GitLab,
+  Slack, Anthropic/OpenAI-style or Google API key, a JWT, credentials in a
+  URL, or `password=`. provost warns, files the capture without it, and names
+  it in `env.withheld`.
+- **A manifest profile can claim a reading** for one of its own keys, in an
+  optional fifth column, `env`. `default.tsv` and `proposal.tsv` claim the
+  Slurm job id for `sched.job` and `job_id`; a store's own profile can claim
+  others (`sut` from `host`, say).
+- **The input's own prologue and `--manifest FILE` win:** a key either of
+  them sets is left out of `--env`'s lines.
+- **The readings describe the host provost runs on**, read once per command.
+  `provost batch --env` puts the same readings on every input: right for
+  outputs made on this host, wrong for files gathered from other hosts. A
+  launcher that already gathers facts per host (quarterdeck's `qd probe
+  facts`) should not pass `--env`.
+- With `--context-columns`, every reading becomes a column, like any other
+  prologue key. As with `--manifest`, `input_sha256` is of the input as
+  received and `output_sha256` of what is stored, the readings included.
 
 ## Batch capture
 

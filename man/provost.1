@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-10" "provost 2.6.0" "User Commands"
+.TH PROVOST 1 "2026-11-10" "provost 2.9.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -78,6 +78,14 @@ A missing required key is a warning.
 .BR --strict-manifest ", " --no-strict-manifest
 Refuse to file a capture whose run manifest lacks a required key (exit 1;
 in \fBbatch\fR, that input is not captured). Or \fBPROVOST_MANIFEST_STRICT=1\fR.
+.TP
+.BR --env ", " --env=modules ", " --no-env
+Record where the capture was taken in its \fB#%\fR prologue: the host,
+kernel, architecture, OS release, loaded environment modules, user, the Slurm
+job, and the variables \fBPROVOST_ENV_VARS\fR allows, never one that looks
+like a secret. \fB--env=modules\fR adds the loaded kernel modules. Or
+\fBPROVOST_ENV=1\fR / \fBmodules\fR; \fB--no-env\fR, the default, records
+nothing. See \fBENVIRONMENT CAPTURE\fR.
 .TP
 .BR --auto-multi ", " --no-auto-multi
 Before the quality gate holds a parse, try segmenting the input and file the
@@ -326,6 +334,26 @@ else \fBPROVOST_MANIFEST_PROFILE\fR, else the store's own
 \fIextract/manifests\fR. A value holding spaces is double-quoted:
 \fB#% build.toolchain="gcc 13.2"\fR. Nothing is checked unless a profile is
 asked for.
+.SH ENVIRONMENT CAPTURE
+With \fB--env\fR, provost adds where a capture was taken to its prologue as
+\fBenv.*\fR keys: \fBenv.host\fR, \fBenv.kernel\fR (\fBuname -sr\fR),
+\fBenv.arch\fR, \fBenv.os\fR (\fI/etc/os-release\fR, or \fBsw_vers\fR on
+macOS), \fBenv.modules\fR (Lmod's \fB$LOADEDMODULES\fR), \fBenv.user\fR, and
+inside a Slurm job \fBenv.slurm.job\fR, \fBenv.slurm.nodes\fR,
+\fBenv.slurm.cluster\fR and \fBenv.slurm.partition\fR.
+\fB--env=modules\fR adds \fBenv.kernel.modules\fR (\fBlsmod\fR). A
+manifest profile's optional fifth column, \fIenv\fR, claims a reading for one
+of its keys: the Slurm job id is written as \fBsched.job\fR under the default
+profile and \fBjob_id\fR under \fBproposal\fR. A key the input's own
+prologue or \fB--manifest\fR sets is left to them.
+.PP
+Environment variables come only from the allow-list \fBPROVOST_ENV_VARS\fR,
+each as \fBenv.var.\fINAME\fR, and a variable whose name or value looks like
+a secret (\fIextract/secrets.tsv\fR) is never recorded, even when
+allow-listed: provost warns and lists its name in \fBenv.withheld\fR. The
+readings describe the host provost runs on, read once per command; for a
+\fBbatch\fR of files gathered from other hosts, that is the host that filed
+them.
 .SH DATASET NAMES
 .B provost run
 \fIcmd\fR ... files into a dataset named after \fIcmd\fR's basename, looking
@@ -373,11 +401,17 @@ When the quality gate would hold a parse for low coverage or low consistency,
 provost first asks the engine to segment the input, as \fB--multi\fR does, and
 files the parts instead when the split is clearly better: it is a real split
 (two or more datasets); every part passes the gate on its own (confidence,
-coverage, consistency); together the parts keep at least \fB--min-coverage\fR
-percent of the lines and 10 points more than the single parse; no part is a
-table under positional A/B/C... columns only; a part read by the parser the
-gate rejected has judged column types; and parts of three or more lines hold at
-least half the lines, so the input is not shattered into fragments. Otherwise
+coverage, consistency), and a part read by a tool-specific parser keeps at
+least \fB--min-coverage\fR percent of its own lines; together the parts keep at
+least \fB--min-coverage\fR percent of the lines and 10 points more than the
+single parse; no part is a table under positional A/B/C... columns only that
+shows a lost header or shredded rows (a column of box chrome, mostly empty
+cells, or a header-like line right above it in the input), while a headerless
+table is filed under A/B/C...; a part read by the parser the
+gate rejected has judged column types; and parts of three or more lines or rows
+hold at least half of it, so the input is not shattered into fragments (a part's
+size is its lines or its rows, whichever is more: one line holding many records
+is no fragment). Otherwise
 the capture is held as before and the reason segmenting did not help is printed
 and recorded as \fBauto_multi\fR (\fIdeclined: ...\fR) in \fImeta.tsv\fR.
 .PP
@@ -426,7 +460,10 @@ write one from this capture; \fBthat step sends the capture's text to the
 Anthropic API\fR (at most 400 lines / 64 KB), once per tool. The template is
 tried first: on a capture the gate would hold, before segmenting and the
 layout model; and on a generic parse the gate passed, before that parse is
-trusted (never over an exact-format or tool-specific parser). What a template
+trusted (never over an exact-format or tool-specific parser, save that a
+\fByaml\fR parse may be bettered by a template already stored for the tool, since
+plain \fILabel: text\fR output is valid YAML; Claude is never asked to write one
+over it). What a template
 yields is measured by the engine and filed only under the gate's rules;
 against a generic parse the gate passed it must keep that parse's share of the
 data lines within 10 points (20 against \fBtext-lines\fR or \fBline-records\fR;
@@ -542,6 +579,16 @@ The run-manifest profile, a \fINAME\fR or a \fI.tsv\fR file (same as
 .B PROVOST_MANIFEST_STRICT
 \fB1\fR: refuse to file a capture whose manifest lacks a required key (same
 as \fB--strict-manifest\fR); \fB0\fR, the default: warn.
+.TP
+.B PROVOST_ENV
+\fB1\fR: record where each capture was taken (same as \fB--env\fR);
+\fBmodules\fR: and the kernel modules (\fB--env=modules\fR); \fB0\fR, the
+default: nothing.
+.TP
+.B PROVOST_ENV_VARS
+The environment variables \fB--env\fR records: names or glob patterns,
+separated by spaces or commas (default: \fBOMP_* MPI_* OMPI_MCA_* I_MPI_*
+MPICH_* UCX_* CUDA_* NCCL_*\fR). Set but empty, none.
 .TP
 .B PROVOST_BATCH_REUSE
 \fB0\fR: \fBprovost batch\fR detects every input's format from scratch.

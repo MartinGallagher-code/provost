@@ -216,9 +216,82 @@ Every output has been read and rated, with a reason per input in
 honest number needs a round 6, built and frozen the same way before the next
 change is measured.
 
+## Postscript, 2026-11-10: auto-multi's guards, retuned and measured once (PV-013)
+
+HANDOFF 0a left auto-multi at 2 rescues, 1 wrong table (048) and 6 missed
+rescues on round 4, with "loosen the guards, tighten the per-part check that
+let 048 through, then measure on a round 5". Two changes to `_auto_multi`'s
+per-part checks (`provost`):
+
+- **Tightened:** a part read by a tool-specific parser (bespoke or plugin)
+  must keep the gate's coverage of its own lines. On a whole input those
+  parsers are exempt, since they normalise values; on a fragment of another
+  tool's output a low reading is an accident. 048's `git-annex-list` read a
+  pytest rule line as `flags` / `path` at 50%. The strict grammars (json,
+  yaml, xml, toml, har) stay exempt.
+- **Loosened:** a positional table (`A`/`B`/`C`… columns only) no longer
+  sinks a split by itself. It is declined only on evidence that a header was
+  lost or rows shredded: a column of box chrome (`|`, `||`, `+`), cells
+  mostly empty (under two thirds filled: prose split word per column), or a
+  header-like line (two or more words, no digit) right above the part in the
+  input, past blank and rule lines. A table with none of these is genuinely
+  headerless, where CRITERIA.md's rule 4 says positional names are the honest
+  answer.
+
+**How it was kept honest.** The guards were tuned on round 4 (already spent
+for auto-multi) and checked on rounds 2 and 3. The change was committed and
+pushed (dc5e501) before round 5 was run through it. Round 5 was then run
+once (`tests/benchmark/auto_multi_round.sh --round5`, new; every input
+captured through the CLI into a fresh store) on this branch and on `main`.
+No new rating was needed: every capture that changed outcome files exactly
+the `--multi` datasets already rated blind above (same datasets, same
+content as the `multi_note`). Before the change, this session had read this
+document's aggregate figures (7 gate-held; `--multi` 0 / 4 / 3 on them) but
+not which inputs they were, or their ratings.
+
+| set | `main` | this change | possible rescues |
+|---|---|---|---:|
+| round 2 (seen, tuning check) | 1 segmented, 7 held | the same, input for input | — |
+| round 3 (seen, tuning check) | 2 segmented, 16 held | the same, input for input | — |
+| round 4 (tuning set) | 2 rescues, **1 wrong table** (048), 15 held | **5 rescues** (003, 026, 029, 106, 137), **no wrong table**, 13 held | 8 |
+| **round 5 (measured once)** | 0 rescues, 7 held | **1 rescue** (101 `aix lspv`, FAIL → PARTIAL), **no wrong table**, 6 held | 3 |
+
+On rounds 2 and 3 every input has the same outcome as on `main`, including
+the four splits the positional rule was written to stop (round 2's 102 by
+box chrome; round 3's 036, 115 and 126 by the header-like line above).
+
+**Round 5, input by input** (the 7 the gate holds):
+- **101** `lspv`: filed as 4 parts, the `--multi` output rated PARTIAL
+  (the lspv table is right; a second key/value pair on a line stays glued to
+  the first value). `main` held it for the headerless lspv table.
+- **104** `checkm qa`, **109** `cqlsh` tracing: still held, now because a
+  header-like line sits right above the positional part. The raters' notes
+  confirm the header was cut off in both ("header shredded word-per-column in
+  its own table and not applied"; "trace table header pushed into a kv cell
+  and columns left as A-E"), and still rated the `--multi` output PARTIAL. So
+  the guard is right about the table, and costs two PARTIALs that a rater
+  would take.
+- **064**, **106**, **133**: `--multi` FAIL, still held (unsplit input
+  wins; a part keeps 76%; a part keeps 66%).
+- **124**: PARTIAL either way; still held (one dataset).
+
+**What it does to the headline:** the default engine on round 5 goes from
+14 / 60 / 33 to 14 / 61 / 32 (101 is filed PARTIAL instead of held).
+Auto-multi stays a small, safe step: on unseen output it rescued 1 of 3 and
+filed nothing wrong. Round 5 is now spent for this change too, and the next
+honest measure of auto-multi needs a round 6.
+
+**Left as they were:**
+- The per-part coverage and consistency minimums, which hold round 4's 031
+  (a group-children part at 66%), 109 (an indented-hierarchy part at 33%)
+  and 133 (50% type-consistent).
+- Nothing on rounds 2 to 4 separates those from the parts the same minimums
+  rightly hold (022, 113 and round 3's 047), so loosening them would be a
+  guess.
+
 ## Addendum, 2026-11-10: the `--llm` judge on round 5's templates (PV-009)
 
-The judge (CHANGELOG 2.6.0) reviews a template after `learn` and `repair`.
+The judge (CHANGELOG 2.9.0) reviews a template after `learn` and `repair`.
 To measure it and nothing else, the 100 templates `--llm` kept on round 5
 (`round5/llm-templates-learn/`, rated above) were reviewed on their own
 inputs with `tests/benchmark/judge_round.sh --round5 OUT --jobs 8`: 74 PASS,

@@ -30,6 +30,9 @@ launcher; the only runtime requirements are `bash` and standard POSIX tools.
 
 - **[Usage](usage.md)** — every subcommand, flag, and `PROVOST_*` environment
   variable.
+- **[Test frameworks](integrations/index.md)** — worked recipes for filing
+  results from ReFrame, pytest, GitLab CI or any harness, with the run's
+  context as columns.
 - **[Multi-dataset capture](0003-multi-dataset.md)** — why one input can hold
   several datasets, and how `--multi` files them all.
 - **[Design: rename and simplification](0001-rename-and-simplification.md)** —

@@ -34,6 +34,13 @@ fine-tuned on provost's own labels. It comes as the
 package (85 MB) and runs on numpy, with no torch or GPU. Without it,
 `--model` uses the small decision trees provost ships.
 
+**No network?** Each release from 2.6.0 on has an offline bundle attached to
+its [GitHub release](https://github.com/MartinGallagher-code/provost/releases):
+the wheel, the sdist, a CycloneDX SBOM, `SHA256SUMS` and a Sigstore signature
+for every file, for an air-gapped host. Verify it, carry it across, then
+`pip install --no-index --find-links . provost`. The steps:
+[docs/offline-install.md](docs/offline-install.md).
+
 ## Quick start
 
 ```bash
@@ -88,6 +95,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `… --sync` / `--async` | foreground / background capture (default: background only at a terminal) |
 | `… --plugin-dir <dir>` | extra strategy dir for this capture (inject/run) |
 | `… --context-columns` | each `key=value` in a `#%` prologue becomes a column on every row (inject/batch) |
+| `… --env` | record where the capture was taken (host, kernel, OS, modules, Slurm job, user, allow-listed variables) in its `#%` prologue (`--env=modules`: and the kernel modules) |
 | `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then) |
 | `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
 | `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
@@ -133,7 +141,13 @@ edit the engines in place; run each tree's own test suite to keep it green.
 
 ## Integrating from another tool
 
-Wrappers that pipe into provost (e.g. deframe) get two hooks:
+**Running provost from a test framework?** [docs/integrations/index.md](docs/integrations/index.md)
+has worked recipes, each run in CI: a generic `provost-wrap -- CMD` wrapper
+for any harness, a ReFrame mixin and perflog filing, a pytest plugin and the
+JUnit XML route, and a GitLab CI job. Each files the run's context (test,
+system, job id, exit status) as columns on every row.
+
+Wrappers that pipe into provost (e.g. deframe) get these hooks:
 
 - **`--plugin-dir <dir>`** (or `PROVOST_PLUGIN_DIR`): an extra strategy directory
   that competes in format detection for that capture — no symlink into the
@@ -158,6 +172,15 @@ Wrappers that pipe into provost (e.g. deframe) get two hooks:
   `--manifest FILE` prepends and checks one at capture time
   (`--strict-manifest` refuses to file without it); `provost annotate`
   adds the post-run `reviewer` and `disposition`. See `docs/usage.md`.
+- **Environment capture (`--env`)**, off unless asked for: the capture's
+  prologue gains `env.host`, `env.kernel`, `env.arch`, `env.os`,
+  `env.modules` (Lmod's `$LOADEDMODULES`), `env.user`, and inside a Slurm job
+  its id (as the manifest's `sched.job`), node list, cluster and partition.
+  Environment variables only from the allow-list `PROVOST_ENV_VARS` (default
+  `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*`), never all of
+  them, and never one whose name or value looks like a secret
+  (`extract/secrets.tsv`): that one is named in `env.withheld` instead.
+  `--env=modules` adds the kernel modules. See `docs/usage.md`.
 - **`provost batch FILE... [--from LIST]`**: many inputs, one commit. Each file
   is a capture of its own — its own id, its own `provost source`, its own
   `capture-<id>` tag — but they are parsed in parallel (`-j N`, default the
@@ -188,6 +211,8 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_CONTEXT_COLUMNS` | `0` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) |
 | `PROVOST_MANIFEST_PROFILE` | unset | run-manifest profile (NAME or `.tsv`); when set, every capture is checked |
 | `PROVOST_MANIFEST_STRICT` | `0` | `1` = refuse a capture lacking a required manifest key (`--strict-manifest`) |
+| `PROVOST_ENV` | `0` | `1` = record where each capture was taken in its prologue (`--env`); `modules` = and the kernel modules (`--env=modules`) |
+| `PROVOST_ENV_VARS` | `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` | the variables `--env` records: names or glob patterns, space- or comma-separated; set but empty = none |
 | `PROVOST_AUTO_MULTI` | `1` | segment a parse the quality gate would hold, when the parts are clearly better (`0` = hold it; same as `--no-auto-multi`) |
 | `PROVOST_MODEL` | `0` | `1` = when the gate would still hold a parse, try the learned layout model and file its table if it passes the same gate (needs `python3`; same as `--model`) |
 | `PROVOST_LAYOUT_LM` | unset | the tiny LM `--model` labels with: a model directory, or unset for the installed `provost-model` package (`pip install provost[lm]`); `0` = the trees only |

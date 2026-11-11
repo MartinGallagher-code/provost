@@ -18,19 +18,24 @@
 #   required     yes = a capture without it (or with it empty) is reported
 #                no  = reserved name, documented, never demanded
 #   description  what the value is
+#   env          optional: the reading 'provost --env' fills this key with
+#                (host, kernel, arch, os, modules, user, slurm.job,
+#                slurm.nodes, slurm.cluster, slurm.partition,
+#                kernel.modules); a reading no key claims is written as
+#                env.READING. '-' or nothing: --env does not fill it.
 #
 # A store can use another profile (a copy of this file, edited) by keeping it
 # as manifest-profile.tsv at the store's root; PROVOST_MANIFEST_PROFILE or
 # --manifest-profile names one for a single run.
 #
-# key	when	required	description
+# key	when	required	description	env
 req	run	yes	requirement this run gives evidence for (an RVTM or requirement id)
 test	run	yes	the test or benchmark that was run
 test.version	run	yes	version of that test or benchmark
 build.commit	run	yes	source commit of the software under test
 build.sha256	run	no	sha256 of the binary that ran
 build.toolchain	run	no	compiler and toolchain (e.g. "gcc 13.2, glibc 2.39")
-sched.job	run	no	scheduler job id (Slurm, PBS, ...) the run was part of
+sched.job	run	no	scheduler job id (Slurm, PBS, ...) the run was part of	slurm.job
 run.id	run	no	id of the run, as the launcher (e.g. quarterdeck) gave it
 sut	run	yes	system under test: the host, cluster or partition measured
 operator	run	no	who started the run
