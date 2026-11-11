@@ -41,7 +41,8 @@
 #             the row has no capture id).
 #   stream    stdin: the fast-export stream; blob ids from GITMAP ("old<TAB>
 #             new"), dataset paths and messages rewritten, Input-SHA256
-#             trailers dropped and Output-SHA256 ones taken from OUT256.
+#             and Operator trailers dropped and Output-SHA256 ones taken
+#             from OUT256.
 # MAP ("kind<TAB>name<TAB>pseudonym") is read by blobs and stream. USED gets
 # "kind<TAB>name" for each name replaced; COUNTS the secret counts.
 # Policy, from the environment: RP_IPV4, RP_IPV6 (1/0), RP_DOMAINS,
@@ -359,14 +360,20 @@ function tpath(p,    name, np) {
     NEWPATH[np] = p
     return np
 }
-function fixmsg(msg,    n, L, i, out, l, F, ends) {
+function fixmsg(msg,    n, L, i, out, l, F, ends, insig) {
     ends = (substr(msg, length(msg)) == "\n")
     if (ends) msg = substr(msg, 1, length(msg) - 1)
     n = split(msg, L, "\n")
-    out = ""; scrub_reset()
+    out = ""; scrub_reset(); insig = 0
     for (i = 1; i <= n; i++) {
         l = L[i]
+        # a signed tag's signature (git fast-export strips only OpenPGP
+        # ones, and none would verify on the rewritten history): dropped
+        if (l ~ /^-----BEGIN (SSH|PGP) SIGNATURE-----$/) { insig = 1; continue }
+        if (insig) { if (l ~ /^-----END (SSH|PGP) SIGNATURE-----$/) insig = 0; continue }
         if (l ~ /^Input-SHA256: /) continue
+        # who made the capture (PV-027) names a person: not in a copy
+        if (l ~ /^Operator: /) continue
         if (l ~ /^Output-SHA256: /) {
             split(l, F, " ")
             if (!(F[2] in OUT256)) continue

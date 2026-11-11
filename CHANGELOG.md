@@ -1,5 +1,86 @@
 # provost — Changelog
 
+## 2.18.0 — 2026-11-11 — signed captures, the operator on every commit, and SHA-256 stores (PV-027)
+
+`VERSION` 2.17.0 → 2.18.0, and the `man/provost.1` header. Minor: new settings
+and a new command. With none of them set, a capture is filed exactly as before
+except that its commit message gains an `Operator:` trailer.
+
+- **The operator** (`provost`: `_operator`, `_with_operator`, `_commit`, rm's
+  commit). Every commit provost makes ends with `Operator: WHO`, in the same
+  trailer block as the `Input-SHA256`/`Output-SHA256` trailers (git parses
+  both: `%(trailers:key=Operator)`). WHO is `user@host`, or
+  `PROVOST_OPERATOR` when set (one line, at most 512 characters, else exit
+  2). quarterdeck already sets `PROVOST_OPERATOR` (QD-016). The committer
+  stays `provost <provost@localhost>`. `export --redact` drops the trailer
+  (`lib/provost_pseudo.awk`): it names a person.
+- **Signing** (`PROVOST_SIGN=ssh|gpg`, `PROVOST_SIGNING_KEY`). The git
+  wrapper no longer forces signing off when it is on: every commit provost
+  makes is signed (`commit.gpgsign`, and `commit-tree -S` for a controlled
+  directory's files commits, since `commit-tree` ignores the setting), and
+  each `capture-ID` tag becomes an annotated tag signed with the same key
+  (`_tag_capture`). **A capture that cannot be signed is not captured**:
+  before anything is written, `_sign_check` refuses a git older than 2.34
+  for SSH, a missing key, and a key that would ask for a passphrase (the
+  file itself, or the private half beside a `.pub` that ssh-agent does not
+  hold), then signs a test commit in a scratch repository (never in the
+  store); and git signing with `SSH_ASKPASS_REQUIRE=force` and
+  `SSH_ASKPASS=false` turns any prompt that slips through into a failure,
+  not a hang. A commit git still fails to sign fails the capture with a
+  message saying so, and its tag is never made. Signing is read only from
+  the environment, never from a store's `.git/config`. SSH first, as the
+  ticket suggested; OpenPGP (`gpg`) comes from the same switch
+  (`gpg.format=openpgp`).
+- **`provost verify` checks signatures** (`--allowed-signers FILE`,
+  `PROVOST_ALLOWED_SIGNERS`, `--require-signed`). For each capture, its
+  commit's and tag's signatures: SSH ones against the allowed-signers file,
+  OpenPGP ones against the keyring. A bad signature, a signer not allowed,
+  a revoked key, or a capture with only one of commit and tag signed is
+  always a finding; an unsigned capture, or an SSH signature with no
+  allowed-signers file to check it against, is one only under
+  `--require-signed`. A new summary line counts them. The hash-trailer check
+  now reads the commit's message through an annotated tag.
+- **SHA-256 stores** (`provost init [--object-format sha1|sha256]`, new;
+  `PROVOST_OBJECT_FORMAT`). `init` makes the store now; a store's first write
+  also honours `PROVOST_OBJECT_FORMAT`. Git 2.29 or later, else a clear
+  refusal. An existing store is never converted (`init` refuses a different
+  format). `doctor` and `store check` show a store's format (and `store
+  check` fails one this git cannot read). `export` and `import` carry the
+  format in the bundle; `export --redact` makes its copy in the store's
+  format, strips commit signatures (`--signed-commits=strip` where git
+  knows it) and SSH tag signatures (git's `--signed-tags=strip` only knows
+  OpenPGP ones), since none would verify on a rewritten history.
+- **`doctor`** shows the object format, the operator, whether signing is on
+  and whether a test signature works (exit 1 if it does not), and the format
+  new stores get. `store check` counts annotated capture tags and checks
+  each names a commit.
+- **No store-format bump.** Signed commits, annotated capture tags, the
+  trailer and SHA-256 stores are all within format 4: nothing is migrated,
+  and the layout is unchanged. `docs/store-format.md` documents each (Where a
+  store is; Git; Format 4; Reading a store from another program: peel
+  `capture-*` tags, and copy a store with `git clone`, not `init`+`fetch`).
+- **quarterdeck:** a local SHA-256 store works (`qd import`, `qd log`); a
+  remote one does not — its copy is `git init` (SHA-1) then `git fetch`,
+  which git refuses ("mismatched algorithms"). Filed as **QD-032**.
+- Help (`init --help`, `verify --help`, SIGNING in `help advanced`, the
+  settings list), the man page (SIGNING AND SHA-256, `init`, `verify`,
+  ENVIRONMENT), the README's tables and the bash completion (`init`).
+- **Tests** (`tests/smoke.sh`): part `operator` (21: the default and
+  overridden trailer, batch/annotate/rm commits, git parses it, refusals, a
+  redacted export drops it); part `signing` (SSH with throwaway keys made in
+  temp directories: `git log --show-signature` shows every commit signed,
+  every tag verifies, `verify` with and without allowed signers and with
+  `--require-signed`, a missing key, a passphrase key and its `.pub`, and a
+  stand-in `ssh-keygen` that signs the test commit and then refuses — each
+  exits 1 and commits nothing; a hand-made unsigned tag; `PROVOST_SIGN=gpg`
+  where gpg is installed); part `objfmt` (init, doctor, store check, refusal
+  to convert, export/import and `export --redact` keep SHA-256, signed and
+  SHA-256 together). And **the whole core part runs twice more**, as
+  `core@sha256` (on a SHA-256 store) and `core@signed` (every commit and
+  capture tag SSH-signed), each ending by checking the store it used; each
+  skips, and says so, where git is too old. CI's smoke job prints `git
+  --version` and `ssh -V` and its timeout is 15 minutes (was 10).
+
 ## 2.17.0 — 2026-11-11 — `--llm` through OpenAI-compatible and local endpoints, and an offline mode that never sends a capture (PV-019)
 
 `VERSION` 2.16.0 → 2.17.0, and the `man/provost.1` header. Minor: three new

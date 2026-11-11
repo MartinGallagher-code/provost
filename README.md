@@ -161,8 +161,9 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost files [ID] [path] [--to dir]` | a controlled directory's files as a capture kept them |
 | `provost export [--redact POLICY] [<file>]` / `import <file> [<dest>]` | portable store bundle; `--redact`: host names and addresses pseudonymised |
 | `provost triage` | low-confidence / unmatched bucket |
-| `provost doctor` | engine + store check |
-| `provost verify [--capture ID]` | store integrity: `git fsck`, each capture's output against its recorded sha256, tags, id gaps |
+| `provost doctor` | engine + store check (object format, operator, signing) |
+| `provost init [--object-format sha256]` | make the store now; `sha256`: in git's SHA-256 object format (git 2.29+); never converts one |
+| `provost verify [--capture ID] [--require-signed] [--allowed-signers FILE]` | store integrity: `git fsck`, each capture's output against its recorded sha256, tags, id gaps, signatures |
 | `provost store check [DIR]` | check a store against the [store format](docs/store-format.md); reads only |
 | `provost help` / `help advanced` / `<command> --help` | short help / full reference / one command's usage |
 
@@ -291,6 +292,11 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_RECONCILE_OVERLAP` | `60` | % column overlap to union vs split a variant |
 | `PROVOST_QUIET` | `0` | `1` suppresses progress/ok messages (same as `--silent`) |
 | `PROVOST_REDACT` | `1` | `0` = store inputs as they come, secrets and all (same as `--no-redact`) |
+| `PROVOST_OPERATOR` | `user@host` | who makes the captures, in every commit's `Operator:` trailer |
+| `PROVOST_SIGN` | `off` | `ssh` or `gpg` = sign every commit and make each `capture-ID` tag a signed annotated tag; a capture that cannot be signed is not captured |
+| `PROVOST_SIGNING_KEY` | git's `user.signingkey` | ssh: a key file with no passphrase, or a `.pub` / `key::...` ssh-agent holds; gpg: a key id |
+| `PROVOST_ALLOWED_SIGNERS` | | the SSH allowed-signers file `verify` checks signatures against |
+| `PROVOST_OBJECT_FORMAT` | `sha1` | `sha256` = a new store is made in git's SHA-256 object format |
 
 ## Tests
 

@@ -53,9 +53,12 @@ jobs:
   smoke:
     name: smoke (end-to-end)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 15, not 10: the core part also runs on a SHA-256 store and signed (PV-027)
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: git and ssh-keygen (SHA-256 stores need git 2.29, SSH signing 2.34)
+        run: git --version && ssh -V
       - name: provost doctor
         run: bash provost doctor || true
       - name: smoke test

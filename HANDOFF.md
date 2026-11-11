@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.17.0 is everything through 2026-11-11** (`VERSION`, man header,
-the `## 2.17.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.18.0 is everything through 2026-11-11** (`VERSION`, man header,
+the `## 2.18.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -22,15 +22,17 @@ pseudonymised on export (PV-033, below; 2.13.0); the tiny LM's arbiter
 instead of refused (PV-021, Next steps 1j; 2.15.0); the store format as a
 versioned spec, `provost store check` and reads that never touch a store
 (PV-022, below; 2.16.0); `--llm` through OpenAI-compatible and local
-endpoints, and an offline mode (PV-019, Next steps 1k; 2.17.0). 2.4.0 added `provost
+endpoints, and an offline mode (PV-019, Next steps 1k; 2.17.0); signed
+captures, the operator trailer and SHA-256 stores (PV-027, Next steps 1l;
+2.18.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.17.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.17.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.17.0`, creating
+2.18.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.18.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.18.0`, creating
 that release on a dispatched run.
 
 **2.16.0: the store format as a spec (PV-022, 2026-11-11; not published).**
@@ -347,6 +349,29 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1l. **2026-11-11: signed captures, the operator, SHA-256 stores** (PV-027,
+    2.18.0). Every commit carries `Operator: user@host` (or
+    `PROVOST_OPERATOR`, which qd sets). `PROVOST_SIGN=ssh|gpg` signs every
+    commit and makes capture tags signed annotated tags; a capture that
+    cannot be signed (no key, a passphrase key, a failing test signature, a
+    commit git cannot sign) fails, and nothing unsigned is committed.
+    `verify` checks signatures (`--allowed-signers`, `--require-signed`).
+    `provost init --object-format sha256` / `PROVOST_OBJECT_FORMAT=sha256`
+    make SHA-256 stores; nothing converts one. Smoke runs the core part again
+    on a SHA-256 store and signed (`core@sha256`, `core@signed`). Owner's
+    questions answered on his behalf: SSH first (gpg works from the same
+    switch and is tested where gpg is installed); signing is per run, from
+    the environment, and `verify` fails unsigned captures only when asked
+    (`--require-signed`). **Open:** whether a store should record that it
+    must be signed (so an unsigned capture is refused, not just reported);
+    whether `rm`'s and `annotate`'s commits need anything beyond being
+    signed like the rest; gpg's passphrase guard is gpg-agent's, not
+    provost's (only ssh keys are checked for a passphrase); a commit that
+    git fails to sign after the test signature passed leaves the capture's
+    files uncommitted in the store, as any failed commit always has, and the
+    next capture commits them without a tag (verify reports it). quarterdeck
+    cannot read a REMOTE SHA-256 store yet: QD-032.
 
 1k. **2026-11-11: `--llm` endpoints and offline mode** (PV-019, 2.17.0).
     `PROVOST_LLM_API=openai` sends Chat Completions to the OpenAI-compatible
