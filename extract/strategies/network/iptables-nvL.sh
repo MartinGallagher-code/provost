@@ -6,6 +6,7 @@
 ## Description: Extract rule rows from `iptables -nvL` per-chain tables
 ## Version: 1.0
 ## Priority: 9
+## Commands: ip6tables iptables-legacy ip6tables-legacy iptables-nft ip6tables-nft
 ## Sample: samples/iptables-nvL/basic.txt
 
 # `iptables -nvL` prints one block per chain: a `Chain NAME (policy ...)` header,

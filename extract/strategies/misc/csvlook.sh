@@ -6,6 +6,7 @@
 ## Description: Extract rows from a csvlook / Markdown pipe table (skips the |---| separator row)
 ## Version: 1.0
 ## Priority: 22
+## Commands: csvlook *
 ## Sample: samples/csvlook/basic.txt
 
 # `csvlook` renders a Markdown-style table: a header row of pipe-delimited column

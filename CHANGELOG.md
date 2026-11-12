@@ -1,5 +1,81 @@
 # provost — Changelog
 
+## 2.21.0 — 2026-11-12 — the command's name used in detection, pkg-config narrowed, full mode checked in CI (PV-037)
+
+`VERSION` 2.20.1 → 2.21.0, and the `man/provost.1` header. Minor: what
+`provost run` files can change (for the better, by design), and the engine has
+new options. Piped input with no `--name` is detected as before, except that
+`pkg-config`'s parser no longer claims other tools' output.
+
+- **The command's name ranks the parsers** (`extract/lib/_discovery.sh`:
+  `_cmd_init`, `_cmd_delta`, `_cmd_rank_key`, `_cmd_meta_line`; new engine
+  options `--command NAME`, `--command-hint NAME`, `--batch-commands`). jc,
+  ntc-templates and Genie pick a parser by the command; provost knew the
+  command and did not use it. Detection is still by content; the name only
+  moves the rank of what detected. A tool-specific strategy written for the
+  command (its file name or `## Name:` is the command or starts with
+  `COMMAND-`, or a new `## Commands:` header lists it) ranks 15 points higher;
+  one written for another command ranks 20 points lower, so it wins only by a
+  clear margin; generic parsers do not move. A `hints.tsv` row for the
+  command is preferred to an earlier row for another tool, and a row for
+  another tool that routes to a tool-specific strategy is passed over. A
+  relay (`cat`, `echo`, `printf`, `ssh`, a shell, `grep`, `sort` …) is
+  ignored. Pruning stays exact for both rankings (with the name and without
+  it). `--emit-meta` adds a `__COMMAND_META__` line; `explain --command`
+  shows the ranking.
+- **`provost` passes it** (`_ingest_parse`, `cmd_run`): `provost run` and
+  `listen` pass the command they ran (through `sudo`, `env`, `nice` …, as the
+  dataset name is) as `--command`; `--name` and a batch file's `NAME` pass a
+  `--command-hint`, which only boosts — a dataset name may be a label.
+  `meta.tsv` gains `command_name`, `command_changed` (whether the name changed
+  which parser ranked first) and `command_fit` (the winner is a parser
+  written for another command, won by the margin). The quality gate is
+  unchanged.
+- **`## Commands:` headers** for strategies that read a sibling tool's
+  output: `sysstat` (sar, mpstat, pidstat), `iptables-nat` / `iptables-nvL`
+  (ip6tables and the -legacy / -nft names), `fdisk` (sfdisk), `unzip`
+  (zipinfo), `docker-ps` (podman, nerdctl). `*` marks a strategy that reads a
+  format many tools print, which no name ranks lower: `csvlook` (any Markdown
+  pipe table; without it, a Markdown table printed by any other command lost
+  csvlook to `pipe-table`, which splits on escaped pipes).
+- **`pkg-config` narrowed** (`extract/strategies/system/pkg-config.sh`, 1.1).
+  Its shape heuristic ("a name, then text") claimed 60 of the corpus's 3,732
+  inputs in full mode, none of them pkg-config output — `netstat -anp`,
+  `netstat -tulpn`, `ip -br addr`, `poetry show`, `gluster volume status`,
+  `emacs --version`, `tox list`, `rabbitmqctl list_exchanges` … — each filed
+  as two columns. It now needs what `pkg-config --list-all` prints: `KEY<pad>Name
+  - Description`, the join on two lines in three and the second field aligned
+  on every line (but for a key longer than pkgconf's 30-column pad). It
+  claims none of them now; its own sample still reads.
+- **Full mode checked** (`tests/corpus/run.sh --full`, `--update-full`, new
+  `tests/corpus/full-mode.tsv`; CI's `corpus-goldens` job). The golden gate ran
+  `--generic` only, so nothing checked the parse users get. Every input whose
+  full-mode winner is not `--generic`'s is now recorded with that strategy,
+  whether it meets `expected.tsv` (or a deliberate shape of its own) and the
+  reason; an unrecorded difference, a `TODO` reason or a recorded tidy result
+  that stops meeting the manifest fails. CI runs `--golden --full` when a
+  change touches `extract/`, `transform/`, `lib/`, `tests/corpus/` or the
+  workflow. The record holds 231 differences (291 before pkg-config was
+  narrowed). Two keep a deliberate shape of their own (`btrfs filesystem
+  show`: one row per device; `sar -b`: sysstat leaves out the `Average:`
+  row), and three are **known full-mode defects** where `--generic` does
+  better, listed by every run: `go-mod-why`, `pnpm-why` and `systemd-cgls`
+  flatten a tree on one input each (a follow-up). On 2026-11-12: goldens
+  3,602 passed, 0 failed; full mode 3,703 passed, 0 failed, 29 gaps in both
+  modes.
+  `PROVOST_CORPUS_COMMANDS=1` runs the full pass with each input's command, as
+  `provost run` would: on the corpus the name changed the result of 10 of
+  3,732 inputs, all to a tidy result where the command derived from the
+  input's name is the real one (`git log --oneline` gets named columns from
+  `git-log`), the rest artefacts of deriving it (`nmap_sv`, `zip-info`).
+  Not in CI.
+- **Tests:** `extract/tests/test_command.sh` (new: ranking, hints, relays,
+  pruning, batch, meta, the pkg-config inputs); `tests/smoke.sh` (run with the
+  command's own parser, another command's, `--name` through a relay, piped).
+- **Docs:** `docs/usage.md` ("The command's name is used in detection"),
+  `provost help advanced` and the man page (THE COMMAND'S NAME), the extract
+  README, `tests/corpus/README.md`, `CLAUDE.md` (the corpus gate is `--golden
+  --full`), `HANDOFF.md` (Next steps 1p).
 ## 2.20.1 — 2026-11-12 — a survey of the tools near provost (PV-036)
 
 `VERSION` 2.20.0 → 2.20.1, and the `man/provost.1` header. Patch: docs only.

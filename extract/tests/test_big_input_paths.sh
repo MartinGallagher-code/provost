@@ -137,11 +137,16 @@ _gen () {
         eqtable)
             local i; for ((i = 1; i <= 40; i++)); do printf 'opt%d = value %d\n' "$i" "$i"; done ;;
         share)
-            printf 'libfoo%d Foo library\n' 1 2 3
-            printf 'libbar Bar library for many things\nlibbaz Bazlib\n'
-            local i; for ((i = 1; i <= 20; i++)); do printf 'libm%d Middle library for many things\nlibq%d Quuxlib\n' "$i" "$i"; done
-            printf 'libend%d End library\n' 1 2 3
-            printf 'libzz Last library for many things\nlibyy Yylib\n' ;;
+            # `pkg-config --list-all`'s layout (PV-037): the key padded to the
+            # longest key plus one space, then "Name - Description". Token
+            # counts: 4 (libfoo*, libend*), 8 (libbar, libm*, libzz) and 5
+            # (libbaz, libq*, libyy) -- the 4s are 6 of the 10-line sample (60%)
+            # and 6 of 48 lines in all.
+            printf '%-8s%s\n' libfoo1 'Foo - lib' libfoo2 'Foo - lib' libfoo3 'Foo - lib'
+            printf '%-8s%s\n' libbar 'Bar - Bar library for many things' libbaz 'Baz - Bazlib x'
+            local i; for ((i = 1; i <= 20; i++)); do printf '%-8s%s\n' "libm$i" 'Mid - Middle library for many things' "libq$i" 'Quux - Quuxlib q'; done
+            printf '%-8s%s\n' libend1 'End - lib' libend2 'End - lib' libend3 'End - lib'
+            printf '%-8s%s\n' libzz 'Last - Last library for many things' libyy 'Yy - Yylib y' ;;
         colons)
             local i; for ((i = 1; i <= 25; i++)); do
                 printf 'Name %d: foo  bar \nBuilt on: Mon Jan 26 12:30:%02d 2024 ok\n' "$i" "$i"
@@ -399,20 +404,23 @@ test_sample_confidence_is_full_text () {
 
 # SAMPLE SLACK: a share-threshold detector must not falsely REJECT its sample.
 # pkg-config declines when one token count covers >= 60% of lines: the 10-line
-# sample (head 5 + tail 5) sits exactly at 60% (6 three-token lines), the full
-# text far below. Without slack the sample screen dropped pkg-config and a
-# catch-all won; with it the sampled run picks the full-text winner.
+# sample (head 5 + tail 5) sits exactly at 60% (6 four-token lines), the full
+# text far below. Without slack the sample screen dropped pkg-config; with it
+# the sampled run detects what the full-text run detects, and picks the same
+# winner (pkg-config: since PV-037 the fixture is real `pkg-config --list-all`
+# layout, and the test reads the detection itself too).
 test_sample_share_threshold_no_false_reject () {
-    local f full samp noslack
+    local f full samp det="Strategy 'pkg-config' (p21, c79): detected as applicable"
     f="$(_gen share)"
-    _big_run "$BIG_TMP/sh.full" _FR_SAMPLE_BYTES=-1 -- "$f"
-    _big_run "$BIG_TMP/sh.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- "$f"
-    _big_run "$BIG_TMP/sh.noslack" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_SLACK=0 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- "$f"
-    full="$(cat "$BIG_TMP/sh.full")"; samp="$(cat "$BIG_TMP/sh.samp")"; noslack="$(grep __EXTRACT_META__ "$BIG_TMP/sh.noslack")"
-    assert_contains "$full" $'__EXTRACT_META__\tpkg-config' "full text: pkg-config accepts"
-    assert_eq "$samp" "$full" "sampled run == full-text run (no false reject)"
+    _big_run "$BIG_TMP/sh.full" _FR_SAMPLE_BYTES=-1 -- -d "$f"
+    _big_run "$BIG_TMP/sh.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- -d "$f"
+    _big_run "$BIG_TMP/sh.noslack" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_SLACK=0 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- -d "$f"
+    full="$(grep __EXTRACT_META__ "$BIG_TMP/sh.full")"; samp="$(grep __EXTRACT_META__ "$BIG_TMP/sh.samp")"
+    assert_contains "$(cat "$BIG_TMP/sh.full.err")" "$det" "full text: pkg-config accepts"
+    assert_contains "$(cat "$BIG_TMP/sh.samp.err")" "$det" "sampled run: pkg-config accepts too (no false reject)"
+    assert_eq "$samp" "$full" "sampled run == full-text run"
     # the reproduction: with the slack off, the sample screen rejects
-    assert_not_contains "$noslack" $'\tpkg-config' "slack 0 reproduces the false reject"
+    assert_contains "$(cat "$BIG_TMP/sh.noslack.err")" "Strategy 'pkg-config' (p21): not applicable (sample)" "slack 0 reproduces the false reject"
 }
 
 # The slack only ever reaches the SAMPLE screen: full-text detection (and so

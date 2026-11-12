@@ -1,0 +1,244 @@
+# Full mode's own winners (PV-037): every corpus input whose full-mode winner
+# differs from --generic's, written by `tests/corpus/run.sh --update-full` and
+# checked by `run.sh --full` (CI: `run.sh --golden --full`). A difference not
+# recorded here fails the check, so a tool-specific parser never wins silently.
+#
+# name <TAB> strategy <TAB> tidy <TAB> reason
+#   strategy  full mode's winner (a strategy, or the hints.tsv tool that routed it)
+#   tidy      yes = it meets expected.tsv, and must go on meeting it;
+#             ROWS,COLS = a deliberate shape of its own (exactly ROWS rows, at
+#             least COLS columns), which it must keep; no = it does not meet
+#             expected.tsv: a gap in both modes, or a KNOWN full-mode defect
+#             where --generic does (listed by every --full run)
+#   reason    why full mode may use it here (TODO until written: --full refuses)
+7z	7z	yes	the tool-specific parser for this tool: Extract file entries from `7z l` archive listings (skips header rule + totals footer)
+R-sessioninfo	R-version	yes	the tool-specific parser for this tool: Extract version fields from `R --version` banner
+R-version	R-version	yes	the tool-specific parser for this tool: Extract version fields from `R --version` banner
+ansible-v	ansible-version	yes	the tool-specific parser for this tool: `ansible --version` banner (version + config/path/python key=value block)
+ansible-version	ansible-version	yes	the tool-specific parser for this tool: `ansible --version` banner (version + config/path/python key=value block)
+arping	arping	yes	the tool-specific parser for this tool: Extract ARP reply records from `arping` output (skips banner + stats footer)
+aureport	aureport	yes	the tool-specific parser for this tool: Extract audit events from `aureport` summary output (skips title + column header)
+bcc-funccount	bcc-funccount	yes	the tool-specific parser for this tool: bcc funccount FUNC/COUNT table → one tidy row per function
+benchmarkdotnet	csvlook	yes	a Markdown pipe table: csvlook's own layout, |---| rule line and all
+biosdecode	biosdecode	yes	the tool-specific parser for this tool: `biosdecode` entry-point structures -> section/key/value rows
+bpftrace	bpftrace	yes	the tool-specific parser for this tool: bpftrace @map[key]: count output → one tidy row per key
+btrfs-filesystem-show	btrfs-filesystem-show	3,7	the tool-specific parser for this tool: one row per device, each carrying its filesystem's label, uuid and totals (3 rows; expected.tsv's 5 are --generic's summary-and-device rows)
+bundle-outdated	bundle-outdated	yes	the tool-specific parser for this tool: Extract outdated gems from `bundle outdated` output (skips fetch preamble + header)
+cargo-search	cargo-search	yes	the tool-specific parser for this tool: cargo search results — `name = "version"    # description` lines -> name/version/description rows
+cassandra-nodetool-tpstats	cassandra-nodetool-tpstats	yes	the tool-specific parser for this tool: Extract thread-pool rows from `nodetool tpstats`
+clickhouse-client-query	clickhouse-processlist	yes	the tool-specific parser for this tool: Extract rows from a ClickHouse PrettyCompact Unicode box table
+clickhouse-describe-table	clickhouse-processlist	yes	the tool-specific parser for this tool: Extract rows from a ClickHouse PrettyCompact Unicode box table
+clickhouse-processlist	clickhouse-processlist	yes	the tool-specific parser for this tool: Extract rows from a ClickHouse PrettyCompact Unicode box table
+clickhouse-system-mutations	clickhouse-processlist	yes	the tool-specific parser for this tool: Extract rows from a ClickHouse PrettyCompact Unicode box table
+csvlook	csvlook	yes	the tool-specific parser for this tool: Extract rows from a csvlook / Markdown pipe table (skips the |---| separator row)
+dbmate-status	dbmate-status	yes	the tool-specific parser for this tool: Extract migrations from `dbmate status` output ([X]/[ ] lines; skips Applied/Pending footer)
+docker-ps	docker-ps	yes	the tool-specific parser for this tool: Extract container information from docker ps output
+docker-ps-a	docker-ps	yes	the tool-specific parser for this tool: Extract container information from docker ps output
+docker-ps-empty-ports	docker-ps	yes	the tool-specific parser for this tool: Extract container information from docker ps output
+dotnet-list-package	dotnet-list-package	yes	the tool-specific parser for this tool: Extract package references from `dotnet list package` output
+elixir-v	elixir-version	yes	the tool-specific parser for this tool: Extract version fields from `elixir --version` banner
+elixir-version	elixir-version	yes	the tool-specific parser for this tool: Extract version fields from `elixir --version` banner
+exo-bpftrace-map-count	bpftrace	yes	the tool-specific parser for this tool: bpftrace @map[key]: count output → one tidy row per key
+exo-git-log-graph-branches	git-log-graph	yes	the tool-specific parser for this tool: Extract commits from `git log --graph --oneline`
+exo-lsusb-v-device	lsusb-v	yes	the tool-specific parser for this tool: Extract descriptor fields from `lsusb -v` into one wide record
+exo-mpstat-p-all-repeated	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+exo-mtr-report-asn	mtr-report	yes	the tool-specific parser for this tool: Extract per-hop path statistics from an mtr report
+exo-nmap-normal-scan	nmap	yes	the tool-specific parser for this tool: Extract fields from nmap scan output
+exo-openssl-asn1parse-deep	openssl-asn1parse	yes	the tool-specific parser for this tool: openssl asn1parse element lines (offset:d=depth hl= l= prim/cons: TAG :value) -> one row per ASN.1 element
+exo-pidstat-repeated	pidstat-u	yes	the tool-specific parser for this tool: pidstat -u per-process CPU stats → one tidy row per process
+exo-systemd-critical-chain	systemd-analyze-critical-chain	yes	the tool-specific parser for this tool: Extract the boot critical chain from `systemd-analyze critical-chain`
+exo-zpool-status-tree	zpool-status	yes	the tool-specific parser for this tool: Extract the vdev/device table from `zpool status` output
+fail2ban-client-status	fail2ban-status	yes	the tool-specific parser for this tool: Extract jail status from fail2ban-client status output
+fail2ban-jail-sshd	fail2ban-status	yes	the tool-specific parser for this tool: Extract jail status from fail2ban-client status output
+fail2ban-status	fail2ban-status	yes	the tool-specific parser for this tool: Extract jail status from fail2ban-client status output
+fdisk-l	fdisk	yes	the tool-specific parser for this tool: Extract disk partition table from fdisk -l output
+flatpak-remotes	flatpak-remotes	yes	the tool-specific parser for this tool: Extract configured remotes from `flatpak remotes` output
+fossil-status	fossil-status	yes	the tool-specific parser for this tool: Extract status lines from fossil status output
+fossil-timeline	fossil-timeline	yes	the tool-specific parser for this tool: Extract checkins from a Fossil `fossil timeline`
+free	free	yes	the tool-specific parser for this tool: Extract memory and swap usage from free -h / free -m output
+free-h	free	yes	the tool-specific parser for this tool: Extract memory and swap usage from free -h / free -m output
+free-locale-si	free	yes	the tool-specific parser for this tool: Extract memory and swap usage from free -h / free -m output
+free-w	free	yes	the tool-specific parser for this tool: Extract memory and swap usage from free -h / free -m output
+git-annex-list	git-annex-list	yes	the tool-specific parser for this tool: Extract per-file location tracking from `git annex list`
+git-bisect-log	git-bisect-log	yes	the tool-specific parser for this tool: Extract bisect actions from `git bisect log`
+git-branch-vv	git-branch-vv	yes	the tool-specific parser for this tool: Extract branch rows from `git branch -vv`
+git-branch-vv-color	git-branch-vv	yes	the tool-specific parser for this tool: Extract branch rows from `git branch -vv`
+git-log-body	git-log	yes	the tool-specific parser for this tool: Extract fields from git log output (full and oneline formats)
+git-log-fuller	git-log	yes	the tool-specific parser for this tool: Extract fields from git log output (full and oneline formats)
+git-log-graph	git-log-graph	yes	the tool-specific parser for this tool: Extract commits from `git log --graph --oneline`
+git-log-signed	git-log	yes	the tool-specific parser for this tool: Extract fields from git log output (full and oneline formats)
+git-log-stat	git-log-stat	yes	the tool-specific parser for this tool: Extract per-file diffstat lines from `git log --stat`
+git-log-wrapped-body	git-log	yes	the tool-specific parser for this tool: Extract fields from git log output (full and oneline formats)
+git-notes-list	git-log	yes	the tool-specific parser for this tool: Extract fields from git log output (full and oneline formats)
+git-reflog	git-log	yes	the tool-specific parser for this tool: Extract fields from git log output (full and oneline formats)
+git-show-stat	git-log-stat	yes	the tool-specific parser for this tool: Extract per-file diffstat lines from `git log --stat`
+git-worktree-list-porcelain	git-worktree-list-porcelain	yes	the tool-specific parser for this tool: Extract worktrees from `git worktree list --porcelain`
+go-list	go-list	yes	the tool-specific parser for this tool: Extract module paths from `go list -m all` output (main module + dependencies)
+go-mod-why	go-mod-why	yes	the tool-specific parser for this tool: Extract the import path chain from `go mod why` output
+go-mod-why-graph	go-mod-why	no	KNOWN DEFECT: go-mod-why drops the '# package' line heading each chain, so the two chains run together (--generic keeps it); a follow-up for the parser
+gpg-card-status	gpg-card-status	yes	the tool-specific parser for this tool: `gpg --card-status` dotted "Field ....: value" snapshot
+gpg-list-keys	gpg-list-keys	yes	the tool-specific parser for this tool: Extract a single key snapshot from `gpg --list-keys`
+gpg-list-packets	gpg-list-packets	yes	the tool-specific parser for this tool: Extract packet fields from `gpg --list-packets` into one wide record
+groups	user-groups	yes	the tool-specific parser for this tool: `groups` output — "user : group1 group2 …" → one row per membership
+haproxy-vv	haproxy-vv	yes	the tool-specific parser for this tool: Extract build/settings key-values from `haproxy -vv`
+hpcg-v3.1	hpcg	yes	the tool-specific parser for this tool: HPCG 3.x results file (HPCG-Benchmark_3.x_*.txt) — one wide record per run, every key kept, the rating split out
+hpl-hpcc	hpl	yes	the tool-specific parser for this tool: HPL (High-Performance Linpack) results — one row per test with its residual check (HPL 2.x, HPCC's HPL section)
+hpl-v2.3	hpl	yes	the tool-specific parser for this tool: HPL (High-Performance Linpack) results — one row per test with its residual check (HPL 2.x, HPCC's HPL section)
+ifstat	ifstat	yes	the tool-specific parser for this tool: Extract per-interface throughput samples from `ifstat` output
+iftop	iftop	yes	the tool-specific parser for this tool: Extract per-direction connection records from iftop output (host, peer, rates)
+ior-v3	ior	yes	the tool-specific parser for this tool: IOR (3.x/4.x) per-iteration results — one row per access per iteration, units in the column names
+ior-v4	ior	yes	the tool-specific parser for this tool: IOR (3.x/4.x) per-iteration results — one row per access per iteration, units in the column names
+iotop	iotop	yes	the tool-specific parser for this tool: Extract per-process records from iotop output (tid, prio, user, io rates, command)
+ip-maddr	ip-maddr	yes	the tool-specific parser for this tool: Extract multicast addresses from `ip maddr show` interface blocks
+ip-xfrm-state	ip-xfrm-state	yes	the tool-specific parser for this tool: Extract IPsec SAs (src/dst/proto) from `ip xfrm state`
+ip6tables	iptables-nat	yes	ip6tables prints iptables' -L chain blocks
+ip6tables-l	iptables-nat	yes	ip6tables prints iptables' -L chain blocks
+ip6tables-nat	iptables-nat	yes	the tool-specific parser for this tool: Parse `iptables -t nat -L` rules (target prot opt source destination)
+iperf3	iperf3-intervals	yes	the tool-specific parser for this tool: Extract per-interval rows from `iperf3 -c` client output
+iperf3-udp	iperf3-intervals	yes	the tool-specific parser for this tool: Extract per-interval rows from `iperf3 -c` client output
+iptables-nat	iptables-nat	yes	the tool-specific parser for this tool: Parse `iptables -t nat -L` rules (target prot opt source destination)
+iptables-nvL	iptables-nvL	yes	the tool-specific parser for this tool: Extract rule rows from `iptables -nvL` per-chain tables
+iwlist-scan	iwlist-scan	yes	the tool-specific parser for this tool: Extract wireless cells (address/essid) from `iwlist wlan0 scan`
+jj-log	jj-log	yes	the tool-specific parser for this tool: Extract changes from a Jujutsu `jj log` graph
+jmap-histo	jmap-histo	yes	the tool-specific parser for this tool: jmap -histo class histogram → one tidy row per class
+keytool-list	keytool-list	yes	the tool-specific parser for this tool: Extract keystore entries from `keytool -list`
+kubectl-get-all	kubectl-get-all	yes	the tool-specific parser for this tool: Parse `kubectl get all` multi-section output — one record per resource kind
+lastb	lastb	yes	the tool-specific parser for this tool: Extract failed login attempts from `lastb` output
+liquibase-status	liquibase-status	yes	the tool-specific parser for this tool: Extract pending changesets from `liquibase status` output (path::id::author)
+loginctl-list-seats	loginctl-list-seats	yes	the tool-specific parser for this tool: Parse `loginctl list-seats` single-column seat list
+lscpu-parse	lscpu-parse	yes	the tool-specific parser for this tool: Extract per-CPU topology rows from lscpu -p parsable CSV output
+lspci-tv	lspci-tv	yes	the tool-specific parser for this tool: Extract PCI device tree lines from lspci -tv output (one record per device)
+lst-stat	lst-stat	yes	the tool-specific parser for this tool: Lustre lnet_selftest `lst stat` samples — one row per sample, group, metric and direction (avg/min/max with unit)
+lsusb-s	lsusb-v	yes	the tool-specific parser for this tool: Extract descriptor fields from `lsusb -v` into one wide record
+lsusb-v	lsusb-v	yes	the tool-specific parser for this tool: Extract descriptor fields from `lsusb -v` into one wide record
+mariadb-innodb-status	mariadb-innodb-status	yes	the tool-specific parser for this tool: Extract stable InnoDB metrics from SHOW ENGINE INNODB STATUS
+masscan	masscan	yes	the tool-specific parser for this tool: Parse masscan "Discovered open port PORT/PROTO on IP" lines
+masscan-results	masscan	yes	the tool-specific parser for this tool: Parse masscan "Discovered open port PORT/PROTO on IP" lines
+mdtest-v3	mdtest	yes	the tool-specific parser for this tool: mdtest (IOR 3.x/4.x) SUMMARY tables — one row per summary and operation (max/min/mean/std_dev, unit)
+mdtest-v4	mdtest	yes	the tool-specific parser for this tool: mdtest (IOR 3.x/4.x) SUMMARY tables — one row per summary and operation (max/min/mean/std_dev, unit)
+mix-deps	mix-deps	yes	the tool-specific parser for this tool: Extract dependencies from Elixir `mix deps` output
+mpstat	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+mpstat-a	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+mpstat-all	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+mpstat-i-sum	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+mpstat-p-all	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+mtr	mtr-report	yes	the tool-specific parser for this tool: Extract per-hop path statistics from an mtr report
+mtr-report	mtr-report	yes	the tool-specific parser for this tool: Extract per-hop path statistics from an mtr report
+mtr-wide-report	mtr-report	yes	the tool-specific parser for this tool: Extract per-hop path statistics from an mtr report
+multipath-ll	multipath-ll	yes	the tool-specific parser for this tool: Extract per-path rows from `multipath -ll` topology output
+nerdctl-ps	docker-ps	yes	nerdctl ps prints docker ps's columns
+netstat-s	netstat-s	yes	the tool-specific parser for this tool: Extract per-protocol counters from `netstat -s` grouped statistics
+nft-list-chain	nft-list-ruleset	yes	the tool-specific parser for this tool: Extract firewall rules from `nft list ruleset` nested table/chain output
+nft-list-ruleset	nft-list-ruleset	yes	the tool-specific parser for this tool: Extract firewall rules from `nft list ruleset` nested table/chain output
+nft-list-table-inet	nft-list-ruleset	yes	the tool-specific parser for this tool: Extract firewall rules from `nft list ruleset` nested table/chain output
+nftables-ruleset-counter	nft-list-ruleset	yes	the tool-specific parser for this tool: Extract firewall rules from `nft list ruleset` nested table/chain output
+nmap	nmap	yes	the tool-specific parser for this tool: Extract fields from nmap scan output
+nmap-sn	nmap-sn	yes	the tool-specific parser for this tool: Extract discovered hosts (host/ip/latency) from `nmap -sn` output
+nmap-vuln-script	nmap	yes	the tool-specific parser for this tool: Extract fields from nmap scan output
+nmap_allports	nmap	yes	the tool-specific parser for this tool: Extract fields from nmap scan output
+nmap_os	nmap	yes	the tool-specific parser for this tool: Extract fields from nmap scan output
+nmap_sv	nmap	yes	the tool-specific parser for this tool: Extract fields from nmap scan output
+nodetool-compactionstats	nodetool-compactionstats	yes	the tool-specific parser for this tool: Extract active compaction rows from `nodetool compactionstats`
+nodetool-ring	nodetool-ring	yes	the tool-specific parser for this tool: Extract ring token rows from `nodetool ring`
+nodetool-status	nodetool-status	yes	the tool-specific parser for this tool: Extract node rows from `nodetool status`
+nst-gpg-packet-dump	gpg-list-packets	yes	the tool-specific parser for this tool: Extract packet fields from `gpg --list-packets` into one wide record
+nst-sar-multisection	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+nst-zpool-vdev-tree	zpool-status	yes	the tool-specific parser for this tool: Extract the vdev/device table from `zpool status` output
+nstat	nstat	yes	the tool-specific parser for this tool: Extract kernel network counters from `nstat` output
+nstat-az	nstat	yes	the tool-specific parser for this tool: Extract kernel network counters from `nstat` output
+numactl-show	numactl-show	yes	the tool-specific parser for this tool: Extract NUMA policy settings from `numactl --show` output
+numastat	numastat	yes	the tool-specific parser for this tool: Extract per-node memory counters from `numastat` output
+openssl-asn1parse	openssl-asn1parse	yes	the tool-specific parser for this tool: openssl asn1parse element lines (offset:d=depth hl= l= prim/cons: TAG :value) -> one row per ASN.1 element
+pcp-pmstat	pcp-pmstat	yes	the tool-specific parser for this tool: Extract per-sample rows from `pcp pmstat` / `pmstat` columnar output
+perf-stat	perf-counters	yes	the tool-specific parser for this tool: `perf stat` counter table → one tidy row per counter (count, event)
+perf-stat-bench	perf-counters	yes	the tool-specific parser for this tool: `perf stat` counter table → one tidy row per counter (count, event)
+perf-stat-grouped	perf-counters	yes	the tool-specific parser for this tool: `perf stat` counter table → one tidy row per counter (count, event)
+perf-trace	perf-trace	yes	the tool-specific parser for this tool: perf trace -s syscall summary table → one tidy row per syscall
+php-modules	php-modules	yes	the tool-specific parser for this tool: Extract module names from `php -m` output (skips [PHP Modules]/[Zend Modules] section headers)
+pidstat	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+pidstat-d	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+pidstat-r	pidstat-r	yes	the tool-specific parser for this tool: pidstat -r per-process memory stats → one tidy row per process
+pidstat-ru	pidstat-r	yes	the tool-specific parser for this tool: pidstat -r per-process memory stats → one tidy row per process
+pidstat-t	pidstat-u	yes	the tool-specific parser for this tool: pidstat -u per-process CPU stats → one tidy row per process
+pidstat-u	pidstat-u	yes	the tool-specific parser for this tool: pidstat -u per-process CPU stats → one tidy row per process
+pidstat-w	pidstat-w	yes	the tool-specific parser for this tool: pidstat -w per-process context-switch stats → one tidy row per process
+ping	ping	yes	the tool-specific parser for this tool: Extract per-reply records from ping output (seq, ttl, time, from)
+pipx-list	pipx-list	yes	the tool-specific parser for this tool: `pipx list` — one record per installed package (name, version)
+pipx-list-full	pipx-list	yes	the tool-specific parser for this tool: `pipx list` — one record per installed package (name, version)
+pmap	pmap	yes	the tool-specific parser for this tool: Extract memory mapping rows from `pmap <pid>` output
+pnpm-why	pnpm-why	yes	the tool-specific parser for this tool: Extract dependency lines from `pnpm why` tree output
+pnpm-why-react-dom	pnpm-why	no	KNOWN DEFECT: pnpm-why flattens the tree to one column and drops the @ of scoped packages (--generic's tree-view keeps depth and parent); a follow-up for the parser
+podman-ps	docker-ps	yes	podman ps prints docker ps's columns
+podman-ps-a	docker-ps	yes	podman ps prints docker ps's columns
+podman-ps-empty-ports	docker-ps	yes	podman ps prints docker ps's columns
+powertop-summary	powertop	yes	the tool-specific parser for this tool: powertop tunable/usage table → one tidy row per process (usage, events, category, description)
+proc-devices	proc-devices	yes	the tool-specific parser for this tool: Extract registered character/block devices from /proc/devices
+proc-filesystems	proc-filesystems	yes	the tool-specific parser for this tool: Extract supported filesystem types from /proc/filesystems
+proc-net-dev	proc-net-dev	yes	the tool-specific parser for this tool: Extract per-interface counters from /proc/net/dev
+proc-net-snmp	proc-net-snmp	yes	the tool-specific parser for this tool: Extract per-protocol SNMP counters from /proc/net/snmp
+proc-net-tcp	proc-net-tcp	yes	the tool-specific parser for this tool: Extract TCP socket table rows from /proc/net/tcp
+proc-net-udp	proc-net-tcp	yes	the tool-specific parser for this tool: Extract TCP socket table rows from /proc/net/tcp
+proc-pagetypeinfo	proc-pagetypeinfo	yes	the tool-specific parser for this tool: Extract per-zone/migrate-type free-page counts from /proc/pagetypeinfo
+proc-slabinfo	proc-slabinfo	yes	the tool-specific parser for this tool: Extract per-cache stats from /proc/slabinfo output
+quo-md-table-escaped-pipe	csvlook	yes	a Markdown pipe table: csvlook's own layout, |---| rule line and all
+quo-md-table-pipe-code	csvlook	yes	a Markdown pipe table: csvlook's own layout, |---| rule line and all
+rc-status	rc-status	yes	the tool-specific parser for this tool: Extract service states from OpenRC rc-status output
+readelf-sections	readelf-sections	yes	the tool-specific parser for this tool: Extract section headers from `readelf -S` output
+resolvectl-query	resolvectl-query	yes	the tool-specific parser for this tool: Parse `resolvectl query` answer into one wide record (name/addresses/link)
+restic	restic	yes	the tool-specific parser for this tool: Extract snapshots from `restic snapshots` output (skips header rule + count footer)
+rfkill-list	rfkill-list	yes	the tool-specific parser for this tool: Extract radio devices and block states from `rfkill list` output
+rocm-smi	rocm-smi-concise	yes	the tool-specific parser for this tool: Extract the GPU concise-info table from rocm-smi (skips banners)
+sar	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-b	sysstat	4,5	sysstat reads the report every sysstat tool prints: one row per interval, the time column named, the Average: summary row left out (4 rows; expected.tsv counts it)
+sar-d-disk	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-n-dev	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-n-edev	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-n-sock	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-n-tcp	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-p-disk	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-q-load	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-r-memory	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-u-all	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sar-w-swap	sysstat	yes	sysstat reads the report every sysstat tool prints (sar, mpstat, pidstat): a banner over a timestamped table
+sbt-dependencytree	sbt-dependencytree	yes	the tool-specific parser for this tool: Extract dependencies from `sbt dependencyTree` output
+scylla-nodetool-status	nodetool-status	yes	the tool-specific parser for this tool: Extract node rows from `nodetool status`
+semanage-boolean	semanage-boolean	yes	the tool-specific parser for this tool: Extract SELinux booleans from `semanage boolean -l` output (name, state, description)
+sfdisk-l	fdisk	yes	sfdisk -l prints fdisk -l's partition table
+smartctl-selftest	smartctl-selftest	yes	the tool-specific parser for this tool: Extract the SMART self-test log table from smartctl -l selftest output
+ssh-keyscan	ssh-keyscan	yes	the tool-specific parser for this tool: Extract host public-key records from ssh-keyscan output
+sshd-T-config	sshd-t	yes	the tool-specific parser for this tool: Extract effective sshd config from `sshd -T` (lowercase `key value` per line)
+sshd-t	sshd-t	yes	the tool-specific parser for this tool: Extract effective sshd config from `sshd -T` (lowercase `key value` per line)
+sslscan	sslscan	yes	the tool-specific parser for this tool: Extract accepted/preferred cipher rows from sslscan output
+stat	stat-file	yes	the tool-specific parser for this tool: Extract fields from `stat <file>` output
+stat-format	stat-file	yes	the tool-specific parser for this tool: Extract fields from `stat <file>` output
+stream-benchmark	stream	yes	the tool-specific parser for this tool: STREAM memory-bandwidth results (stream.c 5.x) — one row per kernel, from the full printout
+stream-full-omp	stream	yes	the tool-specific parser for this tool: STREAM memory-bandwidth results (stream.c 5.x) — one row per kernel, from the full printout
+swift-v	swift-version	yes	the tool-specific parser for this tool: Extract version fields from `swift --version` banner
+swift-version	swift-version	yes	the tool-specific parser for this tool: Extract version fields from `swift --version` banner
+systemctl-status	systemctl-status	yes	the tool-specific parser for this tool: Extract service information from systemctl status output
+systemctl-status-containerd	systemctl-status	yes	the tool-specific parser for this tool: Extract service information from systemctl status output
+systemctl-status-nginx	systemctl-status	yes	the tool-specific parser for this tool: Extract service information from systemctl status output
+systemctl-status-postgresql	systemctl-status	yes	the tool-specific parser for this tool: Extract service information from systemctl status output
+systemd-analyze-critical-chain	systemd-analyze-critical-chain	yes	the tool-specific parser for this tool: Extract the boot critical chain from `systemd-analyze critical-chain`
+systemd-analyze-plot-summary	systemd-analyze-time	yes	the tool-specific parser for this tool: systemd-analyze (time) boot summary — `Startup finished in A (kernel) + B (userspace) = T` -> one record of per-phase times
+systemd-analyze-security	systemd-analyze-security	yes	the tool-specific parser for this tool: Parse `systemd-analyze security` setting table (NAME DESCRIPTION EXPOSURE)
+systemd-analyze-time	systemd-analyze-time	yes	the tool-specific parser for this tool: systemd-analyze (time) boot summary — `Startup finished in A (kernel) + B (userspace) = T` -> one record of per-phase times
+systemd-cgls	systemd-cgls	yes	the tool-specific parser for this tool: Extract control-group nodes from `systemd-cgls` tree output
+systemd-cgls-full	systemd-cgls	no	KNOWN DEFECT: systemd-cgls flattens the tree to one column (--generic's tree-view keeps depth and parent); a follow-up for the parser
+systemd-run-status	systemctl-status	yes	the tool-specific parser for this tool: Extract service information from systemctl status output
+systemd-tmpfiles-cat-config	systemd-tmpfiles-cat-config	yes	the tool-specific parser for this tool: Parse `systemd-tmpfiles --cat-config` lines (type path mode user group age arg)
+tcpdump-summary	tcpdump-summary	yes	the tool-specific parser for this tool: Extract packet summaries from `tcpdump` line-summary output
+terraform-plan	terraform-plan-actions	yes	the tool-specific parser for this tool: Extract per-resource action lines from `terraform plan` ("# <resource> will be <action>")
+top-batch	top-batch	yes	the tool-specific parser for this tool: Extract process rows from `top -b -n1` (batch mode) output
+ulimit	ulimit	yes	the tool-specific parser for this tool: Extract resource limits from ulimit -a output
+uname-a	uname	yes	the tool-specific parser for this tool: Extract the canonical fields from a `uname -a` line
+unzip	unzip	yes	the tool-specific parser for this tool: Extract file entries from `unzip -l` listings (skips banner/header + rule + totals footer)
+vagrant-global-status	vagrant-global-status	yes	the tool-specific parser for this tool: Extract machines from `vagrant global-status` output (skips header/rule/footer)
+vault-status	vault-status	yes	the tool-specific parser for this tool: Extract the aligned Key/Value snapshot from `vault status` output
+vnstat	vnstat	yes	the tool-specific parser for this tool: Extract monthly traffic totals from `vnstat` output
+xfs-info	xfs-info	yes	the tool-specific parser for this tool: Extract geometry fields from `xfs_info` (section `key=value` tokens)
+xfs-info-full	xfs-info	yes	the tool-specific parser for this tool: Extract geometry fields from `xfs_info` (section `key=value` tokens)
+zip-info	unzip	yes	zipinfo prints unzip -l's listing
+zpool-status	zpool-status	yes	the tool-specific parser for this tool: Extract the vdev/device table from `zpool status` output
+zpool-status-gaps	zpool-status	yes	the tool-specific parser for this tool: Extract the vdev/device table from `zpool status` output
+zypper-packages	zypper-packages	yes	the tool-specific parser for this tool: Parse `zypper packages` box table (S | Repository | Name | Version | Arch)

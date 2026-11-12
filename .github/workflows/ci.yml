@@ -122,12 +122,37 @@ jobs:
     # parser change silently re-shaping another tool's output. ~3 min on 4
     # cores (job pool, --generic only); private-repo runners have 2, so the
     # timeout allows ~3x that.
+    #
+    # FULL MODE (PV-037): --generic is not what users get. When a change can
+    # alter tidy output (the engine, the transform, the shared libs, the
+    # corpus, or this file), the same job also runs the full-mode check: every
+    # input whose full-mode winner is not --generic's must be recorded in
+    # tests/corpus/full-mode.tsv with a reason, and must keep meeting
+    # expected.tsv (or its recorded shape). It shares the generic pass and
+    # adds one full pass: ~4 more minutes on 4 cores, so the timeout doubles.
     name: corpus goldens (tidy output of ~3,500 real tools)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - run: bash tests/corpus/run.sh --golden
+        with:
+          fetch-depth: 2
+      - name: does the change reach tidy output?
+        id: scope
+        run: |
+          # HEAD^1 is the base: a pull request is checked out as its merge
+          # commit, and a push to main is the merge (or squash) itself.
+          if ! git rev-parse -q --verify HEAD^1 >/dev/null; then full=1
+          elif git diff --name-only HEAD^1 HEAD | grep -qE '^(extract/|transform/|lib/|tests/corpus/|\.github/workflows/ci\.yml$)'; then full=1
+          else full=0; fi
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "full-mode check: $([ "$full" = 1 ] && echo yes || echo 'no (nothing it reads changed)')"
+      - name: goldens (--generic)
+        if: steps.scope.outputs.full != '1'
+        run: bash tests/corpus/run.sh --golden
+      - name: goldens (--generic) and the full-mode check
+        if: steps.scope.outputs.full == '1'
+        run: bash tests/corpus/run.sh --golden --full
 
   extract-suite:
     name: extract strategy + engine suite

@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.20.1 is everything through 2026-11-12** (`VERSION`, man header,
-the `## 2.20.1` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.21.0 is everything through 2026-11-12** (`VERSION`, man header,
+the `## 2.21.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -28,15 +28,17 @@ captures, the operator trailer and SHA-256 stores (PV-027, Next steps 1l;
 (PV-029, Next steps 1m; 2.19.0); templates applied without `--llm`,
 hand-written, tested with `provost template test`, time-limited, and TextFSM
 (PV-039, Next steps 1n; 2.20.0); a survey of the tools near provost
-(PV-036, Next steps 1o; 2.20.1, docs only). 2.4.0 added `provost
+(PV-036, Next steps 1o; 2.20.1, docs only); the command's name used in
+detection, `pkg-config` narrowed and full mode checked in CI (PV-037, Next
+steps 1p; 2.21.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.20.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.20.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.20.0`, creating
+2.21.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.21.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.21.0`, creating
 that release on a dispatched run.
 
 **2.16.0: the store format as a spec (PV-022, 2026-11-11; not published).**
@@ -353,6 +355,32 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1p. **2026-11-12: the command's name in detection; full mode checked**
+    (PV-037, 2.21.0). Tools like jc, ntc-templates and Genie pick a parser by
+    the command; provost knew the command (`run`, `listen`) and threw it
+    away. Now `provost run` passes it to the engine (`--command`): a
+    tool-specific parser written for it (its name, a `COMMAND-` prefix, or a
+    new `## Commands:` header: `sysstat` lists sar/mpstat/pidstat,
+    `iptables-*` ip6tables, `fdisk` sfdisk, `unzip` zipinfo, `docker-ps`
+    podman/nerdctl; `csvlook *`: a format many tools print, never demoted)
+    ranks 15 points higher, one written for another command 20 lower;
+    generic parsers do not move. `--name` and a batch NAME are a
+    weaker `--command-hint` (boost only: a dataset name may be a label). A
+    relay (cat, echo, printf, ssh, a shell, grep, sort ...) is ignored.
+    `meta.tsv` records `command_name`, `command_changed` and `command_fit`.
+    `pkg-config`'s detector now needs `KEY<pad>Name - Description` with the
+    second field aligned: it claimed 60 inputs that were not pkg-config's
+    (`netstat -anp`, `ip -br addr` ...), now none. `tests/corpus/run.sh
+    --full` checks full mode against `full-mode.tsv` (every full-vs-generic
+    difference, with its reason); CI runs `--golden --full` when a change can
+    reach tidy output. **Open:** three tools' own parsers are worse than
+    `--generic` on one input each and are recorded as known defects
+    (`go-mod-why`, `pnpm-why`, `systemd-cgls` flatten trees); whether a
+    tool-specific parser that wins for another command should face the
+    quality gate (today it is only recorded, `command_fit`); a second CI pass
+    with command names (`PROVOST_CORPUS_COMMANDS=1`); PV-039's templates could
+    be looked up by the command too.
 
 1o. **2026-11-12: a survey of the tools near provost** (PV-036, 2.20.1, docs
     only): [docs/research-2026-11-12-landscape.md](docs/research-2026-11-12-landscape.md).

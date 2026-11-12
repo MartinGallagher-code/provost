@@ -6,6 +6,7 @@
 ## Description: Extract container information from docker ps output
 ## Version: 1.0
 ## Priority: 12
+## Commands: podman nerdctl
 ## Sample: samples/docker-ps/basic.txt
 
 strategy_detect () {

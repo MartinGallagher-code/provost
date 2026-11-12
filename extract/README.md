@@ -222,6 +222,48 @@ window) are run then, and every candidate below the claim is tried in the
 unpruned ranking's order (no full redo: that cost seconds per held input).
 `tests/test_consistency.sh` compares both runs.
 
+### The command's name (`--command NAME`, PV-037)
+
+provost passes the name of the command that printed the input when it ran it
+(`provost run`, `listen`), and a name it was given (`--name`, a batch file's
+NAME) as the weaker `--command-hint` (below). Detection is still by content;
+the name only moves the RANK of what detected (`_cmd_rank_key` in
+lib/_discovery.sh):
+
+- a **tool-specific** strategy (any outside `delimited/` and `structured/`)
+  written for the command ranks **15 points higher**. It is written for the
+  command when its file name or `## Name:` is the command or starts with
+  `COMMAND-` (`docker-ps` for `docker`), or its `## Commands:` header lists the
+  command — the header is for a strategy that reads a sibling tool's output
+  too (`sysstat`: `sar mpstat pidstat`; `iptables-nat`: `ip6tables`), and
+  `*` in it marks a strategy that reads a format many tools print, which the
+  name never ranks lower (`csvlook`: any Markdown pipe table);
+- a tool-specific strategy written for **another** command ranks **20 points
+  lower**: it wins only by a clear margin (a strong 92-point signature still
+  beats a structural 60–69 parse, but not a format-specific generic parser at
+  80, and pkg-config's 79-point shape heuristic loses to the 62-point generic
+  table of `netstat -anp`);
+- generic parsers are not moved: they read a format, whatever printed it.
+
+Only the rank moves: the confidence a strategy reports (and the coverage and
+consistency holds, and provost's gate) is its own. Names compare
+case-insensitively, `_` read as `-`. `hints.tsv` rows: a matching row whose
+tool is the command wins over an earlier matching row for another tool, and a
+row for another tool that routes to a tool-specific strategy is passed over.
+A relay (`cat`, `echo`, `printf`, `ssh`, a shell, `grep`, `sort` …: `_CMD_RELAYS`) names no
+format and is ignored. `--command-hint NAME` is the weaker statement provost
+makes for `--name` and a batch NAME (a dataset name may be only a label): a
+strategy or hint row written for NAME ranks higher, nothing ranks lower and no
+hint row is passed over; it is used when there is no `--command`, or the
+`--command` is a relay. Pruning stays exact for both rankings: a detector is
+skipped only when its ceiling can beat neither the best adjusted nor the best
+raw confidence. With `--emit-meta` the engine prints
+`__COMMAND_META__<TAB>name<TAB>used|hint|relay<TAB>first<TAB>without<TAB>fit`
+(fit: `for`, `other`, `shared`, `generic` — how the winner stands to the
+name);
+`--batch-commands` reads `PATH<TAB>COMMAND` lines in batch mode (the corpus
+harness's `PROVOST_CORPUS_COMMANDS=1`). `tests/test_command.sh` pins it.
+
 ## Line coverage, the coverage hold and the rescue parser
 
 Confidence says how sure a detector is of the FORMAT; it says nothing about
