@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-11" "provost 2.19.0" "User Commands"
+.TH PROVOST 1 "2026-11-12" "provost 2.20.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -106,12 +106,19 @@ learned layout model and file its table when it passes the same gate (or
 \fBPROVOST_MODEL=1\fR; \fB--no-model\fR, the default, doesn't). Needs
 \fBpython3\fR. See \fBLAYOUT MODEL\fR.
 .TP
+.BR --templates ", " --no-templates
+Apply a parsing template written for this tool, by hand or by Claude, stored
+or shipped, when one fits, before trusting a generic parse or holding the
+capture (\fB--templates\fR, the default, or \fBPROVOST_TEMPLATES=1\fR);
+\fB--no-templates\fR doesn't. Nothing is sent anywhere. Needs \fBpython3\fR.
+See \fBTEMPLATES\fR.
+.TP
 .BR --llm ", " --no-llm
-Parse with a template Claude wrote for this tool, or have Claude write one,
-before trusting a generic parse or holding the capture (or
-\fBPROVOST_LLM=1\fR; \fB--no-llm\fR, the default, doesn't). Writing one sends
-the capture's text to the Anthropic API and needs an API key. Needs
-\fBpython3\fR. See \fBLLM TEMPLATES\fR.
+When no template fits, have Claude write one, or extend a stored one that
+meets new kinds of line (or \fBPROVOST_LLM=1\fR; \fB--no-llm\fR, the
+default, doesn't). That sends the capture's text to the Anthropic API and
+needs an API key. It cannot be combined with \fB--no-templates\fR. See
+\fBTEMPLATES\fR.
 .TP
 .BR --redact ", " --no-redact
 Scrub known secret patterns (private keys, Authorization headers, tokens,
@@ -339,6 +346,16 @@ bundle, each capture at its tag, and \fBverify\fR on a clone of it.
 .B archive import \fIdir\fR [\fIdest\fR]
 Verify an archive, then open it read-only as a store at \fIdest\fR (its
 kept inputs at \fIdest\fB.artifacts\fR).
+.TP
+.B template test \fItemplate\fR \fIcapture\fR [\fIexpected.tsv\fR] [\fB--tables\fR]
+Apply a parsing template (format 1 or 2, \fI.json\fR, or TextFSM,
+\fI.textfsm\fR) to a saved capture, filing nothing, and print the line its
+detect pattern matches, its coverage, each table it makes, the set-aside
+lines of a kind not judged decoration and every line it leaves unread. With
+\fIexpected.tsv\fR (the tables \fB--tables\fR prints, checked and saved), a
+diff. Exits 0 when it reads the capture (and the tables match), 1 when it
+does not, 2 when it cannot be tried. See \fBTEMPLATES\fR and
+\fIdocs/templates.md\fR.
 .TP
 .B stats \fINAME\fR [analyze-args]
 Statistics on a dataset (\fB--all\fR for every analysis).
@@ -621,16 +638,23 @@ Otherwise the capture is held exactly as before. \fImeta.tsv\fR records \fBlayou
 or declined, and why) and the held parse's \fBsingle_strategy\fR and
 \fBsingle_coverage\fR. It needs \fBpython3\fR (no packages) and declines
 inputs over 600 lines; only held captures pay for it.
-.SH LLM TEMPLATES
-With \fBPROVOST_LLM=1\fR (\fB--llm\fR), a capture is parsed by a
-\fItemplate\fR Claude wrote for that tool (\fIextract/llm/\fR, the
-explicit-only \fBllm-template\fR strategy): regular expressions per kind of
-line (format 1) or, for records that span lines, a small Python parser
-(format 2) run in a box (a separate interpreter, a few pure modules, no files
-or network, a CPU and memory limit). provost looks in the store's
-\fIllm-templates/\fR (\fINAME\fR.json for \fB--name\fR or the run command,
-else any template whose detect pattern recognises the input), then in
-\fBPROVOST_LLM_TEMPLATE_DIRS\fR, then in the templates shipped with provost. When none fits, and \fBPROVOST_LLM_API_KEY\fR
+.SH TEMPLATES
+A capture is parsed by a \fItemplate\fR for its tool when one fits
+(\fBPROVOST_TEMPLATES=1\fR, the default; \fB--no-templates\fR turns it off):
+regular expressions per kind of line (format 1) or, for records that span
+lines, a small Python parser (format 2) run in a box (a separate interpreter,
+a few pure modules, no files or network, a CPU and memory limit), through the
+explicit-only \fBllm-template\fR strategy. A person can write a format-1
+template by hand (\fIdocs/templates.md\fR), or Claude can (\fB--llm\fR). A
+TextFSM template (\fINAME\fR.textfsm) is read too, with the optional textfsm
+package (\fBpip install 'provost[textfsm]'\fR); it has no detect pattern, so it
+is used only for a capture named for it. provost looks in the store's
+\fIllm-templates/\fR (\fINAME\fR.json or \fINAME\fR.textfsm for
+\fB--name\fR or the run command, else any template whose detect pattern
+recognises the input), then in \fBPROVOST_TEMPLATE_DIRS\fR (and
+\fBPROVOST_LLM_TEMPLATE_DIRS\fR, its older name), then in the templates
+shipped with provost. Applying one sends nothing anywhere.
+\fBWith --llm\fR, when none fits, and \fBPROVOST_LLM_API_KEY\fR
 or \fBANTHROPIC_API_KEY\fR is set, it asks Claude (\fBPROVOST_LLM_MODEL\fR) to
 write one from this capture; \fBthat step sends the capture's text to the
 Anthropic API\fR, or to the server \fBPROVOST_LLM_API\fR and
@@ -645,7 +669,14 @@ over it). What a template
 yields is measured by the engine and filed only under the gate's rules;
 against a generic parse the gate passed it must keep that parse's share of the
 data lines within 10 points (20 against \fBtext-lines\fR or \fBline-records\fR;
-its decoration lines not counted). \fBNotes:\fR the lines a template sets aside
+its decoration lines not counted). A TextFSM template takes the values it
+names and passes the rest by, so its coverage is recorded, not compared; its
+table still passes the gate's shape checks. \fBTime limit:\fR a template may
+take \fBPROVOST_TEMPLATE_TIMEOUT\fR seconds (10) on one capture; past it (a
+regular expression that backtracks, a parser that does not finish) it is
+declined, \fImeta.tsv\fR says so, and the capture is read without it.
+\fBTesting:\fR \fBprovost template test\fR applies a template to a saved
+capture and diffs its tables against an expected TSV. \fBNotes:\fR the lines a template sets aside
 (decoration, or lines it cannot read) that still carry a word or a number are
 filed beside its datasets as \fINAME\fR\fB.notes\fR (line, kind, text), so a
 title, a version banner, a summary count or an error between the rows is kept,
@@ -677,7 +708,8 @@ capture the template was written from, and passes the gate, else the
 template as it was before the review is used. A review that fails costs
 nothing but the call. The verdict is stored in the template (\fBjudge\fR).
 Every capture a template files is recorded in \fIllm-templates/NAME.seen.tsv\fR
-(its ledger). \fImeta.tsv\fR records \fBllm_template\fR and
+(its ledger). \fImeta.tsv\fR records \fBllm_template\fR (filed by which
+template, or declined and why), \fBtemplate\fR (its file) and
 \fBllm_skip_audit\fR.
 \fBEndpoints:\fR \fBPROVOST_LLM_API=anthropic\fR (the default) speaks
 Anthropic's Messages API; \fBPROVOST_LLM_API=openai\fR speaks the Chat
@@ -870,10 +902,22 @@ the input (see \fBAUTO-MULTI\fR); \fB0\fR: hold it straight away (same as
 layout model (see \fBLAYOUT MODEL\fR); \fB0\fR (the default): don't (same as
 \fB--no-model\fR).
 .TP
+.B PROVOST_TEMPLATES
+\fB1\fR (the default): apply a template written for the tool when one fits
+(see \fBTEMPLATES\fR); \fB0\fR: don't (same as \fB--templates\fR /
+\fB--no-templates\fR).
+.TP
+.B PROVOST_TEMPLATE_DIRS
+Colon-separated directories of your own templates, looked in after the
+store's \fIllm-templates/\fR and before the ones shipped with provost.
+.TP
+.B PROVOST_TEMPLATE_TIMEOUT
+Whole seconds one template may take on one capture (default \fB10\fR, 1 to
+3600); past it, the template is declined.
+.TP
 .B PROVOST_LLM
-\fB1\fR: parse with a template Claude wrote for the tool, or have Claude write
-one, before a generic parse is trusted or a capture held (see \fBLLM
-TEMPLATES\fR); \fB0\fR (the default): don't (same as \fB--llm\fR /
+\fB1\fR: when no template fits, have Claude write one, or extend a stored one
+(see \fBTEMPLATES\fR); \fB0\fR (the default): don't (same as \fB--llm\fR /
 \fB--no-llm\fR).
 .TP
 .B PROVOST_LLM_MODEL
@@ -881,7 +925,7 @@ The model that writes templates (default \fBclaude-opus-5-5\fR).
 .TP
 .B PROVOST_LLM_JUDGE
 \fB1\fR (the default): after Claude writes or extends a template, one more
-call reviews it and may revise it once (see \fBLLM TEMPLATES\fR, Review);
+call reviews it and may revise it once (see \fBTEMPLATES\fR, Review);
 \fB0\fR: no review.
 .TP
 .B PROVOST_LLM_API
@@ -909,8 +953,7 @@ The only hosts \fB--llm\fR may send to (comma-separated); a base URL on any
 other host is refused before anything is sent. Unset: any.
 .TP
 .B PROVOST_LLM_TEMPLATE_DIRS
-Colon-separated directories of templates to look in after the store's
-\fIllm-templates/\fR and before the ones shipped with provost.
+The older name of \fBPROVOST_TEMPLATE_DIRS\fR; both are read.
 .TP
 .B PROVOST_LLM_LOG
 A file to append one JSON line per API reply to (what it was for, the tool,
@@ -939,9 +982,10 @@ needs \fBtorch\fR, \fBtransformers\fR and \fBpeft\fR. Without them or the
 model, the trees label as before.
 .TP
 .B PROVOST_PYTHON
-The \fBpython3\fR that runs the layout model (default: \fBpython3\fR on the
-\fBPATH\fR). The \fBpip\fR launcher sets it to the interpreter it runs under,
-so a \fBprovost-model\fR package installed beside provost is found.
+The \fBpython3\fR that runs the layout model and the templates (default:
+\fBpython3\fR on the \fBPATH\fR). The \fBpip\fR launcher sets it to the
+interpreter it runs under, so a \fBprovost-model\fR or \fBtextfsm\fR package
+installed beside provost is found.
 .TP
 .B PROVOST_FILES_MAX_SIZE
 In a controlled directory, the largest file (bytes) committed with each run

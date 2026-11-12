@@ -43,6 +43,23 @@ builtins and imports, a CPU and memory limit, no files and no network.
     python3 template.py audit TEMPLATE INPUT               # the skip audit: what it sets aside, and why
     python3 template.py repair TEMPLATE INPUT --out NEW [--tool NAME] [--earlier FILE ...]   # ask Claude to extend it
     python3 template.py judge TEMPLATE INPUT --out NEW [--tool NAME] [--earlier FILE ...]    # have Claude review it
+    python3 template.py test TEMPLATE INPUT [EXPECTED] [--tables]   # provost template test: tables, coverage, unread
+
+Templates are not only Claude's: a person can write one by hand (format 1,
+docs/templates.md), and provost applies a stored, PROVOST_TEMPLATE_DIRS or
+shipped template to every capture it fits, with or without --llm. A
+TextFSM template (NAME.textfsm) is read too when the optional textfsm
+package is installed (pip install 'provost[textfsm]'): one table, its
+Values lower-cased as columns, a List value's items joined with ", ". It
+has no detect pattern, so find passes it over: provost uses it for a
+capture named for it.
+
+THE TIME LIMIT: applying a template to one capture (apply, find for each
+template it tries, misses, audit, test) may take PROVOST_TEMPLATE_TIMEOUT
+seconds (TIMEOUT by default). Python's regular expressions backtrack, so a
+pattern such as (a+)+$ on a long line could otherwise run for hours; past
+the limit the template is declined (TemplateTimeout) and provost reads the
+capture without it. A format-2 parser has the same limit, wall clock.
 
 The SKIP AUDIT: a skipped line is not covered for free. One with no letter
 or digit (a rule, box glyphs) is decoration; one that carries a word or a
@@ -72,12 +89,17 @@ refused before it is built; PROVOST_LLM_ALLOW_HOSTS limits the hosts one may
 go to. Stdlib only.
 """
 import argparse
+import contextlib
+import difflib
 import hashlib
+import io
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -91,7 +113,7 @@ SHIPPED = os.path.join(HERE, "templates")
 GUIDE = os.path.join(HERE, "GUIDE.md")
 JUDGE = os.path.join(HERE, "JUDGE.md")
 SANDBOX = os.path.join(HERE, "sandbox.py")
-PARSER_TIMEOUT = 10      # apply (format 2): wall-clock seconds for the boxed parser
+TIMEOUT = 10             # seconds one template may take on one capture (PROVOST_TEMPLATE_TIMEOUT)
 MAX_LINES = 400          # learn: larger captures are not sent
 MAX_BYTES = 64 * 1024
 MAX_LINE = 4096          # apply: longer lines are uncovered (keeps regexes cheap)
@@ -104,6 +126,51 @@ _KEYCHARS = re.compile(r"[^\w.%()/+#@-]+")
 
 class TemplateError(Exception):
     pass
+
+
+class TemplateTimeout(TemplateError):
+    """The template took longer than the limit on this capture."""
+
+
+def timeout():
+    """The limit, in seconds: PROVOST_TEMPLATE_TIMEOUT when it is a number
+    above 0 (provost checks it), else TIMEOUT."""
+    try:
+        s = float((os.environ.get("PROVOST_TEMPLATE_TIMEOUT") or "").strip() or TIMEOUT)
+    except ValueError:
+        return TIMEOUT
+    return s if 0 < s < 1e6 else TIMEOUT
+
+
+_LIMIT = {"on": False}
+
+
+@contextlib.contextmanager
+def time_limit():
+    """Raise TemplateTimeout when the block runs past timeout() seconds. A
+    SIGALRM timer: Python's regular expression engine checks for signals
+    while it backtracks (3.8 and later), so the handler's exception stops a
+    runaway match. The outermost limit counts: one inside another (apply
+    within a test) runs under it rather than starting the clock again. Off
+    the main thread, or with no setitimer (not POSIX), there is no limit."""
+    if (_LIMIT["on"] or not hasattr(signal, "setitimer")
+            or threading.current_thread() is not threading.main_thread()):
+        yield
+        return
+    secs = timeout()
+
+    def _expired(signum, frame):
+        raise TemplateTimeout(f"it took longer than {secs:g}s on this capture (the limit, PROVOST_TEMPLATE_TIMEOUT)")
+
+    old = signal.signal(signal.SIGALRM, _expired)
+    _LIMIT["on"] = True
+    signal.setitimer(signal.ITIMER_REAL, secs)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, old)
+        _LIMIT["on"] = False
 
 
 def _name(s):
@@ -123,10 +190,11 @@ def read_lines(path):
 
 # -- the template ---------------------------------------------------------
 def compile_template(t):
-    """Validate a template dict and compile its regexes (format 1) or check
-    its parser statically (format 2); raises TemplateError."""
-    if not isinstance(t, dict) or t.get("format") not in (1, 2):
-        raise TemplateError("not a format-1 or format-2 template")
+    """Validate a template dict and compile its regexes (format 1), check
+    its parser statically (format 2) or its TextFSM template (textfsm);
+    raises TemplateError."""
+    if not isinstance(t, dict) or t.get("format") not in (1, 2, "textfsm"):
+        raise TemplateError("not a format-1 or format-2 template, or a TextFSM one")
 
     def rx(p, what):
         if not isinstance(p, str) or not p:
@@ -143,6 +211,17 @@ def compile_template(t):
         except sandbox.ParserError as exc:
             raise TemplateError(f"parser: {exc}") from None
         return {"_compiled": True, "format": 2, "detect": detect, "parser": t["parser"]}
+    if t["format"] == "textfsm":
+        text = t.get("textfsm")
+        if not isinstance(text, str) or not text.strip():
+            raise TemplateError('a TextFSM template needs its text ("textfsm")')
+        tf = _textfsm()
+        try:
+            tf.TextFSM(io.StringIO(text))
+        except (tf.TextFSMTemplateError, re.error, ValueError) as exc:
+            raise TemplateError(f"textfsm: {exc}") from None
+        return {"_compiled": True, "format": "textfsm", "detect": detect, "textfsm": text,
+                "name": _name(t.get("tool") or "textfsm")}
     blocks = t.get("blocks")
     if not isinstance(blocks, list) or not blocks:
         raise TemplateError("a template needs at least one block")
@@ -171,35 +250,36 @@ def apply(t, lines):
     {name, kind, lines: [index], records: [dict]} for the blocks that matched;
     covered counts skip, header and data lines, skipped the skip lines."""
     ct = t if _compiled(t) else compile_template(t)
-    if ct["format"] == 2:
+    if ct["format"] != 1:
         return _apply_parser(ct, lines)
     res = [{"name": b["name"], "kind": b["kind"], "lines": [], "records": []} for b in ct["blocks"]]
     covered = nonblank = skipped = 0
-    for j, ln in enumerate(lines):
-        if not ln.strip():
-            continue
-        nonblank += 1
-        if len(ln) > MAX_LINE:
-            continue
-        if any(s.search(ln) for s in ct["skip"]):
-            covered += 1
-            skipped += 1
-            continue
-        for b, r in zip(ct["blocks"], res):
-            if b["header"] is not None and b["header"].search(ln):
-                r["lines"].append(j)
+    with time_limit():
+        for j, ln in enumerate(lines):
+            if not ln.strip():
+                continue
+            nonblank += 1
+            if len(ln) > MAX_LINE:
+                continue
+            if any(s.search(ln) for s in ct["skip"]):
                 covered += 1
-                break
-            m = b["line"].fullmatch(ln)
-            if m:
-                r["lines"].append(j)
-                covered += 1
-                vals = {g: (m.group(g) or "").strip() for g in b["groups"]}
-                if b["kind"] == "table":
-                    r["records"].append({b["columns"][g]: v for g, v in vals.items()})
-                elif vals["key"]:
-                    r["records"].append({_name(vals["key"]): vals["value"]})
-                break
+                skipped += 1
+                continue
+            for b, r in zip(ct["blocks"], res):
+                if b["header"] is not None and b["header"].search(ln):
+                    r["lines"].append(j)
+                    covered += 1
+                    break
+                m = b["line"].fullmatch(ln)
+                if m:
+                    r["lines"].append(j)
+                    covered += 1
+                    vals = {g: (m.group(g) or "").strip() for g in b["groups"]}
+                    if b["kind"] == "table":
+                        r["records"].append({b["columns"][g]: v for g, v in vals.items()})
+                    elif vals["key"]:
+                        r["records"].append({_name(vals["key"]): vals["value"]})
+                    break
     return [r for r in res if r["records"]], covered, nonblank, skipped
 
 
@@ -208,20 +288,93 @@ def _compiled(t):
 
 
 def _apply_parser(ct, lines):
-    """Format 2: run the template's parser in the sandbox (a subprocess) and
-    shape its blocks like format 1's: (blocks, covered, nonblank, skipped)."""
+    """Format 2 or TextFSM: run the template's parser (format 2: in the
+    sandbox, a subprocess) and shape its blocks like format 1's: (blocks,
+    covered, nonblank, skipped)."""
     blocks, used, skip, nonblank = _run_parser(ct, lines)
     return blocks, len(used | skip), len(nonblank), len(skip)
 
 
+def _textfsm():
+    """The textfsm module, an optional dependency (provost[textfsm])."""
+    try:
+        import textfsm
+    except ImportError:
+        raise TemplateError("a TextFSM template needs the textfsm package: pip install 'provost[textfsm]', or "
+                            "pip install textfsm for the python3 that runs provost (PROVOST_PYTHON)") from None
+    return textfsm
+
+
+def _valued(rule, seen):
+    """Whether a TextFSM rule sets a Value (its regex, Values substituted,
+    has a named group); SEEN caches the answer per rule."""
+    k = id(rule)
+    if k not in seen:
+        try:
+            seen[k] = bool(re.compile(getattr(rule, "regex", "") or "").groupindex)
+        except re.error:
+            seen[k] = False
+    return seen[k]
+
+
+def _run_textfsm(ct, lines):
+    """A TextFSM template: its state machine is run over the lines one at a
+    time, as TextFSM's ParseText does (a trailing CR dropped, as its
+    splitlines would), noting the rules each line matches. A non-blank line
+    a rule that sets a Value matches is read; one that only rules without a
+    Value match (a line the template knows and passes over, or one that moves
+    it to another state) is skipped; one no rule matches is unread. An Error
+    rule declines the template. -> (blocks, used, skip, nonblank) like
+    _run_parser: one table, named after the template, its Values
+    lower-cased as columns, a List value's items joined with ", "."""
+    tf = _textfsm()
+
+    class _Probe(tf.TextFSM):
+        hits = None
+
+        def _CheckRule(self, rule, line):  # noqa: N802 (TextFSM's name)
+            m = super()._CheckRule(rule, line)
+            if m and self.hits is not None:
+                self.hits.append(rule)
+            return m
+
+    try:
+        fsm = _Probe(io.StringIO(ct["textfsm"]))
+    except (tf.TextFSMTemplateError, re.error, ValueError) as exc:
+        raise TemplateError(f"textfsm: {exc}") from None
+    nonblank = {j for j, ln in enumerate(lines) if ln.strip()}
+    used, skip, seen, j = set(), set(), {}, -1
+    with time_limit():
+        try:
+            for j, ln in enumerate(lines):
+                fsm.hits = []
+                fsm._CheckLine(ln[:-1] if ln.endswith("\r") else ln)
+                if j in nonblank and fsm.hits:
+                    (used if any(_valued(r, seen) for r in fsm.hits) else skip).add(j)
+                if fsm._cur_state_name in ("End", "EOF"):
+                    break
+            if fsm._cur_state_name != "End" and "EOF" not in fsm.states:
+                fsm._AppendRecord()     # TextFSM's implicit Record at the end of the input
+        except tf.TextFSMError as exc:
+            raise TemplateError(f"its Error rule stopped it{f' on line {j + 1}' if j >= 0 else ''}: {exc}") from None
+    header = [_name(h.lower()) for h in fsm.header]
+    recs = [{h: ", ".join(str(x) for x in v) if isinstance(v, list) else ("" if v is None else str(v))
+             for h, v in zip(header, row)} for row in fsm._result]
+    blocks = [{"name": ct["name"], "kind": "table", "lines": sorted(used), "records": recs}] if recs else []
+    return blocks, used, skip, nonblank
+
+
 def _run_parser(ct, lines):
     """-> (blocks, used line indexes, skip line indexes, non-blank indexes)."""
+    if ct["format"] == "textfsm":
+        return _run_textfsm(ct, lines)
     req = json.dumps({"code": ct["parser"], "lines": lines}, ensure_ascii=False).encode("utf-8")
+    secs = timeout()
     try:
         p = subprocess.run([sys.executable, "-I", "-S", SANDBOX], input=req, capture_output=True,
-                           timeout=PARSER_TIMEOUT, env={"PATH": os.environ.get("PATH", "")})
+                           timeout=secs, env={"PATH": os.environ.get("PATH", "")})
     except subprocess.TimeoutExpired:
-        raise TemplateError(f"the parser ran longer than {PARSER_TIMEOUT}s") from None
+        raise TemplateTimeout(f"the parser ran longer than {secs:g}s (the limit, PROVOST_TEMPLATE_TIMEOUT)") from None
     except OSError as exc:
         raise TemplateError(f"the parser could not be run: {exc}") from None
     try:
@@ -312,14 +465,36 @@ def write_blocks(blocks, lines, out_dir, tool="", notes_=()):
 
 
 def load(path):
+    """A template file: JSON, or a TextFSM template (NAME.textfsm), which
+    loads as {"format": "textfsm", "tool": NAME, "textfsm": its text}."""
     with open(path, encoding="utf-8") as fh:
+        if path.endswith(".textfsm"):
+            return {"format": "textfsm", "tool": os.path.basename(path)[:-len(".textfsm")], "textfsm": fh.read()}
         return json.load(fh)
 
 
-def find(lines, dirs):
+DETECT_LINES = 200       # find: a template's detect pattern must match one of the first lines
+
+
+def _detects(ct, lines):
+    """The index of the first of the first DETECT_LINES lines the detect
+    pattern matches, or None (also for a template with no detect)."""
+    if ct["detect"] is None:
+        return None
+    for j, ln in enumerate(lines[:DETECT_LINES]):
+        if ct["detect"].search(ln):
+            return j
+    return None
+
+
+def find(lines, dirs, declined=None):
     """The stored template that covers most of these lines (its detect regex
     must match one of them; a skipped line covered only as the skip audit
-    allows): (path, coverage) or (None, 0)."""
+    allows): (path, coverage) or (None, 0). Each template gets the time
+    limit of its own: one that runs past it, or fails on these lines (a
+    format-2 parser that dies), is passed over, and (path, why) appended to
+    DECLINED when the caller gives a list. A file that is not a template is
+    passed over silently (provost template test says why)."""
     best = (None, 0.0)
     for d in dirs:
         if not d or not os.path.isdir(d):
@@ -333,12 +508,17 @@ def find(lines, dirs):
                 ct = compile_template(t)
             except (OSError, ValueError, TemplateError):
                 continue
-            if ct["detect"] is None or not any(ct["detect"].search(ln) for ln in lines[:200]):
+            if ct["format"] == "textfsm":     # used by name only (provost's gate is not the same for it)
                 continue
             try:
-                blocks, classified = _measure(ct, lines)
-                score = coverage(audit(t, lines, ct, classified)) if blocks else 0.0
-            except TemplateError:
+                with time_limit():
+                    if _detects(ct, lines) is None:
+                        continue
+                    blocks, classified = _measure(ct, lines)
+                    score = coverage(audit(t, lines, ct, classified)) if blocks else 0.0
+            except TemplateError as exc:
+                if declined is not None:
+                    declined.append((path, str(exc)))
                 continue
             if score > best[1]:
                 best = (path, score)
@@ -546,19 +726,20 @@ def _classify(ct, lines):
     compiled template takes as header or data lines, drops as decoration
     (skip), and leaves unread."""
     nonblank = {j for j, ln in enumerate(lines) if ln.strip()}
-    if ct["format"] == 2:
+    if ct["format"] != 1:
         blocks, used, skip, nonblank = _run_parser(ct, lines)
         return used, skip, nonblank - used - skip
     read, skip = set(), set()
-    for j in nonblank:
-        ln = lines[j]
-        if len(ln) > MAX_LINE:
-            continue
-        if any(s.search(ln) for s in ct["skip"]):
-            skip.add(j)
-        elif any((b["header"] is not None and b["header"].search(ln)) or b["line"].fullmatch(ln)
-                 for b in ct["blocks"]):
-            read.add(j)
+    with time_limit():
+        for j in nonblank:
+            ln = lines[j]
+            if len(ln) > MAX_LINE:
+                continue
+            if any(s.search(ln) for s in ct["skip"]):
+                skip.add(j)
+            elif any((b["header"] is not None and b["header"].search(ln)) or b["line"].fullmatch(ln)
+                     for b in ct["blocks"]):
+                read.add(j)
     return read, skip, nonblank - read - skip
 
 
@@ -573,8 +754,9 @@ def _report(lines, t):
 
 
 def _measure(ct, lines):
-    """-> (blocks, (read, skipped, unread)) with one run of a format-2 parser."""
-    if ct["format"] == 2:
+    """-> (blocks, (read, skipped, unread)) with one run of a format-2 or
+    TextFSM parser."""
+    if ct["format"] != 1:
         blocks, used, skip, nonblank = _run_parser(ct, lines)
         return blocks, (used, skip, nonblank - used - skip)
     return apply(ct, lines)[0], _classify(ct, lines)
@@ -814,6 +996,13 @@ def misses(t, lines):
     return (sorted(j for j in a["unread"] if _kind(lines[j]) not in known_u), sorted(new_s))
 
 
+def _not_textfsm(t, what):
+    """Claude writes formats 1 and 2: a TextFSM template is a person's own,
+    and is never sent to be extended or reviewed."""
+    if isinstance(t, dict) and t.get("format") == "textfsm":
+        raise TemplateError(f"a TextFSM template is not {what} by Claude")
+
+
 def repair(t, lines, tool="", model="claude-opus-5-5", earlier=(), review=True):
     """Ask Claude to extend a stored template for what this capture shows
     that it has not met before (misses), and check the extension: it must
@@ -825,6 +1014,7 @@ def repair(t, lines, tool="", model="claude-opus-5-5", earlier=(), review=True):
     result on this capture (review). -> the extended (or unchanged) template, with
     this capture added to its examples."""
     _too_large(lines)
+    _not_textfsm(t, "extended")
     ct = compile_template(t)
     new_u, new_s = misses(t, lines)
     examples = _examples(t)
@@ -958,12 +1148,109 @@ def _ranges(idx):
     return ", ".join(out)
 
 
+def table_rows(b):
+    """One block as TSV lines, its header first: a table's columns in the
+    order its records first show them (a cell a record lacks is empty), a kv
+    block as key and value (a repeated key gets _2, _3, as filed)."""
+    if b["kind"] == "kv":
+        return ["key\tvalue"] + [ln.replace(" ", "\t", 1) for ln in flat_records(b)]
+    cols = []
+    for r in b["records"]:
+        cols += [k for k in r if k not in cols]
+    return ["\t".join(cols)] + ["\t".join(str(_cell(r.get(c, ""))) for c in cols) for r in b["records"]]
+
+
+TABLE_MARK = "# table: "
+
+
+def tables_text(blocks, sections=None):
+    """The tables a template makes, as `provost template test --tables`
+    prints them and EXPECTED holds them: one table as plain TSV (header,
+    rows); several (or SECTIONS true) each under a `# table: NAME` line, a
+    blank line between them."""
+    if sections is None:
+        sections = len(blocks) != 1
+    if not sections:
+        return "".join(r + "\n" for r in table_rows(blocks[0])) if blocks else ""
+    return "\n".join(TABLE_MARK + b["name"] + "\n" + "".join(r + "\n" for r in table_rows(b)) for b in blocks)
+
+
+def _lines_of(text):
+    """Text as lines to compare: a trailing CR dropped, trailing blank lines too."""
+    out = [ln[:-1] if ln.endswith("\r") else ln for ln in text.split("\n")]
+    while out and not out[-1].strip():
+        out.pop()
+    return out
+
+
+def test_report(t, ct, lines, label="", expected=None, tables_only=False):
+    """`provost template test`: what template T (compiled: CT) makes of LINES,
+    for the person who wrote it. -> (text, rc). The text: which line its
+    detect pattern matches, its coverage under the skip audit, each table,
+    the set-aside lines of a kind not judged decoration (their kinds, to
+    paste into "decoration"), and every unread line; with EXPECTED (the
+    tables as tables_text writes them), a diff of the tables against it.
+    TABLES_ONLY: the tables alone, as EXPECTED takes them. rc 0 when it
+    reads the capture (and the tables are EXPECTED's), else 1. Raises
+    TemplateError (TemplateTimeout past the limit) when it cannot be applied."""
+    blocks, classified = _measure(ct, lines)
+    if tables_only:
+        return tables_text(blocks), (0 if blocks else 1)
+    a = audit(t, lines, ct, classified)
+    nb = len(a["read"]) + len(a["skipped"]) + len(a["unread"])
+    fmt = ct["format"] if ct["format"] == "textfsm" else f"format {ct['format']}"
+    out = [f"template   {label or t.get('tool') or '-'} ({fmt})"]
+    d = _detects(ct, lines)
+    if ct["detect"] is None:
+        out.append("detect     none: provost uses it only for a capture it is named for "
+                   "(NAME.json or NAME.textfsm, for --name NAME or the command run)")
+    elif d is None:
+        out.append(f"detect     matches none of the first {DETECT_LINES} lines: provost passes it over "
+                   "unless it is named for the capture")
+    else:
+        out.append(f"detect     line {d + 1}: {lines[d].strip()[:120]}")
+    sk = f"{len(a['skipped'])} skipped"
+    if a["skipped"]:
+        sk += (f" ({len(a['decoration'])} decoration, {len(a['judged'])} of a kind judged decoration, "
+               f"{len(a['unjudged'])} of a kind not judged: counted as unread)")
+    out.append(f"coverage   {coverage(a):.0%} of {nb} non-blank line{'' if nb == 1 else 's'}: "
+               f"{len(a['read'])} read, {sk}, {len(a['unread'])} unread")
+    for n, b in enumerate(blocks, 1):
+        recs = b["records"]
+        out.append("")
+        out.append(f"table {n}: {b['name']} ({b['kind']}, {len(recs)} {'row' if len(recs) == 1 else 'rows'}, "
+                   f"read from lines {_ranges([j + 1 for j in b['lines']])})")
+        out += table_rows(b)
+    if not blocks:
+        out += ["", "no tables: the template reads nothing from this capture"]
+    if a["unjudged"]:
+        out += ["", f"set aside, of a kind not judged decoration ({len(a['unjudged'])}, counted as unread; "
+                    "a kind added to the template's \"decoration\" list counts as decoration):"]
+        out += [f"  {json.dumps(k, ensure_ascii=False)}  ({n} line{'' if n == 1 else 's'}; "
+                f"line {j + 1}: {lines[j].strip()[:100]})" for k, j, n in _by_kind(lines, a["unjudged"])]
+    if a["unread"]:
+        out += ["", f"unread ({len(a['unread'])}):"]
+        out += [f"  {j + 1:>5} | {lines[j]}" for j in sorted(a["unread"])]
+    rc = 0 if blocks else 1
+    if expected is not None:
+        exp = _lines_of(expected)
+        got = _lines_of(tables_text(blocks, sections=any(ln.startswith(TABLE_MARK) for ln in exp) or None))
+        out.append("")
+        if exp == got:
+            out.append("expected   the tables match")
+        else:
+            rc = 1
+            out.append("expected   the tables differ (- expected, + this template):")
+            out += list(difflib.unified_diff(exp, got, "expected", "template", lineterm="", n=2))
+    return "\n".join(out) + "\n", rc
+
+
 def show(t, lines):
     """What a template makes of a capture, as the judge reads it: each block
     as a table (its columns, its rows, the lines it read), then the lines it
     sets aside (skipped as decoration, or left unread)."""
     ct = t if _compiled(t) else compile_template(t)
-    if ct["format"] == 2:
+    if ct["format"] != 1:
         blocks, used, skip, nonblank = _run_parser(ct, lines)
         unread = nonblank - used - skip
     else:
@@ -974,15 +1261,8 @@ def show(t, lines):
         recs = b["records"]
         out.append(f"Table {n}: {b['name']} ({b['kind']}, {len(recs)} {'row' if len(recs) == 1 else 'rows'}, "
                    f"read from lines {_ranges(b['lines'])})")
-        if b["kind"] == "kv":
-            rows = ["key\tvalue"] + [ln.replace(" ", "\t", 1) for ln in flat_records(b)]
-            more = len(rows) - 1 - JUDGE_ROWS
-        else:
-            cols = []
-            for r in recs:
-                cols += [k for k in r if k not in cols]
-            rows = ["\t".join(cols)] + ["\t".join(str(_cell(r.get(c, ""))) for c in cols) for r in recs]
-            more = len(recs) - JUDGE_ROWS
+        rows = table_rows(b)
+        more = len(rows) - 1 - JUDGE_ROWS
         out.append("\n".join(rows[:JUDGE_ROWS + 1]) + (f"\n... and {more} more" if more > 0 else ""))
     if not blocks:
         out.append("(no tables: the template reads nothing from this capture)")
@@ -1012,6 +1292,7 @@ def judge(t, lines, tool="", model="claude-opus-5-5"):
     """One call: Claude reviews what template T makes of LINES (JUDGE.md).
     -> ("PASS", []) or ("FIX", [fix, ...]); raises TemplateError."""
     _too_large(lines)
+    _not_textfsm(t, "reviewed")
     with open(JUDGE, encoding="utf-8") as fh:
         system = fh.read()
     parts = [f"Tool: {tool or t.get('tool') or '(unnamed)'}",
@@ -1164,42 +1445,59 @@ def main(argv=None):
     p.add_argument("--model", default=os.environ.get("PROVOST_LLM_MODEL") or "claude-opus-5-5")
     p.add_argument("--earlier", action="append", default=[], metavar="FILE",
                    help="another capture the template was written from: a revision must still read it")
+    p = sub.add_parser("test", help="what a template makes of a capture: tables, coverage, unread lines")
+    p.add_argument("template")
+    p.add_argument("input")
+    p.add_argument("expected", nargs="?", help="the tables it should make (as --tables prints them)")
+    p.add_argument("--tables", action="store_true", help="print only the tables, as EXPECTED takes them")
     a = ap.parse_args(argv)
+    if a.cmd == "test":
+        return _test_main(a)
     lines = read_lines(a.input)
     try:
         if a.cmd == "key":
             print(key(lines, a.name))
         elif a.cmd == "find":
             dirs = [d for d in a.dirs.split(":") if d] + [SHIPPED]
-            path, score = find(lines, dirs)
+            declined = []
+            path, score = find(lines, dirs, declined)
+            # the templates passed over on these lines, and why (provost
+            # records them when none fits: a time limit is not silent)
+            for dp, why in declined:
+                print(f"declined\t{dp}\t{why}", file=sys.stderr)
             if not path:
                 return 1
             print(f"{path}\t{score * 100:.0f}")
         elif a.cmd == "apply":
             t = load(a.template)
             ct = compile_template(t)
-            blocks, classified = _measure(ct, lines)    # one run of a boxed parser for all of it
-            if not blocks:
-                return 1
+            with time_limit():
+                blocks, classified = _measure(ct, lines)    # one run of a boxed parser for all of it
+                if not blocks:
+                    return 1
+                nts = notes(ct, lines, classified)
+                au = audit(t, lines, ct, classified)
             if a.out:
-                write_blocks(blocks, lines, a.out, t.get("tool") or "", notes(ct, lines, classified))
+                write_blocks(blocks, lines, a.out, t.get("tool") or "", nts)
             if a.records:
                 print("\n".join(flat_records(blocks[0])))
             else:
                 # blocks, coverage % (skip audit), then line counts: skipped,
                 # of them decoration / judged decoration / not judged (counted
                 # as unread), read, unread
-                au = audit(t, lines, ct, classified)
+                # and last the template's format (1, 2 or textfsm)
                 print("\t".join(str(x) for x in (
                     len(blocks), int(coverage(au) * 100), len(au["skipped"]), len(au["decoration"]),
-                    len(au["judged"]), len(au["unjudged"]), len(au["read"]), len(au["unread"]))))
+                    len(au["judged"]), len(au["unjudged"]), len(au["read"]), len(au["unread"]), ct["format"])))
         elif a.cmd == "misses":
-            u, sk = misses(load(a.template), lines)
+            with time_limit():
+                u, sk = misses(load(a.template), lines)
             if u or sk:
                 print(" and ".join(x for x in (u and f"{len(u)} unread line(s) of a kind it has not met",
                                                sk and f"{len(sk)} skipped line(s) not judged decoration") if x))
         elif a.cmd == "audit":
-            print(audit_report(load(a.template), lines))
+            with time_limit():
+                print(audit_report(load(a.template), lines))
         elif a.cmd in ("learn", "repair", "judge"):
             # stdout: what happened (repair: extended | unchanged; learn:
             # learned; judge: reviewed), then the review's one-line summary
@@ -1248,6 +1546,33 @@ def main(argv=None):
         print(f"template: {exc}", file=sys.stderr)
         return 2
     return 0
+
+
+def _test_main(a):
+    """`template.py test` (provost template test). Exit 0: the template reads
+    the capture, and its tables are EXPECTED's when that is given; 1: it
+    does not (no tables, tables that differ, past the time limit, an Error
+    rule); 2: it cannot be tried (a file that cannot be read, not a
+    template, a pattern that does not compile, TextFSM not installed)."""
+    try:
+        t = load(a.template)
+        ct = compile_template(t)
+        lines = read_lines(a.input)
+        expected = None
+        if a.expected is not None:
+            with open(a.expected, encoding="utf-8", errors="replace") as fh:
+                expected = fh.read()
+    except (TemplateError, OSError, ValueError) as exc:
+        print(f"template: {exc}", file=sys.stderr)
+        return 2
+    try:
+        with time_limit():
+            text, rc = test_report(t, ct, lines, os.path.basename(a.template), expected, a.tables)
+    except TemplateError as exc:
+        print(f"template: {os.path.basename(a.template)} cannot read this capture: {exc}", file=sys.stderr)
+        return 1
+    sys.stdout.write(text)
+    return rc
 
 
 if __name__ == "__main__":

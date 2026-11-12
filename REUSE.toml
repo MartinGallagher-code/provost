@@ -13,3 +13,13 @@ path = "**"
 precedence = "closest"
 SPDX-FileCopyrightText = "2026 Martin J. Gallagher"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# ntc-templates' templates and test fixtures, vendored for the TextFSM tests
+# (PV-039; ml/tests/data/ntc-templates/README.md). Apache-2.0, theirs.
+[[annotations]]
+path = ["ml/tests/data/ntc-templates/*.textfsm", "ml/tests/data/ntc-templates/*.raw",
+        "ml/tests/data/ntc-templates/*.yml", "ml/tests/data/ntc-templates/*.tsv",
+        "ml/tests/data/ntc-templates/LICENSE"]
+precedence = "override"
+SPDX-FileCopyrightText = ["2015 Jason Edelman <jason@networktocode.com>", "Network to Code, LLC"]
+SPDX-License-Identifier = "Apache-2.0"

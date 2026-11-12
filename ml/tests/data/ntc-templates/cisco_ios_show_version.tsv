@@ -1,0 +1,2 @@
+software_image	version	release	rommon	hostname	uptime	uptime_years	uptime_weeks	uptime_days	uptime_hours	uptime_minutes	reload_reason	running_image	hardware	serial	config_register	mac_address	restarted
+cat4500e-ENTSERVICESK9-M	12.2(54)SG1	fc1	12.2(44r)SG9	router1	2 years, 31 weeks, 6 days, 9 hours, 55 minutes	2	31	6	9	55	reload	cat4500e-entservicesk9-mz.122-54.SG1.bin	WS-C4948E	CAT1451S15C	0x2102		09:09:22 UTC Tue Apr 9 2013

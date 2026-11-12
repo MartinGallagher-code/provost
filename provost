@@ -120,7 +120,9 @@ PROVOST_ENV="${PROVOST_ENV:-0}"                      # 1 = record where a captur
 PROVOST_ENV_VARS="${PROVOST_ENV_VARS-OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*}"
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
-PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
+PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = may have Claude write or extend a parsing template (see _llm_template)
+PROVOST_TEMPLATES="${PROVOST_TEMPLATES:-1}"          # 1 = apply a stored, PROVOST_TEMPLATE_DIRS or shipped parsing template that fits, --llm or not (--no-templates: 0)
+PROVOST_TEMPLATE_TIMEOUT="${PROVOST_TEMPLATE_TIMEOUT:-10}"  # seconds one template may take on one capture; past it, it is declined
 PROVOST_LLM_MODEL="${PROVOST_LLM_MODEL:-claude-opus-5-5}"   # the model that writes templates
 PROVOST_LLM_JUDGE="${PROVOST_LLM_JUDGE:-1}"          # 1 = a review call after Claude writes or extends a template (see _llm_template)
 PROVOST_LLM_API="${PROVOST_LLM_API:-anthropic}"      # the wire format --llm speaks: anthropic (Messages API) or openai (Chat Completions, for OpenAI-compatible and local servers)
@@ -206,6 +208,12 @@ _validate_settings () {
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
+    [[ "$PROVOST_TEMPLATES" == 0 || "$PROVOST_TEMPLATES" == 1 ]] || usage_die "PROVOST_TEMPLATES must be 0 or 1 (got '$PROVOST_TEMPLATES')."
+    if [[ ! "$PROVOST_TEMPLATE_TIMEOUT" =~ ^[0-9]{1,4}$ ]] || (( 10#$PROVOST_TEMPLATE_TIMEOUT < 1 || 10#$PROVOST_TEMPLATE_TIMEOUT > 3600 )); then
+        usage_die "PROVOST_TEMPLATE_TIMEOUT must be a whole number of seconds, 1 to 3600 (got '$PROVOST_TEMPLATE_TIMEOUT')."
+    fi
+    PROVOST_TEMPLATE_TIMEOUT=$(( 10#$PROVOST_TEMPLATE_TIMEOUT ))
+    export PROVOST_TEMPLATE_TIMEOUT          # template.py reads it
     [[ "$PROVOST_LLM_JUDGE" == 0 || "$PROVOST_LLM_JUDGE" == 1 ]] || usage_die "PROVOST_LLM_JUDGE must be 0 or 1 (got '$PROVOST_LLM_JUDGE')."
     [[ "$PROVOST_REDACT" == 0 || "$PROVOST_REDACT" == 1 ]] || usage_die "PROVOST_REDACT must be 0 or 1 (got '$PROVOST_REDACT')."
     [[ "$PROVOST_OVERSIZE" == keep || "$PROVOST_OVERSIZE" == refuse ]] || usage_die "PROVOST_OVERSIZE must be keep or refuse (got '$PROVOST_OVERSIZE')."
@@ -2167,11 +2175,17 @@ _llm_table () {
 _llm_file () {
     local t="$1" py="$PROVOST_ROOT/extract/llm/template.py" bd="$tmp/llmblk" out n=0 skipped=0 i f bname
     local dstrat dconf dcov dcons dlines tot=0 sub=0 covl=0 alll jcov need
-    local _ab _ac a_deco=0 a_judged=0 a_unj=0 a_read=0 a_unread=0 _v
+    local _ab _ac a_deco=0 a_judged=0 a_unj=0 a_read=0 a_unread=0 _v _afmt="" arc=0 aerr
     llm_notes=""; llm_audit=""; rm -rf "$bd"
-    out="$(python3 "$py" apply "$t" "$body" --out "$bd" 2>/dev/null)" \
-        || { llm_note="it matches nothing in the input"; return 1; }
-    IFS=$'\t' read -r _ab _ac skipped a_deco a_judged a_unj a_read a_unread <<< "$out" || true
+    out="$("${PROVOST_PYTHON:-python3}" "$py" apply "$t" "$body" --out "$bd" 2>"$tmp/llm-apply.err")" || arc=$?
+    if (( arc == 1 )); then llm_note="it matches nothing in the input"; return 1
+    elif (( arc != 0 )); then
+        # it could not be applied: past the time limit, an Error rule, a
+        # parser that died, TextFSM not installed (template.py says which)
+        aerr="$(head -n 1 "$tmp/llm-apply.err" 2>/dev/null)"; aerr="${aerr#template: }"
+        llm_note="${aerr:-it could not be applied (exit $arc)}"; return 1
+    fi
+    IFS=$'\t' read -r _ab _ac skipped a_deco a_judged a_unj a_read a_unread _afmt <<< "$out" || true
     for _v in skipped a_deco a_judged a_unj a_read a_unread; do
         [[ "${!_v}" =~ ^[0-9]{1,9}$ ]] || printf -v "$_v" 0
     done
@@ -2233,7 +2247,11 @@ _llm_file () {
     else need=$(( ${cov:-0} + _AM_GAIN )); fi
     (( need < PROVOST_MIN_COVERAGE )) && need=$PROVOST_MIN_COVERAGE
     (( need > 100 )) && need=100
-    if (( jcov < need )); then
+    # A TextFSM template takes the values it names and passes the rest by:
+    # it is used only for a capture named for it, and its coverage is
+    # recorded, not compared; every unread line that carries a word or a
+    # number is kept in NAME.notes. Its table still passes the shape checks.
+    if [[ "$_afmt" != textfsm ]] && (( jcov < need )); then
         llm_note="its $n block(s) keep $jcov% of the input's data lines, <$need%"; return 1
     fi
     [[ -s "$bd/notes.tsv" ]] && { llm_notes="$bd/notes.tsv"; llm_notes_base="$dsbase"; }
@@ -2250,14 +2268,18 @@ _llm_file () {
     return 0
 }
 
-# LLM TEMPLATES (PROVOST_LLM, --llm / --no-llm). Called by _ingest on a
-# capture the quality gate would hold, and on a generic parse it passed. A
-# template is a set of regular expressions per kind of line, or a boxed
-# parser, that Claude wrote for one tool (extract/llm/). provost looks for one
-# in the store (llm-templates/, committed with the captures: the tool's name,
-# or any template whose `detect` pattern recognises the input), then in
-# PROVOST_LLM_TEMPLATE_DIRS and among the templates shipped with provost, and
-# files what it yields (_llm_file). With an API key, a stored template that
+# TEMPLATES (PROVOST_TEMPLATES, --templates / --no-templates; PROVOST_LLM,
+# --llm / --no-llm). Called by _ingest on a capture the quality gate would
+# hold, and on a generic parse it passed. A template is a set of regular
+# expressions per kind of line, or a boxed parser, for one tool
+# (extract/llm/; docs/templates.md), written by hand or by Claude, or a
+# TextFSM template. provost looks for one in the store (llm-templates/,
+# committed with the captures: the tool's name, or any template whose
+# `detect` pattern recognises the input), then in PROVOST_TEMPLATE_DIRS (and
+# PROVOST_LLM_TEMPLATE_DIRS, its older name) and among the templates shipped
+# with provost, and files what it yields (_llm_file). That needs no --llm
+# (PV-039): LEARN=0 is the default's call, and says nothing when no template
+# is there. Under --llm (LEARN=1), with an API key, a stored template that
 # meets a kind of line it has not met before is first sent back to Claude to
 # be extended (repair), and when none fits Claude writes one from this
 # capture — the steps that send the capture's text to the Anthropic API.
@@ -2302,20 +2324,43 @@ _llm_has_key () {
 _llm_template () {
     local learn="${1:-1}" py="$PROVOST_ROOT/extract/llm/template.py" tdir="$PROVOST_WORKSPACE/llm-templates"
     local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev out jflag="" offw=""
+    local pyx="${PROVOST_PYTHON:-python3}"
     if offw="$(_llm_offline_why)"; then export PROVOST_LLM_OFFLINE=1; else offw=""; fi
     [[ "$PROVOST_LLM_JUDGE" == 1 ]] || jflag="--no-judge"
     local llm_rev=""
     llm_seen_how=""; llm_seen_tpl=""
-    command -v python3 >/dev/null 2>&1 || { llm_note="python3 is not installed"; return 1; }
+    # without --llm a capture with no template is not news: nothing is said
+    # unless a template was found and declined (or --llm was asked for)
+    if ! command -v "$pyx" >/dev/null 2>&1; then
+        [[ "$PROVOST_LLM" == 1 ]] && llm_note="python3 is not installed"
+        return 1
+    fi
     [[ -z "$tool" && -n "$cmd" ]] && { tool="${cmd%% *}"; tool="${tool##*/}"; }
-    kf="$(python3 "$py" key "$body" --name "$tool" 2>/dev/null)" || { llm_note="the input could not be read"; return 1; }
+    kf="$("$pyx" "$py" key "$body" --name "$tool" 2>/dev/null)" || { llm_note="the input could not be read"; return 1; }
     # the store's templates, then the user's own libraries
-    # (PROVOST_LLM_TEMPLATE_DIRS), then the ones shipped with provost
-    local d dirs="$tdir:${PROVOST_LLM_TEMPLATE_DIRS:-}"
+    # (PROVOST_TEMPLATE_DIRS; PROVOST_LLM_TEMPLATE_DIRS, its older name, is
+    # read too), then the ones shipped with provost. By name first: NAME.json,
+    # or a TextFSM template NAME.textfsm (used by name only: it has no detect
+    # pattern); then any template whose detect pattern recognises the input.
+    local d dirs="$tdir:${PROVOST_TEMPLATE_DIRS:-}:${PROVOST_LLM_TEMPLATE_DIRS:-}"
     IFS=: read -ra _dl <<< "$dirs"
-    for d in "${_dl[@]}"; do [[ -n "$d" && -f "$d/$kf" ]] && { tpl="$d/$kf"; break; }; done
+    for d in "${_dl[@]}"; do
+        [[ -n "$d" ]] || continue
+        if [[ -f "$d/$kf" ]]; then tpl="$d/$kf"; break; fi
+        if [[ "$kf" != sig-* && -f "$d/${kf%.json}.textfsm" ]]; then tpl="$d/${kf%.json}.textfsm"; break; fi
+    done
     if [[ -z "$tpl" ]]; then
-        found="$(python3 "$py" find "$body" --dirs "$dirs" 2>/dev/null)" && tpl="${found%%$'\t'*}"
+        found="$("$pyx" "$py" find "$body" --dirs "$dirs" 2>"$tmp/llm-find.err")" && tpl="${found%%$'\t'*}"
+        # none fits, but one was declined on these lines (the time limit, a
+        # parser that died): say which, and why
+        if [[ -z "$tpl" ]]; then
+            local _dw _dp _dr _dn
+            _dn=$(grep -c '^declined'$'\t' "$tmp/llm-find.err" 2>/dev/null || true)
+            if [[ "$_dn" =~ ^[1-9][0-9]*$ ]] && IFS=$'\t' read -r _dw _dp _dr < <(grep '^declined'$'\t' "$tmp/llm-find.err"); then
+                llm_note="template ${_dp##*/} does not fit: $_dr"
+                (( _dn > 1 )) && llm_note="$llm_note (and $((_dn - 1)) more declined)"
+            fi
+        fi
     fi
     if [[ -n "$tpl" ]]; then
         # REPAIR: a stored template that meets a kind of line it has not met
@@ -2324,11 +2369,11 @@ _llm_template () {
         # reads the captures the template was written from and passes the
         # same rules. Otherwise the template stays as it was.
         local miss="" rnote="" rstat=""
-        if (( learn )) && [[ -n "$offw" ]] && _llm_has_key \
-            && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
+        if (( learn )) && [[ "$tpl" == *.json && -n "$offw" ]] && _llm_has_key \
+            && miss="$("$pyx" "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
             rnote="offline mode is on ($offw), so it was not sent to Claude to be extended for $miss"
-        elif (( learn )) && _llm_has_key \
-            && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
+        elif (( learn )) && [[ "$tpl" == *.json ]] && _llm_has_key \
+            && miss="$("$pyx" "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
             # every other capture the template was written from that the store
             # still has (its ledger names them): the extension (and a judge's
             # revision of it) must still read them too, though only its
@@ -2341,7 +2386,7 @@ _llm_template () {
                         && earlier+=(--earlier "$(_cap_dir)/$_c/output.txt")
                 done < "$tdir/$(_llm_seen_stem "$tpl").seen.tsv"
             fi
-            if rstat="$(PROVOST_WORKSPACE="$PROVOST_WORKSPACE" python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag \
+            if rstat="$(PROVOST_WORKSPACE="$PROVOST_WORKSPACE" "$pyx" "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag \
                     ${earlier[@]+"${earlier[@]}"} 2>"$tmp/llm-repair.err")"; then
                 [[ "$rstat" == *$'\n'* ]] && llm_rev="${rstat#*$'\n'}"
                 if _llm_reviewed "$new"; then
@@ -2372,7 +2417,10 @@ _llm_template () {
         # a repair was tried: don't also have Claude start the tool's template over
         [[ -z "$rnote" ]] || return 1
     fi
-    (( learn )) || { llm_note="${llm_note:-no stored template fits}"; return 1; }
+    if (( ! learn )); then
+        [[ "$PROVOST_LLM" == 1 ]] && llm_note="${llm_note:-no stored template fits}"
+        return 1
+    fi
     if [[ -n "$offw" ]]; then
         llm_note="${llm_note:-no stored template fits}; offline mode is on ($offw), so nothing was sent to have Claude write one"
         return 1
@@ -2386,7 +2434,7 @@ _llm_template () {
         return 1
     fi
     prev="$llm_note"
-    if ! out="$(PROVOST_WORKSPACE="$PROVOST_WORKSPACE" python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag 2>"$tmp/llm-learn.err")"; then
+    if ! out="$(PROVOST_WORKSPACE="$PROVOST_WORKSPACE" "$pyx" "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" $jflag 2>"$tmp/llm-learn.err")"; then
         err="$(cat "$tmp/llm-learn.err" 2>/dev/null)"
         llm_note="${prev:+$prev; }Claude wrote no usable template: ${err#template: }"; return 1
     fi
@@ -2415,19 +2463,27 @@ _llm_template () {
 # Written by _ingest_store under the store lock, with the capture's id;
 # committed with the capture. A capture `rm --capture` purges keeps its row
 # (as its commit keeps its Input-SHA256 trailer); a repair skips it.
-_llm_seen_stem () { local b="${1##*/}"; printf '%s\n' "${b%.json}"; }
+_llm_seen_stem () { local b="${1##*/}"; b="${b%.json}"; printf '%s\n' "${b%.textfsm}"; }
+
+# _tpl_source PATH -- where a template came from, as the ledger and meta.tsv
+# name it: llm-templates/NAME.json (the store's), shipped:NAME.json, or the
+# path of the user's own library file.
+_tpl_source () {
+    local t="$1" src
+    case "$t" in
+        "$PROVOST_WORKSPACE/llm-templates"/*) src="llm-templates/${t##*/}" ;;
+        "$PROVOST_ROOT/extract/llm/templates"/*) src="shipped:${t##*/}" ;;
+        *) src="$t" ;;
+    esac
+    printf '%s\n' "${src//[$'\t\r\n']/ }"
+}
 
 # _llm_seen ID — append this capture's row to its template's ledger.
 _llm_seen () {
     local cid="$1" tdir="$PROVOST_WORKSPACE/llm-templates" led src
     [[ -n "${llm_seen_how:-}" && -n "${llm_seen_tpl:-}" ]] || return 0
     led="$tdir/$(_llm_seen_stem "$llm_seen_tpl").seen.tsv"
-    case "$llm_seen_tpl" in
-        "$tdir"/*) src="llm-templates/${llm_seen_tpl##*/}" ;;
-        "$PROVOST_ROOT/extract/llm/templates"/*) src="shipped:${llm_seen_tpl##*/}" ;;
-        *) src="$llm_seen_tpl" ;;
-    esac
-    src="${src//[$'\t\r\n']/ }"
+    src="$(_tpl_source "$llm_seen_tpl")"
     local _s _d _j _u _r _n
     read -r _s _d _j _u _r _n <<< "${llm_audit:-}" || true
     mkdir -p "$tdir"
@@ -2599,27 +2655,32 @@ _ingest_parse () {
         # every one of them passes the gate and together they keep materially
         # more of the input (see _auto_multi). Only gate failures pay for this
         # second engine run — a parse that passes is never re-run.
-        # LLM TEMPLATES, FIRST (PROVOST_LLM=1): a template Claude wrote for this
-        # tool — stored, or written now — is tried before the heuristics'
-        # fallbacks on a held capture, and before a GENERIC parse the gate
-        # passed is trusted (the gate cannot see a title or prompt read as the
-        # header; a template written for the tool's layout can). Never over an
-        # exact-format or tool-specific parser, with one exception: yaml. Its
-        # grammar is lax enough that plain `Label: text` output is valid YAML
-        # (golangci-lint's linter list reads as one 110-column record, its
-        # section titles lost), so a template ALREADY STORED for the tool may
-        # better a yaml parse under the same rule as a generic one. Claude is
-        # never asked to write one for it: a real YAML document has no
-        # template and costs nothing. See _llm_template, _llm_file.
-        if [[ "$PROVOST_LLM" == 1 ]]; then
+        # TEMPLATES, FIRST (PROVOST_TEMPLATES=1, the default; PV-039): a
+        # template for this tool -- written by hand, or by Claude, stored in the
+        # store, in PROVOST_TEMPLATE_DIRS or shipped -- is tried before the
+        # heuristics' fallbacks on a held capture, and before a GENERIC parse
+        # the gate passed is trusted (the gate cannot see a title or prompt
+        # read as the header; a template written for the tool's layout can).
+        # Under --llm (PROVOST_LLM=1) Claude may also write one, or extend a
+        # stored one; without it, only a template already there is used, and
+        # nothing is sent anywhere. Never over an exact-format or tool-specific
+        # parser, with one exception: yaml. Its grammar is lax enough that
+        # plain `Label: text` output is valid YAML (golangci-lint's linter
+        # list reads as one 110-column record, its section titles lost), so a
+        # template ALREADY STORED for the tool may better a yaml parse under
+        # the same rule as a generic one. Claude is never asked to write one
+        # for it: a real YAML document has no template and costs nothing. See
+        # _llm_template, _llm_file.
+        if [[ "$PROVOST_LLM" == 1 || "$PROVOST_TEMPLATES" == 1 ]]; then
             single_cov="$cov"; single_cons="$tcons"
+            local _may_learn=0; [[ "$PROVOST_LLM" == 1 ]] && _may_learn=1
             if [[ "$reason" == low-coverage* || "$reason" == low-consistency* ]]; then
-                if _llm_template 1; then
+                if _llm_template "$_may_learn"; then
                     if (( llm_multi )); then am_reason="$reason"; else llm_reason="$reason"; fi
                     reason=""
                 fi
             elif [[ -z "$reason" ]] && { [[ "$strategy" == yaml ]] || ! _quality_exempt "$engine" "$strategy"; }; then
-                local _held="passed over (the engine read it as $strategy, coverage ${cov:--}%): a template" _learn=1
+                local _held="passed over (the engine read it as $strategy, coverage ${cov:--}%): a template" _learn="$_may_learn"
                 [[ "$strategy" == yaml ]] && _learn=0
                 llm_floor=match
                 if _llm_template "$_learn"; then
@@ -2891,6 +2952,8 @@ _ingest_store () {
         [[ -n "$lm_note" ]] && printf 'layout_model\t%s\n' "$(_meta_safe "declined: $lm_note")"
         if [[ -n "$llm_how" ]]; then
             printf 'llm_template\t%s\n' "$(_meta_safe "filed by $llm_how")"
+            # which template, wherever it came from (PV-039)
+            [[ -n "${llm_seen_tpl:-}" ]] && printf 'template\t%s\n' "$(_meta_safe "$(_tpl_source "$llm_seen_tpl")")"
             # the skip audit: what the template skipped, and how much of it
             # counted against it (set aside, of a kind not judged decoration)
             if [[ -n "${llm_audit:-}" ]]; then
@@ -2970,7 +3033,7 @@ _ingest_store () {
         info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
         [[ -n "$am_note" ]] && info "      segmenting it did not help: $am_note."
         [[ -n "$lm_note" ]] && info "      the layout model did not help: $lm_note."
-        [[ -n "$llm_note" ]] && info "      no LLM template helped: $llm_note."
+        [[ -n "$llm_note" ]] && info "      no template helped: $llm_note."
     elif [[ ${#out_names[@]} -gt 1 ]]; then
         if [[ -n "$am_reason" ]]; then
             ok "$id: → ${#out_names[@]} datasets, rows $idrange — segmented: the single parse was $am_reason; the ${#out_names[@]} parts keep $am_cov%:"
@@ -3217,11 +3280,15 @@ options:
   --model                 before holding such a parse, try the learned layout
                           model (needs python3; --no-model: don't, the default,
                           PROVOST_MODEL)
-  --llm                   parse with a template Claude wrote for this tool, or
-                          have Claude write one, before trusting a generic parse
-                          or holding the capture (sends the capture to the
-                          Anthropic API; needs python3 and an API key; --no-llm:
-                          don't, the default, PROVOST_LLM)
+  --no-templates          do not apply a parsing template written for this
+                          tool, by hand or by Claude, stored or shipped
+                          (--templates: apply one that fits before trusting a
+                          generic parse or holding the capture, the default,
+                          PROVOST_TEMPLATES; docs/templates.md)
+  --llm                   when no template fits, have Claude write one (or
+                          extend one that meets new lines): sends the capture
+                          to the Anthropic API; needs python3 and an API key
+                          (--no-llm: don't, the default, PROVOST_LLM)
   --units MODE            base: after each column whose unit can be read, a
                           NAME[UNIT] column of the same values in base units
                           (B, B/s, bit, bit/s, s); off: none, the default
@@ -3272,11 +3339,15 @@ options:
   --model                 before holding such a parse, try the learned layout
                           model (needs python3; --no-model: don't, the default,
                           PROVOST_MODEL)
-  --llm                   parse with a template Claude wrote for this tool, or
-                          have Claude write one, before trusting a generic parse
-                          or holding the capture (sends the capture to the
-                          Anthropic API; needs python3 and an API key; --no-llm:
-                          don't, the default, PROVOST_LLM)
+  --no-templates          do not apply a parsing template written for this
+                          tool, by hand or by Claude, stored or shipped
+                          (--templates: apply one that fits before trusting a
+                          generic parse or holding the capture, the default,
+                          PROVOST_TEMPLATES; docs/templates.md)
+  --llm                   when no template fits, have Claude write one (or
+                          extend one that meets new lines): sends the capture
+                          to the Anthropic API; needs python3 and an API key
+                          (--no-llm: don't, the default, PROVOST_LLM)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   --show                  pass the input through to stdout as well (a tee)
@@ -3337,7 +3408,8 @@ options:
                           carries it -- the host provost runs on, which for
                           files gathered from other hosts is not theirs
   --min-confidence N, --min-coverage N, --min-consistency N, --plugin-dir DIR,
-  --multi, --no-auto-multi, --model, --llm, --no-redact, --refuse-oversize, -q
+  --multi, --no-auto-multi, --model, --no-templates, --llm, --no-redact,
+  --refuse-oversize, -q
                           as for piped input ('provost inject --help')
   An empty input is skipped; one that cannot be read or parsed is reported and
   the rest are filed. Exits 1 if any input was not captured, 0 otherwise.
@@ -3608,6 +3680,23 @@ usage: provost store check [DIR]
   'provost verify' is the integrity check (fsck, hashes, the history).
 EOF
             ;;
+        template) cat <<'EOF'
+usage: provost template test TEMPLATE CAPTURE [EXPECTED.tsv] [--tables]
+  Try a parsing template on a saved capture, filing nothing: the line its
+  detect pattern matches, its coverage, each table it makes, the lines it
+  sets aside of a kind not judged decoration, and every line it leaves
+  unread. TEMPLATE is a format-1 or format-2 template (.json) or a TextFSM
+  template (.textfsm, with the optional textfsm package); CAPTURE is a file
+  of the command's output ('-' for stdin). EXPECTED holds the tables it
+  should make: when they differ, a diff. The format: docs/templates.md.
+options:
+  --tables                print only the tables, as EXPECTED holds them
+                          (check them, save them, and that is EXPECTED)
+  Exits 0 when the template reads the capture (and its tables are EXPECTED's),
+  1 when it does not (no tables, a difference, past PROVOST_TEMPLATE_TIMEOUT,
+  a TextFSM Error rule), 2 when it cannot be tried.
+EOF
+            ;;
         *) return 1 ;;
     esac
 }
@@ -3658,6 +3747,8 @@ _capture_opt () {
         --no-model) PROVOST_MODEL=0 ;;
         --llm) PROVOST_LLM=1 ;;
         --no-llm) PROVOST_LLM=0 ;;
+        --templates) PROVOST_TEMPLATES=1 ;;
+        --no-templates) PROVOST_TEMPLATES=0 ;;
         --context-columns) PROVOST_CONTEXT_COLUMNS=1 ;;
         --no-context-columns) PROVOST_CONTEXT_COLUMNS=0 ;;
         --units)
@@ -3716,7 +3807,15 @@ _parse_capture_opts () {
     done
     return 0
 }
+# --llm writes and applies templates: it has no meaning with them turned off.
+_check_template_opts () {
+    if [[ "$PROVOST_LLM" == 1 && "$PROVOST_TEMPLATES" == 0 ]]; then
+        usage_die "--llm writes and applies parsing templates, so it cannot run with --no-templates (PROVOST_TEMPLATES=0)."
+    fi
+    return 0
+}
 _check_capture_opts () {
+    _check_template_opts
     if [[ -n "$_O_NAME" ]]; then
         _require_name "$_O_NAME"
         [[ "$_O_NAME" == unsorted ]] && usage_die "'unsorted' is reserved for the triage bucket; pick another --name."
@@ -3918,6 +4017,7 @@ cmd_batch () {
     [[ -z "$_O_ASYNC" && "$_O_SHOW" == 0 ]] \
         || usage_die "batch files in the foreground and shows nothing: --async, --sync and --show do not apply."
     (( ${#files[@]} > 0 )) || _cmd_usage_die batch
+    _check_template_opts
     local i missing=()
     for (( i = 0; i < ${#files[@]}; i++ )); do
         [[ -f "${files[i]}" ]] || missing+=("${files[i]}")
@@ -6952,6 +7052,33 @@ cmd_init () {
     ok "made a store at $PROVOST_WORKSPACE (object format $(_object_format)$( [[ "$PROVOST_SIGN" != off ]] && printf ', commits signed with %s' "$PROVOST_SIGN"))."
 }
 
+# provost template test TEMPLATE CAPTURE [EXPECTED.tsv] [--tables] (PV-039):
+# what a template makes of a saved capture, filing nothing (template.py test).
+cmd_template () {
+    local sub="${1:-}" tables=""
+    case "$sub" in
+        ""|-h|--help) _cmd_help template ;;
+        test) shift ;;
+        *) usage_die "unknown template command '$sub': there is one, test (see 'provost template --help')." ;;
+    esac
+    local -a pos=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help template ;;
+            --tables) tables=--tables ;;
+            --) shift; pos+=("$@"); break ;;
+            -?*) usage_die "unknown option for 'template test': $1 (see 'provost template --help')." ;;
+            *) pos+=("$1") ;;
+        esac
+        shift
+    done
+    (( ${#pos[@]} == 2 || ${#pos[@]} == 3 )) || _cmd_usage_die template
+    local pyx="${PROVOST_PYTHON:-python3}"
+    command -v "$pyx" >/dev/null 2>&1 || die "'provost template test' needs python3 ($pyx is not installed)."
+    "$pyx" "$PROVOST_ROOT/extract/llm/template.py" test ${tables:+"$tables"} -- "${pos[@]}"
+    exit $?
+}
+
 cmd_doctor () {
     case "${1:-}" in -h|--help) _cmd_help doctor ;; esac
     local engine rc=0
@@ -7083,12 +7210,12 @@ OPTIONS (for run, piped or file input)
     --name NAME                   file into dataset NAME
     --show                        show the output as well as filing it
     --sync                        wait until it is filed
-    --llm                         have Claude write a parser for output
-                                  provost reads badly (sends that output to
-                                  the Anthropic API; needs an API key)
+    --llm                         have Claude write a parser for output provost
+                                  reads badly (sends it to the Anthropic API)
 
 MORE
     provost COMMAND --help        one command's usage (provost show --help)
+    provost template test T FILE  try a parser you wrote (docs/templates.md)
     provost help advanced         every command, option and setting, and how
                                   provost decides what to file
 EOF
@@ -7182,6 +7309,11 @@ COMMANDS
                                    (docs/store-format.md); reads only
     provost help [advanced]        the short help / this text
     provost COMMAND --help         one command's usage
+  Templates
+    provost template test TEMPLATE CAPTURE [EXPECTED.tsv] [--tables]
+        Try a parsing template on a saved capture, filing nothing: its
+        tables, coverage and unread lines; with EXPECTED, a diff, and exit 1
+        on a difference (TEMPLATES below).
 
   An ID is a capture id: c0007, 7 or capture-c0007.
 
@@ -7194,8 +7326,12 @@ CAPTURE OPTIONS (run, piped input, FILE)
     -q, --silent            no progress output
     --multi                 file every dataset the input holds (MULTIPLE
                             DATASETS below)
-    --llm, --no-llm         try a template Claude wrote for the tool first
-                            (LLM TEMPLATES below; default off)
+    --templates, --no-templates
+                            apply a template written for the tool, by hand
+                            or by Claude, that fits (TEMPLATES below;
+                            default on)
+    --llm, --no-llm         when none fits, have Claude write one (TEMPLATES
+                            below; default off; sends the capture)
     --model, --no-model     try the learned layout model before holding a
                             capture (LAYOUT MODEL below; default off)
     --auto-multi, --no-auto-multi
@@ -7303,8 +7439,8 @@ HOW A CAPTURE IS FILED
        types its columns better (COLUMN-TYPE CONSISTENCY).
     3. No match, or below --min-confidence: held in 'unsorted', with the
        reason.
-    4. A generic parse is checked by the QUALITY GATE. With --llm, a template
-       for the tool is tried first (LLM TEMPLATES). One the gate would hold
+    4. A generic parse is checked by the QUALITY GATE. A template for the
+       tool, when one fits, is tried first (TEMPLATES). One the gate would hold
        is then tried segmented (AUTO-MULTI), then by the layout model
        (--model); if nothing passes, it is held in 'unsorted', with the
        reason.
@@ -7392,20 +7528,29 @@ LAYOUT MODEL (--model, PROVOST_MODEL=1)
     'layout_model' (filed or declined, and why). Needs python3 (no
     packages); declines inputs over 600 lines.
 
-LLM TEMPLATES (--llm, PROVOST_LLM=1)
-    Claude writes a parser for a tool once; provost reuses it offline.
-    A template is either regular expressions per kind of line (table rows,
-    key/value lines, decoration to skip; format 1), or, for records that span
-    lines, a small Python parser (format 2) run in a box: a separate
-    interpreter, a few pure modules, no files or network, CPU and memory
-    limits.
+TEMPLATES (--no-templates, PROVOST_TEMPLATES=0; --llm, PROVOST_LLM=1)
+    A template is a parser for one tool's output, written once and applied
+    offline to every capture it fits. Regular expressions per kind of line
+    (table rows, key/value lines, decoration to skip; format 1), or, for
+    records that span lines, a small Python parser (format 2) run in a box:
+    a separate interpreter, a few pure modules, no files or network, CPU
+    and memory limits. You can write a format-1 template by hand
+    (docs/templates.md has the format, with examples), or have Claude write
+    one (--llm). A TextFSM template (NAME.textfsm) is read too, with the
+    optional textfsm package (pip install 'provost[textfsm]').
 
-    Where templates come from: the store's llm-templates/ (NAME.json for
-    --name or the run command, else any template whose detect pattern
-    recognises the input), then PROVOST_LLM_TEMPLATE_DIRS, then the
-    templates shipped with provost. When none fits and PROVOST_LLM_API_KEY
-    or ANTHROPIC_API_KEY is set, Claude (PROVOST_LLM_MODEL) writes one from
-    this capture: THAT SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API, or to
+    Where templates come from: the store's llm-templates/ (NAME.json, or
+    NAME.textfsm, for --name or the run command, else any template whose
+    detect pattern recognises the input), then PROVOST_TEMPLATE_DIRS (your
+    own libraries, colon-separated; PROVOST_LLM_TEMPLATE_DIRS, the older
+    name, is read too), then the templates shipped with provost. One that
+    fits is applied with or without --llm, and nothing is sent anywhere;
+    --no-templates (PROVOST_TEMPLATES=0) turns that off. A TextFSM template
+    has no detect pattern: it is used only for a capture named for it.
+
+    --llm: when none fits and PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY is
+    set, Claude (PROVOST_LLM_MODEL) writes one from this capture: THAT
+    SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API, or to
     the server PROVOST_LLM_API and PROVOST_LLM_BASE_URL name (at most 400
     lines / 64 KB), once per tool; never in OFFLINE MODE (below). A new
     template is kept, and committed with the capture, only when it passes;
@@ -7424,7 +7569,22 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     dataset, several as NAME.<block>, AUTO-MULTI's way. Against a generic
     parse the gate passed, it must keep that parse's share of the data lines
     (within 10 points; 20 against text-lines or line-records; lines it marks
-    as decoration not counted).
+    as decoration not counted). A TextFSM template takes the values it names
+    and passes the rest by, so its coverage is recorded, not compared: the
+    lines it does not read are kept in NAME.notes, and its table still
+    passes the gate's shape checks.
+
+    TIME LIMIT: a template may take PROVOST_TEMPLATE_TIMEOUT seconds (10) on
+    one capture. Python's regular expressions backtrack, and a pattern such
+    as (a+)+$ on a long line can run for hours; past the limit the template
+    is declined (meta.tsv says so) and the capture is read without it. A
+    format-2 parser has the same limit.
+
+    TESTING: provost template test TEMPLATE CAPTURE [EXPECTED.tsv] applies
+    a template to a saved capture and prints its tables, its coverage and
+    every line it leaves unread; --tables prints the tables alone, which,
+    checked and saved, are the EXPECTED it diffs against (exit 1 on a
+    difference).
 
     NOTES: lines a template sets aside (decoration, or lines it cannot read)
     that still carry a word or a number are filed beside its datasets as
@@ -7485,9 +7645,10 @@ LLM TEMPLATES (--llm, PROVOST_LLM=1)
     before anything is sent.
 
     meta.tsv records 'llm_template' (filed by which template, or declined and
-    why) and 'llm_skip_audit'. PROVOST_LLM_LOG names a file that gets one
-    JSON line per API reply.
-    Needs python3 (no packages).
+    why), 'template' (which file: llm-templates/NAME.json, shipped:NAME.json
+    or the path in your library) and 'llm_skip_audit'. PROVOST_LLM_LOG
+    names a file that gets one JSON line per API reply.
+    Needs python3 (no packages; a TextFSM template needs textfsm).
 
 MULTIPLE DATASETS (--multi)
     Some reports hold more than one kind of data: a key/value block, a table,
@@ -7771,9 +7932,18 @@ SETTINGS (environment)
                               in this directory, not the trees; unset, the
                               installed provost-model package (pip install
                               provost[lm]); 0 = the trees only
-    PROVOST_PYTHON            the python3 that runs the layout model (the
-                              pip launcher sets it to its own)
-    PROVOST_LLM               1 = use / have Claude write a template (as --llm)
+    PROVOST_PYTHON            the python3 that runs the layout model and
+                              the templates (the pip launcher sets it to its
+                              own, where 'provost[textfsm]' installs textfsm)
+    PROVOST_TEMPLATES         1 = apply a template that fits (the default);
+                              0 = don't (as --no-templates)
+    PROVOST_TEMPLATE_DIRS     colon-separated directories of your own
+                              templates, looked in after the store's and
+                              before provost's own
+    PROVOST_TEMPLATE_TIMEOUT  seconds a template may take on one capture
+                              (default 10); past it, it is declined
+    PROVOST_LLM               1 = have Claude write or extend a template when
+                              none fits (as --llm)
     PROVOST_LLM_MODEL         the model that writes templates (default:
                               claude-opus-5-5)
     PROVOST_LLM_JUDGE         1 = review a template Claude writes or extends,
@@ -7792,8 +7962,8 @@ SETTINGS (environment)
                               with an llm-offline file is always offline
     PROVOST_LLM_ALLOW_HOSTS   the only hosts --llm may send to (comma-
                               separated); a base URL elsewhere is refused
-    PROVOST_LLM_TEMPLATE_DIRS colon-separated template directories, looked in
-                              after the store's and before provost's own
+    PROVOST_LLM_TEMPLATE_DIRS the older name of PROVOST_TEMPLATE_DIRS (both
+                              are read)
     PROVOST_LLM_LOG           a file to append each API reply's usage to (one
                               JSON line: purpose, tool, api, model, tokens)
     PROVOST_PLUGIN_DIR        an extra strategy directory (as --plugin-dir)
@@ -7843,7 +8013,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store prune archive help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store prune archive template help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -7874,7 +8044,7 @@ main () {
     # instead of silently waiting on stdin.
     if [[ $# -eq 0 && -t 0 ]]; then cmd_help; exit 0; fi
     case "$verb" in
-        doctor|log|verify|store) ;;               # these show the failures themselves / read only
+        doctor|log|verify|store|template) ;;      # these show the failures themselves / read only / no store
         *) _warn_failures ;;
     esac
     case "$verb" in
@@ -7907,6 +8077,7 @@ main () {
         store)         shift; cmd_store "$@" ;;
         prune)         shift; cmd_prune "$@" ;;
         archive)       shift; cmd_archive "$@" ;;
+        template)      shift; cmd_template "$@" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
         ""|-*)         cmd_inject "$@" ;;          # default verb (options only)
         *)

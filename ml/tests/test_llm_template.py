@@ -483,8 +483,8 @@ class SkipAudit(FakeAPI, unittest.TestCase):
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
                 self.assertEqual(T.main(["apply", tp, ip]), 0)
-            # blocks, coverage, skipped, decoration, judged, not judged, read, unread
-            self.assertEqual(out.getvalue().split(), ["1", "71", "4", "1", "1", "2", "3", "0"])
+            # blocks, coverage, skipped, decoration, judged, not judged, read, unread, format
+            self.assertEqual(out.getvalue().split(), ["1", "71", "4", "1", "1", "2", "3", "0", "1"])
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
                 T.main(["audit", tp, ip])

@@ -10,8 +10,8 @@ _provost_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store prune archive help"
-    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --units --manifest --manifest-profile --strict-manifest --no-strict-manifest --env --env=modules --no-env --show --async --sync --wait --silent --help"
+    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage annotate check-manifest doctor init verify store prune archive template help"
+    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --templates --no-templates --llm --no-llm --context-columns --no-context-columns --units --manifest --manifest-profile --strict-manifest --no-strict-manifest --env --env=modules --no-env --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
     # First word: complete the verb (or a capture option / file for inject).
@@ -49,6 +49,11 @@ _provost_complete () {
             COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ) ;;
         log)
             COMPREPLY=( $(compgen -W "--failed --help" -- "$cur") ) ;;
+        template)
+            # provost template test TEMPLATE CAPTURE [EXPECTED.tsv] [--tables]
+            if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "test --help" -- "$cur") )
+            elif [[ "$cur" == -* ]]; then COMPREPLY=( $(compgen -W "--tables --help" -- "$cur") )
+            else COMPREPLY=( $(compgen -f -- "$cur") ); fi ;;
         store)
             if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "check --help" -- "$cur") )
             else COMPREPLY=( $(compgen -d -- "$cur") ); fi ;;

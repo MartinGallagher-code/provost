@@ -41,6 +41,8 @@ Issues = "https://github.com/MartinGallagher-code/provost/issues"
 lm = ["numpy", "provost-model"]
 # provost_data.load_df: a dataset as a pandas DataFrame (load needs nothing).
 pandas = ["pandas"]
+# TextFSM templates (NAME.textfsm, e.g. from ntc-templates): docs/templates.md.
+textfsm = ["textfsm>=1.1"]
 
 [project.scripts]
 provost = "provost_data:main"

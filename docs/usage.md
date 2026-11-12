@@ -365,6 +365,9 @@ it but the pseudonyms and its id leaves. In the copy:
 | `PROVOST_ENV` | `1` = record where each capture was taken (same as `--env`); `modules` = and the kernel modules (`--env=modules`) | `0` |
 | `PROVOST_ENV_VARS` | the variables `--env` records: names or glob patterns, space- or comma-separated; set but empty = none | `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` |
 | `PROVOST_AUTO_MULTI` | `1` = segment a parse the quality gate would hold, when the parts are clearly better; `0` = hold it (same as `--no-auto-multi`) | `1` |
+| `PROVOST_TEMPLATES` | `1` = apply a parsing template that fits (see [Parsing templates](#parsing-templates)); `0` = don't (same as `--no-templates`) | `1` |
+| `PROVOST_TEMPLATE_DIRS` | colon-separated directories of your own templates (`PROVOST_LLM_TEMPLATE_DIRS`, the older name, is read too) | — |
+| `PROVOST_TEMPLATE_TIMEOUT` | seconds one template may take on one capture; past it, it is declined | `10` |
 | `PROVOST_MAX_INPUT` | max input bytes parsed, for inject and `run`; a larger input is kept by hash (see [Oversize inputs](#oversize-inputs)) | `10485760` |
 | `PROVOST_OVERSIZE` | `keep`: an input over the cap is kept whole outside git and its head parsed; `refuse`: it is refused (same as `--refuse-oversize`) | `keep` |
 | `PROVOST_ARTIFACT_DIR` | where inputs over the cap are kept; never the store or inside it | `<store>.artifacts` |
@@ -375,6 +378,25 @@ it but the pseudonyms and its id leaves. In the copy:
 | `PROVOST_REDACT` | `0` = store inputs as they come, secrets and all (same as `--no-redact`) | `1` |
 
 Numeric settings must be whole numbers; anything else is rejected at startup.
+
+## Parsing templates
+
+For output provost reads badly, write a **template**: a JSON file of regular
+expressions, one per kind of line, for one tool. Put it in a directory named in
+`PROVOST_TEMPLATE_DIRS` (or in a store's `llm-templates/`), and every capture it
+fits is read by it, offline, with or without `--llm`:
+
+```bash
+provost template test volumes.json volumes.txt     # its tables, coverage, unread lines
+export PROVOST_TEMPLATE_DIRS=~/provost-templates   # where volumes.json lives
+provost run volumes                                # read by the template
+```
+
+`provost template test T CAPTURE EXPECTED.tsv` diffs the tables against the
+expected ones and exits 1 on a difference; `--no-templates` turns templates off
+for a capture; TextFSM templates work with `pip install 'provost[textfsm]'`.
+The format, with worked examples, and how the quality gate treats a template:
+[Parsing templates](templates.md).
 
 ## Multiple datasets per input (`--multi`)
 
