@@ -7504,12 +7504,12 @@ THE COMMAND'S NAME
     NAME may be only a label, so they are a HINT: a parser written for the
     name ranks higher, nothing lower (with run, only when the command is a
     relay: 'provost run --name netstat cat saved.txt'). A relay (cat, echo,
-    printf, ssh, a shell, grep, sort ...) names no format and is ignored, as is piped
-    input with no --name. meta.tsv records 'command_name', 'command_changed'
-    (whether the name changed which parser ranked first: 'yes: X ranked
-    first; without the name, Y would have') and, when the winner is a parser
-    written for another command, 'command_fit'. 'provost-extract explain
-    --command NAME FILE' shows the ranking.
+    printf, ssh, a shell, grep, sort ...) names no format and is ignored,
+    as is piped input with no --name. meta.tsv records 'command_name',
+    'command_changed' (whether the name changed which parser ranked first:
+    'yes: X ranked first; without the name, Y would have') and, when the
+    winner is a parser written for another command, 'command_fit'.
+    'provost-extract explain --command NAME FILE' shows the ranking.
 
 LINE COVERAGE
     A capture reports its coverage: the share of the input's non-blank lines
