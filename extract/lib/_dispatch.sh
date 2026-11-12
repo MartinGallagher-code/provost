@@ -127,8 +127,15 @@ run_batch_mode () {
         fi
     fi
 
+    local _bcmd=""
     while IFS= read -r _bfile; do
         [[ -z "$_bfile" ]] && continue
+        # --batch-commands: PATH<TAB>COMMAND, the input's --command name
+        if [[ $_OPT_batch_commands -eq 1 ]]; then
+            _bcmd=""
+            if [[ "$_bfile" == *$'\t'* ]]; then _bcmd="${_bfile#*$'\t'}"; _bfile="${_bfile%%$'\t'*}"; fi
+            _cmd_init "$_bcmd" "$_OPT_command_hint"
+        fi
 
         if [[ ! -f "$_bfile" ]]; then
             _log_warn "batch: file not found: $_bfile"
@@ -237,8 +244,10 @@ run_batch_mode () {
                     esac
                 fi
             } > "$_OPT_batch_out/$_bo_name.wide"
-            printf '__EXTRACT_META__\t%s\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" "${_WINNER_CONS:--}" \
-                > "$_OPT_batch_out/$_bo_name.meta"
+            {
+                printf '__EXTRACT_META__\t%s\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" "${_WINNER_CONS:--}"
+                _cmd_meta_line
+            } > "$_OPT_batch_out/$_bo_name.meta"
             _bany=1
             continue
         fi
@@ -741,7 +750,7 @@ _output_tty_summary () {
 _multi_detect_name () {
     local btext="$1"
     _MULTI_DET=""
-    local _priority strategy_version strategy_file strategy_name _md_best=-1
+    local _priority strategy_version strategy_file strategy_name _md_best=-1000
     local _md_rank=1
     [[ "${_OPT_rank:-confidence}" == priority ]] && _md_rank=0
     while IFS='|' read -r _priority strategy_version strategy_file; do
@@ -759,8 +768,10 @@ _multi_detect_name () {
                 unset -f strategy_detect strategy_extract 2>/dev/null
                 return 0
             fi
-            if [[ $_STRATEGY_CONFIDENCE -ge ${_OPT_min_confidence:-0} && $_STRATEGY_CONFIDENCE -gt $_md_best ]]; then
-                _md_best=$_STRATEGY_CONFIDENCE
+            # ranked as run_auto_strategies ranks it, the command's name included
+            _cmd_rank_key "$strategy_file" "$_STRATEGY_CONFIDENCE"
+            if [[ $_STRATEGY_CONFIDENCE -ge ${_OPT_min_confidence:-0} ]] && (( 200 - 10#$_CK > _md_best )); then
+                _md_best=$(( 200 - 10#$_CK ))
                 _MULTI_DET="$strategy_name"
             fi
         fi

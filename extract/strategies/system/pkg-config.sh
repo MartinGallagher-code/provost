@@ -4,7 +4,7 @@
 
 ## Name: pkg-config
 ## Description: Extract packages from `pkg-config --list-all` output
-## Version: 1.0
+## Version: 1.1
 ## Priority: 21
 ## Sample: samples/pkg-config/basic.txt
 
@@ -63,7 +63,21 @@ strategy_detect () {
     # A package name starts with a letter and is a single token; the remainder
     # is a free-text description (contains an alphabetic word). Reject anything
     # that looks like a sized/percentage table (df) or an arrow map (ldconfig).
-    local lines=0 line _cc=() _t _colon=0
+    #
+    # PV-037: that shape alone is most listings of "a name, then text" — it
+    # claimed 60 corpus inputs that are not pkg-config's (`netstat -anp`,
+    # `ip -br addr`, `poetry show`, `tox list` ...), each filed as two columns.
+    # What `pkg-config --list-all` (and pkgconf's) actually prints is
+    # `KEY<padding>Name - Description`: the key padded to one width, so the
+    # second field starts in the SAME column on (nearly) every line, and the
+    # pc file's Name and Description joined by " - ". The join is required on
+    # at least two lines in three (a .pc file may lack a Description). The
+    # alignment is required on EVERY line, but for a key too long for the pad
+    # (pkgconf pads to 30 columns): its second field starts one space after it.
+    # A listing whose first field holds a space ("Nestopia UE   Nintendo - NES")
+    # starts its second word out of line, and is declined.
+    local lines=0 line _cc=() _t _colon=0 _dash=0 _pcols=() _pklen=()
+    local -A _p2col=()
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         [[ "${line}" != *[![:space:]]* ]] && continue
@@ -76,6 +90,10 @@ strategy_detect () {
         rest="${rest#"${rest%%[![:space:]]*}"}"
         # Description must be present and contain a real word (2+ letters).
         [[ -n "$rest" && "$rest" =~ [A-Za-z][A-Za-z] ]] || return 1
+        # the column the second field starts in, and the " - " join
+        _p2col[$(( ${#line} - ${#rest} ))]=$(( ${_p2col[$(( ${#line} - ${#rest} ))]:-0} + 1 ))
+        _pcols+=($(( ${#line} - ${#rest} ))); _pklen+=("${#name}")
+        [[ "$rest" == *[![:space:]]" - "[![:space:]]* ]] && _dash=$((_dash + 1))
         # A ` : `-aligned "Label : value" line is a colon key/value block
         # (chage -l, some status dumps) — colon-fields/colons own those, not a
         # pkg-config name/description list (whose descriptions use ` - `, not ` : `).
@@ -91,7 +109,16 @@ strategy_detect () {
     # count) varies line to line. Decline it so aligned-columns wins instead of
     # cramming every trailing field into `description`.
     if [[ $lines -ge 2 ]]; then
-        local _m=0 _best=0
+        local _m=0 _best=0 _pc _pcmax=0 _pcol=0 _pi
+        (( _dash * 3 >= lines * 2 )) || return 1
+        for _pc in "${!_p2col[@]}"; do
+            (( _p2col[$_pc] > _pcmax )) && { _pcmax=${_p2col[$_pc]}; _pcol=$_pc; }
+        done
+        (( _pcmax * 3 >= lines * 2 )) || return 1
+        for (( _pi = 0; _pi < ${#_pcols[@]}; _pi++ )); do
+            (( _pcols[_pi] == _pcol )) && continue
+            (( _pklen[_pi] >= _pcol - 1 && _pcols[_pi] == _pklen[_pi] + 1 )) || return 1
+        done
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
         [[ $_m -ge 3 && $(( _best * 100 / lines )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]] && return 1
         # 79: a shape heuristic, not a tool-unique literal — it yields to any

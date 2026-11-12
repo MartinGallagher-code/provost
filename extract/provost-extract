@@ -188,6 +188,28 @@ Filtering & Selection:
   --aggregate             Compute count/min/max/sum/avg for numeric fields
   --generic               Use only the generic format strategies (delimited/structured)
   --no-hints              Skip the declarative hints.tsv tool-routing table
+  --command NAME          The name of the command that printed the input
+                          (provost passes it for `provost run` and listen).
+                          Detection is still by content; the name ranks what
+                          detected: a tool-specific strategy written for NAME
+                          (its file name or `## Name:` is NAME or starts with
+                          NAME-, or its `## Commands:` header lists NAME) ranks
+                          15 points higher, and one written for another command
+                          20 points lower, so it wins only by a clear margin.
+                          Generic parsers rank as they would anyway. A hints.tsv
+                          row for NAME is preferred to an earlier row for another
+                          tool, and one for another tool that routes to a
+                          tool-specific strategy is passed over. A relay (cat,
+                          echo, printf, ssh, a shell, grep ...) names no format
+                          and is ignored. With --emit-meta, a second stderr line:
+                          __COMMAND_META__<TAB>name<TAB>used|hint|relay<TAB>first<TAB>without<TAB>fit
+                          (what ranked first with the name and without it; fit:
+                          for, other or generic -- how the winner stands to NAME)
+  --command-hint NAME     A name that may be the command's -- provost's --name or
+                          a batch file's NAME, which can as well be a label: a
+                          strategy (or hints.tsv row) written for it ranks 15
+                          points higher, but nothing ranks lower. Used when there
+                          is no --command, or the --command is a relay.
 
 Advanced:
   -c                      Output a fully-qualified command line for replay
@@ -251,6 +273,11 @@ Batch Options:
                             strategies are sourced once, not once per file --
                             this is the corpus harness fast path. Requires
                             --batch; a later duplicate basename overwrites.
+                            The .meta file also gets the __COMMAND_META__ line
+                            when a command is known.
+  --batch-commands          Each stdin line of --batch is PATH<TAB>COMMAND: the
+                            input and the --command name for it (an empty
+                            COMMAND, or no TAB, is no name).
 
 Pager (ENV-143):
   --no-pager                Disable auto-paging of `list` and `--validate-all`
@@ -302,6 +329,9 @@ _OPT_validate_strategy=""
 _OPT_validate_all=0
 _OPT_generic=0
 _OPT_no_hints=0
+_OPT_command=""
+_OPT_command_hint=""
+_OPT_batch_commands=0
 _OPT_batch=0
 _OPT_batch_summary=0
 _OPT_batch_out=
@@ -434,6 +464,18 @@ while [[ $# -gt 0 ]]; do
             _OPT_generic=1; shift ;;
         --no-hints)
             _OPT_no_hints=1; shift ;;
+        --command)
+            [[ $# -lt 2 ]] && { _log_error "--command requires a name"; exit 1; }
+            _OPT_command="$2"; shift 2 ;;
+        --command=*)
+            _OPT_command="${1#*=}"; shift ;;
+        --command-hint)
+            [[ $# -lt 2 ]] && { _log_error "--command-hint requires a name"; exit 1; }
+            _OPT_command_hint="$2"; shift 2 ;;
+        --command-hint=*)
+            _OPT_command_hint="${1#*=}"; shift ;;
+        --batch-commands)
+            _OPT_batch_commands=1; shift ;;
         --batch)
             _OPT_batch=1; shift ;;
         --batch-summary)
@@ -535,6 +577,12 @@ fi
 if [[ -n "$_OPT_batch_out" && $_OPT_batch -eq 0 ]]; then
     _log_error "--batch-out requires --batch"; exit 1
 fi
+if [[ $_OPT_batch_commands -eq 1 && $_OPT_batch -eq 0 ]]; then
+    _log_error "--batch-commands requires --batch"; exit 1
+fi
+if [[ $_OPT_batch_commands -eq 1 && -n "$_OPT_command" ]]; then
+    _log_error "--batch-commands and --command cannot be used together"; exit 1
+fi
 if [[ -n "$_OPT_batch_out" && $_OPT_batch_summary -eq 1 ]]; then
     _log_error "--batch-out and --batch-summary cannot be used together"; exit 1
 fi
@@ -558,6 +606,9 @@ if [[ -n "$_OPT_field_pattern" ]]; then
         exit 1
     fi
 fi
+
+# The command's name, normalised once (PV-037; batch mode sets it per input).
+_cmd_init "$_OPT_command" "$_OPT_command_hint"
 
 if [[ $_OPT_version -eq 1 ]]; then
     provost_version_banner "provost-extract" "$VERSION"
@@ -872,6 +923,8 @@ provost_progress_done
 # _parse_coverage and _FR_CONS_AWK in lib/_discovery.sh).
 if [[ $_OPT_emit_meta -eq 1 ]]; then
     printf '__EXTRACT_META__\t%s\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" "${_WINNER_CONS:--}" >&2
+    # PV-037: what the command's name did to the ranking (see _cmd_init).
+    _cmd_meta_line >&2
 fi
 
 ########################################

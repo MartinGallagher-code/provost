@@ -6,6 +6,7 @@
 ## Description: Extract disk partition table from fdisk -l output
 ## Version: 1.0
 ## Priority: 20
+## Commands: sfdisk
 ## Sample: samples/fdisk/basic.txt
 
 strategy_detect () {

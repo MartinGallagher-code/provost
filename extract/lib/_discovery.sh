@@ -26,10 +26,13 @@ declare -A _META_CACHE_DESC=()
 declare -A _META_CACHE_VER=()
 declare -A _META_CACHE_PRI=()
 declare -A _META_CACHE_DEP=()
+declare -A _META_CACHE_CMDS=()
 
 # Read strategy metadata from file header (first 15 lines), memoised per path.
 # Sets globals: _META_NAME, _META_DESCRIPTION, _META_VERSION, _META_PRIORITY,
-#               _META_DEPRECATED
+#               _META_DEPRECATED, _META_COMMANDS (the `## Commands:` header:
+#               the commands a tool-specific strategy is written for besides
+#               its own name, space- or comma-separated; see _cmd_init)
 read_strategy_metadata () {
     local filepath="$1"
     if [[ -n "${_META_CACHE_HAVE[$filepath]:-}" ]]; then
@@ -38,9 +41,10 @@ read_strategy_metadata () {
         _META_VERSION="${_META_CACHE_VER[$filepath]}"
         _META_PRIORITY="${_META_CACHE_PRI[$filepath]}"
         _META_DEPRECATED="${_META_CACHE_DEP[$filepath]}"
+        _META_COMMANDS="${_META_CACHE_CMDS[$filepath]}"
         return 0
     fi
-    _META_NAME="" _META_DESCRIPTION="" _META_VERSION="0" _META_PRIORITY="99" _META_DEPRECATED=""
+    _META_NAME="" _META_DESCRIPTION="" _META_VERSION="0" _META_PRIORITY="99" _META_DEPRECATED="" _META_COMMANDS=""
     local n=0
     while IFS= read -r _metaline; do
         n=$((n + 1))
@@ -51,6 +55,7 @@ read_strategy_metadata () {
             '## Version: '*)     _META_VERSION="${_metaline#'## Version: '}" ;;
             '## Priority: '*)    _META_PRIORITY="${_metaline#'## Priority: '}" ;;
             '## Deprecated: '*)  _META_DEPRECATED="${_metaline#'## Deprecated: '}" ;;
+            '## Commands: '*)    _META_COMMANDS="${_metaline#'## Commands: '}" ;;
         esac
     done < "$filepath"
     _META_CACHE_HAVE[$filepath]=1
@@ -59,6 +64,7 @@ read_strategy_metadata () {
     _META_CACHE_VER[$filepath]="$_META_VERSION"
     _META_CACHE_PRI[$filepath]="$_META_PRIORITY"
     _META_CACHE_DEP[$filepath]="$_META_DEPRECATED"
+    _META_CACHE_CMDS[$filepath]="$_META_COMMANDS"
 }
 
 # Strategy loader. Every load is a plain `source` of the file: it re-defines
@@ -622,6 +628,150 @@ _hint_presence () {
     _HINT_PRESENCE_OK=1
 }
 
+# --- The command's name (--command NAME, PV-037) ----------------------------
+# provost knows which command printed a capture (`provost run`, `listen`,
+# `--name`, a batch input's NAME) and passes its name with --command. Tools
+# like jc, ntc-templates and Genie pick their parser by the command alone;
+# this engine still detects by CONTENT, and uses the name only to rank what
+# content detected:
+#   * a TOOL-SPECIFIC strategy (outside delimited/ and structured/) written for
+#     this command ranks _CMD_BOOST points higher. It is written for the
+#     command when its file name or `## Name:` is the command or starts with
+#     COMMAND- (docker-ps for docker, git-log-graph for git), or its
+#     `## Commands:` header lists the command (sysstat: sar mpstat pidstat);
+#   * a tool-specific strategy written for ANOTHER command ranks _CMD_MARGIN
+#     points lower: it wins only by a clear margin (pkg-config's shape
+#     heuristic, 79, no longer outranks the generic table parse of
+#     `netstat -anp`);
+#   * a generic parser (delimited/, structured/) ranks as it would anyway: it
+#     reads a FORMAT, whatever printed it.
+# Only the RANK moves. The confidence a strategy reports, the coverage and
+# consistency holds, and provost's gate all see its own confidence.
+# hints.tsv: a matching row whose tool is the command (the same rule) is
+# preferred to an earlier matching row for another tool, and a row for
+# another tool that routes to a tool-specific strategy is passed over (its
+# strategy may still win on its own detector, by the margin).
+# A command that only relays or filters another's output, or prints the text
+# it is given (cat, echo, printf, ssh, a shell, grep, sort ...) names no format: it is ignored, as if no name were given.
+# Names compare case-insensitively, with `_` read as `-`.
+# --command-hint NAME is a WEAKER statement — a name that may be the
+# command's, such as a dataset name given with provost's --name, which can as
+# well be a label ("cpu-load"): a strategy written for it ranks higher, but
+# nothing ranks lower and no hint row is passed over. It is used when there
+# is no --command, or the --command is a relay (`provost run --name netstat
+# cat saved.txt`).
+_CMD_BOOST=15
+_CMD_MARGIN=20
+_CMD_RELAYS=" cat zcat gzcat bzcat xzcat lzcat zstdcat lz4cat tac nl head tail less more most pg tee
+ echo printf ssh mosh rsh sh bash dash zsh ksh mksh fish csh tcsh busybox xargs watch script unbuffer
+ grep egrep fgrep zgrep rg ag sed awk gawk mawk nawk sort uniq cut column fold fmt tr expand unexpand "
+_CMD="" _CMD_SHOWN="" _CMD_STATE="" _CMD_WEAK=0
+_CMD_TOP="" _CMD_RAW_TOP="" _CMD_RAW_HINT=""
+declare -gA _CMD_DELTA_CACHE=()
+
+# _cmd_norm NAME — _CMD_N: NAME's basename (tabs and newlines dropped), and
+# _CMD_NN: that lower-cased with `_` read as `-`.
+_cmd_norm () {
+    _CMD_N="${1:-}"; _CMD_N="${_CMD_N//[$'\t\r\n']/}"; _CMD_N="${_CMD_N##*/}"
+    _CMD_NN="${_CMD_N,,}"; _CMD_NN="${_CMD_NN//_/-}"
+}
+_cmd_is_relay () { [[ "$_CMD_RELAYS" == *[[:space:]]"$1"[[:space:]]* ]]; }
+
+# _cmd_init COMMAND [HINT] — set _CMD (the normalised name ranking uses; empty
+# when there is none), _CMD_WEAK (1 when it is the HINT: it only boosts),
+# _CMD_SHOWN (the basename as given, for the meta line) and _CMD_STATE (used,
+# hint, relay, or empty when neither was given).
+_cmd_init () {
+    _CMD="" _CMD_SHOWN="" _CMD_STATE="" _CMD_WEAK=0
+    _CMD_TOP="" _CMD_RAW_TOP="" _CMD_RAW_HINT=""
+    _CMD_DELTA_CACHE=()
+    _cmd_norm "${1:-}"
+    if [[ -n "$_CMD_NN" ]] && ! _cmd_is_relay "$_CMD_NN"; then
+        _CMD="$_CMD_NN"; _CMD_SHOWN="$_CMD_N"; _CMD_STATE=used; return 0
+    fi
+    local relay_shown="$_CMD_N"
+    _cmd_norm "${2:-}"
+    if [[ -n "$_CMD_NN" ]] && ! _cmd_is_relay "$_CMD_NN"; then
+        _CMD="$_CMD_NN"; _CMD_SHOWN="$_CMD_N"; _CMD_STATE=hint; _CMD_WEAK=1; return 0
+    fi
+    if [[ -n "$relay_shown" || -n "$_CMD_N" ]]; then
+        _CMD_SHOWN="${relay_shown:-$_CMD_N}"; _CMD_STATE=relay
+    fi
+}
+
+# _cmd_names NAME — true when a strategy or hint-tool NAME is written for _CMD:
+# NAME is the command, or starts with COMMAND-.
+_cmd_names () {
+    local n="${1,,}"; n="${n//_/-}"
+    [[ -n "$n" && ( "$n" == "$_CMD" || "$n" == "$_CMD"-* ) ]]
+}
+
+# _cmd_delta FILE — _CMD_DELTA: the rank adjustment for strategy FILE under
+# the current command (0 with no command, or for a generic parser). Cached
+# per file; _cmd_init clears the cache.
+_cmd_delta () {
+    _CMD_DELTA=0
+    [[ -n "$_CMD" ]] || return 0
+    local f="$1"
+    if [[ -n "${_CMD_DELTA_CACHE[$f]+x}" ]]; then _CMD_DELTA="${_CMD_DELTA_CACHE[$f]}"; return 0; fi
+    if ! _is_generic_strategy_file "$f"; then
+        local n="${f##*/}" w _cd_for=0
+        n="${n%.sh}"
+        read_strategy_metadata "$f"
+        if _cmd_names "$n" || _cmd_names "$_META_NAME"; then
+            _cd_for=1
+        else
+            for w in ${_META_COMMANDS//,/ }; do
+                w="${w,,}"; w="${w//_/-}"
+                [[ "$w" == "$_CMD" ]] && { _cd_for=1; break; }
+            done
+        fi
+        if [[ $_cd_for -eq 1 ]]; then _CMD_DELTA=$_CMD_BOOST
+        elif [[ $_CMD_WEAK -eq 0 ]]; then _CMD_DELTA=$(( -_CMD_MARGIN )); fi
+    fi
+    _CMD_DELTA_CACHE[$f]=$_CMD_DELTA
+}
+
+# _cmd_rank_key FILE CONF — _CK: the candidate sort key for a strategy that
+# detected at CONF, ranked under the current command (smaller sorts first):
+# 200 minus the adjusted confidence, zero-padded to three digits. With no
+# command it orders exactly as confidence does.
+_cmd_rank_key () {
+    _cmd_delta "$1"
+    _CK="000$(( 200 - $2 - _CMD_DELTA ))"
+    _CK="${_CK: -3}"
+}
+
+# _cmd_meta_line — the __COMMAND_META__ line (stdout) when a name was given:
+#   name, used|hint|relay, FIRST, WITHOUT, FIT
+# FIRST and WITHOUT: what ranked first with the name and without it (a
+# strategy, or the hints.tsv tool that routed the input; `-` = nothing, or a
+# pinned -s run that ranks nothing). FIT: how the WINNER stands to the
+# command — for (a tool-specific strategy, or hint row, written for it),
+# other (a tool-specific strategy written for another command: it won by the
+# margin, or the name is only a hint), generic (a format parser, or a hint
+# row routing to one), or `-` (no winner, or a relay).
+_cmd_meta_line () {
+    [[ -n "$_CMD_STATE" ]] || return 0
+    local top="${_CMD_TOP:--}" raw="${_CMD_RAW_TOP:--}" fit="-" w="${_WINNER_NAME:-}"
+    [[ "$_CMD_STATE" == relay ]] && raw="$top"
+    if [[ -n "$_CMD" && -n "$w" ]]; then
+        if find_strategy_file "$w" 2>/dev/null; then
+            if _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then fit=generic
+            else
+                _cmd_delta "$_FOUND_STRATEGY_FILE"
+                if (( _CMD_DELTA > 0 )); then fit=for; else fit=other; fi
+            fi
+        elif _cmd_names "$w"; then fit=for     # a hint tool, or a report name
+        elif [[ -n "${_HINT_TOOL:-}" && "$w" == "${_HINT_TOOL:-}" ]] && find_strategy_file "${_HINT_STRATEGY:-}" 2>/dev/null \
+             && ! _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then
+            fit=other                          # a bespoke routing row for another tool (a hint only)
+        else fit=generic
+        fi
+    fi
+    printf '__COMMAND_META__\t%s\t%s\t%s\t%s\t%s\n' "$_CMD_SHOWN" "$_CMD_STATE" "$top" "$raw" "$fit"
+}
+
 # Match the input against hints.tsv.
 # Sets _HINT_TOOL and _HINT_STRATEGY on a match. Returns 0 on match, 1 otherwise.
 # The first matching row whose target can run wins (see the --generic skip).
@@ -650,7 +800,8 @@ _match_hint () {
     # see _hint_presence); small inputs keep the per-row full-text tests.
     _HINT_PRESENCE_OK=0
     if (( ${#text} > _FR_BIG_BYTES )); then _hint_presence "$text"; fi
-    local tool mtype pattern strategy _rest
+    local tool mtype pattern strategy _rest _mh_fb_tool="" _mh_fb_strategy=""
+    _CMD_RAW_HINT=""
     while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
         [[ -z "$tool" || "$tool" == \#* ]] && continue
         [[ -z "$pattern" || -z "$strategy" ]] && continue
@@ -684,10 +835,31 @@ _match_hint () {
            && ! _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then
             continue
         fi
+        if [[ -n "$_CMD" ]]; then
+            # The command is known (PV-037): a row for it wins; a row for
+            # another tool is kept as a fallback only when it routes to a
+            # generic parser, and the scan goes on for one for the command.
+            [[ -z "$_CMD_RAW_HINT" ]] && _CMD_RAW_HINT="$tool"
+            if _cmd_names "$tool"; then
+                _HINT_TOOL="$tool"; _HINT_STRATEGY="$strategy"
+                return 0
+            fi
+            # (a hint, --command-hint, passes nothing over: any first row is
+            # the fallback)
+            if [[ -z "$_mh_fb_tool" ]] && { [[ $_CMD_WEAK -eq 1 ]] || { find_strategy_file "$strategy" \
+               && _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; }; }; then
+                _mh_fb_tool="$tool"; _mh_fb_strategy="$strategy"
+            fi
+            continue
+        fi
         _HINT_TOOL="$tool"
         _HINT_STRATEGY="$strategy"
         return 0
     done < "$HINTS_FILE"
+    if [[ -n "$_mh_fb_tool" ]]; then
+        _HINT_TOOL="$_mh_fb_tool"; _HINT_STRATEGY="$_mh_fb_strategy"
+        return 0
+    fi
     return 1
 }
 
@@ -726,6 +898,10 @@ _run_hint_strategy () {
     # `< <(declare -F)` sweep was a fork per strategy per input.
     unset -f strategy_detect strategy_extract 2>/dev/null
     _STRATEGY_REPORT_NAME=""
+    if [[ $_rhs_rc -eq 2 || "$strategies_matched" -gt "$_had_output_before" ]] && [[ -n "$_CMD_STATE" ]]; then
+        # what routed the input, with the command's name and without it
+        _CMD_TOP="$_HINT_TOOL"; _CMD_RAW_TOP="${_CMD_RAW_HINT:-$_HINT_TOOL}"
+    fi
     [[ $_rhs_rc -eq 2 ]] && return 2
     [[ "$strategies_matched" -gt "$_had_output_before" ]] && return 0
     return 1
@@ -2192,8 +2368,15 @@ _eas_try_cands () {
         strategy_priority="$((10#$_pk))"
         if [[ "${_COV_HELD:-0}" -eq 1 && "$_COV_HELD_KIND" == cons ]]; then
             # held for consistency: only the window below it, and only
-            # candidates that may replace it, are extracted
-            (( 100 - 10#$_ck >= _COV_HELD_CONF - _FR_CONS_WINDOW )) || break
+            # candidates that may replace it, are extracted. The window is in
+            # raw confidence; with a command's name the list is not in raw
+            # order, so a candidate below it is skipped rather than ending
+            # the walk.
+            _cmd_delta "$strategy_file"
+            if (( 200 - 10#$_ck - _CMD_DELTA < _COV_HELD_CONF - _FR_CONS_WINDOW )); then
+                [[ -n "$_CMD" ]] && continue
+                break
+            fi
             _cons_eligible "$strategy_name" || continue
         fi
         _source_strategy_cached "$strategy_file" /dev/null || continue
@@ -2254,6 +2437,8 @@ _run_auto_strategies_body () {
     _TG_LAST_COVERAGE=""
     # Coverage hold state is per pass (a redo starts clean).
     _cov_drop_held; _COV_HOLD_ON=0; _WINNER_COV=""; _WINNER_CONS=""
+    # What ranked first with the command's name and without it (PV-037).
+    _CMD_TOP=""; _CMD_RAW_TOP=""
     # Bounded detection sample for very large inputs (per input: batch mode
     # reuses the process). Pinned/replayed runs skip detection-by-sample.
     _DET_SAMPLED=0; _DET_TEXT=""
@@ -2331,7 +2516,11 @@ _run_auto_strategies_body () {
     # always exactly the unpruned ranking. This is what keeps a 10 MB JSON
     # document fast: once json-array scores 85, no generic parser (<= 80)
     # walks the text.
-    local _eas_prune=0 _eas_pruned=0 _eas_best=-1 _eas_pruned_list=""
+    # With a command's name (PV-037), _eas_best is the best ADJUSTED
+    # confidence (see _cmd_rank_key) and _eas_rbest the best raw one: a
+    # detector is pruned only when it can beat neither, so both rankings —
+    # with the name and without it (_CMD_RAW_TOP) — stay exact.
+    local _eas_prune=0 _eas_pruned=0 _eas_best=-1000 _eas_rbest=-1 _eas_pruned_list="" _eas_rtop=""
     if [[ $_eas_rank -eq 1 && "${_EAS_NOPRUNE:-0}" -ne 1 ]] \
        && [[ $_OPT_first_match -eq 1 || $_OPT_max_strategies -eq 1 ]]; then
         _eas_prune=1
@@ -2355,9 +2544,10 @@ _run_auto_strategies_body () {
 
         _should_run_strategy "$strategy_name" || continue
 
-        if [[ $_eas_prune -eq 1 && $_eas_best -ge 0 ]]; then
+        if [[ $_eas_prune -eq 1 && $_eas_best -gt -1000 ]]; then
             _strategy_ceiling "$strategy_file"
-            if (( _CEIL <= _eas_best )); then
+            _cmd_delta "$strategy_file"
+            if (( _CEIL + _CMD_DELTA <= _eas_best && _CEIL <= _eas_rbest )); then
                 _eas_pruned=$((_eas_pruned + 1))
                 _eas_pruned_list+="${_priority}|${strategy_version}|${strategy_file}"$'\n'
                 continue
@@ -2413,12 +2603,16 @@ _run_auto_strategies_body () {
         fi
 
         if [[ $_eas_rank -eq 1 ]]; then
-            # Sort key: (100 - confidence) ASC, priority ASC, name ASC — all
-            # fixed-width so one plain LC_ALL=C sort orders the three keys.
-            _ck="000$((100 - _STRATEGY_CONFIDENCE))"
+            # Sort key: (200 - confidence, adjusted for the command's name —
+            # see _cmd_rank_key) ASC, priority ASC, name ASC — all fixed-width
+            # so one plain LC_ALL=C sort orders the three keys.
+            _cmd_rank_key "$strategy_file" "$_STRATEGY_CONFIDENCE"; _ck="$_CK"
             _pk="000${_priority}"
-            _eas_cands+="${_ck: -3}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
-            (( _STRATEGY_CONFIDENCE > _eas_best )) && _eas_best=$_STRATEGY_CONFIDENCE
+            _eas_cands+="${_ck}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
+            (( 200 - 10#$_ck > _eas_best )) && _eas_best=$(( 200 - 10#$_ck ))
+            # the first strict raw maximum in priority order ranks first
+            # without the name (ties fall to priority, then name, as here)
+            (( _STRATEGY_CONFIDENCE > _eas_rbest )) && { _eas_rbest=$_STRATEGY_CONFIDENCE; _eas_rtop="$strategy_name"; }
             unset -f strategy_detect strategy_extract 2>/dev/null
             unset _arr 2>/dev/null
             continue
@@ -2435,11 +2629,20 @@ _run_auto_strategies_body () {
         # One sort fork per input is the only process the ranking adds.
         _eas_cands="$(printf '%s' "$_eas_cands" | LC_ALL=C sort -t'|' -k1,1 -k2,2 -k3,3)"
         if [[ $_OPT_debug -eq 1 ]]; then
-            local _dbg_c="" _dbg_l
-            while IFS='|' read -r _ck _pk _dbg_l _; do
-                _dbg_c+="${_dbg_c:+, }${_dbg_l}(c$((100 - 10#$_ck)))"
+            local _dbg_c="" _dbg_l _dbg_f
+            while IFS='|' read -r _ck _pk _dbg_l _ _dbg_f; do
+                _cmd_delta "$_dbg_f"
+                if [[ $_CMD_DELTA -ne 0 ]]; then
+                    _dbg_c+="${_dbg_c:+, }${_dbg_l}(c$((200 - 10#$_ck - _CMD_DELTA)), ranked $((200 - 10#$_ck)) for command '$_CMD')"
+                else
+                    _dbg_c+="${_dbg_c:+, }${_dbg_l}(c$((200 - 10#$_ck)))"
+                fi
             done <<< "$_eas_cands"
             _log_debug "Ranked candidates: $_dbg_c"
+        fi
+        if [[ -n "$_CMD_STATE" && -z "$_CMD_TOP" ]]; then
+            _CMD_TOP="${_eas_cands%%$'\n'*}"; _CMD_TOP="${_CMD_TOP#*|*|}"; _CMD_TOP="${_CMD_TOP%%|*}"
+            _CMD_RAW_TOP="${_CMD_RAW_HINT:-$_eas_rtop}"
         fi
         local _eas_redo=0
         # COVERAGE HOLD applies when one winner is wanted (see above).
@@ -2468,8 +2671,8 @@ _run_auto_strategies_body () {
                 _source_strategy_cached "$strategy_file" /dev/null || continue
                 strategy_priority="${_priority#0}"; strategy_priority="${strategy_priority:-99}"
                 if _detect_strategy "$strategy_name" "$strategy_priority"; then
-                    _ck="000$((100 - _STRATEGY_CONFIDENCE))"; _pk="000${_priority}"
-                    _eas_extra+="${_ck: -3}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
+                    _cmd_rank_key "$strategy_file" "$_STRATEGY_CONFIDENCE"; _ck="$_CK"; _pk="000${_priority}"
+                    _eas_extra+="${_ck}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
                 fi
                 unset -f strategy_detect strategy_extract 2>/dev/null
                 unset _arr 2>/dev/null
@@ -2547,7 +2750,7 @@ run_explain_mode () {
     local matched=0 tested=0 skipped=0
     local match_lines="" miss_lines=""
     # the first-ranked candidate that extracts something (for the hold note)
-    local _ex_top_conf="" _ex_top_cov="" _ex_top_name="" _ex_top_lines=0 _ex_top_res=""
+    local _ex_top_conf="" _ex_top_adj="" _ex_top_cov="" _ex_top_name="" _ex_top_lines=0 _ex_top_res=""
     local _ex_recs=""   # conf|pri|name|cov|cons|bad|cols|cells per candidate that extracts
 
     local strategy_version strategy_file strategy_name strategy_priority
@@ -2593,7 +2796,11 @@ run_explain_mode () {
         if strategy_detect "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
             [[ $_STRATEGY_CONFIDENCE -lt 0 ]] && _STRATEGY_CONFIDENCE=0
             [[ $_STRATEGY_CONFIDENCE -gt 100 ]] && _STRATEGY_CONFIDENCE=100
-            local reason="${_STRATEGY_CONFIDENCE_REASON:-detected}"
+            local reason="${_STRATEGY_CONFIDENCE_REASON:-detected}" _ex_adj
+            # ranked under the command's name, as run_auto_strategies ranks
+            _cmd_delta "$strategy_file"; _ex_adj=$(( _STRATEGY_CONFIDENCE + _CMD_DELTA ))
+            if [[ $_CMD_DELTA -gt 0 ]]; then reason="$reason [written for '$_CMD': ranked $_ex_adj]"
+            elif [[ $_CMD_DELTA -lt 0 ]]; then reason="$reason [written for another command than '$_CMD': ranked $_ex_adj]"; fi
             # LINE COVERAGE of this candidate's extract (see _parse_coverage):
             # explain is a dry run, but a matching candidate's extract is the
             # only way to show how much of the input it would keep.
@@ -2606,12 +2813,12 @@ run_explain_mode () {
                 [[ -n "$_COV" ]] && _ex_cov="${_COV}%"
                 [[ -n "$_CONS" ]] && _ex_cons="${_CONS}%"
                 _ex_recs+="${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|${_COV}|${_CONS}|${_CONS_BAD}|${_CONS_COLS}|${_CONS_CELLS}|${_CONS_SIG}|${_CONS_RECS}"$'\n'
-                [[ -z "$_ex_top_cov" || "$_ex_conf" -gt "$_ex_top_conf" ]] && \
-                    { _ex_top_conf="$_ex_conf"; _ex_top_cov="${_COV:--}"; _ex_top_name="$strategy_name"; _ex_top_lines="$_COV_LINES"; _ex_top_res="$_ex_res"; }
+                [[ -z "$_ex_top_cov" || "$_ex_adj" -gt "$_ex_top_adj" ]] && \
+                    { _ex_top_conf="$_ex_conf"; _ex_top_adj="$_ex_adj"; _ex_top_cov="${_COV:--}"; _ex_top_name="$strategy_name"; _ex_top_lines="$_COV_LINES"; _ex_top_res="$_ex_res"; }
             fi
             # Sort key first (confidence, priority, name) — the order ranked
             # detection tries the candidates in; cut off before printing.
-            match_lines="${match_lines}${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_ex_conf" "$_ex_cov" "$_ex_cons" "$reason")"$'\n'
+            match_lines="${match_lines}${_ex_adj}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_ex_conf" "$_ex_cov" "$_ex_cons" "$reason")"$'\n'
             matched=$((matched + 1))
         else
             miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s' 'MISS' "$strategy_name" "$strategy_priority" '0' '-' '-' 'not applicable')"$'\n'
@@ -2642,6 +2849,11 @@ run_explain_mode () {
 
     echo ""
     echo "Tested: $tested  Matched: $matched  Skipped: $skipped"
+    case "$_CMD_STATE" in
+        used)  echo "Command: '$_CMD_SHOWN' — a strategy written for it ranks ${_CMD_BOOST} points higher, one written for another command ${_CMD_MARGIN} lower (the order above)." ;;
+        hint)  echo "Command hint: '$_CMD_SHOWN' — a strategy written for it ranks ${_CMD_BOOST} points higher (the order above); nothing ranks lower." ;;
+        relay) echo "Command: '$_CMD_SHOWN' only relays another command's output: not used." ;;
+    esac
     # COVERAGE HOLD preview: the top candidate (by confidence) to extract
     # something, when its coverage is low, is held and the rescue parsers run.
     if [[ "$_ex_top_cov" =~ ^[0-9]+$ ]]; then

@@ -6,6 +6,7 @@
 ## Description: sysstat tools (mpstat, sar, pidstat) — banner + timestamped table
 ## Version: 1.0
 ## Priority: 40
+## Commands: sar mpstat pidstat
 ## Sample: samples/sysstat/basic.txt
 
 strategy_detect () {

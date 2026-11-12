@@ -158,8 +158,14 @@ When a change can alter tidy output (any parser, `_helpers.sh`, `melt.sh`),
 run the corpus gate (CI-enforced) and review every golden it reports:
 
 ```bash
-bash tests/corpus/run.sh --golden   # ~3,500 real tools vs frozen tidy output
+bash tests/corpus/run.sh --golden --full   # ~3,500 real tools vs frozen tidy output, and full mode
 ```
+
+`--full` (PV-037) checks full mode, the path users get: an input whose
+full-mode winner is not `--generic`'s must be recorded in
+`tests/corpus/full-mode.tsv` with a reason, and keep meeting `expected.tsv`.
+After a deliberate change, `run.sh --update-full` rewrites the record and
+marks each new row's reason `TODO` until you write it.
 
 Add or update tests to cover any behavior you change. New extract strategies
 ship with their own sample + golden fixtures under `extract/`. Prefer, in

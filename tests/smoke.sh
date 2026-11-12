@@ -858,6 +858,35 @@ check "PROVOST_PLUGIN_DIR reaches 'run' detection too" "strategy frames" "$plug_
 badplug_out="$("$PROVOST" --plugin-dir /nonexistent/nowhere "$FRAMES_IN" 2>&1 || true)"
 check "--plugin-dir validates the directory up front" "plugin strategy dir not found" "$badplug_out"
 
+# THE COMMAND'S NAME (PV-037): `run` passes the command it ran to the engine;
+# --name passes a hint; a relay (cat) is ignored; meta.tsv records it. Fake
+# commands on PATH print real captures from the corpus.
+CMDBIN="$(mktemp -d)"
+printf '#!/bin/sh\ncat "%s"\n' "$HERE/corpus/inputs/mpstat.txt" > "$CMDBIN/mpstat"
+printf '#!/bin/sh\ncat "%s"\n' "$HERE/corpus/inputs/mpstat.txt" > "$CMDBIN/zz-report"
+chmod +x "$CMDBIN/mpstat" "$CMDBIN/zz-report"
+lastmeta () { cat "$WS/captures/$(ls "$WS/captures" | sort | tail -1)/meta.tsv"; }
+cn_out="$(PATH="$CMDBIN:$PATH" "$PROVOST" run --sync mpstat 2>&1)"
+check "run: the command's own parser files it (sysstat lists mpstat)" "strategy sysstat" "$cn_out"
+check "meta.tsv records the command's name" "command_name	mpstat" "$(lastmeta)"
+check "...and that it did not change the winner" "command_changed	no" "$(lastmeta)"
+check_not "...and no parser for another command won" "command_fit" "$(lastmeta)"
+cn_out="$(PATH="$CMDBIN:$PATH" "$PROVOST" run --sync zz-report 2>&1)"
+check "run: another command's parser still wins by a clear margin" "strategy sysstat" "$cn_out"
+check "meta.tsv says the winner is written for another command" "command_fit	sysstat is a parser written for another command than zz-report" "$(lastmeta)"
+NST_IN="$HERE/corpus/inputs/netstat-anp.txt"
+cn_out="$("$PROVOST" run --sync --name netstat -- cat "$NST_IN" 2>&1)"
+check "run --name netstat cat FILE: netstat -anp's 7-column table" "strategy aligned-columns" "$cn_out"
+check_not "...not pkg-config's two columns" "pkg-config" "$cn_out"
+check "cat is a relay: --name is the hint" "command_name	netstat (a name given, not a command run" "$(lastmeta)"
+cn_out="$("$PROVOST" --sync < "$NST_IN" 2>&1)"
+check "piped netstat -anp (no name) is the same table" "strategy aligned-columns" "$cn_out"
+check_not "a piped capture records no command name" "command_name" "$(lastmeta)"
+cn_out="$("$PROVOST" run --sync -- cat "$NST_IN" 2>&1)"
+check "run cat FILE (a relay, no --name) is detected as piped" "strategy aligned-columns" "$cn_out"
+check "...and says the relay was not used" "command_name	cat (relays another command's output: not used)" "$(lastmeta)"
+rm -rf "$CMDBIN"
+
 # Line coverage: a multi-section report that the ranked parse would cut to one
 # section is filed whole by the engine's rescue parser (kv-report), and the
 # capture records its line coverage; a capture still filed under 60% of its

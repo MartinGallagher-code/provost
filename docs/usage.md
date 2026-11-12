@@ -19,6 +19,38 @@ $ provost listen <cmd>                 # file <cmd>'s output every time it runs 
 Injected input has no command, so it is named after the parser that recognised
 it (`csv`, `json-array`, `aligned-columns`, …); `--name` sets the name for either.
 
+### The command's name is used in detection
+
+The format is still detected from the output itself, but when provost knows
+which command printed it, the name decides between the parsers that
+recognised the output (`provost-extract --command NAME`):
+
+- `provost run CMD …` and `provost listen` (which is a `run`) pass the command
+  they ran — looked through `sudo`, `env`, `nice` and the rest, as the dataset
+  name is. A **tool-specific** parser written for that command ranks 15 points
+  higher. A parser is written for the command when its name is the command or
+  starts with `COMMAND-` (`docker-ps` for `docker`, `git-log-graph` for `git`),
+  or its `## Commands:` header lists it (`sysstat`: `sar mpstat pidstat`); a
+  `hints.tsv` row whose tool is the command is preferred the same way. A
+  tool-specific parser written for **another** command ranks 20 points lower,
+  so it wins only by a clear margin. Generic parsers rank as they would
+  anyway: they read a format, whatever printed it.
+- `--name NAME` and a batch file's `NAME` are passed as a **hint**
+  (`--command-hint`): a name may be a command's or only a label (`cpu-load`),
+  so a parser written for it ranks higher but nothing ranks lower. With `run`,
+  the hint is used only when the command is a relay
+  (`provost run --name netstat cat saved.txt`).
+- A command that only relays another's output or prints given text — `cat`,
+  `echo`, `printf`, `ssh`, a shell, `grep`, `sort`, … — names no format and is ignored. Piped input with no
+  `--name` is detected by its content alone, as before.
+
+`meta.tsv` records `command_name` (with a note when it was a hint or a relay),
+`command_changed` — whether the name changed which parser ranked first
+(`yes: aligned-columns ranked first; without the name, pkg-config would have`)
+— and `command_fit` when the winner is a parser written for another command
+that won by the margin. `provost-extract explain --command NAME FILE` shows the
+ranking with the name.
+
 Capture flags (for `run` and inject):
 
 | flag | effect |

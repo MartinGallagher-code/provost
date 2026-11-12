@@ -2552,6 +2552,26 @@ _ingest_parse () {
     if [[ -n "${PROVOST_PLUGIN_DIR:-}" ]]; then
         eargs+=(--plugin-dir "$PROVOST_PLUGIN_DIR")
     fi
+    # THE COMMAND'S NAME (PV-037). `run` (and listen, which is a `run`) knows
+    # the command it ran (_RUN_CMD, set by cmd_run): it goes to the engine as
+    # --command. Detection is still by content; the name ranks what detected:
+    # a tool-specific parser written for the command first, one written for
+    # another command only by a clear margin. A name given with --name or a
+    # batch file's NAME may be a command's or only a label, so it goes as
+    # --command-hint: a parser written for it ranks higher, nothing lower (and
+    # it stands in for a relay: `provost run --name netstat cat saved.txt`). A
+    # relay (cat, ssh, a shell ...) is ignored. Piped input with no --name has
+    # no name, and is detected as it always was.
+    # cmd_name / cmd_state / cmd_top / cmd_raw / cmd_fit: the engine's
+    # __COMMAND_META__ (the name it used, used|hint|relay, what ranked first
+    # with it and without it, and how the winner stands to it).
+    local cmd_name="" cmd_state="" cmd_top="" cmd_raw="" cmd_fit="" cmd_given=0
+    if [[ -n "${_RUN_CMD:-}" ]]; then
+        eargs+=(--command "$_RUN_CMD"); cmd_given=1
+    fi
+    if [[ -n "$name" && "$name" != "${_RUN_CMD:-}" ]]; then
+        eargs+=(--command-hint "$name"); cmd_given=1
+    fi
 
     # The datasets this capture will file, each as a content FILE (header +
     # rows). A normal capture yields exactly one; --multi (PROVOST_MULTI=1) can
@@ -2632,6 +2652,10 @@ _ingest_parse () {
                 ${eargs[@]+"${eargs[@]}"} \
                 --emit-meta -f tsv --max-strategies 1 "$body" >"$tmp/wide.tsv" 2>"$metaf" || true
             _read_engine_meta "$metaf"
+        fi
+        if (( cmd_given )); then
+            IFS=$'\t' read -r cmd_name cmd_state cmd_top cmd_raw cmd_fit < <(awk -F'\t' \
+                '/^__COMMAND_META__/ { n = $2; s = $3; t = $4; r = $5; f = $6 } END { printf "%s\t%s\t%s\t%s\t%s\n", n, s, t, r, f }' "$metaf" 2>/dev/null) || true
         fi
 
         # Build the content to file (header + data rows), pre-#-index, for both
@@ -2765,6 +2789,7 @@ _ingest_parse () {
     local detection=""
     [[ -n "${reused:-}" ]] && detection="reused ($reused, from the batch's first input of this name)"
     declare -p ds_name ds_strategy ds_conf ds_file ds_cov ds_cons reason \
+        cmd_name cmd_state cmd_top cmd_raw cmd_fit \
         strategy conf cov tcons am_reason am_note am_cov am_kind am_model \
         single_strategy single_conf single_cov single_cons lm_reason lm_note \
         llm_reason llm_note llm_how llm_learned llm_audit llm_seen_how llm_seen_tpl ctxf detection \
@@ -2984,6 +3009,24 @@ _ingest_store () {
         fi
         if [[ -n "$renamed" ]]; then printf 'renamed_columns\t%s\n' "$(_meta_safe "$renamed")"; fi
         if [[ -n "${detection:-}" ]]; then printf 'detection\t%s\n' "$(_meta_safe "$detection")"; fi
+        # the command's name the engine used, and what it did (PV-037)
+        if [[ -n "${cmd_name:-}" ]]; then
+            case "${cmd_state:-}" in
+                used)  printf 'command_name\t%s\n' "$(_meta_safe "$cmd_name")" ;;
+                hint)  printf 'command_name\t%s\n' "$(_meta_safe "$cmd_name (a name given, not a command run: it only prefers a parser written for it)")" ;;
+                relay) printf 'command_name\t%s\n' "$(_meta_safe "$cmd_name (relays another command's output: not used)")" ;;
+            esac
+            if [[ "$cmd_state" != relay && -n "${cmd_top:-}" && "$cmd_top" != - && -n "${cmd_raw:-}" ]]; then
+                if [[ "$cmd_top" == "$cmd_raw" ]]; then
+                    printf 'command_changed\tno\n'
+                else
+                    printf 'command_changed\t%s\n' "$(_meta_safe "yes: $cmd_top ranked first; without the name, $cmd_raw would have")"
+                fi
+            fi
+            if [[ "$cmd_state" == used && "${cmd_fit:-}" == other ]]; then
+                printf 'command_fit\t%s\n' "$(_meta_safe "$strategy is a parser written for another command than $cmd_name; it won by the margin")"
+            fi
+        fi
         [[ -n "$redacted" ]] && printf 'redacted\t%s\n' "$redacted"
         [[ "$in_sha" =~ ^[0-9a-f]{64}$ ]] && printf 'input_sha256\t%s\n' "$in_sha"
         [[ "$in_bytes" =~ ^[0-9]+$ ]] && printf 'input_bytes\t%s\n' "$in_bytes"
@@ -3923,7 +3966,10 @@ cmd_run () {
     if [[ "$PROVOST_REDACT" == 1 ]]; then cmd="$(_scrub_text "$cmd" "$in.redacted")"; fi
     [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
     local name="$_O_NAME"
-    [[ -n "$name" ]] || name="$(_run_name "$@")"
+    # the command's name, for detection (PV-037; _ingest_parse): what was run,
+    # looked through sudo, env, nice ... as the dataset name is
+    _RUN_CMD="$(_run_name "$@")"
+    [[ -n "$name" ]] || name="$_RUN_CMD"
     _manifest_apply "$in" "$1" || exit 1
     if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"
     else _ingest "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"; fi
@@ -7430,9 +7476,11 @@ FOREGROUND AND BACKGROUND
 HOW A CAPTURE IS FILED
     1. A leading run of '#%' lines is set aside as context (METADATA PROLOGUE).
     2. Every extract strategy scores the input; exact formats and
-       tool-specific parsers outrank generic ones. The engine may swap its
-       top generic parse for one that keeps more lines (LINE COVERAGE) or
-       types its columns better (COLUMN-TYPE CONSISTENCY).
+       tool-specific parsers outrank generic ones. When provost knows the
+       command (run, listen, --name, a batch file's NAME), its name ranks
+       what scored (THE COMMAND'S NAME). The engine may swap its top
+       generic parse for one that keeps more lines (LINE COVERAGE) or types
+       its columns better (COLUMN-TYPE CONSISTENCY).
     3. No match, or below --min-confidence: held in 'unsorted', with the
        reason.
     4. A generic parse is checked by the QUALITY GATE. A template for the
@@ -7442,6 +7490,26 @@ HOW A CAPTURE IS FILED
        reason.
     The whole input is kept with every capture, filed or held
     ('provost source').
+
+THE COMMAND'S NAME
+    The format is detected from the output; the command's name only ranks
+    the parsers that recognised it. 'provost run CMD' (and listen, which
+    runs it) passes CMD's name to the engine (looked through sudo, env, nice
+    ..., as the dataset name is). A tool-specific parser written for the
+    command (its name is the command or starts with COMMAND-, or its
+    '## Commands:' header lists it; a hints.tsv row whose tool is the
+    command likewise) ranks 15 points higher; one written for ANOTHER
+    command ranks 20 points lower, so it wins only by a clear margin.
+    Generic parsers rank as they would anyway. --name and a batch file's
+    NAME may be only a label, so they are a HINT: a parser written for the
+    name ranks higher, nothing lower (with run, only when the command is a
+    relay: 'provost run --name netstat cat saved.txt'). A relay (cat, echo,
+    printf, ssh, a shell, grep, sort ...) names no format and is ignored, as is piped
+    input with no --name. meta.tsv records 'command_name', 'command_changed'
+    (whether the name changed which parser ranked first: 'yes: X ranked
+    first; without the name, Y would have') and, when the winner is a parser
+    written for another command, 'command_fit'. 'provost-extract explain
+    --command NAME FILE' shows the ranking.
 
 LINE COVERAGE
     A capture reports its coverage: the share of the input's non-blank lines
