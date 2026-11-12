@@ -180,6 +180,13 @@ jobs:
         run: |
           python -m pip install numpy
           python -m unittest ml.tests.test_lm_numpy -v
+      # textfsm (the 'provost[textfsm]' extra) and PyYAML: TextFSM templates
+      # and ntc-templates' fixtures (ml/tests/test_templates.py, PV-039;
+      # quick-checks skips the cases that need textfsm)
+      - name: TextFSM templates
+        run: |
+          python -m pip install textfsm pyyaml
+          python -m unittest ml.tests.test_templates -v
       - name: build sdist + wheel
         run: python -m build
       - run: python -m twine check dist/*

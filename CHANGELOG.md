@@ -1,5 +1,92 @@
 # provost — Changelog
 
+## 2.20.0 — 2026-11-12 — templates without --llm: hand-written, tested, time-limited, and TextFSM (PV-039)
+
+`VERSION` 2.19.0 → 2.20.0, and the `man/provost.1` header. Minor: new
+options, a new command and an optional extra. A capture of a tool provost has
+a template for (one in the store, in your template directories, or shipped)
+is now read by that template without `--llm`; everything else is filed as
+before.
+
+- **Templates are applied without `--llm`** (`provost`: `_ingest_parse`,
+  `_llm_template`, new setting `PROVOST_TEMPLATES`, default `1`, and
+  `--templates` / `--no-templates`). A template in the store's
+  `llm-templates/`, in `PROVOST_TEMPLATE_DIRS` (new; `PROVOST_LLM_TEMPLATE_DIRS`,
+  the older name, is still read) or shipped is tried on every capture, at the
+  same two points and under the same gate as `--llm` used: on a capture the
+  gate would hold, and on a generic parse it passed. Without `--llm` nothing
+  is ever sent (no learning, no repair, no review, key or not), and a capture
+  with no template for it records nothing about templates. `--llm` now means
+  only "may have Claude write or extend one"; it is refused together with
+  `--no-templates` (exit 2). Offline mode (PV-019) is unchanged.
+- **`meta.tsv` names the template's file**: a new key, `template`
+  (`llm-templates/NAME.json`, `shipped:NAME.json`, or the library path),
+  beside `llm_template` (`_tpl_source`, shared with the ledger).
+- **A time limit per template** (`template.py`: `time_limit`, `timeout`,
+  `TemplateTimeout`; `PROVOST_TEMPLATE_TIMEOUT`, whole seconds, 1 to 3600,
+  default 10). A SIGALRM timer around applying a format-1 template (Python's
+  regular expressions check for signals while they backtrack, on 3.8 to
+  3.13); a format-2 parser's wall-clock limit is the same setting (it was a
+  fixed 10 s). `find` gives each template its own limit and reports the ones
+  it passes over (`declined` lines on stderr), `apply`, `misses` and `audit`
+  run under one. A template past the limit is declined, `meta.tsv` says so
+  (`llm_template declined: template X.json does not fit: it took longer than
+  10s on this capture ...`), and the capture is read without it. `(a+)+$` on
+  a 4,000-character line is declined at the limit.
+- **`provost template test TEMPLATE CAPTURE [EXPECTED.tsv] [--tables]`**
+  (new verb, `cmd_template`; `template.py test`): applies a template to a
+  saved capture and prints the line its detect pattern matches, its coverage
+  under the skip audit, each table, the set-aside kinds not judged
+  decoration (quoted, to paste into `decoration`) and every unread line.
+  `--tables` prints the tables alone; with `EXPECTED` it diffs. Exit 0 when
+  it reads the capture (and the tables match), 1 when it does not (no tables,
+  a difference, the time limit, a TextFSM `Error` rule), 2 when it cannot be
+  tried. A new verb, the ticket's suggested answer to its question 2.
+- **TextFSM templates** (`template.py`: `_run_textfsm`, `load` reads
+  `NAME.textfsm`; the optional extra `pip install 'provost[textfsm]'`, which
+  `pyproject.toml` now declares). The ticket's suggested answer to its
+  question 1, option (b). A `NAME.textfsm` file in one of the template
+  directories is used for a capture named for it (it has no detect pattern,
+  so `find` passes it over). One table, named after the template; columns
+  are the Values lower-cased; a List value's items are joined with `, `. Each
+  line is classified as TextFSM runs (read: a rule with a Value matched;
+  skipped: only rules without one; unread: none). An `Error` rule declines
+  it. Its coverage is recorded but not compared with the engine's (it picks
+  the values it names and passes the rest by; the lines it does not read go
+  to `NAME.notes`); its table still passes the gate's shape checks. Claude
+  never extends or reviews one. Templates run under `PROVOST_PYTHON` (the pip
+  launcher's interpreter, where the extra installs textfsm). ntc-templates'
+  `cisco_ios_show_version` now files one 18-field record (it was
+  `text-lines`) and `cisco_ios_show_interfaces` 9 records of 42 fields (it
+  was `csv`), exactly as ntc-templates' own `.yml` fixtures expect.
+- **`apply` prints the template's format** as a ninth field (`1`, `2` or
+  `textfsm`); `_llm_file` reads it, and now reports why `apply` failed
+  (it said "matches nothing" for every error).
+- **One interpreter start to choose a template** (`template.py pick`, new):
+  the name lookup and `find` in one call, where `_llm_template` made two
+  (`key`, then `find`). Every capture with a generic or held parse now pays
+  for it, `--llm` or not: about 60 ms, once.
+- **Docs:** `docs/templates.md` (new: the format for a person, a worked
+  example of a table and of a key/value block, several blocks, the skip
+  audit and `decoration`, notes, where provost looks and how the gate treats
+  a template, the time limit, testing, TextFSM, the settings), linked from
+  the README, `docs/usage.md` (a section, and the settings), `docs/index.md`,
+  `mkdocs.yml`, `provost help` and `provost help advanced` (the section is
+  now TEMPLATES), `man/provost.1` and the bash completion.
+- **Tests:** `ml/tests/test_templates.py` (new, 31 cases: the limit, the
+  timer cleared and the handler restored, the outermost limit, format 2's
+  limit, `find` declining, every `template test` exit code, the tables
+  format, `pick`, TextFSM reading, classifying, its `Error` rule and a
+  missing package, and ntc-templates' two fixtures; the 6 that run TextFSM skip
+  without it); CI's `python-package` job installs textfsm and PyYAML and runs
+  them. `ml/tests/data/ntc-templates/` vendors the two templates and their
+  `.raw`/`.yml` fixtures from ntc-templates 9.3.0 with their Apache-2.0
+  notice (`LICENSES/Apache-2.0.txt`, `REUSE.toml`). Smoke: a new part,
+  `templates` (38 checks; 39 with textfsm), and the `llm` part's "without
+  --llm the heuristic is filed" became "without --llm the stored template is
+  used, and nothing is sent" plus "--no-templates files the heuristic" (+2).
+  `test_llm_template.py`'s `apply` check takes the ninth field.
+
 ## 2.19.0 — 2026-11-11 — store lifecycle: prune by a retention policy, and archive (PV-029)
 
 `VERSION` 2.18.0 → 2.19.0, and the `man/provost.1` header. Minor: two new

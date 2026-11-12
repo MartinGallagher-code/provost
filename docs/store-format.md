@@ -129,8 +129,8 @@ STORE/
 │       ├── context.txt         its '#%' prologue (when it had one)
 │       ├── units.tsv           columns --units base added (when it did)
 │       └── annotations.txt     keys added after it ('provost annotate')
-├── llm-templates/              parsing templates Claude wrote for this store
-│   ├── TOOL.json, sig-HASH.json
+├── llm-templates/              parsing templates for this store (Claude's or a person's)
+│   ├── TOOL.json, sig-HASH.json, TOOL.textfsm
 │   └── STEM.seen.tsv           each template's ledger
 ├── context/manifest.tsv        a controlled directory's files (controlled only)
 └── CONTROLLED                  the controlled directory's path (controlled only)
@@ -269,6 +269,7 @@ Present when they apply:
 | `auto_multi`, `auto_multi_model_parts` | The input was segmented into parts (`segmented (KIND): REASON`), or segmenting was tried and declined (`declined: ...`). |
 | `layout_model` | `filed: ...` or `declined: ...`: whether the layout model filed it. |
 | `llm_template`, `llm_skip_audit` | `filed by ...` or `declined: ...`; what the template skipped. |
+| `template` | The template that filed it (2.20.0 on): `llm-templates/NAME.json`, `shipped:NAME.json`, or its path in a template directory (`PROVOST_TEMPLATE_DIRS`). |
 | `single_strategy`, `single_confidence`, `single_coverage`, `single_consistency` | The single parse that another route replaced, kept for the record. |
 | `plugin_dir` | The `--plugin-dir` in force. |
 | `context` | `context.txt`, when the capture has one. |
@@ -410,9 +411,12 @@ provost ignores the file, and a store with one is still format 4.
 
 ## Other files
 
-- **`llm-templates/`**: parsing templates written for this store
+- **`llm-templates/`**: parsing templates for this store, written
   by `--llm` (`TOOL.json`, or `sig-HASH.json` for a tool known by its output's
-  signature), and each template's ledger, `STEM.seen.tsv`, with the header
+  signature) or put there by a person (`TOOL.json`, or a TextFSM template
+  `TOOL.textfsm`; [docs/templates.md](templates.md)), and each template's
+  ledger, `STEM.seen.tsv` (written when a template from any directory files
+  one of its captures; from 2.20.0 with or without `--llm`), with the header
   `capture`, `how`, `template`, `read`, `unread`, `skipped`, `unjudged`,
   `input_sha256`: one line per capture the template filed. The template
   files' own format belongs to `extract/llm/` and is not part of this one.

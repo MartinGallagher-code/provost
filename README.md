@@ -133,6 +133,12 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
   `provost export --redact POLICY` writes a copy with each one replaced by a
   stable pseudonym from a key that stays behind, so the copy still joins
   ([docs/usage.md](docs/usage.md#secrets-and-redaction)).
+- **Your own parsers** — for output provost reads badly, write a template by
+  hand: a small JSON file of regular expressions, one per kind of line. provost
+  applies it to every capture it fits, offline, no `--llm` needed;
+  `provost template test` tries it on a saved capture and diffs its tables
+  against the expected ones. TextFSM templates (ntc-templates) work too, with
+  `pip install 'provost[textfsm]'`. See [docs/templates.md](docs/templates.md).
 - **Analyze** — `provost stats <dataset>` runs the vendored analyze engine.
 
 ## Command reference
@@ -167,6 +173,8 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost store check [DIR]` | check a store against the [store format](docs/store-format.md); reads only |
 | `provost prune --policy FILE [--yes]` | dispose of captures a retention policy no longer keeps (a dry run without `--yes`); each disposal logged in `disposals.tsv` |
 | `provost archive --to DIR --before DATE [--purge --yes]` / `archive verify DIR` / `archive import DIR [DEST]` | a verifiable (and, with `PROVOST_SIGN`, signed) archive of older captures; re-imported read-only |
+| `provost template test T CAPTURE [EXPECTED.tsv]` | try parsing template `T` on a saved capture: its tables, coverage and unread lines; with `EXPECTED`, a diff (exit 1 on a difference; `--tables` prints what `EXPECTED` holds; [docs/templates.md](docs/templates.md)) |
+| `… --no-templates` | don't apply a parsing template for this tool (inject/run/batch; on by default) |
 | `provost help` / `help advanced` / `<command> --help` | short help / full reference / one command's usage |
 
 Every dataset row carries `#` (its number in the store), `capture` (the
@@ -275,8 +283,11 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_AUTO_MULTI` | `1` | segment a parse the quality gate would hold, when the parts are clearly better (`0` = hold it; same as `--no-auto-multi`) |
 | `PROVOST_MODEL` | `0` | `1` = when the gate would still hold a parse, try the learned layout model and file its table if it passes the same gate (needs `python3`; same as `--model`) |
 | `PROVOST_LAYOUT_LM` | unset | the tiny LM `--model` labels with: a model directory, or unset for the installed `provost-model` package (`pip install provost[lm]`); `0` = the trees only |
-| `PROVOST_PYTHON` | `python3` | the interpreter that runs the layout model (the pip launcher sets it to its own) |
-| `PROVOST_LLM` | `0` | `1` = parse with a template Claude wrote for that tool (regexes, or a small boxed Python parser for records that span lines; stored in the store's `llm-templates/`, or shipped), before a generic parse is trusted or a capture held; with no fitting template and an API key, ask Claude to write one. Writing one sends the capture to the Anthropic API, once per tool; lines a template sets aside that still carry a word or a number (titles, version banners, summary counts, errors) are filed beside its datasets as `NAME.notes`, never dropped; later captures of the tool are parsed offline, except one that shows a kind of line the template has not met, which (with a key) is sent once with the template's earlier captures so Claude can extend it (repair; kept only if it still reads every capture it was written from). A skipped line that carries a word or a number counts as covered only once Claude has judged its kind decoration (the skip audit: a count and a sample, shown once); each template's captures are recorded in `llm-templates/NAME.seen.tsv` (same as `--llm`) |
+| `PROVOST_PYTHON` | `python3` | the interpreter that runs the layout model and the templates (the pip launcher sets it to its own, where `pip install 'provost[textfsm]'` puts textfsm) |
+| `PROVOST_TEMPLATES` | `1` | apply a parsing template that fits (one you wrote, one Claude wrote, or one shipped: [docs/templates.md](docs/templates.md)) before a generic parse is trusted or a capture held; nothing is sent anywhere. `0` = don't (same as `--no-templates`) |
+| `PROVOST_TEMPLATE_DIRS` | — | colon-separated directories of your own templates, looked in after the store's `llm-templates/` and before the ones shipped with provost |
+| `PROVOST_TEMPLATE_TIMEOUT` | `10` | seconds one template may take on one capture (a regular expression that backtracks); past it, the template is declined and `meta.tsv` says why |
+| `PROVOST_LLM` | `0` | `1` = when no template fits (regexes, or a small boxed Python parser for records that span lines; stored in the store's `llm-templates/`, or shipped) and an API key is set, ask Claude to write one. Writing one sends the capture to the Anthropic API, once per tool; lines a template sets aside that still carry a word or a number (titles, version banners, summary counts, errors) are filed beside its datasets as `NAME.notes`, never dropped; later captures of the tool are parsed offline, except one that shows a kind of line the template has not met, which (with a key) is sent once with the template's earlier captures so Claude can extend it (repair; kept only if it still reads every capture it was written from). A skipped line that carries a word or a number counts as covered only once Claude has judged its kind decoration (the skip audit: a count and a sample, shown once); each template's captures are recorded in `llm-templates/NAME.seen.tsv` (same as `--llm`) |
 | `PROVOST_LLM_MODEL` | `claude-opus-5-5` | the model that writes templates |
 | `PROVOST_LLM_JUDGE` | `1` | after Claude writes or extends a template, one more call reviews the tables it makes of the capture and answers PASS or up to five structural fixes (a parent the rows do not keep, a record split across tables, a header half applied, a line kind misread), fed back to the writer once; the revision is kept only if it reads at least as well and passes the gate. The verdict is stored in the template. `0` = no review |
 | `PROVOST_LLM_API` | `anthropic` | the API `--llm` speaks: `anthropic` (the Messages API) or `openai` (Chat Completions, for OpenAI-compatible and local servers: vLLM, llama.cpp's server, Ollama, an Azure deployment). The prompt is the same either way, and every template passes the same gate before it is kept |
@@ -284,7 +295,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_LLM_BASE_URL` | `https://api.anthropic.com` | API base URL; `openai` needs one (e.g. `http://127.0.0.1:8000/v1`) |
 | `PROVOST_LLM_OFFLINE` | `0` | `1` = `--llm` never opens a network connection, whatever key or URL is set: stored templates are used, nothing is sent to be written or extended, and the note says offline mode stopped it. A file named `llm-offline` at the top of a store does the same for that store (committed with the next capture; no environment turns it off) |
 | `PROVOST_LLM_ALLOW_HOSTS` | — | the only hosts `--llm` may send to (comma-separated); a base URL on any other host is refused before anything is sent |
-| `PROVOST_LLM_TEMPLATE_DIRS` | — | colon-separated directories of templates to look in after the store's `llm-templates/` and before the ones shipped with provost |
+| `PROVOST_LLM_TEMPLATE_DIRS` | — | the older name of `PROVOST_TEMPLATE_DIRS` (both are read) |
 | `PROVOST_LLM_LOG` | — | a file to append one JSON line per API reply to (purpose, tool, API, model, token usage), to add up what `--llm` cost |
 | `PROVOST_MAX_INPUT` | `10485760` | max input bytes parsed (inject and `run`); a larger input is kept whole, outside git, by hash |
 | `PROVOST_OVERSIZE` | `keep` | `refuse` = refuse an input over the cap, as before 2.15.0 (same as `--refuse-oversize`) |

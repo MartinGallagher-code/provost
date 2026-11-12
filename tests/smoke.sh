@@ -14,6 +14,7 @@ unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIE
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
       PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY \
       PROVOST_LLM_API PROVOST_LLM_OFFLINE PROVOST_LLM_ALLOW_HOSTS \
+      PROVOST_TEMPLATES PROVOST_TEMPLATE_DIRS PROVOST_LLM_TEMPLATE_DIRS PROVOST_TEMPLATE_TIMEOUT PROVOST_PYTHON \
       PROVOST_MANIFEST_PROFILE PROVOST_MANIFEST_STRICT PROVOST_REDACT PROVOST_ENV PROVOST_ENV_VARS \
       PROVOST_OVERSIZE PROVOST_ARTIFACT_DIR \
       PROVOST_SIGN PROVOST_SIGNING_KEY PROVOST_OPERATOR PROVOST_OBJECT_FORMAT PROVOST_ALLOWED_SIGNERS \
@@ -1160,14 +1161,19 @@ if command -v python3 >/dev/null 2>&1; then
     check "an extension that loses a capture beyond the examples is refused" "on another capture it was written from (1 of 1, not shown above) it no longer reads 1 line(s) the template read" "$lt_out"
     check "that capture is checked, not sent" "0" "$(head -n 1 "$LTD/log" | grep -c '/var/log')"
     check "the stored template is used as it was, after one more try" "2 read by template volumes.json (Claude could not extend it" "$(wc -l < "$LTD/log" | tr -d ' ') $(printf '%s\n' "$lt_out" | grep -o 'read by template volumes.json (Claude could not extend it')"
-    # without --llm the heuristic is filed as before
-    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --name volumes "$LTD/vol.txt" 2>&1)"
-    check "without --llm the heuristic is filed" "strategy aligned-columns" "$lt_out"
+    # without --llm the stored template is still used (PV-039), and nothing
+    # is sent even with a key; --no-templates files the heuristic as before
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --name volumes "$LTD/vol.txt" 2>&1)"
+    check "without --llm the stored template is used" "read by template volumes.json." "$lt_out"
+    check_not "...and nothing is sent to extend it" "Claude" "$lt_out"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --no-templates --name volumes "$LTD/vol.txt" 2>&1)"
+    check "--no-templates files the heuristic" "strategy aligned-columns" "$lt_out"
     # with no key and no template (a fresh store), a generic parse the gate
     # passed is filed as it was, quietly; meta.tsv records why
     lt_out="$(PROVOST_WORKSPACE="$LTD/.fresh" "$PROVOST" --sync --llm --name other-vols "$LTD/vol.txt" 2>&1)"
     check "no key: the passed heuristic is filed as it was" "strategy aligned-columns" "$lt_out"
-    check_not "no key: no LLM note on a filed heuristic" "no LLM template helped" "$lt_out"
+    check_not "no key: no template note on a filed heuristic" "no template helped" "$lt_out"
     check "meta says why no template was used" "llm_template	declined: no stored template fits; no API key" "$(cat "$LTD/.fresh/captures/c0001/meta.tsv")"
     # NOTES: a template that sets prose aside as decoration may now beat a
     # CATCH-ALL parse (text-lines keeps every line): the lines it skips that
@@ -1391,6 +1397,97 @@ EOP
     check "allow-hosts: a host not listed is refused" "is not in PROVOST_LLM_ALLOW_HOSTS (llm.internal): nothing was sent" "$lt_out"
     check "allow-hosts: nothing reached the server" "0" "$(wc -l < "$LTD/olog" | tr -d ' ')"
     kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+fi
+fi
+
+if _part templates; then
+# HAND-WRITTEN TEMPLATES (PV-039): a template in the store, in
+# PROVOST_TEMPLATE_DIRS or shipped is applied with no --llm (nothing is
+# sent); --no-templates turns that off; a template past
+# PROVOST_TEMPLATE_TIMEOUT is declined with the reason; `provost template
+# test` tries one on a saved capture. docs/templates.md.
+TPD="$(mktemp -d)"; TPS="$HERE/../extract/samples/llm-template/basic.txt"
+tp () { PROVOST_WORKSPACE="$TPD/.st" "$PROVOST" "$@"; }
+check "PROVOST_TEMPLATES must be 0 or 1" "2" "$(PROVOST_TEMPLATES=2 rc_of "$PROVOST" --sync "$TPS")"
+check "PROVOST_TEMPLATE_TIMEOUT must be whole seconds" "2 2 2" "$(PROVOST_TEMPLATE_TIMEOUT=0 rc_of "$PROVOST" --sync "$TPS") $(PROVOST_TEMPLATE_TIMEOUT=1.5 rc_of "$PROVOST" --sync "$TPS") $(PROVOST_TEMPLATE_TIMEOUT=3601 rc_of "$PROVOST" --sync "$TPS")"
+check "--no-templates is documented" "--no-templates" "$("$PROVOST" inject --help 2>&1)"
+check "--llm cannot run with --no-templates" "cannot run with --no-templates" "$(tp --sync --llm --no-templates "$TPS" 2>&1)"
+check "...nor can batch" "2" "$(rc_of tp batch --llm --no-templates "$TPS")"
+if command -v python3 >/dev/null 2>&1; then
+    # a shipped template, no --llm
+    tp_out="$(tp --sync "$TPS" 2>&1)"
+    check "a shipped template reads its tool's output without --llm" "mcstatus.players  #1..9  (strategy llm-template" "$tp_out"
+    check "meta names the template's file" "template	shipped:mcstatus.json" "$(cat "$TPD/.st/captures/c0001/meta.tsv")"
+    tp_out="$(tp --sync --no-templates "$TPS" 2>&1)"
+    check "--no-templates: the engine's parse" "strategy aligned-columns" "$tp_out"
+    check_not "...and meta says nothing of templates" "template" "$(cat "$TPD/.st/captures/c0002/meta.tsv")"
+    check "PROVOST_TEMPLATES=0 is --no-templates" "strategy aligned-columns" "$(PROVOST_TEMPLATES=0 tp --sync "$TPS" 2>&1)"
+    # a template written by hand, in the user's own library
+    mkdir -p "$TPD/lib" "$TPD/old"
+    printf 'Volumes on host alpha\nNAME     SIZE   USED   MOUNT\ndata     500G   120G   /srv/data\nbackup   2T     1.5T   /srv/backup\nlogs     100G   80G    /var/log\n' > "$TPD/vol.txt"
+    printf '%s\n' '{"format": 1, "tool": "volumes", "detect": "^Volumes on host ", "skip": ["^Volumes on host "],' \
+        ' "decoration": ["Volumes a"], "blocks": [{"name": "volumes", "kind": "table", "header": "^NAME\\s+SIZE",' \
+        '  "line": "^(?P<name>\\S+)\\s+(?P<size>\\S+)\\s+(?P<used>\\S+)\\s+(?P<mount>/\\S*)$"}]}' > "$TPD/lib/volumes.json"
+    tp_out="$(tp --sync --name vols "$TPD/vol.txt" 2>&1)"
+    check "with no template for it, the engine's parse" "strategy aligned-columns" "$tp_out"
+    check_not "...and nothing is said of templates" "template" "$(cat "$TPD/.st/captures/c0004/meta.tsv")"
+    tp_out="$(PROVOST_TEMPLATE_DIRS="$TPD/lib" PROVOST_LLM_API_KEY=k-test PROVOST_LLM_BASE_URL="http://127.0.0.1:9" \
+        tp --sync --name vols2 "$TPD/vol.txt" 2>&1)"
+    check "a hand-written template in PROVOST_TEMPLATE_DIRS is applied" "read by template volumes.json." "$tp_out"
+    check "...its rows filed" "backup	2T	1.5T	/srv/backup" "$(cat "$TPD/.st/datasets/vols2.tsv")"
+    check "...its banner kept in the notes" "Volumes on host alpha" "$(cat "$TPD/.st/datasets/vols2.notes.tsv")"
+    check "...meta names its file" "template	$TPD/lib/volumes.json" "$(cat "$TPD/.st/captures/c0005/meta.tsv")"
+    check "...the store's ledger records it" "c0005	read	$TPD/lib/volumes.json" "$(cat "$TPD/.st/llm-templates/volumes.seen.tsv")"
+    check_not "...and nothing was sent, key or not" "Claude" "$tp_out"
+    cp "$TPD/lib/volumes.json" "$TPD/old/"
+    check "PROVOST_LLM_TEMPLATE_DIRS, the older name, is read too" "read by template volumes.json." \
+        "$(PROVOST_LLM_TEMPLATE_DIRS="$TPD/old" tp --sync --name vols3 "$TPD/vol.txt" 2>&1)"
+    # by name, with no detect pattern
+    python3 -c 'import json, sys; t = json.load(open(sys.argv[1])); t.pop("detect"); json.dump(t, open(sys.argv[2], "w"))' \
+        "$TPD/lib/volumes.json" "$TPD/old/byname.json"
+    check "a template with no detect is used for a capture named for it" "read by template byname.json." \
+        "$(PROVOST_TEMPLATE_DIRS="$TPD/old" tp --sync --name byname "$TPD/vol.txt" 2>&1)"
+    # THE TIME LIMIT: (a+)+$ on a long line backtracks for hours
+    mkdir -p "$TPD/slow"
+    printf '%s\n' '{"format": 1, "tool": "slow", "detect": "^Volumes on host ", "blocks": [{"name": "x", "kind": "table", "line": "^Volumes on host (?P<h>(a+)+)$"}]}' > "$TPD/slow/slow.json"
+    python3 -c 'print("Volumes on host " + "a" * 3000 + "!")' > "$TPD/slowvol.txt"; tail -n 4 "$TPD/vol.txt" >> "$TPD/slowvol.txt"
+    _t0=$SECONDS
+    tp_out="$(PROVOST_TEMPLATE_DIRS="$TPD/slow" PROVOST_TEMPLATE_TIMEOUT=1 tp --sync --name slowvol "$TPD/slowvol.txt" 2>&1)"
+    check "a template past the time limit is declined in seconds" "yes" "$( (( SECONDS - _t0 < 30 )) && echo yes || echo "no: $((SECONDS - _t0))s")"
+    check "...the capture falls through to the engine" "strategy aligned-columns" "$tp_out"
+    check "...and meta says why" "llm_template	declined: template slow.json does not fit: it took longer than 1s on this capture (the limit, PROVOST_TEMPLATE_TIMEOUT)" \
+        "$(cat "$TPD/.st/captures/c0008/meta.tsv")"
+    # provost template test
+    check "template --help" "usage: provost template test TEMPLATE CAPTURE" "$("$PROVOST" template --help 2>&1)"
+    check "template with no command is its usage" "2" "$(rc_of "$PROVOST" template test)"
+    check "an unknown template command is refused" "there is one, test" "$("$PROVOST" template frob 2>&1)"
+    tp_out="$("$PROVOST" template test "$TPD/lib/volumes.json" "$TPD/vol.txt" 2>&1)"
+    check "template test prints the tables" "table 1: volumes (table, 3 rows, read from lines 2-5)" "$tp_out"
+    check "...and the coverage" "coverage   100% of 5 non-blank lines: 4 read, 1 skipped" "$tp_out"
+    "$PROVOST" template test --tables "$TPD/lib/volumes.json" "$TPD/vol.txt" > "$TPD/vol.expected.tsv"
+    check "--tables is what EXPECTED holds" "name	size	used	mount" "$(head -n 1 "$TPD/vol.expected.tsv")"
+    check "the same tables: exit 0" "0" "$(rc_of "$PROVOST" template test "$TPD/lib/volumes.json" "$TPD/vol.txt" "$TPD/vol.expected.tsv")"
+    sed 's/1\.5T/1.4T/' "$TPD/vol.expected.tsv" > "$TPD/vol.bad.tsv"
+    check "other tables: exit 1" "1" "$(rc_of "$PROVOST" template test "$TPD/lib/volumes.json" "$TPD/vol.txt" "$TPD/vol.bad.tsv")"
+    check "...with a diff" "+backup	2T	1.5T	/srv/backup" "$("$PROVOST" template test "$TPD/lib/volumes.json" "$TPD/vol.txt" "$TPD/vol.bad.tsv" 2>&1)"
+    check "a capture on stdin" "0" "$(rc_of "$PROVOST" template test "$TPD/lib/volumes.json" - < "$TPD/vol.txt")"
+    check "a template that reads nothing: exit 1" "1" "$(rc_of "$PROVOST" template test "$TPD/lib/volumes.json" "$TPS")"
+    check "past the time limit: exit 1" "1" "$(PROVOST_TEMPLATE_TIMEOUT=1 rc_of "$PROVOST" template test "$TPD/slow/slow.json" "$TPD/slowvol.txt")"
+    check "a file that is not there: exit 2" "2" "$(rc_of "$PROVOST" template test "$TPD/nope.json" "$TPD/vol.txt")"
+    # TEXTFSM: ntc-templates' show version, by name
+    NTC="$HERE/../ml/tests/data/ntc-templates"; mkdir -p "$TPD/tfsm"; cp "$NTC/cisco_ios_show_version.textfsm" "$TPD/tfsm/"
+    tp_out="$(PROVOST_TEMPLATE_DIRS="$TPD/tfsm" tp --sync --name cisco_ios_show_version "$NTC/cisco_ios_show_version.raw" 2>&1)"
+    if python3 -c 'import textfsm' 2>/dev/null; then
+        check "a TextFSM template named for the capture reads it" "read by template cisco_ios_show_version.textfsm." "$tp_out"
+        check "...one record, ntc-templates' fields" "router1" "$(cat "$TPD/.st/datasets/cisco_ios_show_version.tsv")"
+        check "template test diffs a TextFSM template too" "the tables match" \
+            "$("$PROVOST" template test "$NTC/cisco_ios_show_version.textfsm" "$NTC/cisco_ios_show_version.raw" "$NTC/cisco_ios_show_version.tsv" 2>&1)"
+    else
+        echo "  (textfsm is not installed: the TextFSM template is declined, and says how to install it)"
+        check "a TextFSM template without textfsm is declined, saying how" "pip install 'provost[textfsm]'" \
+            "$(cat "$TPD/.st/captures/c0009/meta.tsv")"
+        check "template test: exit 2" "2" "$(rc_of "$PROVOST" template test "$NTC/cisco_ios_show_version.textfsm" "$NTC/cisco_ios_show_version.raw")"
+    fi
 fi
 fi
 

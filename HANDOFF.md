@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.19.0 is everything through 2026-11-11** (`VERSION`, man header,
-the `## 2.18.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.20.0 is everything through 2026-11-12** (`VERSION`, man header,
+the `## 2.20.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -25,15 +25,17 @@ versioned spec, `provost store check` and reads that never touch a store
 endpoints, and an offline mode (PV-019, Next steps 1k; 2.17.0); signed
 captures, the operator trailer and SHA-256 stores (PV-027, Next steps 1l;
 2.18.0); store lifecycle, `prune` by a retention policy and `archive`
-(PV-029, Next steps 1m; 2.19.0). 2.4.0 added `provost
+(PV-029, Next steps 1m; 2.19.0); templates applied without `--llm`,
+hand-written, tested with `provost template test`, time-limited, and TextFSM
+(PV-039, Next steps 1n; 2.20.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.19.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.19.0`, not both). Either way the release workflow
-now also attaches the offline bundle to the GitHub release `v2.19.0`, creating
+2.20.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.20.0`, not both). Either way the release workflow
+now also attaches the offline bundle to the GitHub release `v2.20.0`, creating
 that release on a dispatched run.
 
 **2.16.0: the store format as a spec (PV-022, 2026-11-11; not published).**
@@ -350,6 +352,28 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1n. **2026-11-12: templates without `--llm`** (PV-039, 2.20.0). A template in
+    the store's `llm-templates/`, `PROVOST_TEMPLATE_DIRS` or shipped is
+    applied to every capture it fits, under the same gate, with no `--llm`
+    (`PROVOST_TEMPLATES=1`, the default; `--no-templates` turns it off);
+    without `--llm` nothing is sent. `--llm` now only lets Claude write or
+    extend one, and is refused with `--no-templates`. `docs/templates.md`
+    documents format 1 for a person. `provost template test T CAPTURE
+    [EXPECTED.tsv]` prints tables, coverage and unread lines and diffs
+    (ntc-templates' `.raw`/`.yml` pattern). `PROVOST_TEMPLATE_TIMEOUT` (10 s)
+    bounds one template on one capture (a SIGALRM timer; format 2's limit is
+    the same setting); past it the template is declined with the reason in
+    `meta.tsv`. `meta.tsv` gains `template` (the file). TextFSM templates
+    (`NAME.textfsm`, the optional `provost[textfsm]` extra, run under
+    `PROVOST_PYTHON`) are used by name; their coverage is recorded, not
+    compared, since they pick values and pass the rest by (unread lines go to
+    `NAME.notes`). The ticket's two questions were taken at their suggested
+    answers (a new verb; TextFSM as an optional dependency), for the owner to
+    confirm in review. **Open:** ntc-templates' index (which template for
+    which command) is not read: a TextFSM template is used only for a capture
+    named for it; the command-name ticket (PV-037) is where that belongs.
+    Column types are PV-040.
 
 1m. **2026-11-11: store lifecycle, `prune` and `archive`** (PV-029, 2.19.0).
     `provost prune --policy FILE` disposes of what a retention policy no
