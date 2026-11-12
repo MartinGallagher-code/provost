@@ -204,7 +204,9 @@ Filtering & Selection:
                           and is ignored. With --emit-meta, a second stderr line:
                           __COMMAND_META__<TAB>name<TAB>used|hint|relay<TAB>first<TAB>without<TAB>fit
                           (what ranked first with the name and without it; fit:
-                          for, other or generic -- how the winner stands to NAME)
+                          for, other, shared or generic -- how the winner stands
+                          to NAME). `## Commands: *` marks a strategy that reads
+                          a format many tools print (csvlook): never demoted.
   --command-hint NAME     A name that may be the command's -- provost's --name or
                           a batch file's NAME, which can as well be a label: a
                           strategy (or hints.tsv row) written for it ranks 15

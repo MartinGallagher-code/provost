@@ -235,7 +235,9 @@ lib/_discovery.sh):
   command when its file name or `## Name:` is the command or starts with
   `COMMAND-` (`docker-ps` for `docker`), or its `## Commands:` header lists the
   command — the header is for a strategy that reads a sibling tool's output
-  too (`sysstat`: `sar mpstat pidstat`; `iptables-nat`: `ip6tables`);
+  too (`sysstat`: `sar mpstat pidstat`; `iptables-nat`: `ip6tables`), and
+  `*` in it marks a strategy that reads a format many tools print, which the
+  name never ranks lower (`csvlook`: any Markdown pipe table);
 - a tool-specific strategy written for **another** command ranks **20 points
   lower**: it wins only by a clear margin (a strong 92-point signature still
   beats a structural 60–69 parse, but not a format-specific generic parser at
@@ -257,7 +259,8 @@ hint row is passed over; it is used when there is no `--command`, or the
 skipped only when its ceiling can beat neither the best adjusted nor the best
 raw confidence. With `--emit-meta` the engine prints
 `__COMMAND_META__<TAB>name<TAB>used|hint|relay<TAB>first<TAB>without<TAB>fit`
-(fit: `for`, `other`, `generic` — how the winner stands to the name);
+(fit: `for`, `other`, `shared`, `generic` — how the winner stands to the
+name);
 `--batch-commands` reads `PATH<TAB>COMMAND` lines in batch mode (the corpus
 harness's `PROVOST_CORPUS_COMMANDS=1`). `tests/test_command.sh` pins it.
 

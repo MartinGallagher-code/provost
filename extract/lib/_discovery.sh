@@ -638,7 +638,9 @@ _hint_presence () {
 #     this command ranks _CMD_BOOST points higher. It is written for the
 #     command when its file name or `## Name:` is the command or starts with
 #     COMMAND- (docker-ps for docker, git-log-graph for git), or its
-#     `## Commands:` header lists the command (sysstat: sar mpstat pidstat);
+#     `## Commands:` header lists the command (sysstat: sar mpstat pidstat;
+#     `## Commands: *` -- a format many tools print, csvlook's Markdown
+#     tables -- exempts a strategy from the margin below);
 #   * a tool-specific strategy written for ANOTHER command ranks _CMD_MARGIN
 #     points lower: it wins only by a clear margin (pkg-config's shape
 #     heuristic, 79, no longer outranks the generic table parse of
@@ -715,19 +717,23 @@ _cmd_delta () {
     local f="$1"
     if [[ -n "${_CMD_DELTA_CACHE[$f]+x}" ]]; then _CMD_DELTA="${_CMD_DELTA_CACHE[$f]}"; return 0; fi
     if ! _is_generic_strategy_file "$f"; then
-        local n="${f##*/}" w _cd_for=0
+        local n="${f##*/}" w _cd_for=0 _cd_cmds=()
         n="${n%.sh}"
         read_strategy_metadata "$f"
+        # read -a, not an unquoted expansion: a `*` entry must not glob
+        read -r -a _cd_cmds <<< "${_META_COMMANDS//,/ }" || true
         if _cmd_names "$n" || _cmd_names "$_META_NAME"; then
             _cd_for=1
         else
-            for w in ${_META_COMMANDS//,/ }; do
+            for w in ${_cd_cmds[@]+"${_cd_cmds[@]}"}; do
                 w="${w,,}"; w="${w//_/-}"
                 [[ "$w" == "$_CMD" ]] && { _cd_for=1; break; }
             done
         fi
+        # `## Commands: *` -- a strategy that reads a format many tools print
+        # (csvlook: any Markdown pipe table) is never ranked lower by a name.
         if [[ $_cd_for -eq 1 ]]; then _CMD_DELTA=$_CMD_BOOST
-        elif [[ $_CMD_WEAK -eq 0 ]]; then _CMD_DELTA=$(( -_CMD_MARGIN )); fi
+        elif [[ $_CMD_WEAK -eq 0 && " ${_META_COMMANDS//,/ } " != *" * "* ]]; then _CMD_DELTA=$(( -_CMD_MARGIN )); fi
     fi
     _CMD_DELTA_CACHE[$f]=$_CMD_DELTA
 }
@@ -749,8 +755,9 @@ _cmd_rank_key () {
 # pinned -s run that ranks nothing). FIT: how the WINNER stands to the
 # command — for (a tool-specific strategy, or hint row, written for it),
 # other (a tool-specific strategy written for another command: it won by the
-# margin, or the name is only a hint), generic (a format parser, or a hint
-# row routing to one), or `-` (no winner, or a relay).
+# margin, or the name is only a hint), shared (one whose `## Commands: *`
+# says it reads a format many tools print), generic (a format parser, or a
+# hint row routing to one), or `-` (no winner, or a relay).
 _cmd_meta_line () {
     [[ -n "$_CMD_STATE" ]] || return 0
     local top="${_CMD_TOP:--}" raw="${_CMD_RAW_TOP:--}" fit="-" w="${_WINNER_NAME:-}"
@@ -760,7 +767,10 @@ _cmd_meta_line () {
             if _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then fit=generic
             else
                 _cmd_delta "$_FOUND_STRATEGY_FILE"
-                if (( _CMD_DELTA > 0 )); then fit=for; else fit=other; fi
+                read_strategy_metadata "$_FOUND_STRATEGY_FILE"
+                if (( _CMD_DELTA > 0 )); then fit=for
+                elif [[ " ${_META_COMMANDS//,/ } " == *" * "* ]]; then fit=shared
+                else fit=other; fi
             fi
         elif _cmd_names "$w"; then fit=for     # a hint tool, or a report name
         elif [[ -n "${_HINT_TOOL:-}" && "$w" == "${_HINT_TOOL:-}" ]] && find_strategy_file "${_HINT_STRATEGY:-}" 2>/dev/null \

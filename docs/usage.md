@@ -30,7 +30,9 @@ recognised the output (`provost-extract --command NAME`):
   name is. A **tool-specific** parser written for that command ranks 15 points
   higher. A parser is written for the command when its name is the command or
   starts with `COMMAND-` (`docker-ps` for `docker`, `git-log-graph` for `git`),
-  or its `## Commands:` header lists it (`sysstat`: `sar mpstat pidstat`); a
+  or its `## Commands:` header lists it (`sysstat`: `sar mpstat pidstat`;
+  `*` there marks one that reads a format many tools print, such as
+  `csvlook`'s Markdown tables, which no name ranks lower); a
   `hints.tsv` row whose tool is the command is preferred the same way. A
   tool-specific parser written for **another** command ranks 20 points lower,
   so it wins only by a clear margin. Generic parsers rank as they would

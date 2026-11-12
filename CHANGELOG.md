@@ -34,7 +34,10 @@ new options. Piped input with no `--name` is detected as before, except that
 - **`## Commands:` headers** for strategies that read a sibling tool's
   output: `sysstat` (sar, mpstat, pidstat), `iptables-nat` / `iptables-nvL`
   (ip6tables and the -legacy / -nft names), `fdisk` (sfdisk), `unzip`
-  (zipinfo), `docker-ps` (podman, nerdctl).
+  (zipinfo), `docker-ps` (podman, nerdctl). `*` marks a strategy that reads a
+  format many tools print, which no name ranks lower: `csvlook` (any Markdown
+  pipe table; without it, a Markdown table printed by any other command lost
+  csvlook to `pipe-table`, which splits on escaped pipes).
 - **`pkg-config` narrowed** (`extract/strategies/system/pkg-config.sh`, 1.1).
   Its shape heuristic ("a name, then text") claimed 60 of the corpus's 3,732
   inputs in full mode, none of them pkg-config output — `netstat -anp`,
@@ -61,7 +64,11 @@ new options. Piped input with no `--name` is detected as before, except that
   3,602 passed, 0 failed; full mode 3,703 passed, 0 failed, 29 gaps in both
   modes.
   `PROVOST_CORPUS_COMMANDS=1` runs the full pass with each input's command, as
-  `provost run` would.
+  `provost run` would: on the corpus the name changed the result of 10 of
+  3,732 inputs, all to a tidy result where the command derived from the
+  input's name is the real one (`git log --oneline` gets named columns from
+  `git-log`), the rest artefacts of deriving it (`nmap_sv`, `zip-info`).
+  Not in CI.
 - **Tests:** `extract/tests/test_command.sh` (new: ranking, hints, relays,
   pruning, batch, meta, the pkg-config inputs); `tests/smoke.sh` (run with the
   command's own parser, another command's, `--name` through a relay, piped).

@@ -362,8 +362,9 @@ Suites (all CI-enforced):
     tool-specific parser written for it (its name, a `COMMAND-` prefix, or a
     new `## Commands:` header: `sysstat` lists sar/mpstat/pidstat,
     `iptables-*` ip6tables, `fdisk` sfdisk, `unzip` zipinfo, `docker-ps`
-    podman/nerdctl) ranks 15 points higher, one written for another command
-    20 lower; generic parsers do not move. `--name` and a batch NAME are a
+    podman/nerdctl; `csvlook *`: a format many tools print, never demoted)
+    ranks 15 points higher, one written for another command 20 lower;
+    generic parsers do not move. `--name` and a batch NAME are a
     weaker `--command-hint` (boost only: a dataset name may be a label). A
     relay (cat, echo, printf, ssh, a shell, grep, sort ...) is ignored.
     `meta.tsv` records `command_name`, `command_changed` and `command_fit`.

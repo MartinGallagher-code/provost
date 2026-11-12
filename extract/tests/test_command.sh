@@ -100,6 +100,22 @@ test_commands_header_names_siblings () {
     assert_eq "cmdtest-generic" "$(_winner --plugin-dir "$pd" --command gamma-x "$f")" "## Commands: entries match exactly, not by prefix"
 }
 
+# `## Commands: *`: a format many tools print (csvlook's Markdown tables) is
+# never ranked lower by a name.
+test_commands_wildcard_is_never_demoted () {
+    _fixture wild
+    local f="$TMPDIR_C/wild/in.txt" pd; pd="$(_pd wild)"
+    sed -i 's/^## Commands: gamma, delta$/## Commands: gamma *, delta/' "$pd/tools/beta.sh"
+    rm -f "$pd/tools/alpha-report.sh"
+    sed -i 's/_STRATEGY_CONFIDENCE=70/_STRATEGY_CONFIDENCE=85/' "$pd/tools/beta.sh"
+    assert_eq "beta" "$(_winner --plugin-dir "$pd" --command zeta "$f")" "* : another command does not demote it (85 beats 80)"
+    assert_eq "$(printf 'zeta\tused\tbeta\tbeta\tshared')" "$(_cmeta --plugin-dir "$pd" --command zeta "$f")" "meta: fit shared"
+    assert_eq "beta" "$(_winner --plugin-dir "$pd" --command gamma "$f")" "a named command still boosts it"
+    # an unquoted * would glob: run from a directory full of files
+    ( cd "$SCRIPT_DIR" && assert_eq "beta" "$(_winner --plugin-dir "$pd" --command zeta "$f")" "* does not glob" )
+    assert_eq "csvlook" "$(_winner --command mytool "$CORPUS/quo-md-table-escaped-pipe.txt")" "csvlook keeps a Markdown table whatever printed it"
+}
+
 test_command_for_another_tool_needs_a_margin () {
     _fixture other
     local f="$TMPDIR_C/other/in.txt" pd; pd="$(_pd other)"
@@ -261,6 +277,7 @@ test_pkg_config_no_longer_claims_other_tools () {
 run_test "command: no name ranks by confidence" test_no_command_ranks_by_confidence
 run_test "command: a strategy written for the command wins" test_command_for_the_strategy_wins
 run_test "command: ## Commands: names siblings" test_commands_header_names_siblings
+run_test "command: ## Commands: * is never demoted" test_commands_wildcard_is_never_demoted
 run_test "command: another command's strategy needs a margin" test_command_for_another_tool_needs_a_margin
 run_test "command: --command-hint only boosts" test_command_hint_only_boosts
 run_test "command: relays are ignored" test_relay_is_ignored
