@@ -27,9 +27,10 @@ captures, the operator trailer and SHA-256 stores (PV-027, Next steps 1l;
 2.18.0); store lifecycle, `prune` by a retention policy and `archive`
 (PV-029, Next steps 1m; 2.19.0); templates applied without `--llm`,
 hand-written, tested with `provost template test`, time-limited, and TextFSM
-(PV-039, Next steps 1n; 2.20.0); the command's name used in detection,
-`pkg-config` narrowed and full mode checked in CI (PV-037, Next steps 1o;
-2.21.0). 2.4.0 added `provost
+(PV-039, Next steps 1n; 2.20.0); a survey of the tools near provost
+(PV-036, Next steps 1o; 2.20.1, docs only); the command's name used in
+detection, `pkg-config` narrowed and full mode checked in CI (PV-037, Next
+steps 1p; 2.21.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -355,7 +356,7 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-1o. **2026-11-12: the command's name in detection; full mode checked**
+1p. **2026-11-12: the command's name in detection; full mode checked**
     (PV-037, 2.21.0). Tools like jc, ntc-templates and Genie pick a parser by
     the command; provost knew the command (`run`, `listen`) and threw it
     away. Now `provost run` passes it to the engine (`--command`): a
@@ -380,6 +381,25 @@ Suites (all CI-enforced):
     quality gate (today it is only recorded, `command_fit`); a second CI pass
     with command names (`PROVOST_CORPUS_COMMANDS=1`); PV-039's templates could
     be looked up by the command too.
+
+1o. **2026-11-12: a survey of the tools near provost** (PV-036, 2.20.1, docs
+    only): [docs/research-2026-11-12-landscape.md](docs/research-2026-11-12-landscape.md).
+    It compares provost with over 50 tools in five groups and files five
+    Backlog tickets, in rank order:
+    - PV-037: pass the command name to the engine, stop `pkg-config`
+      claiming 60 other tools' output in full mode, and check full mode in
+      CI. The corpus gate tests `--generic` only.
+    - PV-038: keep what an interrupted `provost run` had captured. Ctrl-C or
+      SIGTERM keeps nothing today (`provost:408-409`).
+    - PV-039: hand-written templates applied without `--llm`, documented,
+      with `provost template test` and a regex time limit (since done:
+      1n, 2.20.0).
+    - PV-040: record each column's type once, at capture.
+    - PV-041: `provost show --format`, `--capture latest`, and a "Getting
+      data out" section.
+    Runners-up, changes to provost's shape (listed, not filed) and
+    quarterdeck's share are in the report. PV-006's pick (docs/0004) is still
+    open.
 
 1n. **2026-11-12: templates without `--llm`** (PV-039, 2.20.0). A template in
     the store's `llm-templates/`, `PROVOST_TEMPLATE_DIRS` or shipped is

@@ -2,7 +2,7 @@
 
 ## 2.21.0 — 2026-11-12 — the command's name used in detection, pkg-config narrowed, full mode checked in CI (PV-037)
 
-`VERSION` 2.20.0 → 2.21.0, and the `man/provost.1` header. Minor: what
+`VERSION` 2.20.1 → 2.21.0, and the `man/provost.1` header. Minor: what
 `provost run` files can change (for the better, by design), and the engine has
 new options. Piped input with no `--name` is detected as before, except that
 `pkg-config`'s parser no longer claims other tools' output.
@@ -75,7 +75,40 @@ new options. Piped input with no `--name` is detected as before, except that
 - **Docs:** `docs/usage.md` ("The command's name is used in detection"),
   `provost help advanced` and the man page (THE COMMAND'S NAME), the extract
   README, `tests/corpus/README.md`, `CLAUDE.md` (the corpus gate is `--golden
-  --full`), `HANDOFF.md` (Next steps 1o).
+  --full`), `HANDOFF.md` (Next steps 1p).
+## 2.20.1 — 2026-11-12 — a survey of the tools near provost (PV-036)
+
+`VERSION` 2.20.0 → 2.20.1, and the `man/provost.1` header. Patch: docs only.
+No code changes. Written as 2.19.1 on top of 2.19.0, and renumbered 2.20.1
+when PV-039's 2.20.0 reached `main` first, so 2.19.1 was never on `main` or
+published. The survey itself still describes provost at 90e44bf (2.19.0).
+
+- **`docs/research-2026-11-12-landscape.md`** (new; under "Research" in
+  `mkdocs.yml`).
+  - Compares provost at 90e44bf with over 50 tools, read from their own
+    docs, in five groups: command output to data (jc, TextFSM and
+    ntc-templates, TTP, Genie); format inference (Drain3, the LLM log
+    parsers, Grok, Vector); provenance stores (DVC, DataLad, Dolt, RO-Crate);
+    tabular command-line tools (Miller, qsv, DuckDB, VisiData); and results
+    tracking (ReFrame, Ramble, XALT, MLflow, Sacred).
+  - Every claim about provost gives the command or grep that shows it.
+    Every gap is checked against the PV, PM, QD and MC tickets. Every link's
+    HTTP status is recorded (60 links, all 200).
+- **It found two faults, both now Backlog tickets:**
+  - In full mode, the `pkg-config` strategy claims 60 corpus inputs from
+    other tools, `netstat -anp` and `ip -br addr` among them, and files each
+    as name/description. The corpus gate tests `--generic` only, so CI never
+    sees this (PV-037).
+  - An interrupted `provost run`, by Ctrl-C or a scheduler's SIGTERM, keeps
+    nothing, not even the lines it had shown (PV-038).
+- **Three more Backlog tickets:** hand-written templates applied without
+  `--llm` (PV-039, since shipped in 2.20.0); a column type recorded at capture (PV-040); and
+  `provost show --format`, `--capture latest` and a "Getting data out"
+  section (PV-041).
+- The report also lists nine runners-up, six ideas that would change
+  provost's shape against docs/0001, and the gaps that belong to quarterdeck
+  or Meridian Commander. None of those was filed.
+- **`HANDOFF.md`:** the present state, and Next steps 1n.
 
 ## 2.20.0 — 2026-11-12 — templates without --llm: hand-written, tested, time-limited, and TextFSM (PV-039)
 

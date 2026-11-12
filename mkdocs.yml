@@ -35,6 +35,8 @@ nav:
       - "Round 2: 109 held-out inputs": benchmark-2026-10-02-generalisation-round2.md
       - "Round 3: 107 held-out inputs": benchmark-2026-10-16-generalisation-round3.md
       - "Round 4: 107 held-out inputs": benchmark-2026-10-20-generalisation-round4.md
+  - Research:
+      - "Tools near provost (2026-11-12)": research-2026-11-12-landscape.md
   - Layout model:
       - "Steps 1-2: training set and first models": model-2026-10-22-layout-steps1-2.md
 
