@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.20.0 is everything through 2026-11-12** (`VERSION`, man header,
-the `## 2.20.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.20.1 is everything through 2026-11-12** (`VERSION`, man header,
+the `## 2.20.1` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -27,7 +27,8 @@ captures, the operator trailer and SHA-256 stores (PV-027, Next steps 1l;
 2.18.0); store lifecycle, `prune` by a retention policy and `archive`
 (PV-029, Next steps 1m; 2.19.0); templates applied without `--llm`,
 hand-written, tested with `provost template test`, time-limited, and TextFSM
-(PV-039, Next steps 1n; 2.20.0). 2.4.0 added `provost
+(PV-039, Next steps 1n; 2.20.0); a survey of the tools near provost
+(PV-036, Next steps 1o; 2.20.1, docs only). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -352,6 +353,25 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1o. **2026-11-12: a survey of the tools near provost** (PV-036, 2.20.1, docs
+    only): [docs/research-2026-11-12-landscape.md](docs/research-2026-11-12-landscape.md).
+    It compares provost with over 50 tools in five groups and files five
+    Backlog tickets, in rank order:
+    - PV-037: pass the command name to the engine, stop `pkg-config`
+      claiming 60 other tools' output in full mode, and check full mode in
+      CI. The corpus gate tests `--generic` only.
+    - PV-038: keep what an interrupted `provost run` had captured. Ctrl-C or
+      SIGTERM keeps nothing today (`provost:408-409`).
+    - PV-039: hand-written templates applied without `--llm`, documented,
+      with `provost template test` and a regex time limit (since done:
+      1n, 2.20.0).
+    - PV-040: record each column's type once, at capture.
+    - PV-041: `provost show --format`, `--capture latest`, and a "Getting
+      data out" section.
+    Runners-up, changes to provost's shape (listed, not filed) and
+    quarterdeck's share are in the report. PV-006's pick (docs/0004) is still
+    open.
 
 1n. **2026-11-12: templates without `--llm`** (PV-039, 2.20.0). A template in
     the store's `llm-templates/`, `PROVOST_TEMPLATE_DIRS` or shipped is
