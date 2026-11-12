@@ -39,6 +39,7 @@ builtins and imports, a CPU and memory limit, no files and no network.
     python3 template.py find INPUT [--dirs D1:D2]          # the best stored template for INPUT
     python3 template.py learn INPUT --out TEMPLATE [--tool NAME]   # ask Claude (needs a key)
     python3 template.py key INPUT [--name NAME]            # the template file name for INPUT
+    python3 template.py pick INPUT [--name NAME] [--dirs D1:D2]   # provost's choice: key, then the template
     python3 template.py misses TEMPLATE INPUT              # line kinds in INPUT the template has not met
     python3 template.py audit TEMPLATE INPUT               # the skip audit: what it sets aside, and why
     python3 template.py repair TEMPLATE INPUT --out NEW [--tool NAME] [--earlier FILE ...]   # ask Claude to extend it
@@ -523,6 +524,22 @@ def find(lines, dirs, declined=None):
             if score > best[1]:
                 best = (path, score)
     return best
+
+
+def pick(lines, name, dirs, declined=None):
+    """provost's choice of template for a capture, in one call: the one named
+    for it (key: NAME.json, or a TextFSM template NAME.textfsm, in DIRS in
+    order), else find's best over DIRS and the shipped templates (which are
+    found by detect only). -> (key, path or None)."""
+    kf = key(lines, name)
+    for d in dirs:
+        if not d:
+            continue
+        names = [kf] if kf.startswith("sig-") else [kf, kf[:-len(".json")] + ".textfsm"]
+        for n in names:
+            if os.path.isfile(os.path.join(d, n)):
+                return kf, os.path.join(d, n)
+    return kf, find(lines, list(dirs) + [SHIPPED], declined)[0]
 
 
 def key(lines, name=""):
@@ -1422,6 +1439,10 @@ def main(argv=None):
     p = sub.add_parser("key")
     p.add_argument("input")
     p.add_argument("--name", default="")
+    p = sub.add_parser("pick", help="the key, and the template provost would apply ('' when none)")
+    p.add_argument("input")
+    p.add_argument("--name", default="")
+    p.add_argument("--dirs", default="")
     p = sub.add_parser("misses")
     p.add_argument("template")
     p.add_argument("input")
@@ -1457,6 +1478,14 @@ def main(argv=None):
     try:
         if a.cmd == "key":
             print(key(lines, a.name))
+        elif a.cmd == "pick":
+            # KEY<TAB>PATH (PATH empty when none fits); the templates passed
+            # over on these lines on stderr, as find prints them
+            declined = []
+            kf, path = pick(lines, a.name, [d for d in a.dirs.split(":") if d], declined)
+            for dp, why in declined:
+                print(f"declined\t{dp}\t{why}", file=sys.stderr)
+            print(f"{kf}\t{path or ''}")
         elif a.cmd == "find":
             dirs = [d for d in a.dirs.split(":") if d] + [SHIPPED]
             declined = []

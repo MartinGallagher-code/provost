@@ -62,6 +62,10 @@ before.
 - **`apply` prints the template's format** as a ninth field (`1`, `2` or
   `textfsm`); `_llm_file` reads it, and now reports why `apply` failed
   (it said "matches nothing" for every error).
+- **One interpreter start to choose a template** (`template.py pick`, new):
+  the name lookup and `find` in one call, where `_llm_template` made two
+  (`key`, then `find`). Every capture with a generic or held parse now pays
+  for it, `--llm` or not: about 60 ms, once.
 - **Docs:** `docs/templates.md` (new: the format for a person, a worked
   example of a table and of a key/value block, several blocks, the skip
   audit and `decoration`, notes, where provost looks and how the gate treats
@@ -69,11 +73,11 @@ before.
   the README, `docs/usage.md` (a section, and the settings), `docs/index.md`,
   `mkdocs.yml`, `provost help` and `provost help advanced` (the section is
   now TEMPLATES), `man/provost.1` and the bash completion.
-- **Tests:** `ml/tests/test_templates.py` (new, 28 cases: the limit, the
+- **Tests:** `ml/tests/test_templates.py` (new, 31 cases: the limit, the
   timer cleared and the handler restored, the outermost limit, format 2's
   limit, `find` declining, every `template test` exit code, the tables
-  format, TextFSM reading, classifying, its `Error` rule and a missing
-  package, and ntc-templates' two fixtures; the 6 that run TextFSM skip
+  format, `pick`, TextFSM reading, classifying, its `Error` rule and a
+  missing package, and ntc-templates' two fixtures; the 6 that run TextFSM skip
   without it); CI's `python-package` job installs textfsm and PyYAML and runs
   them. `ml/tests/data/ntc-templates/` vendors the two templates and their
   `.raw`/`.yml` fixtures from ntc-templates 9.3.0 with their Apache-2.0

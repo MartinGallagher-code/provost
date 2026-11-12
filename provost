@@ -2336,30 +2336,26 @@ _llm_template () {
         return 1
     fi
     [[ -z "$tool" && -n "$cmd" ]] && { tool="${cmd%% *}"; tool="${tool##*/}"; }
-    kf="$("$pyx" "$py" key "$body" --name "$tool" 2>/dev/null)" || { llm_note="the input could not be read"; return 1; }
     # the store's templates, then the user's own libraries
     # (PROVOST_TEMPLATE_DIRS; PROVOST_LLM_TEMPLATE_DIRS, its older name, is
     # read too), then the ones shipped with provost. By name first: NAME.json,
     # or a TextFSM template NAME.textfsm (used by name only: it has no detect
     # pattern); then any template whose detect pattern recognises the input.
-    local d dirs="$tdir:${PROVOST_TEMPLATE_DIRS:-}:${PROVOST_LLM_TEMPLATE_DIRS:-}"
-    IFS=: read -ra _dl <<< "$dirs"
-    for d in "${_dl[@]}"; do
-        [[ -n "$d" ]] || continue
-        if [[ -f "$d/$kf" ]]; then tpl="$d/$kf"; break; fi
-        if [[ "$kf" != sig-* && -f "$d/${kf%.json}.textfsm" ]]; then tpl="$d/${kf%.json}.textfsm"; break; fi
-    done
+    # One python call (template.py pick): every capture provost may apply a
+    # template to pays for it, --llm or not. It prints the file name a
+    # template for this capture is stored under (KEY), and the template.
+    local dirs="$tdir:${PROVOST_TEMPLATE_DIRS:-}:${PROVOST_LLM_TEMPLATE_DIRS:-}"
+    found="$("$pyx" "$py" pick "$body" --name "$tool" --dirs "$dirs" 2>"$tmp/llm-find.err")" \
+        && [[ "$found" == *$'\t'* ]] || { llm_note="the input could not be read"; return 1; }
+    kf="${found%%$'\t'*}"; tpl="${found#*$'\t'}"
     if [[ -z "$tpl" ]]; then
-        found="$("$pyx" "$py" find "$body" --dirs "$dirs" 2>"$tmp/llm-find.err")" && tpl="${found%%$'\t'*}"
         # none fits, but one was declined on these lines (the time limit, a
         # parser that died): say which, and why
-        if [[ -z "$tpl" ]]; then
-            local _dw _dp _dr _dn
-            _dn=$(grep -c '^declined'$'\t' "$tmp/llm-find.err" 2>/dev/null || true)
-            if [[ "$_dn" =~ ^[1-9][0-9]*$ ]] && IFS=$'\t' read -r _dw _dp _dr < <(grep '^declined'$'\t' "$tmp/llm-find.err"); then
-                llm_note="template ${_dp##*/} does not fit: $_dr"
-                (( _dn > 1 )) && llm_note="$llm_note (and $((_dn - 1)) more declined)"
-            fi
+        local _dw _dp _dr _dn
+        _dn=$(grep -c '^declined'$'\t' "$tmp/llm-find.err" 2>/dev/null || true)
+        if [[ "$_dn" =~ ^[1-9][0-9]*$ ]] && IFS=$'\t' read -r _dw _dp _dr < <(grep '^declined'$'\t' "$tmp/llm-find.err"); then
+            llm_note="template ${_dp##*/} does not fit: $_dr"
+            (( _dn > 1 )) && llm_note="$llm_note (and $((_dn - 1)) more declined)"
         fi
     fi
     if [[ -n "$tpl" ]]; then

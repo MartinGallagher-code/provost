@@ -350,5 +350,47 @@ class TextFSMTemplates(unittest.TestCase):
                 self.assertEqual(fh.read(), want, name)
 
 
+class Pick(unittest.TestCase):
+    """provost's choice of template, in one call (template.py pick)."""
+
+    def test_the_template_named_for_the_capture_comes_first(self):
+        with tempfile.TemporaryDirectory() as d1, tempfile.TemporaryDirectory() as d2:
+            _write(d1, "other.json", VOL_TPL)           # its detect matches too
+            _write(d2, "vols.json", VOL_TPL)
+            self.assertEqual(T.pick(VOLUMES, "vols", [d1, d2]), ("vols.json", os.path.join(d2, "vols.json")))
+            # a TextFSM template, by name only
+            _write(d2, "disks.textfsm", TFSM)
+            self.assertEqual(T.pick(DISKS, "disks", [d1, d2]), ("disks.json", os.path.join(d2, "disks.textfsm")))
+            self.assertEqual(T.pick(DISKS, "", [d1, d2])[1], None)
+            # no name: the detect pattern, the best cover (the first of a tie)
+            kf, path = T.pick(VOLUMES, "", [d1, d2])
+            self.assertTrue(kf.startswith("sig-") and kf.endswith(".json"))
+            self.assertEqual(path, os.path.join(d1, "other.json"))
+            self.assertEqual(T.pick(["nothing here"], "x", [d1, d2]), ("x.json", None))
+
+    def test_the_shipped_templates_are_found_by_detect(self):
+        lines = T.read_lines(os.path.join(ROOT, "extract", "samples", "llm-template", "basic.txt"))
+        self.assertEqual(T.pick(lines, "", [])[1], os.path.join(T.SHIPPED, "mcstatus.json"))
+        # but not by name: a shipped file is not "named for" a capture
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(T.pick(["x"], "mcstatus", [d]), ("mcstatus.json", None))
+
+    def test_the_command_line(self):
+        with tempfile.TemporaryDirectory() as d:
+            _write(d, "vols.json", VOL_TPL)
+            _write(d, "slow.json", SLOW_TPL)
+            inp = _write(d, "in.txt", "\n".join(VOLUMES) + "\n")
+            rc, out, err = _run(["pick", inp, "--name", "vols", "--dirs", d])
+            self.assertEqual((rc, out, err), (0, "vols.json\t" + os.path.join(d, "vols.json") + "\n", ""))
+            self.assertEqual(_run(["pick", inp, "--name", "none", "--dirs", "/nonexistent"])[1], "none.json\t\n")
+            # nothing named for it: find, and what it passed over on stderr
+            with mock.patch.dict(os.environ, {"PROVOST_TEMPLATE_TIMEOUT": LIMIT}):
+                _write(d, "in2.txt", SLOW_LINES[0] + "\n")
+                rc, out, err = _run(["pick", os.path.join(d, "in2.txt"), "--dirs", d])
+        self.assertEqual(rc, 0)
+        self.assertTrue(out.endswith("\t\n"))
+        self.assertIn("declined\t" + os.path.join(d, "slow.json") + "\tit took longer", err)
+
+
 if __name__ == "__main__":
     unittest.main()
