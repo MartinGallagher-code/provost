@@ -80,7 +80,9 @@ about it, and `provost log --failed` lists it with the kept input and log.
 
 ```console
 $ provost ls                     # list datasets
+$ provost ls -l                  # ...with their columns, how many are typed, how many mixed
 $ provost show NAME              # present a dataset ('#', 'capture', 'n' lead each row)
+$ provost show NAME --types      # each column's type, recorded at capture (Column types, below)
 $ provost show NAME --capture ID # only the rows capture ID filed
 $ provost show NAME --at ID      # the dataset as it stood just after capture ID
 $ provost show NAME --tsv        # tab-separated, as stored: what a program reads
@@ -89,7 +91,7 @@ $ provost search PATTERN [NAME]  # git grep over the rows (--output, --files, --
 $ provost log [--failed]         # list captures (the git history) / failed background ones
 $ provost source <#N | ID>       # the original input behind row #N, or a capture
 $ provost diff [NAME] [A [B]]    # rows and run files that changed between two captures
-$ provost stats NAME [args]      # statistics on a dataset (--all for everything)
+$ provost stats NAME [args]      # statistics on a dataset (--all for everything; the column types say what is numeric)
 $ provost triage                 # low-confidence / unmatched bucket
 $ provost restore <id|latest>    # bring a capture's commit back up
 $ provost prev / provost next    # step the store back / forward one capture
@@ -156,7 +158,8 @@ python3 -c 'import provost_data; print(provost_data.load("df", capture="latest")
 
 **`provost_data`**, the Python package (the README's "From Python and
 Jupyter"), gives the same rows as a list of dicts (`load`) or a pandas
-DataFrame (`load_df`); `capture="latest"` works there too.
+DataFrame (`load_df`, whose dtypes follow the [column types](#column-types));
+`capture="latest"` works there too.
 
 **The store's own files.** `datasets/NAME.tsv` is the dataset, in a format
 [docs/store-format.md](store-format.md) specifies and keeps compatible:
@@ -551,6 +554,76 @@ rows together whether or not a capture segments. `PROVOST_AUTO_MULTI=0` (or
 
 See [the multi-dataset design note](0003-multi-dataset.md) for the rationale
 and the scoring machinery behind the split.
+
+## Column types
+
+Every capture records the type of each column it files, beside the dataset,
+in `datasets/types/NAME.tsv` (from provost 2.23.0; [the
+spec](store-format.md#column-types)). The types come from the same cell
+classes the extract engine weighs a parse's consistency with, so a column is
+typed once, where the data is filed, and every reader takes the same answer
+instead of guessing again.
+
+```console
+$ df -h | provost --name df
+$ provost show df --types
+column      type      share  cells  counts                  set_by
+n           integer   100    3      integer=3               c0001
+Filesystem  text      100    3      path=1,text=2           c0001
+Size        quantity  100    3      quantity=3              c0001
+Used        quantity  100    3      integer=1,quantity=2    c0001
+Avail       quantity  100    3      quantity=3              c0001
+Use%        percent   100    3      percent=3               c0001
+Mounted_on  path      100    3      path=3                  c0001
+$ provost ls -l
+DATASET                      ROWS COLUMNS TYPED MIXED
+df                              3       7     7     0
+```
+
+**The types**, narrowest first: `integer` (`42`, `1,234`), `decimal`
+(`3.14`), `percent` (`37%`), `time` (a clock reading with no date, `10:23` or
+`00:05:01`: a time of day or an elapsed time), `duration` (`30ms`, `5m`,
+`1h30m`, `5 days`, `2-03:04:05`), `quantity` (any other number with a unit:
+`20G`, `1.5 KiB`, `100MB/s`), `datetime` (`2026-11-13`, `Nov 13 10:00`,
+`5 days ago`), `address` (IPv4, IPv6, `host:port`, a MAC), `version`
+(`2.4.1`), `hex` (`0x1f`, a hash, a uuid), `path` (`/usr/bin`, a URL),
+`boolean` (`yes`, `off`, `enabled`) and `text` (anything else). A blank cell,
+and a placeholder (`-`, `n/a`, `none`, `null`, `?`), is not judged; a column
+with nothing judged yet is `empty`.
+
+**How a column is typed.** A wider type holds a narrower one: `integer` <
+`decimal` < `percent` < `quantity`, `decimal` < `duration` < `quantity`,
+`time` < `duration` and `time` < `datetime`; `address`, `version`, `hex`,
+`path` and `boolean` < `text`. A column gets the narrowest type that holds at
+least 90% of all the cells every capture filed into it; else `text`, when
+most of them are words; else `mixed`. `share` says how many of the cells the
+type holds, `counts` how many there were of each kind.
+
+**Across captures** a column is never silently retyped. Each capture adds its
+counts and the type is decided again, then joined with the type already
+recorded, so a capture can widen a column (`integer` to `decimal`, `path` to
+`text`) but never narrows one. A column whose cells change kind (sizes that
+became words, times that became counts) is recorded as `mixed`, and `set_by`
+names the capture that made it so; it stays `mixed`, and git's history keeps
+what it was (`provost show NAME --types --at ID`). The types are recorded,
+not enforced: a capture is never held back because of them. `provost rm
+--capture` and `prune` judge the rows that stay again, as if the captures
+removed had never been filed.
+
+**Who uses them.** `provost stats` takes integer and decimal columns as
+numeric and every other type as categorical, in place of its own guess (a
+`mixed` column is still guessed; `--numeric-columns` and
+`--categorical-columns` still win). `provost_data.load_df` makes integer and
+decimal columns numeric and keeps every other type's strings, so a version
+`1.10` or a `text` column that happens to hold only digits in one capture is
+not turned into a number. `provost show NAME --types --tsv` (or `--format
+json`, `csv`, `md`) gives the record to any other program.
+
+**Older stores.** A dataset filed before 2.23.0 has no record until its next
+capture, which judges every row the dataset then holds, capture by capture.
+Until then `ls -l` shows `-`, `show --types` says so, and `stats` and
+`load_df` guess as they always did. `provost store check` validates every
+record against [the spec](store-format.md#column-types).
 
 ## Units
 

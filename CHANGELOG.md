@@ -1,5 +1,86 @@
 # provost — Changelog
 
+## 2.23.0 — 2026-11-13 — each dataset column's type recorded once, at capture, stored and shown (PV-040)
+
+`VERSION` 2.22.1 → 2.23.0, and the `man/provost.1` header. Minor: new
+commands and a new file in the store, nothing that worked works differently
+(a store an older provost wrote reads as it did; the new file is an addition
+within store format 4).
+
+docs/0001 promises "a clean, typed dataset", but the engine typed every cell
+only to measure a parse's consistency and threw the types away; `stats`,
+`provost_data.load_df` and every reader of the TSV then guessed again, each
+its own way (PV-036's survey: almost every tabular tool shows a column's
+type). Now the type is decided once, where the data is filed.
+
+- **Recorded at capture.** Every capture judges the cells it files with the
+  engine's own classifier and records each column's type in
+  `datasets/types/NAME.tsv`, beside `datasets/NAME.tsv` (none for
+  `unsorted`): `column`, `type`, `share`, `cells`, `counts` (`KIND=N,...`) and
+  `set_by` (the capture that set the type). The vocabulary: `integer`,
+  `decimal`, `percent`, `time` (a clock reading with no date), `duration`,
+  `quantity` (a number with a unit), `datetime`, `address`, `version`, `hex`,
+  `path`, `boolean`, `text`, and `mixed` / `empty`. A column gets the narrowest
+  type that holds 90% of all its cells, else `text` when most are words, else
+  `mixed`.
+- **Never silently retyped.** Each capture adds its counts, the type is
+  decided again and joined with the one recorded: a capture can widen a
+  column (`integer` → `decimal`, `path` → `text`), never narrow it, and a
+  column whose cells change kind becomes `mixed` and stays so (git's history
+  keeps what it was). Types are recorded, not enforced (the ticket's
+  suggested answer): nothing is held back because of them.
+- **A sidecar, in a directory of its own** (the ticket's question 1, its
+  suggested answer): the TSV stays exactly as it was. Not
+  `datasets/NAME.types.tsv` as the ticket sketched: an older provost's `ls`
+  and `store check` read every `datasets/*.tsv` as a dataset (`store check`
+  would fail it), and `NAME.types` is a valid dataset name.
+- **Shown.** `provost show NAME --types` (any `--format`, `--tsv` for the file
+  as stored, `--at ID` as it stood after a capture); `provost ls -l` adds
+  COLUMNS, TYPED and MIXED. Bash completion offers both.
+- **Used.** `provost stats` passes them to the analyze engine's new
+  `--column-types FILE`: integer and decimal columns are numeric, every other
+  type categorical, `mixed` still guessed; `--numeric-columns` and
+  `--categorical-columns` still win, and the report says which were recorded
+  ("Column types (recorded at capture; guessed where none was)"; without a
+  record it is unchanged). `provost_data.load_df` reads them through `provost
+  show NAME --types --tsv`: integer and decimal columns are numeric as
+  before, a column of any other type keeps its strings even when every value
+  looks like a number, and a column with none recorded is read as before.
+- **Kept right.** `rm --capture`, `prune --yes` and `archive --purge --yes`
+  judge the rows each dataset keeps again, capture by capture, inside the
+  all-or-nothing commit (a failure puts the record back with the rest); `rm
+  NAME` removes it. A dataset filed before 2.23.0 gets its record with its
+  next capture, judged from every row it then holds; until then `ls -l` shows
+  `-` and `show --types` says so.
+- **Specified and checked.** `docs/store-format.md` has a "Column types"
+  section (and the layout, the format-4 history and "Reading a store from
+  another program"), so quarterdeck and Meridian Commander can read the file.
+  `provost store check` checks each record's form, that its dataset exists,
+  and that it names only the dataset's columns; a dataset without one is
+  noted, not failed.
+- **One classifier.** The engine's `ctype` (and `ctok`, `ip4ok`,
+  `cons_init`) moved verbatim from `_FR_CONS_AWK` into
+  `extract/lib/_ctype.awk`, which `_discovery.sh` reads; the new
+  `transform/types.sh` (shipped in the wheel) reads the same file.
+- **Cost.** About 3 µs a cell under mawk: a few milliseconds for a typical
+  capture, 2.5 s for a 7.4 MB, 800,000-cell one.
+- **Tests.** `transform/tests/test_types.sh` (122 checks, under mawk and
+  gawk in CI: gawk 5.2.1 aborted on an untyped array element passed to a
+  function, now avoided): each kind, a column's type, the join across
+  captures, rebuild = capture-by-capture, the file's form, and 12 corpus
+  goldens' 100 columns checked by hand and frozen in
+  `transform/tests/types-corpus.tsv`. Smoke part `types` (57 checks) and
+  the fixture loop (`ls -l`, `show --types` and `stats` on every format,
+  untouched); `analyze/tests/test_column_overrides.sh` (6 new);
+  `tests/python/test_dataset.py` (6 new, 100% coverage). The corpus goldens
+  are unchanged.
+- Files: `provost`, `transform/types.sh` (new), `extract/lib/_ctype.awk`
+  (new), `extract/lib/_discovery.sh`, `analyze/provost-analyze`,
+  `analyze/completions/provost-analyze.bash`, `completions/provost.bash`,
+  `src/provost_data/_dataset.py`, `pyproject.toml`, `docs/store-format.md`,
+  `docs/usage.md`, `README.md`, `man/provost.1`, `extract/README.md`,
+  `.github/workflows/ci.yml`, `CLAUDE.md`, `HANDOFF.md`, the tests above.
+
 ## 2.22.1 — 2026-11-13 — the benchmark's LLM run records and two prescreen sheets out of the tree (PV-042)
 
 `VERSION` 2.22.0 → 2.22.1, and the `man/provost.1` header. Patch: tests and

@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-13" "provost 2.22.1" "User Commands"
+.TH PROVOST 1 "2026-11-13" "provost 2.23.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -268,8 +268,11 @@ latest is that capture's own commit); \fBnext\fR past the last capture
 returns to the latest. While restored, \fBlog\fR still lists every capture
 and says where the store is.
 .TP
-.B ls
-List datasets.
+.B ls \fR[\fB-l\fR]
+List datasets and their row counts. \fB-l\fR (\fB--long\fR) adds each
+one's data columns, how many have a type recorded at capture, and how many
+of those are \fBmixed\fR (\fB-\fR for a dataset with none recorded yet);
+see COLUMN TYPES.
 .TP
 .B show \fINAME\fR [\fB--capture\fR \fIid\fR] [\fB--at\fR \fIid\fR] [\fB--format\fR \fIfmt\fR | \fB--tsv\fR]
 Present a dataset as a tidy table. Every row carries \fB#\fR (its number,
@@ -286,6 +289,9 @@ program to read: a blank cell stays an empty field (in the aligned table it
 is only spaces), and
 when no row matches only the header is printed. The Python package reads
 datasets this way (\fBprovost_data.load\fR, \fBload_df\fR).
+\fB--types\fR shows the dataset's column types instead of its rows (see
+COLUMN TYPES); with \fB--at\fR, as they stood after that capture; with
+\fB--tsv\fR, the file as stored.
 \fB--format\fR \fIfmt\fR writes the dataset for another tool, in the names
 and shapes of quarterdeck's \fBqd show --format\fR: \fBtable\fR (the
 default; also \fBtext\fR), \fBtsv\fR (as stored, the same as
@@ -376,7 +382,10 @@ does not, 2 when it cannot be tried. See \fBTEMPLATES\fR and
 \fIdocs/templates.md\fR.
 .TP
 .B stats \fINAME\fR [analyze-args]
-Statistics on a dataset (\fB--all\fR for every analysis).
+Statistics on a dataset (\fB--all\fR for every analysis). The column types
+recorded at capture say which columns are numeric (\fBinteger\fR and
+\fBdecimal\fR) and which categorical; a \fBmixed\fR column, and every
+column of a dataset with none recorded, is guessed.
 .TP
 .B triage
 Show the low-confidence / unmatched bucket, raw input decoded to text
@@ -785,6 +794,31 @@ holding a digit can be read, and the arithmetic is exact (on the decimal
 digits, never in floating point). \fImeta.tsv\fR records \fBunits base\fR, and
 the capture's \fIunits.tsv\fR lists each column added, with the units read
 and their exact factors.
+.SH COLUMN TYPES
+Every capture records the type of each column it files, from the same cell
+classes the engine weighs consistency with, in
+\fIdatasets/types/NAME.tsv\fR beside the dataset (none for \fBunsorted\fR).
+The types, narrowest first: \fBinteger\fR, \fBdecimal\fR, \fBpercent\fR,
+\fBtime\fR (a clock reading with no date), \fBduration\fR (\fB30ms\fR,
+\fB5m\fR, \fB1h30m\fR, \fB2-03:04:05\fR), \fBquantity\fR (any other
+number with a unit), \fBdatetime\fR, \fBaddress\fR, \fBversion\fR,
+\fBhex\fR, \fBpath\fR, \fBboolean\fR and \fBtext\fR. A blank cell or a
+placeholder is not judged. A wider type holds a narrower one (\fBinteger\fR
+< \fBdecimal\fR < \fBpercent\fR < \fBquantity\fR; \fBdecimal\fR <
+\fBduration\fR < \fBquantity\fR; \fBtime\fR < \fBduration\fR, \fBtime\fR <
+\fBdatetime\fR; \fBaddress\fR, \fBversion\fR, \fBhex\fR, \fBpath\fR and
+\fBboolean\fR < \fBtext\fR). A column gets the narrowest type that holds at
+least 90% of the cells every capture filed into it; else \fBtext\fR when most
+are words; else \fBmixed\fR.
+.PP
+A column is never silently retyped: each capture's counts are added, the type
+decided again and joined with the one recorded, so a capture can widen a
+column but one whose cells change kind becomes \fBmixed\fR, and stays so.
+\fBrm --capture\fR and \fBprune\fR judge the rows that stay again. A dataset
+filed before 2.23.0 gets its types with its next capture. \fBshow NAME
+--types\fR shows them, \fBls -l\fR counts them, \fBstats\fR and
+\fBprovost_data.load_df\fR use them, and \fBstore check\fR validates them.
+They are recorded, never enforced.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -1082,7 +1116,7 @@ status once it has been captured; 127 when the command to run is not found.
 .nf
 free -m | provost                 # capture + auto-detect + file (dataset 'free')
 provost run df -h                 # capture a command as a commit (dataset 'df')
-provost ls                        # list datasets
+provost ls                        # list datasets (ls -l: columns, typed)
 provost show df                   # present as a tidy table
 provost source 5                  # original input behind row #5
 provost stats df                  # statistics on the dataset
