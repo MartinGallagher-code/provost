@@ -1,5 +1,83 @@
 # provost — Changelog
 
+## 2.23.0 — 2026-11-13 — an interrupted run keeps what it had printed (PV-038)
+
+`VERSION` 2.22.1 → 2.23.0, and the `man/provost.1` header. Minor: what an
+interrupted capture does changes from "keep nothing" to "keep what came before
+the signal, marked"; nothing that ran to its end works differently.
+
+- **The first SIGINT, SIGTERM or SIGHUP while `provost run` runs its command,
+  or while piped input is read, no longer throws the output away**
+  (`provost`: `_cap_stream`, `_cap_watchdog`, `_cap_on_sig`, `cmd_run`,
+  `cmd_inject`). The command runs as it always did, in the foreground with the
+  signals provost got, so a Ctrl-C still reaches it; the reading ignores those
+  signals; and a watchdog in provost's process group gives the command
+  `PROVOST_INTERRUPT_GRACE` seconds (new; default 2, 0 to 3600) to finish
+  (`ping` prints its summary on SIGINT), then sends it SIGTERM, and SIGKILL a
+  second later. What it printed is filed as any capture is, its
+  `meta.tsv` gets `interrupted<TAB>SIGINT` (`SIGTERM`, `SIGHUP`) beside the
+  command's `rc`, `provost log` shows
+  `[interrupted: SIGINT]` after the command, and provost exits 130 (143, 129).
+  Nothing printed: nothing captured, same exit status. Ctrl-C, a closed
+  terminal and schedulers signal the whole process group; a signal sent to
+  provost's own process alone (`kill PID`) is acted on when the command ends,
+  as provost's exit has always waited for it. The owner's two
+  questions were taken at their suggested answers: kept by default, no
+  `--keep-partial`; a 2 s grace with `PROVOST_INTERRUPT_GRACE`.
+- **A second signal, or one while provost files a capture, stops it at once
+  and files nothing** (`_ingest_guarded`, `_guard_child`, `_cap_snapshot`,
+  `_cap_rollback`). A foreground capture's parse half and store half now each
+  run in a child of a process group of its own, so a Ctrl-C at the terminal
+  reaches neither them nor the git they run; provost takes the store lock
+  itself between the halves and holds it until the store half is done. On a
+  signal the child's group is killed (SIGKILL), and what the store half had
+  changed is put back from a record made under the lock before it started:
+  the commit taken off the branch if it had landed, its tags deleted, git's
+  lock files it left removed, the index copied back, and every path the
+  working tree changed since restored or removed (a store that already had
+  uncommitted changes keeps them exactly). No lock is left, the next capture
+  takes the same id, and `provost verify` passes. Waiting for another
+  writer's lock gives way to the signal too (`_lock`). A template `--llm`
+  wrote in the parse half is put back as it was (`_llm_keep`,
+  `_cap_undo_llm`). Before this, a signal while filing could leave the
+  capture's files uncommitted in the store.
+- **Why the command is not started in the background:** bash 5.3 starts
+  whatever an async list or a process substitution runs with SIGINT (and
+  SIGQUIT) ignored, beyond the reach of `trap -` (`setup_async_signals`, its
+  new `set_signal_async_ignored`); 5.2 let `trap -` undo it. A first version
+  of this change ran the command in a background group and passed every check
+  on bash 5.2, and on CI's bash 5.3 the command never heard the Ctrl-C (ping
+  printed no summary and was stopped by the grace's SIGTERM), and one check
+  then hung. Only the watchdog runs in the background, and it only traps,
+  signals and writes marker files, which 5.3 allows.
+- **Not changed:** a background capture (`--async`, the default at a
+  terminal) is queued once the reading stops, as before; `batch` reads files,
+  not a live command; `listen` runs `provost run --show`, so it gains the
+  above. `_take_stdin` is gone (stdin is read by `_cap_stream`).
+- **`store check`** refuses an `interrupted` value other than `SIGINT`,
+  `SIGTERM` or `SIGHUP`. The key is added within store format 4
+  (`docs/store-format.md`); no migration.
+- **Docs:** `README.md` (a bullet, and the setting), `docs/usage.md`
+  ("Interrupted runs", and the setting), `provost help advanced` (INTERRUPTED
+  RUNS, the setting) and `provost help run`, `man/provost.1` (INTERRUPTED
+  RUNS, the setting, EXIT STATUS), `docs/store-format.md` (the key).
+- **`tests/smoke.sh`:** the parallel runner gives each part
+  `PROVOST_SMOKE_PART_TIMEOUT` seconds (default 600; 0 = none, and none where
+  `timeout` is missing). A part past it fails as "did not finish", after the
+  checks it printed, instead of holding the whole run until CI cancels the
+  job with nothing to show, which is what the hang above did first.
+- **Tests:** smoke part `interrupt` (43 checks). In a process group of its own
+  (`own_pg`), a fake `ping` sends SIGINT, SIGTERM and SIGHUP to its group: the
+  lines and the summary are filed and marked, provost exits 130, 143 and 129,
+  and the store is clean, unlocked and passes `verify` and `store check`; the
+  same through a pipe; a command that ignores SIGINT is sent SIGTERM after
+  the grace; one that printed nothing files nothing. A fake `git` sends the
+  second signal while filing, before the commit and after it landed: nothing
+  filed, no commit, no tag, no lock, and the next capture takes the id. A
+  store with uncommitted changes keeps them byte for byte; an `--async` run is
+  queued and filed marked. A mutation (provost's old `exit 130` traps) files
+  nothing, so the first check can fail.
+
 ## 2.22.1 — 2026-11-13 — the benchmark's LLM run records and two prescreen sheets out of the tree (PV-042)
 
 `VERSION` 2.22.0 → 2.22.1, and the `man/provost.1` header. Patch: tests and

@@ -281,6 +281,7 @@ Present when they apply:
 | `input_sha256`, `input_bytes` | The input as received, before any change: its sha256 (64 lower-case hex digits) and size. |
 | `output_sha256` | The sha256 of `output.txt` as stored. `provost verify` re-checks it. |
 | `input` | In a `batch`: the file this capture was read from. |
+| `interrupted` | `SIGINT`, `SIGTERM` or `SIGHUP` (2.23.0 on): a signal cut the capture short, and `output.txt` holds what came before it (and what the command printed in the grace after it). `rc` is the command's status (143 or 137 when provost had to stop it; empty for piped input, as always). Absent on a capture that ran to its end. |
 | `batch` | In a `batch`: `FIRST..LAST`, the batch's capture ids. |
 
 An input over the size cap (format 4, from 2.15.0; [Inputs kept beside the
@@ -299,9 +300,9 @@ On a truncated capture `input_sha256` and `input_bytes` describe the whole
 input as received, and `output_sha256` the part in `output.txt`.
 
 Keys have been added over the releases (the input hashes in 2.4.0, the
-`truncated` set in 2.15.0, and others), and none changed the format number:
-a key is added within a format, and a reader that ignores keys it does not
-know reads every capture, old or new.
+`truncated` set in 2.15.0, `interrupted` in 2.23.0, and others), and none
+changed the format number: a key is added within a format, and a reader that
+ignores keys it does not know reads every capture, old or new.
 
 ## Git: the branch, the commits and the tags
 
