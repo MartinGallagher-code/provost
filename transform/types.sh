@@ -152,12 +152,16 @@ _CORE_TYPES_AWK='
         return (w * 2 > n) ? "text" : "mixed"
     }
     # fold one group'"'"'s counts (one capture'"'"'s cells) into the record
-    function flush(   j, c, i, k, nt) {
+    # (the type recorded so far is read through an `in` test, never passed
+    # to a function as T[c] while it may not exist: gawk 5.2.1 corrupts its
+    # heap on an array element made that way)
+    function flush(   j, c, i, k, ot, nt) {
         for (j = 1; j <= NG; j++) {
             c = GC[j]
             for (i = 1; i <= NK; i++) { k = KD[i]; if ((c, k) in G) { CNT[c, k] += G[c, k]; CELLS[c] += G[c, k]; delete G[c, k] } }
-            nt = join(T[c], decide(c))
-            if (nt != T[c]) { T[c] = nt; SB[c] = GID }
+            ot = (c in T) ? T[c] : ""
+            nt = join(ot, decide(c))
+            if (nt != ot) { T[c] = nt; SB[c] = GID }
             delete GT[c]
         }
         NG = 0
@@ -185,54 +189,57 @@ _CORE_TYPES_AWK='
         # duration units: a bare m is minutes (M is mega); 1h30m, 2d3h4m5s
         DURU = "^(ns|us|µs|μs|ms|s|sec|secs|seconds?|m|min|mins|minutes?|h|hr|hrs|hours?|d|days?|w|wk|wks|weeks?|mo|mos|months?|y|yr|yrs|years?)$"
         DURC = "^[wdhms]([0-9]+(\\.[0-9]+)?(ms|us|ns|[wdhms]))+$"
-        if (MODE == "leaf") { while ((getline line) > 0) { k = leaf(line); print (k == "" ? "-" : k) } ; exit }
+        if (MODE == "leaf") { while ((getline _line) > 0) { _k = leaf(_line); print (_k == "" ? "-" : _k) } ; exit }
     }
+    # (the rules below use only names that start with _, which no function
+    # above has as a local: gawk can abort on a local shadowing a global of
+    # another kind)
     # the dataset'"'"'s header: the order of the columns, provost'"'"'s two left out
     FILENAME == ENVIRON["_TY_HDRF"] {
-        n = split($0, h, "\t"); s = (h[1] == "#") ? ((n >= 2 && h[2] ~ /^_*capture$/) ? 3 : 2) : 1
-        for (i = s; i <= n; i++) if (!(h[i] in ORDQ)) { ORDQ[h[i]] = 1; ORD[++NO] = h[i] }
+        _n = split($0, _H, "\t"); _st = (_H[1] == "#") ? ((_n >= 2 && _H[2] ~ /^_*capture$/) ? 3 : 2) : 1
+        for (_i = _st; _i <= _n; _i++) if (!(_H[_i] in ORDQ)) { ORDQ[_H[_i]] = 1; ORD[++NO] = _H[_i] }
         next
     }
     # the types recorded so far
     FILENAME == ENVIRON["_TY_OLDF"] {
         if (FNR == 1) next
-        c = $1; if (c in T) next
-        T[c] = $2; SB[c] = $6; CELLS[c] = 0
-        m = split($5, p, ",")
-        for (i = 1; i <= m; i++) {
-            k = p[i]; q = index(k, "="); if (!q) continue
-            v = substr(k, q + 1) + 0; k = substr(k, 1, q - 1)
-            if (k in UP && k != "mixed") { CNT[c, k] += v; CELLS[c] += v }
+        _c = $1; if (_c in T) next
+        T[_c] = $2; SB[_c] = $6; CELLS[_c] = 0
+        _m = split($5, _P, ",")
+        for (_i = 1; _i <= _m; _i++) {
+            _k = _P[_i]; _q = index(_k, "="); if (!_q) continue
+            _v = substr(_k, _q + 1) + 0; _k = substr(_k, 1, _q - 1)
+            if ((_k in UP) && _k != "mixed") { CNT[_c, _k] += _v; CELLS[_c] += _v }
         }
         next
     }
     # the rows to judge
     FNR == 1 {
-        nc = split($0, sh, "\t"); cc = (sh[1] == "#" && nc >= 2 && sh[2] ~ /^_*capture$/)
-        s0 = (sh[1] == "#") ? (cc ? 3 : 2) : 1
+        _nc = split($0, _SH, "\t"); _cc = (_SH[1] == "#" && _nc >= 2 && _SH[2] ~ /^_*capture$/)
+        _s0 = (_SH[1] == "#") ? (_cc ? 3 : 2) : 1
         GID = CAPID; NG = 0
         next
     }
     {
-        if (CAPID == "" && cc && $2 != GID) { if (NG) flush(); GID = $2 }
-        for (i = s0; i <= nc; i++) {
-            k = leaf($i); if (k == "") continue
-            c = sh[i]
-            if (!(c in GT)) { GT[c] = 1; GC[++NG] = c }
-            G[c, k]++
+        if (CAPID == "" && _cc && $2 != GID) { if (NG) flush(); GID = $2 }
+        for (_i = _s0; _i <= _nc; _i++) {
+            _k = leaf($_i); if (_k == "") continue
+            _c = _SH[_i]
+            if (!(_c in GT)) { GT[_c] = 1; GC[++NG] = _c }
+            G[_c, _k]++
         }
     }
     END {
         if (MODE == "leaf") exit
         if (NG) flush()
         print HDR
-        for (j = 1; j <= NO; j++) {
-            c = ORD[j]; t = (c in T) ? T[c] : "empty"; n = CELLS[c] + 0
-            if (n == 0 && t != "mixed") t = "empty"
-            sh2 = (t == "mixed" || t == "empty") ? "" : int(cover(c, t) * 100 / n)
-            o = ""
-            for (i = 1; i <= NK; i++) if (CNT[c, KD[i]] > 0) o = o (o == "" ? "" : ",") KD[i] "=" CNT[c, KD[i]]
-            print c "\t" t "\t" sh2 "\t" n "\t" o "\t" (t == "empty" ? "" : SB[c])
+        for (_j = 1; _j <= NO; _j++) {
+            _c = ORD[_j]; _t = (_c in T) ? T[_c] : "empty"; _n = CELLS[_c] + 0
+            if (_n == 0 && _t != "mixed") _t = "empty"
+            _sh = (_t == "mixed" || _t == "empty") ? "" : int(cover(_c, _t) * 100 / _n)
+            _o = ""
+            for (_i = 1; _i <= NK; _i++) if (CNT[_c, KD[_i]] > 0) _o = _o (_o == "" ? "" : ",") KD[_i] "=" CNT[_c, KD[_i]]
+            print _c "\t" _t "\t" _sh "\t" _n "\t" _o "\t" (_t == "empty" ? "" : SB[_c])
         }
     }'
 

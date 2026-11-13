@@ -316,8 +316,9 @@ printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) exit 7 ;; esac\nexec %q 
 chmod +x "$RCFB2/mv"
 check "rm --capture: a failed move puts the store back" "put back as it was" \
     "$(PATH="$RCFB2:$PATH" rcr rm -f --capture 1,2 2>&1 || true)"
-check "rm --capture: after a failed move the store is as it was" "clean t.tsv v.tsv" \
+check "rm --capture: after a failed move the store is as it was" "clean t.tsv types v.tsv" \
     "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(ls "$RCWS3/datasets" | tr '\n' ' ' | sed 's/ $//')"
+check "...the column types put back too (PV-040)" "t.tsv v.tsv" "$(ls "$RCWS3/datasets/types" | tr '\n' ' ')"
 check "rm --capture leaves no scratch directory behind" "0" "$(find "$RCWS3/datasets" -name '.rm.*' | wc -l | tr -d ' ')"
 # Killed while rewriting: the store as it was, the lock released, and its
 # scratch directory gone with it.
@@ -2457,6 +2458,101 @@ check "help advanced has a UNITS section" "UNITS" "$("$PROVOST" help advanced)"
 check "help advanced lists PROVOST_UNITS" "PROVOST_UNITS" "$("$PROVOST" help advanced)"
 fi
 
+if _part types; then
+# Column types (PV-040): recorded at capture in datasets/types/NAME.tsv,
+# shown by 'show --types' and 'ls -l', kept across captures (widened, or
+# mixed when a column's cells change kind), judged again by rm --capture,
+# used by stats; none for 'unsorted'; validated by store check.
+echo "== column types (PV-040) =="
+TWS="$(mktemp -d)/.types"; TD="$(mktemp -d)"
+tp () { PROVOST_WORKSPACE="$TWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>&1; }
+tpo () { PROVOST_WORKSPACE="$TWS" PROVOST_ASYNC=0 "$PROVOST" "$@" 2>/dev/null; }
+tline () { awk -F'\t' -v c="$2" '$1 == c { print $2, $3, $4, $5, $6 }' "$TWS/datasets/types/$1.tsv"; }
+printf 'host\tsize\tused\twhen\tver\nweb01\t20G\t5\t2026-11-01\t1.2.3\nweb02\t1.5G\t7\t2026-11-02\t1.2.4\n' > "$TD/c1.tsv"
+tp --name hosts "$TD/c1.tsv" >/dev/null
+check "a capture records its columns' types beside the dataset" "column	type	share	cells	counts	set_by" "$(cat "$TWS/datasets/types/hosts.tsv" 2>&1)"
+check "...committed with the capture" "datasets/types/hosts.tsv" "$(tgit "$TWS" ls-files datasets/types)"
+check "...and nothing left uncommitted" "<>" "<$(tgit "$TWS" status --porcelain)>"
+check "a size column is a quantity" "quantity 100 2 quantity=2 c0001" "$(tline hosts size)"
+check "a count is an integer" "integer 100 2 integer=2 c0001" "$(tline hosts used)"
+check "a date is a datetime" "datetime 100 2 datetime=2 c0001" "$(tline hosts when)"
+check "a version is a version" "version 100 2 version=2 c0001" "$(tline hosts ver)"
+check "words are text" "text 100 2 text=2 c0001" "$(tline hosts host)"
+check "provost's own # and capture columns are not listed" "n host size used when ver" "$(tail -n +2 "$TWS/datasets/types/hosts.tsv" | cut -f1 | tr '\n' ' ')"
+check "show --types prints them" "size	quantity	100	2	quantity=2	c0001" "$(tpo show hosts --types)"
+check "show --types --tsv is the file as stored" "$(cat "$TWS/datasets/types/hosts.tsv")" "$(tpo show hosts --types --tsv)"
+check "show --types --format json" '"type": "quantity"' "$(tpo show hosts --types --format json)"
+check "show --types --capture is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$TWS" rc_of "$PROVOST" show hosts --types --capture 1)"
+check "show --types of no dataset is an error" "no such dataset: nope" "$(tp show nope --types)"
+check "ls -l: rows, columns, typed, mixed" "hosts 2 6 6 0" "$(tpo ls -l | sq)"
+check "ls -l's header" "DATASET ROWS COLUMNS TYPED MIXED" "$(tp ls -l | sq)"
+check "ls without -l is as before" "hosts 2" "$(tpo ls | sq)"
+check_not "...no column counts" "hosts 2 6" "$(tpo ls | sq)"
+printf 'host\tsize\tused\twhen\tver\nweb03\t3G\t2.5\t2026-11-03\t1.2.5\n' > "$TD/c2.tsv"
+tp --name hosts "$TD/c2.tsv" >/dev/null
+check "a later capture can widen a column (integer to decimal)" "decimal 100 3 integer=2,decimal=1 c0002" "$(tline hosts used)"
+check "...and keeps the rest as they were" "quantity 100 3 quantity=3 c0001" "$(tline hosts size)"
+printf 'host\tsize\tused\twhen\tver\nweb04\t1G\tlots\t2026-11-04\t1.2.6\nweb05\t1G\tmany\t2026-11-05\t1.2.7\nweb06\t1G\tplenty\t2026-11-06\t1.2.8\nweb07\t1G\tsome\t2026-11-07\t1.2.9\n' > "$TD/c3.tsv"
+tp --name hosts "$TD/c3.tsv" >/dev/null
+check "a column whose cells change kind becomes mixed, never retyped" "mixed  7 integer=2,decimal=1,text=4 c0003" "$(tline hosts used)"
+check "ls -l counts it" "hosts 7 6 6 1" "$(tpo ls -l | sq)"
+check "show --types --at shows them as they stood after a capture" "used	decimal" "$(tpo show hosts --types --at c0002)"
+tp --name hosts "$TD/c1.tsv" >/dev/null
+check "...and mixed stays mixed under later numbers" "mixed  9 integer=4,decimal=1,text=4 c0003" "$(tline hosts used)"
+check "stats uses them: a recorded integer column is numeric" "n: numeric (recorded at capture: integer)" "$(tpo stats hosts)"
+check "...a recorded quantity is categorical" "size: categorical (recorded at capture: quantity)" "$(tpo stats hosts)"
+check "...a mixed column is guessed" "used: categorical (ratio" "$(tpo stats hosts)"
+check "...under a title that says so" "Column types (recorded at capture; guessed where none was)" "$(tpo stats hosts)"
+check "...and --numeric-columns still wins" "used: numeric (forced via --numeric-columns)" "$(tpo stats hosts --numeric-columns used)"
+tp rm --capture c0003 -f >/dev/null
+check "rm --capture judges the rest again: the words are gone, so is mixed" "decimal 100 5 integer=4,decimal=1 c0002" "$(tline hosts used)"
+check "...in its own commit, with nothing left behind" "<>" "<$(tgit "$TWS" status --porcelain)>"
+printf 'host\tsize\tused\twhen\tver\tzone\nweb08\t2G\t3\t2026-11-08\t1.3.0\teu-1\n' > "$TD/c5.tsv"
+tp --name hosts "$TD/c5.tsv" >/dev/null
+check "a column a reconcile adds is typed, in the dataset's order" "n host size used when ver zone" "$(tail -n +2 "$TWS/datasets/types/hosts.tsv" | cut -f1 | tr '\n' ' ')"
+printf 'alpha\tbeta\n1\t2\n' > "$TD/other.tsv"
+tp --name hosts "$TD/other.tsv" >/dev/null
+check "a variant gets types of its own" "beta	integer" "$(cat "$TWS/datasets/types/hosts.v2.tsv" 2>&1)"
+tp --name held --min-confidence 101 "$TD/c1.tsv" >/dev/null
+check "a held capture records no types for 'unsorted'" "none" "$(ls "$TWS/datasets/types/unsorted.tsv" 2>/dev/null || echo none)"
+check "...and show --types says why" "'unsorted' holds inputs whole" "$(tp show unsorted --types)"
+PROVOST_WORKSPACE="$TWS" "$PROVOST" batch -q --name bat "$TD/c1.tsv" "$TD/c2.tsv" >/dev/null 2>&1 || true
+check "batch records them, capture by capture" "decimal 100 3 integer=2,decimal=1 c00" "$(tline bat used)"
+check "store check passes a store with types, and counts them" "with column types" "$(tp store check)"
+check "...a valid store" "a valid format-4 store" "$(tp store check)"
+check "verify is clean" "0" "$(PROVOST_WORKSPACE="$TWS" rc_of "$PROVOST" verify)"
+tp rm hosts.v2 -f >/dev/null
+check "rm NAME takes its types with it" "gone" "$(ls "$TWS/datasets/types/hosts.v2.tsv" 2>/dev/null || echo gone)"
+# a dataset filed before column types: none until its next capture, which
+# judges every row it holds, capture by capture
+tgit "$TWS" rm -q datasets/types/bat.tsv && tgit "$TWS" commit -q -m "as 2.22 left it"
+check "a dataset with none recorded: ls -l says -" "bat 3 6 - -" "$(tpo ls -l | sq)"
+check "...show --types says so" "no column types recorded for 'bat'" "$(tp show bat --types)"
+check "...--tsv prints the header alone" "column	type	share	cells	counts	set_by" "$(tpo show bat --types --tsv)"
+check "...store check notes it, and passes" "1 dataset(s) have no column types recorded" "$(tp store check)"
+check "...reading them changed nothing" "<>" "<$(tgit "$TWS" status --porcelain)>"
+tp --name bat "$TD/c1.tsv" >/dev/null
+check "its next capture records them from every row, each capture in turn" "decimal 100 5 integer=4,decimal=1 c0009" "$(tline bat used)"
+check "...the first capture set the others" "quantity 100 5 quantity=5 c0008" "$(tline bat size)"
+# store check finds a damaged record
+cp "$TWS/datasets/types/hosts.tsv" "$TD/keep"
+printf 'ghost\tinteger\t100\t1\tinteger=1\tc0001\n' >> "$TWS/datasets/types/hosts.tsv"
+check "store check: a column the dataset does not have fails it" "column \"ghost\" is not a column of datasets/hosts.tsv" "$(tp store check)"
+sed -i.bak 's/^size\tquantity/size\tsize/' "$TWS/datasets/types/hosts.tsv"
+check "store check: a type provost does not record fails it" "type \"size\" is not one provost records" "$(tp store check)"
+cp "$TD/keep" "$TWS/datasets/types/hosts.tsv"; rm -f "$TWS/datasets/types/hosts.tsv.bak"
+cp "$TD/keep" "$TWS/datasets/types/nosuch.tsv"
+check "store check: a record of no dataset fails it" "datasets/types/nosuch.tsv: there is no dataset nosuch" "$(tp store check)"
+check "...exit 1" "1" "$(PROVOST_WORKSPACE="$TWS" rc_of "$PROVOST" store check)"
+rm -f "$TWS/datasets/types/nosuch.tsv"
+check "...put back, it passes" "a valid format-4 store" "$(tp store check)"
+check "show --help lists --types" "--types" "$("$PROVOST" show --help)"
+check "ls --help lists -l" "-l, --long" "$("$PROVOST" ls --help)"
+check "ls with another argument is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$TWS" rc_of "$PROVOST" ls -x)"
+check "help advanced has a COLUMN TYPES section" "COLUMN TYPES" "$("$PROVOST" help advanced)"
+check "store --help says it checks them" "datasets/types/NAME.tsv" "$("$PROVOST" store --help)"
+fi
+
 if _part verify; then
 # verify (PV-026): input hashes at capture, and 'provost verify'.
 VWS="$(mktemp -d)/.verify"
@@ -3486,6 +3582,9 @@ for n in 1 2 3 4; do
     check "format $n: and the archive verifies" "archive verify: no findings" "$(fxp archive verify "$FX.arch")"
     printf 'dataset=* keep-last=1\n' > "$FX.pol"
     check "format $n: a prune dry run reads it" "dry run: " "$(fxp prune --policy "$FX.pol")"
+    check "format $n: ls -l reads it: no column types recorded" "$ds - -" "$(fxp ls -l | awk -v d="$ds" '$1 == d { print $1, $(NF - 1), $NF }')"
+    check "format $n: show --types says none are recorded" "no column types recorded for '$ds'" "$(fxp show "$ds" --types)"
+    check "format $n: stats guesses, as before" "Column types (guessed)" "$(fxp stats "$ds")"
     after="$(snapshot "$FX")"
     check "format $n: no read changed a byte of the store (.git included)" "<same>" \
         "<$([[ "$before" == "$after" ]] && echo same || diff <(printf '%s\n' "$before") <(printf '%s\n' "$after") | head -n 6)>"
@@ -3504,6 +3603,8 @@ for n in 1 2 3 4; do
     check "format $n: a write migrates it to format 4" "4" "$(cat "$FX/store/.store_format")"
     (( n < 4 )) && check "format $n: the migration is a commit of its own" "store format 4" "$(tgit "$FX/store" log --format=%s)"
     check "format $n: the migrated store passes store check" "a valid format-4 store" "$(fxp store check)"
+    check "format $n: the write records the new dataset's column types" "column	type" "$(cat "$FX/store/datasets/types/late.tsv" 2>&1)"
+    check "format $n: and leaves the older datasets' to their own next capture" "none" "$(ls "$FX/store/datasets/types/$ds.tsv" 2>/dev/null || echo none)"
     check "format $n: and verify" "<0>" "$(fxrc verify)"
     (( n == 3 )) && check "format 3: the migration puts PV-015's wrong rows right" "$(printf '8\tc0004\t1\tsdh\t500\t7\t\tsnap1')" "$(cat "$FX/store/datasets/disks.tsv")"
     (( n == 1 )) && check_not "format 1: the migration drops total_entries" "total_entries" "$(head -1 "$FX/store/datasets/aligned-columns.tsv")"
