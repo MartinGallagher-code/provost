@@ -1,5 +1,73 @@
 # provost — Changelog
 
+## 2.22.0 — 2026-11-13 — `show --format`, `latest` as a capture id, and how to get data out (PV-041)
+
+`VERSION` 2.21.0 → 2.22.0, and the `man/provost.1` header. Minor: new options
+and a new capture id. Nothing that worked before works differently, with one
+edge: where a command takes a capture id or a name or path (`diff`, `files`,
+`check-manifest`), the word `latest` is now read as the newest capture, as `7`
+already was read as `c0007`.
+
+- **`provost show NAME --format table|tsv|csv|json|ndjson|md`** (`provost`:
+  `_show_as`, `_show_format_of`, `cmd_show`). The names and shapes are
+  quarterdeck's `qd show --format` ones. `tsv` is the store's own text, as
+  `--tsv` (kept, the same thing) has always printed it; `csv` is RFC 4180 (a
+  cell holding a comma, a quote, a CR or an LF is quoted, its quotes doubled;
+  LF line ends); `json` is an array of objects in column order, indented 2,
+  and `ndjson` one object a line, a blank cell `null`, never `""` or 0, every
+  other value a string (typed values come with column types, PV-040: the
+  ticket's question, answered as it suggested); `md` is a Markdown table with
+  `|` escaped and a column of numbers (bare or with a unit qd knows, `50G`,
+  `0.42 ms`, `37%`) right-aligned by qd's rule. `text` and `markdown` are
+  taken as `table` and `md`. With no matching rows every format but the table
+  prints its empty shape. One mawk-safe awk, byte-wise: UTF-8 passes through,
+  never as `\u` escapes; a control character is a JSON escape.
+- **Beside qd** (checked against quarterdeck's own `qd show ds:NAME` on the
+  same store): CSV and Markdown are the same apart from qd's columns (no
+  `#`). qd's JSON sorts keys, writes numbers as numbers and non-ASCII as `\u`
+  escapes; its NDJSON leaves a blank cell's key out where provost writes
+  `null`; its TSV quotes a cell with a `"` where provost's is the store's
+  text. A parser reads the same values from both, numbers aside.
+- **`latest` and `latest~N`** wherever a capture id is taken (`_capid_of`,
+  `_capid_refuse`): `show --capture`/`--at`, `source`, `diff`, `annotate`,
+  `rm --capture`, `files`, `search --at`, `check-manifest`, `verify
+  --capture`, `restore`. They count the captures the store has (its
+  `capture-*` tags), so after `rm --capture` the one before is the one still
+  there. One past the first capture (or any `latest` in an empty store) is
+  refused as an unknown capture always was, `no such capture: latest~9 (see
+  'provost log').`, exit 1; an invalid id keeps its message and exit 2.
+  `restore latest` alone still means the present; `restore latest~0` is the
+  newest capture. `provost files -- latest` reaches a path called `latest`.
+  `provost_data.load(..., capture="latest")` works through it, with the
+  package unchanged.
+- **"Getting data out"** in `docs/usage.md` (in full) and `README.md` (in
+  short): `show --format` with `jq`; `provost_data`; DuckDB
+  (`read_csv(..., delim='\t', quote='', escape='')`) and Miller on
+  `datasets/NAME.tsv`, and why DuckDB needs `quote=''` and Miller's TSV reader
+  can differ on a cell holding `\t`; quarterdeck's `qd show ds:NAME --where`,
+  `qd export --format openmetrics|hec`, `qd view` and `qd web`. The survey's
+  query-layer, metrics-export and browser gaps are answered there, not in
+  provost (docs/0001).
+- **Help:** `show --help`, `source --help`, `diff --help`, `provost help` and
+  `help advanced` (what an ID is, now with `latest`), and `man/provost.1` (a
+  paragraph on capture ids at the top of SUBCOMMANDS, `show --format`, two
+  examples).
+- **Completions** (`completions/provost.bash`): `show` offers `--format` and,
+  after it, the six formats; `--capture` and `--at` offer `latest`,
+  `latest~1` and the store's ids; so do `annotate`, `check-manifest`, `diff`,
+  `restore`, `files` and `source`.
+- **Tests:** `tests/smoke.sh`, a new `show-format` part (111 checks): each
+  format on a dataset with blank cells, a comma, a quote, a backslash, a `|`
+  and non-ASCII text, read back by Python's `csv` and `json` byte for byte as
+  they write it and by `jq`; the empty shapes; the `unsorted` bucket's
+  control characters; `latest`/`latest~N` on every command above and every
+  refusal; the help, man page and completions; and every command in the two
+  "Getting data out" sections run as written against a store at `~/.provost`
+  (one whose tool, `jq`, `python3`, `duckdb`, `mlr` or `qd`, is missing is
+  skipped and says so; `qd view` and `qd web` are interactive and never run).
+  Where `qd` is installed it also compares all four shapes with
+  `qd show ds:NAME`. `CLAUDE.md` and `HANDOFF.md` carry the new smoke count.
+
 ## 2.21.0 — 2026-11-12 — the command's name used in detection, pkg-config narrowed, full mode checked in CI (PV-037)
 
 `VERSION` 2.20.1 → 2.21.0, and the `man/provost.1` header. Minor: what

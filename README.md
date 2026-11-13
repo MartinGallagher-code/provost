@@ -87,13 +87,40 @@ df[df.access != "remove"][["bw_mib_s", "iops", "latency_s"]].corr()
   used). By default it is the store `provost` would use where Python is
   running: `PROVOST_WORKSPACE`, then a controlled directory, then the global
   store.
-- `capture=` keeps only the rows one capture filed: `"c0007"` or `7`.
+- `capture=` keeps only the rows one capture filed: `"c0007"`, `7`, or
+  `"latest"` (the newest capture; `"latest~1"` the one before it).
 - When provost refuses (no such dataset, no such store, a bad name),
   `provost_data.ProvostError` carries its message and exit status. Without
   pandas, `load_df` raises `ImportError` with the install command.
 
 Through `provost` a load costs about 40 ms more than reading the dataset's
 file would, and about 7% more at a million rows (`tests/perf/load-time.py`).
+
+## Getting data out
+
+`provost show NAME --format csv|json|ndjson|md|tsv|table` writes a dataset for
+another tool; the names and shapes are quarterdeck's `qd show --format` ones.
+JSON is an array of objects (NDJSON one a line) with a blank cell as `null`,
+never `""` or 0; values are strings until column types land (PV-040). CSV is
+RFC 4180. `latest` is the newest capture and `latest~N` the Nth before it,
+wherever a capture ID is taken (`show --capture`, `source`, `diff`, `annotate`,
+`rm --capture`, ...), so a script never reads `provost log` for an id. The
+store's `datasets/NAME.tsv` is a [specified format](docs/store-format.md) that
+DuckDB and Miller read in place, and quarterdeck's `qd` filters, exports and
+views any dataset as `ds:NAME`. The details, and what differs from qd, are in
+[docs/usage.md, Getting data out](docs/usage.md#getting-data-out).
+
+```bash
+provost show df --capture latest --format csv > df.csv      # the last capture's rows
+provost show df --format json | jq -r '.[] | select(.Size == "50G") | .Mounted_on'
+provost show df --format md                                 # a Markdown table
+python3 -c 'import provost_data; print(len(provost_data.load("df")))'
+duckdb -c "SELECT Mounted_on, Avail FROM read_csv('~/.provost/datasets/df.tsv', delim='\t', quote='', escape='')"
+mlr --itsv --opprint sort -f Mounted_on ~/.provost/datasets/df.tsv
+qd show ds:df --where 'Use%>80' --format csv
+qd export ds:df --format openmetrics --labels capture,Mounted_on   # or --format hec (Splunk)
+qd web                                                      # interactive: in a browser (qd view: a terminal)
+```
 
 ## What it does
 
@@ -156,7 +183,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `… --context-columns` | each `key=value` in a `#%` prologue becomes a column on every row (inject/batch) |
 | `… --env` | record where the capture was taken (host, kernel, OS, modules, Slurm job, user, allow-listed variables) in its `#%` prologue (`--env=modules`: and the kernel modules) |
 | `… --units base` | add a `NAME[UNIT]` column in base units after each column with a readable unit (inject/run/batch; [Units](docs/usage.md#units)) |
-| `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then; `--tsv`: tab-separated, for a program) |
+| `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then; `--format csv\|json\|ndjson\|md\|tsv\|table`: for another tool, [Getting data out](#getting-data-out); `--tsv`: the same as `--format tsv`) |
 | `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
 | `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
 | `provost check-manifest [ID\|NAME...]` | which captures lack required run-manifest keys (`--post`, `--strict`, `--profile P`) |

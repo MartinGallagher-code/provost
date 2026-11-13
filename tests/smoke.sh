@@ -2037,6 +2037,227 @@ check "show --tsv of no such dataset is refused" "no such dataset: nope" \
     "$(PROVOST_WORKSPACE="$TWS" "$PROVOST" show nope --tsv 2>&1 || true)"
 fi
 
+if _part show-format; then
+# show --format (PV-041): every format read back to the rows the store holds,
+# with blank cells, a comma, a quote, a backslash, a '|' and text that is not
+# ASCII; and 'latest' / 'latest~N' wherever a capture id is taken.
+FWS="$(mktemp -d)/.fmt"; FT="$(mktemp -d)"
+fp () { PROVOST_WORKSPACE="$FWS" "$PROVOST" "$@" 2>&1; }
+printf '%s\n' $'host\tnote\tsize\tlat' $'n1\ta, b\t50G\t0.42 ms' $'n2\tsaid "hi"\t512M\t' \
+    $'n3\tcafé | ü\t\t3 ms' | PROVOST_WORKSPACE="$FWS" "$PROVOST" --sync --name fx >/dev/null 2>&1
+printf '%s\n' $'host\tnote\tsize\tlat' $'n4\tx\\y\t1G\t2s' | PROVOST_WORKSPACE="$FWS" "$PROVOST" --sync --name fx >/dev/null 2>&1
+printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$FWS" "$PROVOST" --sync --name other >/dev/null 2>&1
+fp show fx --tsv > "$FT/fx.stored"
+check "the format store filed its 4 rows as they were given" $'4\tc0002\t1\tn4\tx\\y\t1G\t2s' "$(cat "$FT/fx.stored")"
+check "and kept the blank cells" $'2\tc0001\t2\tn2\tsaid "hi"\t512M\t' "$(cat "$FT/fx.stored")"
+for f in csv json ndjson md table tsv; do fp show fx --format "$f" > "$FT/fx.$f"; done
+check "--format tsv is --tsv" "same" "$(cmp -s "$FT/fx.stored" "$FT/fx.tsv" && echo same)"
+check "--format table is the table show has always printed" "same" "$(cmp -s "$FT/fx.table" <(fp show fx) && echo same)"
+check "--format=json is --format json" "same" "$(cmp -s "$FT/fx.json" <(fp show fx --format=json) && echo same)"
+check "text and markdown are table and md" "same same" \
+    "$(cmp -s "$FT/fx.table" <(fp show fx --format text) && echo same) $(cmp -s "$FT/fx.md" <(fp show fx --format markdown) && echo same)"
+check "the last of --tsv and --format wins" "same" "$(cmp -s "$FT/fx.csv" <(fp show fx --tsv --format csv) && echo same)"
+check "an unknown format is refused, naming the six" "unknown --format 'xml' for 'show' (want table, tsv, csv, json, ndjson, md)" "$(fp show fx --format xml || true)"
+check "an unknown format exits 2" "2" "$(PROVOST_WORKSPACE="$FWS" rc_of "$PROVOST" show fx --format xml)"
+check "--format with no format is a usage error" "2" "$(PROVOST_WORKSPACE="$FWS" rc_of "$PROVOST" show fx --format)"
+# Read each back with Python (csv, json) to exactly the rows of the TSV: the
+# CSV byte for byte as Python's csv.writer writes it, the JSON as json.dumps
+# does (indent 2, keys in column order, a blank cell null).
+if command -v python3 >/dev/null 2>&1; then
+cat > "$FT/readback.py" <<'PY'
+import csv, io, json, sys
+tsv, out, fmt = sys.argv[1:4]
+text = open(tsv, encoding="utf-8").read()
+lines = text[:-1].split("\n") if text.endswith("\n") else text.split("\n")
+hdr = lines[0].split("\t")
+rows = [ln.split("\t") for ln in lines[1:]]
+objs = [dict(zip(hdr, [c if c != "" else None for c in r])) for r in rows]
+got = open(out, encoding="utf-8").read()
+if fmt == "csv":
+    buf = io.StringIO(); csv.writer(buf, lineterminator="\n").writerows([hdr] + rows)
+    ok = got == buf.getvalue() and list(csv.reader(io.StringIO(got))) == [hdr] + rows
+elif fmt == "json":
+    ok = got == json.dumps(objs, indent=2, ensure_ascii=False) + "\n" and json.loads(got) == objs
+else:
+    want = "".join(json.dumps(o, ensure_ascii=False) + "\n" for o in objs)
+    ok = got == want and [json.loads(l) for l in got.splitlines()] == objs
+print("same" if ok else "DIFFERENT:\n" + got)
+PY
+for f in csv json ndjson; do
+    check "--format $f reads back (Python) to the store's rows" "same" "$(python3 "$FT/readback.py" "$FT/fx.stored" "$FT/fx.$f" "$f" 2>&1)"
+done
+else
+    echo "  skip --format read-back with Python: python3 is not installed"
+fi
+check "csv quotes a cell with a comma" '1,c0001,1,n1,"a, b",50G,0.42 ms' "$(cat "$FT/fx.csv")"
+check "csv doubles a quote in a quoted cell" '2,c0001,2,n2,"said ""hi""",512M,' "$(cat "$FT/fx.csv")"
+check "csv leaves a cell with no comma or quote bare" '3,c0001,3,n3,café | ü,,3 ms' "$(cat "$FT/fx.csv")"
+check "json: a blank cell is null" '"lat": null' "$(cat "$FT/fx.json")"
+check_not "json: a blank cell is never an empty string" ': ""' "$(cat "$FT/fx.json")"
+check "json: a backslash is escaped" '"note": "x\\y"' "$(cat "$FT/fx.json")"
+check "json: a quote is escaped" '"note": "said \"hi\""' "$(cat "$FT/fx.json")"
+check "json: values are strings until column types (PV-040)" '"#": "1"' "$(cat "$FT/fx.json")"
+check "json: text that is not ASCII is written as UTF-8" '"note": "café | ü"' "$(cat "$FT/fx.json")"
+check "ndjson: one object a line" "4" "$(wc -l < "$FT/fx.ndjson" | tr -d ' ')"
+check "md: the header row" '| # | capture | n | host | note | size | lat |' "$(cat "$FT/fx.md")"
+check "md: number columns right-aligned, as qd's (50G, 0.42 ms are numbers)" '|---:|---|---:|---|---|---:|---:|' "$(cat "$FT/fx.md")"
+check "md: a '|' in a cell is escaped, a blank cell is empty" '| 3 | c0001 | 3 | n3 | café \| ü |  | 3 ms |' "$(cat "$FT/fx.md")"
+if command -v jq >/dev/null 2>&1; then
+    check "jq reads the json: the blank cells are null" "n2 n3" "$(jq -r '.[] | select(.lat == null or .size == null) | .host' "$FT/fx.json" | tr '\n' ' ' | sed 's/ $//')"
+    check "jq reads json and ndjson to the same objects" "same" "$(cmp -s <(jq -c '.[]' "$FT/fx.json") <(jq -c . "$FT/fx.ndjson") && echo same)"
+    check "jq reads the quote back" 'said "hi"' "$(jq -r '.[1].note' "$FT/fx.json")"
+else
+    echo "  skip --format read-back with jq: jq is not installed"
+fi
+# No rows: every format but the table prints its empty shape.
+check "no rows: csv prints the header alone" "[#,capture,n,host,note,size,lat|]" "[$(fp show fx --capture 9 --format csv | tr '\n' '|')]"
+check "no rows: json prints []" "[[]|]" "[$(fp show fx --capture 9 --format json | tr '\n' '|')]"
+check "no rows: ndjson prints nothing" "[]" "[$(fp show fx --capture 9 --format ndjson)]"
+check "no rows: md prints the header and its rule" "[| # | capture | n | host | note | size | lat |||---|---|---|---|---|---|---||]" "[$(fp show fx --capture 9 --format md | tr '\n' '|')]"
+check "no rows: the table says so" "no rows in 'fx' from capture c0009" "$(fp show fx --capture 9)"
+check "--format with --capture keeps that capture's rows" '[{"#": "4", "capture": "c0002", "n": "1", "host": "n4", "note": "x\\y", "size": "1G", "lat": "2s"}|]' \
+    "[$(fp show fx --capture 2 --format ndjson | tr '\n' '|')]"
+check "--format with --at reads the dataset as it stood then" "3" "$(fp show fx --at 1 --format ndjson | wc -l | tr -d ' ')"
+# Beside quarterdeck's 'qd show ds:NAME --format': the same rows apart from
+# qd's own columns (no '#'), qd's typed numbers and, in NDJSON, qd leaving a
+# blank cell's key out. Only where qd is installed.
+if command -v qd >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+    QDS=(qd show ds:fx --store "$FWS")
+    check "csv matches qd's, less the '#' column" "same" \
+        "$(cmp -s <("${QDS[@]}" --format csv 2>&1) <(sed 's/^[^,]*,//' "$FT/fx.csv") && echo same)"
+    check "md matches qd's, less the '#' column" "same" \
+        "$(cmp -s <("${QDS[@]}" --format md 2>&1) <(sed -E 's/^\| [^|]* \|/|/; s/^\|-+:?\|/|/' "$FT/fx.md") && echo same)"
+    for f in json ndjson; do
+        "${QDS[@]}" --format "$f" > "$FT/qd.$f" 2>&1
+        check "$f matches qd's, less '#' (numbers and blanks as qd writes them)" "same" "$(python3 - "$FT/fx.$f" "$FT/qd.$f" "$f" <<'PY'
+import json, sys
+mine, theirs, fmt = sys.argv[1:4]
+def read(p):
+    t = open(p, encoding="utf-8").read()
+    return json.loads(t) if fmt == "json" else [json.loads(l) for l in t.splitlines()]
+def norm(o):
+    out = {}
+    for k, v in o.items():
+        if k == "#" or (fmt == "ndjson" and v is None):
+            continue
+        if isinstance(v, (int, float)):
+            v = float(v)
+        elif isinstance(v, str):
+            try:
+                v = float(v)
+            except ValueError:
+                pass
+        out[k] = v
+    return out
+a = [norm(o) for o in read(mine)]
+b = [norm(o) for o in read(theirs)]
+print("same" if a == b else "DIFFERENT:\n%r\n%r" % (a, b))
+PY
+)"
+    done
+else
+    echo "  skip the comparison with qd show ds:NAME --format: qd (quarterdeck) is not installed"
+fi
+
+# latest and latest~N: the newest capture, and the Nth before it, wherever a
+# capture id is taken. c0003 is 'other''s, so fx has no rows from latest.
+check "show --capture latest: the newest capture" "no rows in 'fx' from capture c0003" "$(fp show fx --capture latest)"
+check "show --capture latest~1" $'4\tc0002' "$(fp show fx --capture latest~1 --tsv)"
+check "show --at latest~2: as it stood after the first" "3" "$(fp show fx --at latest~2 --format ndjson | wc -l | tr -d ' ')"
+check "latest~0 is latest" "same" "$(cmp -s <(fp show other --capture latest --tsv) <(fp show other --capture latest~0 --tsv) && echo same)"
+check "source latest: the newest capture" "capture c0003" "$(fp source latest)"
+check "source latest~2" "capture c0001" "$(fp source latest~2)"
+check "diff latest~2 latest~1" "c0001 → c0002" "$(fp diff latest~2 latest~1)"
+check "diff NAME latest~1: against fx's capture before it" "c0001 → c0002" "$(fp diff fx latest~1)"
+check "diff latest: against the capture before it" "c0002 → c0003" "$(fp diff latest)"
+check "search --at latest~2" "no dataset rows match 'n4' at c0001" "$(fp search n4 --at latest~2)"
+check "annotate latest" "c0003: annotated (reviewer)" "$(fp annotate latest reviewer=jo)"
+check "check-manifest latest" "c0003" "$(fp check-manifest latest)"
+check_not "check-manifest latest checks only that capture" "c0001" "$(fp check-manifest latest)"
+check "verify --capture latest" "0" "$(PROVOST_WORKSPACE="$FWS" rc_of "$PROVOST" verify --capture latest)"
+check "restore latest~1 brings that capture up" "brought up c0002" "$(fp restore latest~1)"
+check "restore latest still returns to the present" "restored workspace to latest" "$(fp restore latest)"
+check "latest~N past the first capture is refused as any unknown capture is" "no such capture: latest~9 (see 'provost log')." "$(fp show fx --capture latest~9 || true)"
+check "and exits 1, as an unknown capture does" "1" "$(PROVOST_WORKSPACE="$FWS" rc_of "$PROVOST" show fx --capture latest~9)"
+for c in "source latest~9" "diff latest~9" "annotate latest~9 k=v" "rm -f --capture latest~9" "search x --at latest~9" "verify --capture latest~9" "check-manifest latest~9" "restore latest~9" "show fx --at latest~9"; do
+    # shellcheck disable=SC2086
+    check "$c is refused the same way" "no such capture: latest~9" "$(fp $c || true)"
+done
+check "an invalid id keeps today's message" "invalid capture id 'bogus' (expected e.g. c0007 or 7)." "$(fp show fx --capture bogus || true)"
+check "and its exit status (2)" "2" "$(PROVOST_WORKSPACE="$FWS" rc_of "$PROVOST" show fx --capture bogus)"
+check "latest~ with no N is not an id" "invalid capture id 'latest~'" "$(fp show fx --capture 'latest~' || true)"
+check "nor is capture-latest" "invalid capture id 'capture-latest'" "$(fp show fx --capture capture-latest || true)"
+check "latest in a store with no captures is refused" "no such capture: latest" \
+    "$(PROVOST_WORKSPACE="$(mktemp -d)/.none" "$PROVOST" show fx --capture latest 2>&1 || true)"
+check "rm --capture latest removes the newest capture" "deleted 1 capture(s) (c0003)" "$(fp rm -f --capture latest)"
+check "after it, latest is the one before" "capture c0002" "$(fp source latest)"
+if command -v python3 >/dev/null 2>&1; then
+    check "python: provost_data.load(capture='latest')" "n4" \
+        "$(PROVOST_WORKSPACE="$FWS" PATH="$HERE/..:$PATH" PYTHONPATH="$HERE/../src" python3 -c 'import provost_data; print(provost_data.load("fx", capture="latest")[0]["host"])' 2>&1)"
+fi
+# The unsorted bucket: its raw input decoded, and a control character in it
+# written as a JSON escape (\u0001), a quote and a backslash escaped.
+printf 'a\001b "q" \\ z\n' | PROVOST_WORKSPACE="$FWS" "$PROVOST" --sync --min-confidence 101 >/dev/null 2>&1
+check "unsorted --format json: decoded, with JSON escapes" '"raw": "a\u0001b \"q\" \\ z\\n"' "$(fp show unsorted --format json)"
+if command -v python3 >/dev/null 2>&1; then
+    check "and Python reads it back to the decoded input" "'a\\x01b \"q\" \\\\ z\\\\n'" \
+        "$(fp show unsorted --format ndjson | python3 -c 'import json, sys; print(repr(json.loads(sys.stdin.readline())["raw"]))')"
+fi
+# files: a controlled directory's run files, by latest; '--' for a path
+# called latest.
+FFH="$(mktemp -d)/home"; FFP="$(mktemp -d)/proj"; mkdir -p "$FFP"
+( cd "$FFP" && PROVOST_HOME="$FFH" PROVOST_WORKSPACE="" "$PROVOST" control >/dev/null 2>&1
+  echo 'v = 1' > m.py; PROVOST_HOME="$FFH" PROVOST_WORKSPACE="" "$PROVOST" run --name r printf 'a b\n1 2\n' >/dev/null 2>&1
+  echo 'v = 2' > m.py; echo 'the file' > latest; PROVOST_HOME="$FFH" PROVOST_WORKSPACE="" "$PROVOST" run --name r printf 'a b\n3 4\n' >/dev/null 2>&1 )
+ffr () { ( cd "$FFP" && PROVOST_HOME="$FFH" PROVOST_WORKSPACE="" "$PROVOST" "$@" 2>&1 ); }
+check "files latest~1 m.py: the file as the run before kept it" "v = 1" "$(ffr files latest~1 m.py)"
+check "files latest m.py" "v = 2" "$(ffr files latest m.py)"
+check "files -- latest: the path called latest" "the file" "$(ffr files -- latest)"
+# The help, the man page and the completions.
+check "show --help lists --format" "--format FMT" "$(fp show --help)"
+check "help advanced lists --format" "[--format FMT | --tsv]" "$(fp help advanced)"
+check "help advanced says what latest is" "latest~N, the Nth before it" "$(fp help advanced)"
+check "the man page lists --format" '\fB--format\fR \fIfmt\fR' "$(cat "$HERE/../man/provost.1")"
+cpl () { ( unset -f _init_completion 2>/dev/null; source "$HERE/../completions/provost.bash"
+           COMP_WORDS=("$@"); COMP_CWORD=$(( $# - 1 )); PROVOST_WORKSPACE="$FWS"; _provost_complete
+           echo "${COMPREPLY[*]}" ); }
+check "completion offers --format to show" "--format" "$(cpl provost show fx --f)"
+check "completion offers the formats after --format" "csv json ndjson" "$(cpl provost show fx --format '')"
+check "completion offers latest after --capture" "latest latest~1" "$(cpl provost show fx --capture '')"
+check "completion offers latest to annotate" "latest" "$(cpl provost annotate '')"
+
+# Every command in the "Getting data out" sections of README.md and
+# docs/usage.md, as written, against a store at ~/.provost with a 'df'
+# dataset of two captures. A command whose tool (jq, python3, duckdb, mlr,
+# qd) is not installed is skipped and says so; one marked "interactive" (qd
+# view, qd web) needs a terminal or starts a server, and is never run.
+DH="$(mktemp -d)"; DW="$(mktemp -d)"
+for u in 82 91; do
+    printf 'Filesystem      Size  Used Avail Use%% Mounted on\n/dev/sda1        50G   41G  9.0G  %s%% /\ntmpfs           3.9G     0  3.9G   0%% /dev/shm\n' "$u" \
+        | env -u PROVOST_WORKSPACE -u PROVOST_HOME HOME="$DH" "$PROVOST" --sync --name df >/dev/null 2>&1
+done
+check "the docs' store has a 'df' of two captures" "c0002" "$(env -u PROVOST_WORKSPACE -u PROVOST_HOME HOME="$DH" "$PROVOST" show df --tsv 2>&1)"
+for doc in README.md docs/usage.md; do
+    ndoc=0
+    while IFS= read -r line; do
+        [[ -n "$line" ]] || continue
+        ndoc=$((ndoc + 1))
+        if [[ "$line" == *"# interactive"* ]]; then echo "  skip $doc: '$line' (interactive: not run)"; continue; fi
+        miss=""
+        for t in jq python3 duckdb mlr qd; do
+            re="(^|[|;&][[:space:]]*)$t[[:space:]]"
+            if [[ "$line" =~ $re ]] && ! command -v "$t" >/dev/null 2>&1; then miss="$t"; fi
+        done
+        if [[ -n "$miss" ]]; then echo "  skip $doc: '$line' ($miss is not installed)"; continue; fi
+        out="$(cd "$DW" && env -u PROVOST_WORKSPACE -u PROVOST_HOME HOME="$DH" PATH="$HERE/..:$PATH" \
+               PYTHONPATH="$HERE/../src" bash -o pipefail -c "$line" 2>&1; echo "rc=$?")"
+        check "$doc runs: $line" "rc=0" "$(tail -n 1 <<< "$out")"
+    done < <(awk '/^## /{ s = ($0 == "## Getting data out") } s && /^```bash$/{ f = 1; next } s && f && /^```$/{ f = 0; next } s && f' "$HERE/../$doc")
+    check "$doc has a Getting data out section with commands" "yes" "$( (( ndoc >= 5 )) && echo yes)"
+done
+check "the csv the docs wrote holds the last capture's rows" '/dev/sda1,50G,41G,9.0G,91%,/' "$(cat "$DW/df.csv" 2>&1)"
+fi
+
 if _part listen; then
 # --show and listen: the output is shown as always and filed too.
 LWS2="$(mktemp -d)/.listen"; LCFG="$(mktemp -d)"; LBIN="$(mktemp -d)"

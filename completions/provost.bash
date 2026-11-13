@@ -25,16 +25,25 @@ _provost_complete () {
 
     # --units takes a mode, wherever it comes (piped input has no verb).
     if [[ "$prev" == --units ]]; then COMPREPLY=( $(compgen -W "base off" -- "$cur") ); return; fi
+    # Capture ids: latest, latest~1 and the store's own (PV-041).
+    local capids
+    capids="latest latest~1 $(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"
 
     local verb="${COMP_WORDS[1]}"
     case "$verb" in
         help)
             COMPREPLY=( $(compgen -W "advanced $verbs" -- "$cur") ) ;;
         show|stats|rm|delete|drop|diff|search)
+            # show --format takes a format; --capture and --at (show, search,
+            # rm) a capture id
+            case "$prev" in
+                --format) [[ "$verb" == show ]] && { COMPREPLY=( $(compgen -W "table tsv csv json ndjson md" -- "$cur") ); return; } ;;
+                --capture|--at) COMPREPLY=( $(compgen -W "$capids" -- "$cur") ); return ;;
+            esac
             # complete dataset names from the active store (rm also offers flags)
             case "$cur" in
                 -*) case "$verb" in
-                        show)   COMPREPLY=( $(compgen -W "--capture --at --tsv --help" -- "$cur") ) ;;
+                        show)   COMPREPLY=( $(compgen -W "--capture --at --format --tsv --help" -- "$cur") ) ;;
                         search) COMPREPLY=( $(compgen -W "-i -F -w -e --at --output --files --help" -- "$cur") ) ;;
                         diff)   COMPREPLY=( $(compgen -W "--help" -- "$cur") ) ;;
                         *)      COMPREPLY=( $(compgen -W "-f --yes --purge --no-purge --keep-captures --help" -- "$cur") ) ;;
@@ -42,11 +51,11 @@ _provost_complete () {
             esac
             local ds
             ds="$(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')"
+            # diff takes captures beside (or instead of) a dataset
+            [[ "$verb" == diff ]] && ds="$ds $capids"
             COMPREPLY=( $(compgen -W "$ds" -- "$cur") ) ;;
         restore|files|source)
-            local caps
-            caps="latest $(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"
-            COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ) ;;
+            COMPREPLY=( $(compgen -W "$capids --help" -- "$cur") ) ;;
         log)
             COMPREPLY=( $(compgen -W "--failed --help" -- "$cur") ) ;;
         template)
@@ -71,13 +80,11 @@ _provost_complete () {
             elif [[ "${COMP_WORDS[2]}" == import ]]; then COMPREPLY=( $(compgen -d -- "$cur") )
             else COMPREPLY=( $(compgen -W "--to --before --older-than --dataset --as-of --purge --yes --help" -- "$cur") ); fi ;;
         annotate)
-            local caps
-            caps="$(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"
-            if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ); else COMPREPLY=(); fi ;;
+            if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "$capids --help" -- "$cur") ); else COMPREPLY=(); fi ;;
         check-manifest)
             case "$prev" in --profile) COMPREPLY=( $(compgen -W "default proposal" -f -- "$cur") ); return ;; esac
             local caps
-            caps="$(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null) $(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')"
+            caps="$capids $(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')"
             COMPREPLY=( $(compgen -W "--profile --post --strict --help $caps" -- "$cur") ) ;;
         listen|unlisten)
             COMPREPLY=( $(compgen -c -- "$cur") ) ;;
