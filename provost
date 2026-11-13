@@ -8181,7 +8181,10 @@ INTERRUPTED RUNS
     command's rc, 'provost log' shows [interrupted: SIGINT] after its command,
     and provost exits 130 (143, 129), so a script still sees the
     interruption. A batch scheduler's walltime is the same case: Slurm sends
-    SIGTERM, then SIGKILL KillWait seconds (30) later.
+    SIGTERM, then SIGKILL KillWait seconds (30) later. Ctrl-C, a closed
+    terminal and schedulers signal provost's whole process group; a signal
+    sent to provost's own process alone (kill PID) is acted on when the
+    command ends.
     A second signal, or one while provost is filing a capture whose command
     ran to its end, stops provost at once and files nothing: the store is
     left as it was (no commit, no tag, no lock), and 'provost verify' passes.

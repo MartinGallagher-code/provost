@@ -819,7 +819,9 @@ any capture is: its \fImeta.tsv\fR says \fBinterrupted SIGINT\fR (or
 \fBprovost log\fR shows \fB[interrupted: SIGINT]\fR after its command, and
 provost exits 130 (143, 129), so a script still sees the interruption. A batch
 scheduler's walltime is the same case: Slurm sends \fBSIGTERM\fR, then
-\fBSIGKILL\fR \fBKillWait\fR seconds (30) later.
+\fBSIGKILL\fR \fBKillWait\fR seconds (30) later. Ctrl-C, a closed terminal and
+schedulers signal provost's whole process group; a signal sent to provost's own
+process alone (\fBkill\fR \fIpid\fR) is acted on when the command ends.
 .PP
 A second signal, or one while provost is filing a capture whose command ran to
 its end, stops provost at once and files nothing: the store is left as it was

@@ -44,6 +44,9 @@ keeps what such a run printed:
   files nothing. The store is left as it was: no commit, no tag, no lock, and
   `provost verify` passes. That is the way out when filing itself hangs.
 - **Nothing printed** before the signal: nothing is captured.
+- **Whose signal:** Ctrl-C, a closed terminal and batch schedulers signal
+  provost's whole process group, command included. A signal sent to provost's
+  own process alone (`kill PID`) is acted on when the command ends.
 - **In the background** (`--async`, the default at a terminal), the capture is
   queued once the reading stops, and a signal after that does not reach it.
   `batch` reads files rather than a live command, and is unchanged.

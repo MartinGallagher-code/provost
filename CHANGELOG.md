@@ -18,7 +18,10 @@ the signal, marked"; nothing that ran to its end works differently.
   `meta.tsv` gets `interrupted<TAB>SIGINT` (`SIGTERM`, `SIGHUP`) beside the
   command's `rc`, `provost log` shows
   `[interrupted: SIGINT]` after the command, and provost exits 130 (143, 129).
-  Nothing printed: nothing captured, same exit status. The owner's two
+  Nothing printed: nothing captured, same exit status. Ctrl-C, a closed
+  terminal and schedulers signal the whole process group; a signal sent to
+  provost's own process alone (`kill PID`) is acted on when the command ends,
+  as provost's exit has always waited for it. The owner's two
   questions were taken at their suggested answers: kept by default, no
   `--keep-partial`; a 2 s grace with `PROVOST_INTERRUPT_GRACE`.
 - **A second signal, or one while provost files a capture, stops it at once
