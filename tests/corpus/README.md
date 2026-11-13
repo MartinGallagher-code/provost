@@ -298,7 +298,7 @@ suite (`extract/tests/run_tests.sh`) is kept green through every parser change.
 
 ## HPC benchmark set (PV-030, 2026-11-10)
 
-The benchmark and fabric outputs an HPC proposal names, added in provost's
+The benchmark and fabric outputs, added in provost's
 order: a generic parser first, then a hint row, then a strategy. **Real**
 inputs were captured in a cloud container from signed distribution packages
 or PyPI. **Source** inputs were written from the tool's own print statements
