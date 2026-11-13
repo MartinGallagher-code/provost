@@ -56,7 +56,8 @@ already was read as `c0007`.
   after it, the six formats; `--capture` and `--at` offer `latest`,
   `latest~1` and the store's ids; so do `annotate`, `check-manifest`, `diff`,
   `restore`, `files` and `source`.
-- **Tests:** `tests/smoke.sh`, a new `show-format` part (111 checks): each
+- **Tests:** `tests/smoke.sh`, a new `show-format` part (103 checks, 111
+  where qd is installed): each
   format on a dataset with blank cells, a comma, a quote, a backslash, a `|`
   and non-ASCII text, read back by Python's `csv` and `json` byte for byte as
   they write it and by `jq`; the empty shapes; the `unsorted` bucket's
@@ -66,7 +67,10 @@ already was read as `c0007`.
   (one whose tool, `jq`, `python3`, `duckdb`, `mlr` or `qd`, is missing is
   skipped and says so; `qd view` and `qd web` are interactive and never run).
   Where `qd` is installed it also compares all four shapes with
-  `qd show ds:NAME`. `CLAUDE.md` and `HANDOFF.md` carry the new smoke count.
+  `qd show ds:NAME`. `CLAUDE.md` and `HANDOFF.md` carry the smoke count (it
+  was still 737 there; it is about 2,000 in 32 parts).
+- **The short help** gains `--format` on the `show` line and stays at 50
+  lines.
 
 ## 2.21.0 — 2026-11-12 — the command's name used in detection, pkg-config narrowed, full mode checked in CI (PV-037)
 

@@ -108,7 +108,7 @@ bash tests/check_version.sh origin/main   # bumped everywhere, and past main's
 When you change `provost` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (737 checks)
+bash tests/smoke.sh                 # end-to-end (about 2,000 checks in 32 parts)
 bash transform/tests/test_melt.sh   # transform unit test (70 checks)
 bash transform/tests/test_units.sh  # --units base: conversion table and rules (86 checks)
 ```

@@ -344,7 +344,8 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (737, with the `units` part's 41)
+- `tests/smoke.sh` (about 2,000 in 32 parts, the core part three times;
+  the `units` part's 41, `show-format`'s 103, 111 with qd installed)
 - `transform/tests/test_melt.sh` (70)
 - `transform/tests/test_units.sh` (86; mawk and gawk)
 - `extract/tests/run_tests.sh` (70 files)

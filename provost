@@ -7422,9 +7422,7 @@ CAPTURE
 
 LOOK
     provost ls                    list datasets
-    provost show NAME             show a dataset as a table
-    provost show NAME --format F  ... as csv, json, ndjson, md or tsv, for
-                                  another tool
+    provost show NAME             a dataset as a table (--format csv|json|md)
     provost search PATTERN        find matching rows in every dataset
     provost log                   list captures (c0001, c0002, ...)
     provost source ID             a capture's original output
