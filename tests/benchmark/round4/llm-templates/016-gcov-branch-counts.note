@@ -1,1 +1,0 @@
-Records span several lines: a "Function 'x'" or "File 'x'" title line followed by its "Lines executed:P% of N" metric lines (and a trailing overall Lines-executed line with no title). The title should be a column of the metric rows; format 1 cannot carry it, so titles and metrics are separate flat tables. "Creating 'x.gcov'" and "No calls" are skipped.

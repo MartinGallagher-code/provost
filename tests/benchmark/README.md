@@ -120,7 +120,13 @@ worse than no rating.
 | `round5/CRITERIA.md` | round 5: round 4's rating rules, unchanged, with the tie-break calls written out in a dated note |
 | `round5/ratings.tsv` | round 5: default winner, confidence, coverage, consistency, gate_held, and the default, `--multi`, model-first and `--llm` ratings with each rater's reason |
 | `round5/novelty.py` | round 5: name and content check against the corpus, holdout, rounds 1-4 and round 4's second captures |
-| `round5/llm-templates-learn/` | round 5: the templates `--llm` wrote at first contact, its summary and API log |
+| `round5/llm-templates-learn/summary.tsv` | round 5: how each input was filed when `--llm` wrote its template at first contact (the templates and API log are [at d9c32f04](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-templates-learn); see "LLM run records") |
+| `round5/llm-judge/judge.tsv`, `ratings.tsv` | round 5: the judge's verdict on each template, and the blind ratings of the 26 it revised |
+| `round4/llm-templates-*/summary.tsv` | round 4: how each input was filed in parts 4-7 of the LLM-templates report |
+| `llm_round.sh` | run a round through `provost --sync --llm` with a directory of stored templates (or `--learn` them) |
+| `judge_round.sh` | run the `--llm` judge alone on a round's stored templates |
+| `llm_archive.sh` | sourced by both: the archive commit, and the stop when a template directory is missing or empty |
+| `what_if.py` | recompute `docs/0004-generalisation-approach.md`'s figures from the round 5 and round 4 rating sheets |
 | `run.sh` | re-run every input through default, `--rank priority` and `--multi` mode |
 | `make_doc_json.sh` | build the workbook JSON (input + melted parse + rating) |
 | `make_doc.js` | render that JSON as a markable `.docx` |
@@ -131,6 +137,59 @@ bash tests/benchmark/make_doc_json.sh -o /tmp/bench.json
 node tests/benchmark/make_doc.js /tmp/bench.json /tmp/benchmark.docx
 python3 tests/benchmark/make_page.py /tmp/bench.json /tmp/benchmark.html
 ```
+
+## LLM run records: kept in history, not in the tree
+
+PV-042 (2.22.1) took the benchmark rounds' LLM run records out of the tree:
+the 456 templates Claude wrote for rounds 4 and 5, the 107 notes beside round
+4's first set, and the 7 API logs (2.0 MB together). Nothing provost runs,
+ships or tests reads them. They stay in git at commit
+[`d9c32f04`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark),
+the last that holds them, and every link to them in the docs points there.
+What stays in the tree is what cannot be made again: every rating, summary
+and judge sheet (the evidence for the reports' numbers), and every frozen
+input set. Two of round 4's format-2 templates are smoke fixtures, in
+`tests/fixtures/llm-templates/`.
+
+| At d9c32f04, under `tests/benchmark/` | What it held | Where it is reported |
+|---|---|---|
+| [`round4/llm-templates/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates) | 107 format-1 templates by Claude helpers, each with a `.note` | [round 4 LLM report](../../docs/benchmark-2026-10-27-llm-templates-round4.md), part 1 |
+| [`round4/llm-templates-f2/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-f2) | 65 format-2 rewrites | parts 2, 3 and 5 |
+| [`round4/llm-templates-learn/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn) | 98 templates `learn` wrote at first contact, and the API log | parts 4 and 6 |
+| [`round4/llm-templates-repaired/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-repaired) | 22 templates repaired on the second capture, and the API log | part 5 |
+| [`round4/llm-templates-learn-repaired/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn-repaired) | 27 first-contact templates repaired on the second capture, and the API log | part 6 |
+| [`round4/llm-templates-learn-cleanup/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn-cleanup) | 7 new first contacts after the clean-up, and the API log | part 7 |
+| [`round4/llm-templates-learn-cleanup-repaired/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn-cleanup-repaired) | 4 of those repaired, and the API log | part 7 |
+| [`round5/llm-templates-learn/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-templates-learn) | 100 templates `--llm` wrote at first contact, and the API log | [round 5 report](../../docs/benchmark-2026-11-04-generalisation-round5.md) |
+| [`round5/llm-judge/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-judge) | the 26 templates the judge revised (`revised/`), and the API log | round 5 report, the addendum on the `--llm` judge (PV-009) |
+
+Restore one directory, from the top of the checkout (it lands where it was):
+
+```bash
+git archive d9c32f046ca1d9457a3ecd7439c2dcf410f85c34 tests/benchmark/round4/llm-templates-f2 | tar -x
+```
+
+Restore everything PV-042 moved, the two prescreen worksheets in
+`docs/archive/` included:
+
+```bash
+git archive d9c32f046ca1d9457a3ecd7439c2dcf410f85c34 -- ':(glob)tests/benchmark/round[45]/llm-*/**/[0-9][0-9][0-9]-*' ':(glob)tests/benchmark/round[45]/llm-*/llm-log.jsonl' docs/archive/review-prescreen-round8.tsv docs/archive/review-prescreen-2026-08-06-round16.tsv | tar -x
+```
+
+A shallow clone may not hold that commit. Fetch it first:
+
+```bash
+git fetch --depth=1 origin d9c32f046ca1d9457a3ecd7439c2dcf410f85c34
+```
+
+`llm_round.sh` and `judge_round.sh` default to a round's own template
+directory (`roundN/llm-templates/`, `roundN/llm-templates-learn/`). When it
+is missing, or holds no template, they stop (exit 2) with the command that
+restores it, before any API call, rather than reading every input
+untemplated. A later round that wants round 4's templates as its stored
+library (`--templates round4/llm-templates-f2:round4/llm-templates`) restores
+those two directories first. A new round's run writes its own records again
+locally; nothing ignores them.
 
 ## Adding inputs
 

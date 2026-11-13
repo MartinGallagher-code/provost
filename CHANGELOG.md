@@ -1,5 +1,79 @@
 # provost — Changelog
 
+## 2.22.1 — 2026-11-13 — the benchmark's LLM run records and two prescreen sheets out of the tree (PV-042)
+
+`VERSION` 2.22.0 → 2.22.1, and the `man/provost.1` header. Patch: tests and
+docs only. Nothing provost runs, ships or tests reads what moved, and the
+wheel's and sdist's file lists are the same as 2.22.0's.
+
+The owner asked for ways to make provost smaller without changing what it
+does. The survey (PV-042) found the code carries almost no dead weight, and
+the largest single block that nothing reads is the benchmark rounds' LLM run
+records. They are kept in git, not deleted from it.
+
+- **Moved out of the tree, kept at commit `d9c32f04`** (`main` before this
+  change, the last commit that holds them): the 456 templates Claude wrote
+  for rounds 4 and 5 (`tests/benchmark/round4/llm-templates*/`, seven
+  directories, `round5/llm-templates-learn/` and `round5/llm-judge/revised/`),
+  the 107 `.note`s beside round 4's first set, their 7 `llm-log.jsonl` API
+  logs, and `docs/archive/review-prescreen-round8.tsv` and
+  `review-prescreen-2026-08-06-round16.tsv` (the August prescreen
+  worksheets). 572 files, 2.63 MB.
+- **Kept in the tree:** every rating, summary and judge sheet (all
+  `ratings*.tsv`, the six `summary.tsv`, `round5/llm-judge/judge.tsv` and
+  `ratings.tsv`): they are the evidence for the reports' numbers and cannot
+  be made again, and `tests/benchmark/what_if.py` reads two of them (its
+  output is unchanged). Every frozen input set too.
+- **Restoring them:** `tests/benchmark/README.md` has a new section, "LLM run
+  records": what each directory at `d9c32f04` held and which report part it
+  belongs to, and the restore commands, one directory
+  (`git archive d9c32f04… tests/benchmark/round4/llm-templates-f2 | tar -x`)
+  or all 572 files at once. Both were run and give the files back
+  byte-identical. `docs/archive/MOVED.md` (new) does the same for the two
+  worksheets.
+- **Smoke fixtures:** part `llm` (PV-010's checks) read two of round 4's
+  format-2 templates from `round4/llm-templates-f2/`. They moved, byte for
+  byte, to `tests/fixtures/llm-templates/` (with `ABOUT.md` saying where
+  they came from), and smoke reads them there; its checks are unchanged.
+- **Not called `README.md`:** the sdist's `include` list in `pyproject.toml`
+  names `README.md` with no leading `/`, which hatchling reads as a
+  `README.md` at any depth (seven nested ones ship today, `ml/README.md` and
+  `tests/benchmark/README.md` among them). A README in either new place would
+  have changed the sdist, so the two new notes are `MOVED.md` and `ABOUT.md`.
+- **`llm_round.sh` and `judge_round.sh`** source the new
+  `tests/benchmark/llm_archive.sh` and stop (exit 2), before any API call,
+  when a template directory is missing or holds no `*.json`, naming the
+  archive commit and printing the command that restores that directory.
+  Before, a missing directory in `llm_round.sh --templates A:B` was skipped
+  without a word, and every input ran untemplated; `judge_round.sh` on an
+  existing directory with no templates wrote a `judge.tsv` with no rows.
+- **Links:** the round 4 LLM-templates report (6 places) and the round 5 report
+  (4), `HANDOFF.md` (2), `tests/benchmark/README.md` and
+  `docs/archive/review-unreviewed-landscape-2026-08-06.md` point at
+  permalinks of `d9c32f04`; each report says so in a note under its opening.
+  Commands in the reports are as they were run. Rating sheets and this
+  changelog name the old paths as records and are left as written.
+- **A smoke race, fixed** (it failed this pull request's CI once; it predates
+  it). Part `redact`'s check "a background capture is scrubbed and records
+  it" waited for `meta.tsv` to exist and then read it. The file exists from
+  the moment its writer opens it (`{ ... } > meta.tsv`), so CI read it with
+  its first 8 lines and no `redacted` line. The check now waits for the
+  capture's tag, the background job's last step. Polled with no sleep, a
+  background capture's `meta.tsv` was half-written at first sight in 15 runs
+  of 15 (5 or 8 of its 16 lines).
+- **`CLAUDE.md`:** the handover note lists the four files now over the
+  290,000-byte hold-out (`tests/smoke.sh`, at 289,035, is next) and today's
+  packet count.
+
+**Measured** (a clean `git archive` of each side): tracked files 10,396 →
+9,829; bytes 16,465,921 → 13,849,500 (at the removal commit,
+8e3d04f1; this release's docs add a few KB). `shared_tools`' provost handover recipe
+(hold out files over 290,000 bytes, `merge.sh -m 390K` those, `b64bundle.sh
+-m 390K` the rest): 58 packets (52 base64 + 6 plain, two plain parts over
+880 KB) → **49** (45 base64 + 4 plain). The two plain parts over 880 KB
+are still there: they hold the two `.gz` files, which this change does not
+touch.
+
 ## 2.22.0 — 2026-11-13 — `show --format`, `latest` as a capture id, and how to get data out (PV-041)
 
 `VERSION` 2.21.0 → 2.22.0, and the `man/provost.1` header. Minor: new options

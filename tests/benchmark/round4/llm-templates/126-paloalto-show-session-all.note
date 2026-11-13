@@ -1,1 +1,0 @@
-records span two lines: an ID/source line plus a Vsys/destination line for the same session; format 1 cannot join them, so they are two tables (sessions, destinations) that pair up by row order.

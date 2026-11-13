@@ -1,1 +1,0 @@
-Frames, source lines and exceptions of one traceback belong together and the chain has three tracebacks; format 1 cannot group them, so they are three flat tables in document order; the chaining sentences and caret lines are skipped.

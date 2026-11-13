@@ -1321,9 +1321,11 @@ PY
     # PV-010: the fragments rule sizes a block by its lines OR its rows. A
     # ServerQuery client list is one line holding six clients: a block of one
     # line and six rows is no fragment, so the template files it.
-    R4="$HERE/benchmark/round4"; LTL="$LTD/lib"; mkdir -p "$LTL"
-    cp "$R4/llm-templates-f2/132-teamspeak-serverquery-clientlist.json" "$LTL/teamspeak-clientlist.json"
-    cp "$R4/llm-templates-f2/020-golangci-lint-linters.json" "$LTL/golangci-lint-linters.json"
+    # (two of round 4's format-2 templates, kept as fixtures: PV-042 moved the
+    # rest of the benchmark's LLM-written templates out of the tree)
+    R4="$HERE/benchmark/round4"; LTF="$HERE/fixtures/llm-templates"; LTL="$LTD/lib"; mkdir -p "$LTL"
+    cp "$LTF/132-teamspeak-serverquery-clientlist.json" "$LTL/teamspeak-clientlist.json"
+    cp "$LTF/020-golangci-lint-linters.json" "$LTL/golangci-lint-linters.json"
     lt_out="$(PROVOST_WORKSPACE="$LTD/.frag" PROVOST_LLM_TEMPLATE_DIRS="$LTL" \
         "$PROVOST" --sync --llm --name teamspeak-clientlist "$R4/inputs/132-teamspeak-serverquery-clientlist.txt" 2>&1)"
     check "a one-line block of six records is not a fragment" "read by template teamspeak-clientlist.json" "$lt_out"
@@ -2689,7 +2691,10 @@ rp --name man --manifest "$RD/m.txt" "$RD/b2.txt" >/dev/null
 check "--manifest lines are scrubbed too" "#% token=[REDACTED:token]" "$(cat "$RWS/captures/c0012/output.txt")"
 check "...and counted" "redacted	secret=1,token=1" "$(cat "$RWS/captures/c0012/meta.tsv")"
 printf 'k v\nx 1\npassword=AsyncPw9\n' | PROVOST_WORKSPACE="$RWS" "$PROVOST" --async --name bg >/dev/null 2>&1
-for _ in $(seq 1 100); do [[ -f "$RWS/captures/c0013/meta.tsv" ]] && break; sleep 0.1; done
+# wait for the capture's tag, the last thing the background job does: meta.tsv
+# exists from the moment its writer opens it, so its existence alone can be
+# read half-written (CI, PV-042: it held lines up to `dataset` only)
+for _ in $(seq 1 100); do git -C "$RWS" rev-parse -q --verify refs/tags/capture-c0013 >/dev/null 2>&1 && break; sleep 0.1; done
 check "a background capture is scrubbed and records it" "redacted	password=1" "$(cat "$RWS/captures/c0013/meta.tsv" 2>/dev/null)"
 check_not "...and stores no secret" "AsyncPw9" "$(cat "$RWS/captures/c0013/output.txt" 2>/dev/null)"
 # The corpus: the scrub changes exactly the reviewed inputs (each a real secret).

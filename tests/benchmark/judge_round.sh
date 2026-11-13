@@ -18,6 +18,11 @@
 ## to outdir/llm-log.jsonl. Writes outdir/judge.tsv: stem, verdict
 ## (PASS | FIX | none), applied (yes | no | -), fixes (joined with " | "),
 ## the summary line.
+##
+## Rounds 4 and 5's templates are no longer in the tree (PV-042): restore
+## roundN/llm-templates-learn/ from the archive commit first (README.md, "LLM
+## run records"), or name your own with --templates. A directory that is
+## missing or holds no *.json stops the run (exit 2) before any API call.
 ################################################################################
 set -uo pipefail
 
@@ -37,10 +42,13 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -n "$round" && -n "$outdir" ]] || { echo "usage: $0 --roundN OUTDIR [--templates DIR] [--jobs N]" >&2; exit 2; }
 [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || { echo "--jobs needs a whole number" >&2; exit 2; }
-[[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] || { echo "needs PROVOST_LLM_API_KEY" >&2; exit 2; }
 tdir="${tdir:-$here/$round/llm-templates-learn}"
 idir="$here/$round/inputs"
-[[ -d "$tdir" && -d "$idir" ]] || { echo "no such templates or inputs: $tdir, $idir" >&2; exit 2; }
+[[ -d "$idir" ]] || { echo "no such inputs directory: $idir" >&2; exit 2; }
+# shellcheck source=tests/benchmark/llm_archive.sh
+source "$here/llm_archive.sh"
+need_templates "$tdir"
+[[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] || { echo "needs PROVOST_LLM_API_KEY" >&2; exit 2; }
 mkdir -p "$outdir/judged" "$outdir/.j"
 export PROVOST_LLM_LOG="$outdir/llm-log.jsonl"
 

@@ -1,1 +1,0 @@
-hierarchy (controller > array > logical/physical drives, plus an 'Unassigned' group) cannot be expressed: each level is its own table and a drive's array (or Unassigned) is lost; the Unassigned title is skipped.

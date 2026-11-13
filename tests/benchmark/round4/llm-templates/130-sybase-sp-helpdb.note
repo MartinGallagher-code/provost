@@ -1,1 +1,0 @@
-ok: three result sets (database, device_fragments, segments) each get a table; 'log only free kbytes' and 'return status' go to one kv record.

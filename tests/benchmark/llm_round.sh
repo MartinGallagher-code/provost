@@ -10,6 +10,12 @@
 ## unset, so a template that does not fit leaves the capture held exactly as
 ## the default run would).
 ##
+## Rounds 4 and 5's templates are no longer in the tree (PV-042): restore the
+## directories a run names from the archive commit first (README.md, "LLM run
+## records"), or name your own with --templates. A directory that is missing
+## or holds no *.json stops the run (exit 2) rather than reading every input
+## untemplated.
+##
 ## Usage:
 ##   bash tests/benchmark/llm_round.sh --round4 [outdir] [--templates DIR[:DIR...]]
 ##   (several directories: the first one holding <stem>.json wins, so
@@ -61,6 +67,9 @@ done
 set_dir="${idir:-$here/$round/inputs}"
 [[ -d "$set_dir" ]] || { echo "no such inputs directory: $set_dir" >&2; exit 2; }
 (( learn )) || [[ -n "$tdir" ]] || tdir="$here/$round/llm-templates"
+# shellcheck source=tests/benchmark/llm_archive.sh
+source "$here/llm_archive.sh"
+[[ -z "$tdir" ]] || need_templates "$tdir"
 [[ -n "$outdir" ]] || outdir="$(mktemp -d)"
 mkdir -p "$outdir/.sum"
 

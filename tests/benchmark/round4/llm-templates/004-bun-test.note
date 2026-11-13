@@ -1,1 +1,0 @@
-Records span several lines: a failure is its error line, Expected/Received, the 'at' frame and the '(fail) name [ms]' line, interleaved with echoed source. Captured them as parallel blocks (results, errors, expectations kv with _2 suffixes, frames); source echoes and carets are skipped.

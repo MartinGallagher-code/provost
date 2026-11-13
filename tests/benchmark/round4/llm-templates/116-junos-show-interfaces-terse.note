@@ -1,1 +1,0 @@
-continuation lines belong to the row above (extra protocol families / addresses of the same logical interface are printed indented on their own lines); format 1 cannot attach them, so they go into a second table "additional addresses" (Proto/Local/Remote) without the interface name.

@@ -1,1 +1,0 @@
-free-form log: section markers, section titles (split from the marker by the \r the applier treats as a newline), the runner banner, commands and the final ERROR are structured blocks; every other line is a one-column message table, and the job script's own output (pytest) is not parsed.

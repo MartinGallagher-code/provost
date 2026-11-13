@@ -54,7 +54,7 @@ testssl-summary.
 
 ## Artifacts
 
-- `docs/review-prescreen-2026-08-06-round16.tsv` — full per-tool verdict (whole corpus).
+- [`docs/archive/review-prescreen-2026-08-06-round16.tsv`](https://github.com/MartinGallagher-code/provost/blob/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/docs/archive/review-prescreen-2026-08-06-round16.tsv) — full per-tool verdict (whole corpus). Out of the tree since PV-042; kept at commit d9c32f04.
 - `docs/review-needs-2026-08-06-round16.tsv` — the 526 unreviewed `needs-review`, risk-ranked, with the defect signals per tool.
 
 ## Recommended next step

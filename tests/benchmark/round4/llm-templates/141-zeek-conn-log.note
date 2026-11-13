@@ -1,1 +1,0 @@
-ok. Tab-separated with the #fields line as header; the #separator/#path/#open/#close etc. preamble is a kv block, #types is skipped. "-" and "(empty)" are kept verbatim as the log's unset/empty markers.
