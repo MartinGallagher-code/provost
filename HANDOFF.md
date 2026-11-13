@@ -368,7 +368,7 @@ Suites (all CI-enforced):
     and `docs/archive`'s two August prescreen sheets (572 files, 2.63 MB)
     left the tree. They are at `d9c32f04`, the last commit that holds them;
     every doc link points there, and `tests/benchmark/README.md` ("LLM run
-    records") and `docs/archive/README.md` restore them in one command.
+    records") and `docs/archive/MOVED.md` restore them in one command.
     Rating, summary and judge sheets and the frozen inputs stay. Two round-4
     templates are smoke fixtures now (`tests/fixtures/llm-templates/`).
     `llm_round.sh` and `judge_round.sh` stop (exit 2), with the restore
@@ -384,7 +384,9 @@ Suites (all CI-enforced):
     list; a 2.22.0 wheel built here has `arbiter.json` only), so a pip
     install has no LM arbiter (PV-012) where a checkout does; (d)
     `tests/smoke.sh` (288,775 bytes) is about to cross the 290,000-byte
-    hold-out.
+    hold-out; (e) the sdist's `include` names `README.md` with no leading
+    `/`, so every nested `README.md` ships in the sdist (seven do today);
+    `/README.md` would ship the top one only, but changes the sdist.
 
 1q. **2026-11-13: getting data out** (PV-041, 2.22.0). `provost show NAME
     --format table|tsv|csv|json|ndjson|md` (`_show_as`), the names and shapes

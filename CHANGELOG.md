@@ -29,12 +29,17 @@ records. They are kept in git, not deleted from it.
   belongs to, and the restore commands, one directory
   (`git archive d9c32f04… tests/benchmark/round4/llm-templates-f2 | tar -x`)
   or all 572 files at once. Both were run and give the files back
-  byte-identical. `docs/archive/README.md` (new) does the same for the two
+  byte-identical. `docs/archive/MOVED.md` (new) does the same for the two
   worksheets.
 - **Smoke fixtures:** part `llm` (PV-010's checks) read two of round 4's
   format-2 templates from `round4/llm-templates-f2/`. They moved, byte for
-  byte, to `tests/fixtures/llm-templates/` (with a README), and smoke reads
-  them there; its checks are unchanged.
+  byte, to `tests/fixtures/llm-templates/` (with `ABOUT.md` saying where
+  they came from), and smoke reads them there; its checks are unchanged.
+- **Not called `README.md`:** the sdist's `include` list in `pyproject.toml`
+  names `README.md` with no leading `/`, which hatchling reads as a
+  `README.md` at any depth (seven nested ones ship today, `ml/README.md` and
+  `tests/benchmark/README.md` among them). A README in either new place would
+  have changed the sdist, so the two new notes are `MOVED.md` and `ABOUT.md`.
 - **`llm_round.sh` and `judge_round.sh`** source the new
   `tests/benchmark/llm_archive.sh` and stop (exit 2), before any API call,
   when a template directory is missing or holds no `*.json`, naming the

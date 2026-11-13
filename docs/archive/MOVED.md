@@ -1,8 +1,8 @@
-# docs/archive
+# docs/archive: what moved out
 
-The corpus review rounds' worksheets (marks, batches, needs and confidence
-lists, each dated and numbered by round) and old plans: working records of
-the review process, not documentation pages. `mkdocs.yml` keeps this
+This directory holds the corpus review rounds' worksheets (marks, batches,
+needs and confidence lists, each dated and numbered by round) and old plans:
+working records of the review process, not documentation pages. `mkdocs.yml` keeps this
 directory out of the built site, and `tests/corpus/prescreen.py --validate`
 reads the `review-marks-*.tsv` sheets here.
 
