@@ -383,10 +383,15 @@ Suites (all CI-enforced):
     `extract/model/arbiter-lm.json` (not in `pyproject.toml`'s force-include
     list; a 2.22.0 wheel built here has `arbiter.json` only), so a pip
     install has no LM arbiter (PV-012) where a checkout does; (d)
-    `tests/smoke.sh` (288,775 bytes) is about to cross the 290,000-byte
+    `tests/smoke.sh` (289,035 bytes) is about to cross the 290,000-byte
     hold-out; (e) the sdist's `include` names `README.md` with no leading
     `/`, so every nested `README.md` ships in the sdist (seven do today);
-    `/README.md` would ship the top one only, but changes the sdist.
+    `/README.md` would ship the top one only, but changes the sdist; (f) a
+    capture's `meta.tsv` is written in place, so anything that reads it
+    while a background capture is still writing sees part of it (smoke's
+    `redact` check did, on this PR's CI; it now waits for the capture's
+    tag). Writing it to a temporary file and renaming it would close that
+    for every reader.
 
 1q. **2026-11-13: getting data out** (PV-041, 2.22.0). `provost show NAME
     --format table|tsv|csv|json|ndjson|md` (`_show_as`), the names and shapes

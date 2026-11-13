@@ -2691,7 +2691,10 @@ rp --name man --manifest "$RD/m.txt" "$RD/b2.txt" >/dev/null
 check "--manifest lines are scrubbed too" "#% token=[REDACTED:token]" "$(cat "$RWS/captures/c0012/output.txt")"
 check "...and counted" "redacted	secret=1,token=1" "$(cat "$RWS/captures/c0012/meta.tsv")"
 printf 'k v\nx 1\npassword=AsyncPw9\n' | PROVOST_WORKSPACE="$RWS" "$PROVOST" --async --name bg >/dev/null 2>&1
-for _ in $(seq 1 100); do [[ -f "$RWS/captures/c0013/meta.tsv" ]] && break; sleep 0.1; done
+# wait for the capture's tag, the last thing the background job does: meta.tsv
+# exists from the moment its writer opens it, so its existence alone can be
+# read half-written (CI, PV-042: it held lines up to `dataset` only)
+for _ in $(seq 1 100); do git -C "$RWS" rev-parse -q --verify refs/tags/capture-c0013 >/dev/null 2>&1 && break; sleep 0.1; done
 check "a background capture is scrubbed and records it" "redacted	password=1" "$(cat "$RWS/captures/c0013/meta.tsv" 2>/dev/null)"
 check_not "...and stores no secret" "AsyncPw9" "$(cat "$RWS/captures/c0013/output.txt" 2>/dev/null)"
 # The corpus: the scrub changes exactly the reviewed inputs (each a real secret).

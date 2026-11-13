@@ -196,7 +196,7 @@ first time:
   ~1.35x, so a larger file cannot fit a packet and cannot be split either — an
   entry is atomic. Ship those plain. On 2026-11-13 (2.22.1) that is four files:
   `ml/eval/llm-labels-2026-10-23.jsonl.gz`, `extract/model/layout-model.json.gz`,
-  `CHANGELOG.md` and `provost`, with `tests/smoke.sh` (288,775 bytes) next. Take it
+  `CHANGELOG.md` and `provost`, with `tests/smoke.sh` (289,035 bytes) next. Take it
   from `find -size +290000c` rather than from this list: they are files that grow.
   The plain parts holding the two `.gz` files come out at 930 KB and 960 KB, above
   the 880 KB the shared_tools notes have seen import.

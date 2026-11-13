@@ -53,8 +53,16 @@ records. They are kept in git, not deleted from it.
   permalinks of `d9c32f04`; each report says so in a note under its opening.
   Commands in the reports are as they were run. Rating sheets and this
   changelog name the old paths as records and are left as written.
+- **A smoke race, fixed** (it failed this pull request's CI once; it predates
+  it). Part `redact`'s check "a background capture is scrubbed and records
+  it" waited for `meta.tsv` to exist and then read it. The file exists from
+  the moment its writer opens it (`{ ... } > meta.tsv`), so CI read it with
+  its first 8 lines and no `redacted` line. The check now waits for the
+  capture's tag, the background job's last step. Polled with no sleep, a
+  background capture's `meta.tsv` was half-written at first sight in 15 runs
+  of 15 (5 or 8 of its 16 lines).
 - **`CLAUDE.md`:** the handover note lists the four files now over the
-  290,000-byte hold-out (`tests/smoke.sh`, at 288,775, is next) and today's
+  290,000-byte hold-out (`tests/smoke.sh`, at 289,035, is next) and today's
   packet count.
 
 **Measured** (a clean `git archive` of each side): tracked files 10,396 →
