@@ -189,7 +189,7 @@ def load_df(name, store=None, capture=None):
     numeric (it keeps its strings if a value is not a number after all);
     a column of any other type keeps its strings, even when every value it
     holds looks like a number. A column with no type recorded (``#``, the
-    capture column, a dataset filed before provost 2.23.0) becomes numeric
+    capture column, a dataset filed before provost 2.24.0) becomes numeric
     when every non-blank value is a number. Raises ImportError, with the
     install command, when pandas is not installed.
     """

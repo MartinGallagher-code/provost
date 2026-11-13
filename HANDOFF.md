@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.23.0 is everything through 2026-11-13** (`VERSION`, man header,
-the `## 2.23.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.24.0 is everything through 2026-11-13** (`VERSION`, man header,
+the `## 2.24.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -33,16 +33,17 @@ detection, `pkg-config` narrowed and full mode checked in CI (PV-037, Next
 steps 1p; 2.21.0); `show --format`, `latest` as a capture id and a "Getting
 data out" section (PV-041, Next steps 1q; 2.22.0); the benchmark's LLM run
 records and two prescreen sheets moved out of the tree, kept at `d9c32f04`
-(PV-042, Next steps 1r; 2.22.1, tests and docs only); each dataset column's
-type recorded at capture, stored, shown and used (PV-040, Next steps 1s;
-2.23.0). 2.4.0 added `provost
+(PV-042, Next steps 1r; 2.22.1, tests and docs only); an interrupted run keeps
+what it had printed, marked, and a second signal files nothing (PV-038, Next
+steps 1s; 2.23.0); each dataset column's type recorded at capture, stored,
+shown and used (PV-040, Next steps 1t; 2.24.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.23.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.23.0`, not both). Either way the release workflow
+2.24.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.24.0`, not both). Either way the release workflow
 now also attaches the offline bundle to the GitHub release `v2.21.0`, creating
 that release on a dispatched run.
 
@@ -348,7 +349,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (about 2,000 in 32 parts, the core part three times;
+- `tests/smoke.sh` (about 2,000 in 33 parts, the core part three times;
   the `units` part's 41, `show-format`'s 103, 111 with qd installed)
 - `transform/tests/test_melt.sh` (70)
 - `transform/tests/test_units.sh` (86; mawk and gawk)
@@ -362,7 +363,7 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-1s. **2026-11-13: column types** (PV-040, 2.23.0). Every capture records each
+1t. **2026-11-13: column types** (PV-040, 2.24.0). Every capture records each
     column's type in `datasets/types/NAME.tsv` (the spec's "Column types"),
     from the engine's own cell classes, now in `extract/lib/_ctype.awk` and
     read by both the engine and `transform/types.sh`. A column is never
@@ -382,8 +383,31 @@ Suites (all CI-enforced):
     engine reads bare numbers only): `--units base` columns are the way to
     numbers today; (d) the cost is about 3 µs a cell under mawk (2.5 s for an
     800,000-cell capture), paid once per capture, and once per dataset filed
-    before 2.23.0 at its next capture.
+    before 2.24.0 at its next capture.
 
+1s. **2026-11-13: an interrupted run keeps what it had printed** (PV-038,
+    2.23.0). The first SIGINT, SIGTERM or SIGHUP while `run` runs its command
+    or piped input is read keeps the reading going (`_cap_stream`: the
+    command in the foreground as it always was, the reader ignoring the
+    signals, and `_cap_watchdog` in the background giving the command
+    `PROVOST_INTERRUPT_GRACE` seconds (2), then SIGTERM, then SIGKILL; not the
+    command in the background, which bash 5.3 starts with SIGINT ignored for
+    good), and files what it printed with `interrupted SIGINT` in
+    `meta.tsv`, `[interrupted: SIGINT]` in `log`, exit 130/143/129. A second
+    signal, or one while filing, stops at once with nothing filed: the
+    foreground filing is now `_ingest_guarded`, its parse and store halves
+    each a `_guard_child` in a process group of its own, the lock taken by
+    provost between them, and `_cap_rollback` putting back from
+    `_cap_snapshot` whatever the killed store half changed (commit, tags,
+    git's lock files, index, working tree; earlier uncommitted changes kept).
+    The owner's two questions taken at their suggested answers (kept by
+    default; 2 s). Smoke part `interrupt`; the smoke runner now fails a part
+    that runs past `PROVOST_SMOKE_PART_TIMEOUT` (600 s) by name. **Open:** a `SIGKILL` (Slurm's,
+    `KillWait` after the SIGTERM) can still land while filing; it cannot be
+    caught, and a store left mid-filing is what `verify` reports; an input
+    over `PROVOST_MAX_INPUT` whose filing is stopped leaves its kept copy in
+    the artifact directory, as a failed capture always has; a heartbeat
+    during a long run (R8 in the PV-036 report) is not done.
 1r. **2026-11-13: the benchmark's LLM run records out of the tree** (PV-042,
     2.22.1, tests and docs only). The owner asked how to make provost smaller
     without changing what it does; the survey found the code carries almost
@@ -471,7 +495,7 @@ Suites (all CI-enforced):
       claiming 60 other tools' output in full mode, and check full mode in
       CI. The corpus gate tests `--generic` only.
     - PV-038: keep what an interrupted `provost run` had captured. Ctrl-C or
-      SIGTERM keeps nothing today (`provost:408-409`).
+      SIGTERM kept nothing (since done: 1s, 2.23.0).
     - PV-039: hand-written templates applied without `--llm`, documented,
       with `provost template test` and a regex time limit (since done:
       1n, 2.20.0).

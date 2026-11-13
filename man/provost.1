@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-13" "provost 2.23.0" "User Commands"
+.TH PROVOST 1 "2026-11-13" "provost 2.24.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -159,6 +159,9 @@ Execute a command, capture its combined output as a commit, auto-detect the
 format, and file it as a dataset named after the command. Output over
 \fBPROVOST_MAX_INPUT\fR bytes is treated as injection's is (see
 \fBOVERSIZE INPUTS\fR). provost exits with the command's own exit status.
+Interrupted (Ctrl-C, \fBSIGTERM\fR, \fBSIGHUP\fR) while the command runs, it
+files what the command printed, marked interrupted, and exits 130 (143, 129);
+see \fBINTERRUPTED RUNS\fR.
 .TP
 .I command
 | \fBprovost\fR [\fIoptions\fR]
@@ -815,7 +818,7 @@ A column is never silently retyped: each capture's counts are added, the type
 decided again and joined with the one recorded, so a capture can widen a
 column but one whose cells change kind becomes \fBmixed\fR, and stays so.
 \fBrm --capture\fR and \fBprune\fR judge the rows that stay again. A dataset
-filed before 2.23.0 gets its types with its next capture. \fBshow NAME
+filed before 2.24.0 gets its types with its next capture. \fBshow NAME
 --types\fR shows them, \fBls -l\fR counts them, \fBstats\fR and
 \fBprovost_data.load_df\fR use them, and \fBstore check\fR validates them.
 They are recorded, never enforced.
@@ -838,6 +841,30 @@ never races. A failed background capture is appended to the store's
 \fI.async-failures.log\fR (its input and full log are kept in the spool
 directory it names); every later provost command prints a one-line warning
 until the failure is seen with \fBprovost log --failed\fR or \fBprovost doctor\fR.
+.SH INTERRUPTED RUNS
+Ctrl-C (\fBSIGINT\fR), or a \fBSIGTERM\fR or \fBSIGHUP\fR, while
+\fBprovost run\fR runs its command, or while piped input is read, does not
+throw the output away. The command (a Ctrl-C reaches it too, as it always did)
+has \fBPROVOST_INTERRUPT_GRACE\fR seconds (default 2) to finish, time for
+\fBping\fR to print its summary; one still running then is sent
+\fBSIGTERM\fR, and \fBSIGKILL\fR a second later. What it printed is filed as
+any capture is: its \fImeta.tsv\fR says \fBinterrupted SIGINT\fR (or
+\fBSIGTERM\fR, \fBSIGHUP\fR) beside the command's \fBrc\fR,
+\fBprovost log\fR shows \fB[interrupted: SIGINT]\fR after its command, and
+provost exits 130 (143, 129), so a script still sees the interruption. A batch
+scheduler's walltime is the same case: Slurm sends \fBSIGTERM\fR, then
+\fBSIGKILL\fR \fBKillWait\fR seconds (30) later. Ctrl-C, a closed terminal and
+schedulers signal provost's whole process group; a signal sent to provost's own
+process alone (\fBkill\fR \fIpid\fR) is acted on when the command ends.
+.PP
+A second signal, or one while provost is filing a capture whose command ran to
+its end, stops provost at once and files nothing: the store is left as it was
+(no commit, no tag, no lock), and \fBprovost verify\fR passes. With nothing
+printed before the signal, nothing is captured and provost exits with the
+signal's status. A capture filed in the background (\fB--async\fR, the
+default at a terminal) is queued once the reading stops; a signal after that
+does not reach it. \fBprovost rm --capture\fR \fIid\fR removes an
+interrupted capture you did not want.
 .SH SIGNING AND SHA-256
 Every commit provost makes ends with an \fBOperator:\fR trailer naming who
 made it: \fIuser\fB@\fIhost\fR, or \fBPROVOST_OPERATOR\fR when set. The
@@ -1085,6 +1112,10 @@ The SSH allowed-signers file \fBverify\fR checks signatures against (as
 .B PROVOST_LOCK_TIMEOUT
 Seconds to wait for the store lock (default: 30).
 .TP
+.B PROVOST_INTERRUPT_GRACE
+Seconds an interrupted command has to finish before what it printed is filed
+(default: 2; 0 = none). See \fBINTERRUPTED RUNS\fR.
+.TP
 .B PROVOST_LOCK_MAX_AGE
 Seconds after which a store lock is presumed stale even when its owner cannot be
 checked, e.g. one taken on another host (default: 3600).
@@ -1112,6 +1143,8 @@ Where \fBlisten\fR keeps its file, \fIprovost/listen.sh\fR (default:
 reports a capture git did not record); 2 on a usage error (unknown command or
 option, invalid dataset name or setting); for \fBrun\fR, the command's own exit
 status once it has been captured; 127 when the command to run is not found.
+A capture interrupted by \fBSIGINT\fR, \fBSIGTERM\fR or \fBSIGHUP\fR exits
+130, 143 or 129, whether what came before the signal was filed or not.
 .SH EXAMPLES
 .nf
 free -m | provost                 # capture + auto-detect + file (dataset 'free')

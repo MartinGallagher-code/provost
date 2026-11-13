@@ -124,7 +124,7 @@ STORE/
 │   ├── NAME.v2.tsv ...         another shape filed under the same name
 │   ├── unsorted.tsv            inputs held back, whole
 │   └── types/
-│       └── NAME.tsv            each column's type, recorded at capture (2.23.0 on)
+│       └── NAME.tsv            each column's type, recorded at capture (2.24.0 on)
 ├── captures/
 │   └── c0007/
 │       ├── output.txt          the input as stored
@@ -212,11 +212,11 @@ input (`output.txt`) base64-encoded on one line.
 
 ## Column types
 
-From provost 2.23.0 (PV-040), within format 4. `datasets/types/NAME.tsv`
+From provost 2.24.0 (PV-040), within format 4. `datasets/types/NAME.tsv`
 records the type of each column of `datasets/NAME.tsv`, decided at capture
 from the cells every capture filed into it. It is in a directory of its own
 so that nothing reading `datasets/*.tsv` takes it for a dataset. A dataset
-filed before 2.23.0 has none until its next capture, which judges every row
+filed before 2.24.0 has none until its next capture, which judges every row
 the dataset then holds, capture by capture in the order they were filed.
 `unsorted` never has one. An older provost ignores the directory.
 
@@ -363,6 +363,7 @@ Present when they apply:
 | `input_sha256`, `input_bytes` | The input as received, before any change: its sha256 (64 lower-case hex digits) and size. |
 | `output_sha256` | The sha256 of `output.txt` as stored. `provost verify` re-checks it. |
 | `input` | In a `batch`: the file this capture was read from. |
+| `interrupted` | `SIGINT`, `SIGTERM` or `SIGHUP` (2.23.0 on): a signal cut the capture short, and `output.txt` holds what came before it (and what the command printed in the grace after it). `rc` is the command's status (143 or 137 when provost had to stop it; empty for piped input, as always). Absent on a capture that ran to its end. |
 | `batch` | In a `batch`: `FIRST..LAST`, the batch's capture ids. |
 
 An input over the size cap (format 4, from 2.15.0; [Inputs kept beside the
@@ -381,9 +382,9 @@ On a truncated capture `input_sha256` and `input_bytes` describe the whole
 input as received, and `output_sha256` the part in `output.txt`.
 
 Keys have been added over the releases (the input hashes in 2.4.0, the
-`truncated` set in 2.15.0, and others), and none changed the format number:
-a key is added within a format, and a reader that ignores keys it does not
-know reads every capture, old or new.
+`truncated` set in 2.15.0, `interrupted` in 2.23.0, and others), and none
+changed the format number: a key is added within a format, and a reader that
+ignores keys it does not know reads every capture, old or new.
 
 ## Git: the branch, the commits and the tags
 
@@ -600,7 +601,7 @@ shorter). A dataset it cannot put right that way is left as it is.
   log](#the-disposal-log)) and the `prune:` and `archive:` commit subjects,
   within format 4: an older reader can ignore the file, and nothing a reader
   relied on changed, so nothing is migrated.
-- 2.23.0 (PV-040) added `datasets/types/` ([Column types](#column-types)),
+- 2.24.0 (PV-040) added `datasets/types/` ([Column types](#column-types)),
   within format 4: an older reader ignores the directory (it holds no
   `datasets/*.tsv`), and nothing is migrated; a dataset gets its record with
   its next capture.
