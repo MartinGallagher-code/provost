@@ -1,1 +1,0 @@
-records span several lines (a numbered flag line, an optional ";;; comment" line, then wrapped key=value lines); format 1 cannot join them, so the first line of each record is the "interfaces" table and the wrapped lines go into a "continuation" table with the same columns; an unknown trailing key=value run lands in "other".

@@ -1,1 +1,0 @@
-records span several lines: a section title (Windows Boot Manager / Windows Boot Loader) then one setting per line, and a multi-valued setting (displayorder) continues on indented lines. Format 1 cannot group them per entry, so every line is a (setting, value) row; a continuation row has an empty setting and belongs to the row above; section titles are treated as headers.

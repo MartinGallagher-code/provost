@@ -31,9 +31,11 @@ hand-written, tested with `provost template test`, time-limited, and TextFSM
 (PV-036, Next steps 1o; 2.20.1, docs only); the command's name used in
 detection, `pkg-config` narrowed and full mode checked in CI (PV-037, Next
 steps 1p; 2.21.0); `show --format`, `latest` as a capture id and a "Getting
-data out" section (PV-041, Next steps 1q; 2.22.0); an interrupted run keeps
+data out" section (PV-041, Next steps 1q; 2.22.0); the benchmark's LLM run
+records and two prescreen sheets moved out of the tree, kept at `d9c32f04`
+(PV-042, Next steps 1r; 2.22.1, tests and docs only); an interrupted run keeps
 what it had printed, marked, and a second signal files nothing (PV-038, Next
-steps 1r; 2.23.0). 2.4.0 added `provost
+steps 1s; 2.23.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -360,7 +362,7 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-1r. **2026-11-13: an interrupted run keeps what it had printed** (PV-038,
+1s. **2026-11-13: an interrupted run keeps what it had printed** (PV-038,
     2.23.0). The first SIGINT, SIGTERM or SIGHUP while `run` runs its command
     or piped input is read keeps the reading going (`_cap_stream`: the reader
     in the background, signals ignored; the command with them as provost got
@@ -380,6 +382,38 @@ Suites (all CI-enforced):
     over `PROVOST_MAX_INPUT` whose filing is stopped leaves its kept copy in
     the artifact directory, as a failed capture always has; a heartbeat
     during a long run (R8 in the PV-036 report) is not done.
+1r. **2026-11-13: the benchmark's LLM run records out of the tree** (PV-042,
+    2.22.1, tests and docs only). The owner asked how to make provost smaller
+    without changing what it does; the survey found the code carries almost
+    no dead weight, and the bulk of the tree is records. The 456 templates
+    Claude wrote for rounds 4 and 5, round 4's 107 `.note`s, the 7 API logs
+    and `docs/archive`'s two August prescreen sheets (572 files, 2.63 MB)
+    left the tree. They are at `d9c32f04`, the last commit that holds them;
+    every doc link points there, and `tests/benchmark/README.md` ("LLM run
+    records") and `docs/archive/MOVED.md` restore them in one command.
+    Rating, summary and judge sheets and the frozen inputs stay. Two round-4
+    templates are smoke fixtures now (`tests/fixtures/llm-templates/`).
+    `llm_round.sh` and `judge_round.sh` stop (exit 2), with the restore
+    command, when a template directory is missing or empty
+    (`tests/benchmark/llm_archive.sh`). Tracked tree 16.47 MB / 10,396 files
+    → 13.85 MB / 9,829; the handover with shared_tools' recipe 58 packets
+    → 49. **Open, for the owner:** (a) trimming `CHANGELOG.md`
+    (688 KB, 595 KB of it 2.4.0 and older) behind a pointer, as this file did:
+    the next largest cut, but `CLAUDE.md` says to leave the old entries;
+    (b) shared_tools' provost bundling notes still say 31 packets and three
+    held-out files (an ST ticket); (c) the wheel does not ship
+    `extract/model/arbiter-lm.json` (not in `pyproject.toml`'s force-include
+    list; a 2.22.0 wheel built here has `arbiter.json` only), so a pip
+    install has no LM arbiter (PV-012) where a checkout does; (d)
+    `tests/smoke.sh` (289,035 bytes) is about to cross the 290,000-byte
+    hold-out; (e) the sdist's `include` names `README.md` with no leading
+    `/`, so every nested `README.md` ships in the sdist (seven do today);
+    `/README.md` would ship the top one only, but changes the sdist; (f) a
+    capture's `meta.tsv` is written in place, so anything that reads it
+    while a background capture is still writing sees part of it (smoke's
+    `redact` check did, on this PR's CI; it now waits for the capture's
+    tag). Writing it to a temporary file and renaming it would close that
+    for every reader.
 
 1q. **2026-11-13: getting data out** (PV-041, 2.22.0). `provost show NAME
     --format table|tsv|csv|json|ndjson|md` (`_show_as`), the names and shapes
@@ -435,7 +469,7 @@ Suites (all CI-enforced):
       claiming 60 other tools' output in full mode, and check full mode in
       CI. The corpus gate tests `--generic` only.
     - PV-038: keep what an interrupted `provost run` had captured. Ctrl-C or
-      SIGTERM kept nothing (since done: 1r, 2.23.0).
+      SIGTERM kept nothing (since done: 1s, 2.23.0).
     - PV-039: hand-written templates applied without `--llm`, documented,
       with `provost template test` and a regex time limit (since done:
       1n, 2.20.0).
@@ -585,7 +619,7 @@ Suites (all CI-enforced):
     structural fixes, fed back to the writer once, kept only if the
     revision reads as well, still reads the earlier captures and passes
     the gate. On by default (`PROVOST_LLM_JUDGE=0` turns it off).
-    - **Measured on round 5's stored templates** (`round5/llm-judge/`,
+    - **Measured on round 5's stored templates** ([`round5/llm-judge/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-judge) at d9c32f04,
       `judge_round.sh`): 74 PASS, 26 revised; the 26 rated blind before and
       after, 17 / 9 / 0 → 25 / 1 / 0 (9 better, 1 worse: `postfix-qshape`'s
       TOTAL row lost its label). $3.70 for 126 calls. Round 5 was seen, so
@@ -1005,8 +1039,9 @@ Suites (all CI-enforced):
       held capture; before a generic parse the gate passed is trusted);
       `extract/llm/sandbox.py` runs a format-2 parser in a box;
       `PROVOST_LLM_TEMPLATE_DIRS`; `tests/benchmark/llm_round.sh`;
-      `tests/benchmark/round4/llm-templates/` (107 format-1 templates by
-      Claude helpers, with `.note`s on what format 1 could not express).
+      [`tests/benchmark/round4/llm-templates/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates)
+      (107 format-1 templates by Claude helpers, with `.note`s on what
+      format 1 could not express; at d9c32f04 since PV-042).
     - **Round 4 with templates** (`docs/benchmark-2026-10-27-llm-templates-round4.md`):
       format 1 alone **35 / 66 / 6**; with format-2 parsers for the 65
       inputs format 1 could not express, **86 / 18 / 3 (80% PASS, 97%

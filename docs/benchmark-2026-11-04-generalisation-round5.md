@@ -24,8 +24,16 @@ Everything is in the repo:
 - the criteria: `round5/CRITERIA.md` (round 4's, unchanged below a dated note)
 - every rating, with each rater's reason: `round5/ratings.tsv`
 - the novelty check: `round5/novelty.py`
-- the templates `--llm` wrote and its API log: `round5/llm-templates-learn/`
+- the templates `--llm` wrote and its API log: [`round5/llm-templates-learn/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-templates-learn)
+  at d9c32f04 (its `summary.tsv` is still in the tree)
 - the runner: `bash tests/benchmark/run.sh --round5`
+
+> **Records moved (PV-042, 2.22.1).** The templates and API logs this report
+> names are no longer in the tree. Its links point at commit
+> [`d9c32f04`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5), the last that holds them, and
+> `tests/benchmark/README.md` ("LLM run records") restores them in one
+> command. Every rating sheet, `round5/llm-judge/judge.tsv` and the summary
+> are still in the tree.
 
 ## Headline
 
@@ -293,10 +301,12 @@ honest measure of auto-multi needs a round 6.
 
 The judge (CHANGELOG 2.9.0) reviews a template after `learn` and `repair`.
 To measure it and nothing else, the 100 templates `--llm` kept on round 5
-(`round5/llm-templates-learn/`, rated above) were reviewed on their own
+([`round5/llm-templates-learn/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-templates-learn), rated above) were reviewed on their own
 inputs with `tests/benchmark/judge_round.sh --round5 OUT --jobs 8`: 74 PASS,
-26 fix lists, every revision held (`round5/llm-judge/judge.tsv`, the 26
-revised templates, the API log; 126 calls, about $3.70). `llm_round.sh` then
+26 fix lists, every revision held (`round5/llm-judge/judge.tsv`; the 26
+[revised templates](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-judge/revised) and
+[the API log](https://github.com/MartinGallagher-code/provost/blob/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-judge/llm-log.jsonl) are at d9c32f04;
+126 calls, about $3.70). `llm_round.sh` then
 ran round 5 through the old and the revised templates; only those 26 outputs
 changed. Each was put on a blind sheet as above and the 52 sheets split
 among four subagent raters so that no rater saw both versions of an input:

@@ -1,1 +1,0 @@
-fixed-width columns with spaces inside values (Command, ProgramName) and rows that drift from the header widths; matched by content instead of width (Command and ProgramName are the only free-text columns; the second SPID column is named SPID2 to avoid a clash).

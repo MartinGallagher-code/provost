@@ -1,1 +1,0 @@
-Each capability line holds several comma-separated capabilities (bool, name#num, name=str) and a string value may itself contain commas; format 1 yields one value per group, so each line becomes one row holding its whole comma list.

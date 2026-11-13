@@ -1,1 +1,0 @@
-Indented sub-keys belong to the unindented key above (Platforms under Bundler, Gem Home under RubyGems): the hierarchy is flattened into one kv record. The Gemfile/Gemfile.lock echoes at the end are file contents, not data, and are skipped by their DSL keywords.

@@ -1,1 +1,0 @@
-Section titles should become a column: 'State N' names the items/actions under it, and a nonterminal's 'on left:/on right:' lines belong to the symbol line above; also '|' continuation rules inherit the lhs of the row above. Captured each as its own table (states, items, actions, symbols, nonterminal_rules) in file order instead.

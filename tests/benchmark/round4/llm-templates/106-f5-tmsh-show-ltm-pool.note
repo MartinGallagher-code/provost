@@ -1,1 +1,0 @@
-records are nested: a pool block then one block per pool member, each with its own Status key/value lines and a Traffic table; the member a line belongs to cannot be expressed. All status lines go into one kv record (repeated keys get _2, _3), all traffic counters into one table without a pool/member column.

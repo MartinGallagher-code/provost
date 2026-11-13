@@ -1,1 +1,0 @@
-Records span several lines: each '*** Dumping' dump is a record head line plus its field lines, sizeof/align line, and (IRgen) a Layout block; nested fields are shown by indentation only. Captured records, fields, sizes, decls, ast_fields, bitfields and the LLVMType/IsZeroInitializable kv (with _2/_3 suffixes) as parallel blocks in dump order.

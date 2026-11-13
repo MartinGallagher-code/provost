@@ -190,12 +190,16 @@ first time:
   parts and the upload scanner refuses 15 of them — `tests/corpus/` is ~11,000
   captured outputs from real tools (`vault-*`, `gitleaks-*`, `trufflehog-*`,
   `gpg-list-secret-keys`, `getent-passwd`), and output *about* secrets reads to a
-  scanner much like secrets. Base64 the whole tree instead: one round, 31 packets.
+  scanner much like secrets. Base64 the whole tree instead: one round, 49 packets
+  on 2026-11-13 (2.22.1: 45 base64 and 4 plain; 58 before PV-042).
 - **Hold out files over 290,000 bytes** before encoding. Base64 expands by
   ~1.35x, so a larger file cannot fit a packet and cannot be split either — an
-  entry is atomic. Ship those plain. Today that is `CHANGELOG.md` and the two
-  `docs/archive/review-prescreen-*.tsv` sheets, but take it from `find -size +290000c`
-  rather than from this list: all three are files that grow.
+  entry is atomic. Ship those plain. On 2026-11-13 (2.22.1) that is four files:
+  `ml/eval/llm-labels-2026-10-23.jsonl.gz`, `extract/model/layout-model.json.gz`,
+  `CHANGELOG.md` and `provost`, with `tests/smoke.sh` (289,035 bytes) next. Take it
+  from `find -size +290000c` rather than from this list: they are files that grow.
+  The plain parts holding the two `.gz` files come out at 930 KB and 960 KB, above
+  the 880 KB the shared_tools notes have seen import.
 
 `shared_tools/CLAUDE.md` carries the exact commands, the verified packet count,
 and the reason each step is there.

@@ -1,1 +1,0 @@
-Nested brace tree (ElfHeader{Ident{}} and Sections[Section{}]): format 1 cannot nest, so top-level and ElfHeader fields are kv blocks and the repeated Section fields become a flat field/value table (no section index column); Flags [ (0x..) ] openers and their bit lines are separate tables.

@@ -1,1 +1,0 @@
-The same key/value block repeats once per task (blank-line separated), which format 1 cannot express as one row per task; written as a single kv block (keys repeat per task) plus a kv block for the "Folder:" title line. Values are anchored at column 38 (schtasks' fixed LIST layout) because keys like "Repeat: Until: Time:" contain colons.

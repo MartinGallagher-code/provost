@@ -1,6 +1,0 @@
-{
- "format": 2,
- "tool": "stty-all",
- "detect": "^speed \\d+ baud;",
- "parser": "import re\nPAIR = re.compile(r'(?P<key>\\w+)(?: = | )(?P<value>[^;]+);')\nFLAG = re.compile(r'^-?[a-z]\\w*$')\nVALUED = re.compile(r'^(?P<kind>cs|nl|cr|tab|bs|vt|ff)\\d$')\nNAMES = {'cs': 'csize', 'nl': 'nldly', 'cr': 'crdly', 'tab': 'tabdly', 'bs': 'bsdly', 'vt': 'vtdly', 'ff': 'ffdly'}\n\ndef parse(lines):\n    settings, modes, sl, ml = {}, [], [], []\n    for i, ln in enumerate(lines):\n        s = ln.strip()\n        if not s:\n            continue\n        pairs = PAIR.findall(s) if ';' in s else []\n        if pairs:\n            for k, v in pairs:\n                settings[k] = v.strip()\n            sl.append(i)\n            continue\n        toks = s.split()\n        if all(FLAG.match(t) for t in toks):\n            for t in toks:\n                m = VALUED.match(t)\n                if m:\n                    modes.append({'mode': NAMES[m.group('kind')], 'value': t})\n                elif t.startswith('-'):\n                    modes.append({'mode': t[1:], 'value': 'off'})\n                else:\n                    modes.append({'mode': t, 'value': 'on'})\n            ml.append(i)\n    return [{'name': 'settings', 'kind': 'kv', 'lines': sl, 'records': [settings]},\n            {'name': 'modes', 'kind': 'table', 'lines': ml, 'records': modes}]"
-}

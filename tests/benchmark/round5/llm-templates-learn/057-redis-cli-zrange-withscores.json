@@ -1,9 +1,0 @@
-{
- "format": 2,
- "tool": "redis-cli-zrange-withscores",
- "detect": "^\\s*\\d+\\) \"",
- "parser": "import re\n\ndef parse(lines):\n    pat = re.compile(r'^\\s*(\\d+)\\)\\s+(?:\"(.*)\"|(\\S.*?))\\s*$')\n    items = []\n    skip = []\n    for i, l in enumerate(lines):\n        if not l.strip():\n            continue\n        m = pat.match(l)\n        if m:\n            v = m.group(2) if m.group(2) is not None else m.group(3)\n            items.append((i, int(m.group(1)), v))\n        elif re.match(r'^\\s*\\((empty|nil|integer|error)', l):\n            skip.append(i)\n    records = []\n    used = []\n    j = 0\n    while j + 1 < len(items):\n        a = items[j]\n        b = items[j + 1]\n        records.append({\"rank\": (a[1] + 1) // 2, \"member\": a[2], \"score\": b[2]})\n        used.append(a[0])\n        used.append(b[0])\n        j += 2\n    blocks = []\n    if records:\n        blocks.append({\"name\": \"members\", \"kind\": \"table\", \"lines\": used, \"records\": records})\n    return {\"blocks\": blocks, \"skip\": skip}\n",
- "examples": [
-  " 1) \"p194\"\n 2) \"0\"\n 3) \"p291\"\n 4) \"0\"\n 5) \"p97\"\n 6) \"0\"\n 7) \"p112\"\n 8) \"1\"\n 9) \"p15\"\n10) \"1\"\n11) \"p209\"\n12) \"1\"\n13) \"p127\"\n14) \"2\"\n15) \"p224\"\n16) \"2\"\n17) \"p30\"\n18) \"2\"\n19) \"p142\"\n20) \"3\"\n21) \"p239\"\n22) \"3\"\n23) \"p45\"\n24) \"3\"\n25) \"p157\"\n26) \"4\"\n27) \"p254\"\n28) \"4\"\n29) \"p60\"\n30) \"4\"\n31) \"p172\"\n32) \"5\"\n33) \"p269\"\n34) \"5\"\n35) \"p75\"\n36) \"5\"\n37) \"p187\"\n38) \"6\"\n39) \"p284\"\n40) \"6\"\n41) \"p90\"\n42) \"6\"\n43) \"p105\"\n44) \"7\"\n45) \"p202\"\n46) \"7\"\n47) \"p299\"\n48) \"7\"\n49) \"p8\"\n50) \"7\""
- ]
-}

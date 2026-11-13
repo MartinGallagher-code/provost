@@ -1,1 +1,0 @@
-ok. "kept 2667" is the traced program's own stdout, not a GC line: left uncovered rather than matched by a value-specific skip.

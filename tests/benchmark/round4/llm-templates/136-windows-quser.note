@@ -1,1 +1,0 @@
-ok. The leading ">" (current session marker) is kept as its own CURRENT column; SESSIONNAME is optional because disconnected sessions print it blank.

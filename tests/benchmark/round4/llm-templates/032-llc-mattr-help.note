@@ -1,1 +1,0 @@
-ok. The two sections (CPUs, features) share one line layout; they are told apart by the fixed "Select the X processor." wording llc prints for every CPU, so each section gets its own table.

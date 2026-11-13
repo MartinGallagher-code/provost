@@ -1,1 +1,0 @@
-The call graph groups parent/child lines around each [n] primary line; format 1 cannot tie callers/callees to their entry, so primary lines and caller/callee lines are two flat tables (joinable on index). The "Index by function name" list prints two entries per line, so it is skipped.
