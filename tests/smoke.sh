@@ -3578,6 +3578,161 @@ CDS="$(mktemp -d)/ctl"; mkdir -p "$CDS"; printf 'k v\n1 2\n' > "$CDS/notes.txt"
 check "store check passes a controlled directory's store" "1 files-* tag(s)" "$("$PROVOST" store check "$CDS/.provost" 2>&1)"
 fi
 
+if _part interrupt; then
+# PV-038: a signal while a command runs keeps what it printed, marked
+# interrupted; a second one (or one while filing) files nothing. Each case
+# runs provost in a process group of its own (own_pg) and has the signal sent
+# to that whole group from inside it, as Ctrl-C at a terminal or a batch
+# scheduler sends it, at a known point rather than after a guessed delay.
+IRB="$(mktemp -d)"
+# fping SIG [N | quiet]: N ping lines (3; none with "quiet"), then SIG to
+# its own process group (provost's), then the two summary lines ping prints
+# when SIGINT comes; SIGTERM and SIGHUP end it there. Piped into provost it
+# prints 2000 lines, more than a pipe holds: its writes end only once
+# provost is reading, so the signal never comes before provost is ready.
+cat > "$IRB/fping" <<'EOF'
+#!/usr/bin/env bash
+trap 'echo "--- x ping statistics ---"; echo "3 packets transmitted, 3 received, 0% packet loss"; exit 0' INT
+n="${2:-3}"; [ "$n" = quiet ] && { trap 'exit 0' INT; n=0; }
+i=1; while [ "$i" -le "$n" ]; do echo "64 bytes from x: icmp_seq=$i ttl=64 time=0.1 ms"; i=$((i + 1)); done
+kill -"$1" -- "-$(ps -o pgid= -p $$ | tr -d ' ')"
+while :; do sleep 0.1; done
+EOF
+# deaf: as fping, but it ignores SIGINT (and so runs on until SIGTERM)
+cat > "$IRB/deaf" <<'EOF'
+#!/usr/bin/env bash
+trap '' INT
+echo "a b"; echo "1 2"
+kill -INT -- "-$(ps -o pgid= -p $$ | tr -d ' ')"
+while :; do sleep 0.1; done
+EOF
+chmod +x "$IRB/fping" "$IRB/deaf"
+# provost's process group, seen from a git it runs (which runs in a group of
+# its own while a capture is filed): the nearest ancestor in another group
+PGUP='pg=$(ps -o pgid= -p $$ | tr -d " "); p=$PPID; while q=$(ps -o pgid= -p $p | tr -d " "); [ "$q" = "$pg" ]; do p=$(ps -o ppid= -p $p | tr -d " "); done'
+irstate () { # WS: the store's state after a case
+    printf 'status[%s] lock[%s] verify[%s] check[%s]' \
+        "$(git -C "$1" status --porcelain 2>/dev/null | tr '\n' '|')" \
+        "$( [ -e "$1/.lock" ] && echo held || echo none)" \
+        "$(PROVOST_WORKSPACE="$1" rc_of "$PROVOST" verify)" \
+        "$(PROVOST_WORKSPACE="$1" rc_of "$PROVOST" store check)"
+}
+IRCLEAN='status[] lock[none] verify[0] check[0]'
+
+# SIGINT to run's group: the three lines and the summary are filed, as one
+# capture marked interrupted, and provost exits 130.
+IRWS="$(mktemp -d)/.ir1"
+ir_out="$(PROVOST_WORKSPACE="$IRWS" PROVOST_INTERRUPT_GRACE=2 own_pg "$PROVOST" run --name ip "$IRB/fping" INT 2>&1; echo "rc=$?")"
+check "run interrupted by SIGINT exits 130" "rc=130" "$(tail -n 1 <<< "$ir_out")"
+check "run interrupted by SIGINT says what it keeps" "interrupted (SIGINT): capturing what the command printed (it exited 0)" "$ir_out"
+check "run interrupted by SIGINT keeps the lines" "icmp_seq=3" "$(cat "$IRWS/captures/c0001/output.txt" 2>&1)"
+check "...and the summary the command printed on SIGINT" "3 packets transmitted" "$(cat "$IRWS/captures/c0001/output.txt" 2>&1)"
+check "meta.tsv marks it interrupted SIGINT" "interrupted	SIGINT" "$(cat "$IRWS/captures/c0001/meta.tsv" 2>&1)"
+check "meta.tsv has the command's rc" "rc	0" "$(cat "$IRWS/captures/c0001/meta.tsv" 2>&1)"
+check "provost log marks it" "[interrupted: SIGINT]" "$(PROVOST_WORKSPACE="$IRWS" "$PROVOST" log 2>&1)"
+check "it is filed as any capture is (show sees it)" "c0001" \
+    "$(PROVOST_WORKSPACE="$IRWS" "$PROVOST" show "$(awk -F'\t' '$1 == "dataset" { print $2 }' "$IRWS/captures/c0001/meta.tsv" 2>/dev/null)" --tsv 2>&1)"
+check "after an interrupted run the store is clean, unlocked, verified" "$IRCLEAN" "$(irstate "$IRWS")"
+# SIGTERM (a batch scheduler at walltime) and SIGHUP (a closed terminal)
+ir_out="$(PROVOST_WORKSPACE="$IRWS" own_pg "$PROVOST" run --name ip "$IRB/fping" TERM 2>&1; echo "rc=$?")"
+check "run interrupted by SIGTERM exits 143" "rc=143" "$(tail -n 1 <<< "$ir_out")"
+check "...and files the lines, marked SIGTERM" "icmp_seq=3 interrupted	SIGTERM" \
+    "$(grep -o 'icmp_seq=3' "$IRWS/captures/c0002/output.txt" 2>&1) $(grep '^interrupted' "$IRWS/captures/c0002/meta.tsv" 2>&1)"
+check "...with the rc SIGTERM left" "rc	143" "$(cat "$IRWS/captures/c0002/meta.tsv" 2>&1)"
+ir_out="$(PROVOST_WORKSPACE="$IRWS" own_pg "$PROVOST" run --name ip "$IRB/fping" HUP 2>&1; echo "rc=$?")"
+check "run interrupted by SIGHUP exits 129, filed and marked" "rc=129 interrupted	SIGHUP" \
+    "$(tail -n 1 <<< "$ir_out") $(grep '^interrupted' "$IRWS/captures/c0003/meta.tsv" 2>&1)"
+check "after SIGTERM and SIGHUP the store is clean, unlocked, verified" "$IRCLEAN" "$(irstate "$IRWS")"
+# A run that ends on its own is not marked.
+PROVOST_WORKSPACE="$IRWS" "$PROVOST" run --name ip printf 'a b\n1 2\n' >/dev/null 2>&1 || true
+check_not "a run that ends on its own is not marked interrupted" "interrupted" "$(cat "$IRWS/captures/c0004/meta.tsv" 2>&1)"
+
+# The pipe: what reached provost before the signal, and the summary after it.
+IRWS2="$(mktemp -d)/.ir2"
+printf '#!/usr/bin/env bash\n%q INT 2000 | %q --name pp\n' "$IRB/fping" "$PROVOST" > "$IRB/pipe"; chmod +x "$IRB/pipe"
+ir_out="$(PROVOST_WORKSPACE="$IRWS2" own_pg "$IRB/pipe" 2>&1; echo "rc=$?")"
+check "piped input interrupted by SIGINT exits 130" "rc=130" "$(tail -n 1 <<< "$ir_out")"
+check "...and files what was read, the summary too" "icmp_seq=2000 3 packets transmitted" \
+    "$(grep -o 'icmp_seq=2000' "$IRWS2/captures/c0001/output.txt" 2>&1) $(grep -o '3 packets transmitted' "$IRWS2/captures/c0001/output.txt" 2>&1)"
+check "...marked interrupted, with no rc" "rc	|interrupted	SIGINT|" "$(grep -E '^(rc|interrupted)	' "$IRWS2/captures/c0001/meta.tsv" 2>&1 | tr '\n' '|')"
+check "after an interrupted pipe the store is clean, unlocked, verified" "$IRCLEAN" "$(irstate "$IRWS2")"
+
+# A command that does not stop on SIGINT is sent SIGTERM once the grace is
+# over, and what it printed is filed.
+IRWS3="$(mktemp -d)/.ir3"
+ir_out="$(PROVOST_WORKSPACE="$IRWS3" PROVOST_INTERRUPT_GRACE=1 own_pg "$PROVOST" run --name deaf "$IRB/deaf" 2>&1; echo "rc=$?")"
+check "a command deaf to SIGINT is sent SIGTERM after the grace" "had not finished 1s later, so it was sent SIGTERM" "$ir_out"
+check "...and what it printed is filed, marked, with rc 143" "rc=130 rc	143 interrupted	SIGINT" \
+    "$(tail -n 1 <<< "$ir_out") $(grep -E '^rc	' "$IRWS3/captures/c0001/meta.tsv" 2>&1) $(grep '^interrupted' "$IRWS3/captures/c0001/meta.tsv" 2>&1)"
+# Nothing printed before the signal: nothing filed, and still 130.
+ir_out="$(PROVOST_WORKSPACE="$IRWS3" own_pg "$PROVOST" run --name q "$IRB/fping" INT quiet 2>&1; echo "rc=$?")"
+check "interrupted before any output: nothing captured, exit 130" "before the command printed anything — nothing captured. rc=130" "$(tr '\n' ' ' <<< "$ir_out")"
+check "...and no capture is made" "c0001" "$(ls "$IRWS3/captures" | tr '\n' ' ')"
+check_not "...none at all" "c0002" "$(ls "$IRWS3/captures" | tr '\n' ' ')"
+
+# A second signal while filing stops at once and files nothing. The git
+# that commits sends it to provost's group: before the commit, and (the
+# harder case) after the commit landed, which is then taken back.
+IRWS4="$(mktemp -d)/.ir4"; IRFB="$(mktemp -d)"
+PROVOST_WORKSPACE="$IRWS4" "$PROVOST" run --name ip printf 'a b\n1 2\n' >/dev/null 2>&1 || true   # c0001
+ir_head0="$(git -C "$IRWS4" rev-parse HEAD)"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { %s; kill -INT -- "-$q"; sleep 5; }; done\nexec %q "$@"\n' \
+    "$PGUP" "$(command -v git)" > "$IRFB/git"; chmod +x "$IRFB/git"
+ir_out="$(PATH="$IRFB:$PATH" PROVOST_WORKSPACE="$IRWS4" own_pg "$PROVOST" run --name ip "$IRB/fping" INT 2>&1; echo "rc=$?")"
+check "a second SIGINT while filing exits 130" "rc=130" "$(tail -n 1 <<< "$ir_out")"
+check "...stops at once, nothing captured, the store as it was" "interrupted again (SIGINT) — stopped, nothing captured; the store is as it was." "$ir_out"
+check "...no commit and no tag" "HEAD[same] tags[capture-c0001]" \
+    "HEAD[$( [ "$(git -C "$IRWS4" rev-parse HEAD)" = "$ir_head0" ] && echo same || echo moved)] tags[$(git -C "$IRWS4" tag | tr '\n' ' ' | sed 's/ $//')]"
+check "...no capture directory" "c0001" "$(ls "$IRWS4/captures" | tr '\n' ' ')"
+check_not "...none for c0002" "c0002" "$(ls "$IRWS4/captures" | tr '\n' ' ')"
+check "after a second signal while filing the store is clean, unlocked, verified" "$IRCLEAN" "$(irstate "$IRWS4")"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { %q "$@"; r=$?; %s; kill -INT -- "-$q"; sleep 5; exit $r; }; done\nexec %q "$@"\n' \
+    "$(command -v git)" "$PGUP" "$(command -v git)" > "$IRFB/git"
+ir_out="$(PATH="$IRFB:$PATH" PROVOST_WORKSPACE="$IRWS4" own_pg "$PROVOST" run --name ip printf 'a b\n3 4\n' 2>&1; echo "rc=$?")"
+check "a signal after the commit landed (a run that had ended) exits 130, nothing captured" "rc=130" "$(tail -n 1 <<< "$ir_out")"
+check "...its commit is taken back" "HEAD[same] tags[capture-c0001]" \
+    "HEAD[$( [ "$(git -C "$IRWS4" rev-parse HEAD)" = "$ir_head0" ] && echo same || echo moved)] tags[$(git -C "$IRWS4" tag | tr '\n' ' ' | sed 's/ $//')]"
+check "...and the store is clean, unlocked, verified" "$IRCLEAN" "$(irstate "$IRWS4")"
+PROVOST_WORKSPACE="$IRWS4" "$PROVOST" run --name ip printf 'a b\n5 6\n' >/dev/null 2>&1 || true
+check "the next capture takes the id the undone one had" "c0002" "$(ls "$IRWS4/captures" | tr '\n' ' ')"
+check "...and the store still verifies" "0" "$(PROVOST_WORKSPACE="$IRWS4" rc_of "$PROVOST" verify)"
+
+# A store already changed and not committed stays exactly so.
+IRWS5="$(mktemp -d)/.ir5"
+PROVOST_WORKSPACE="$IRWS5" "$PROVOST" run --name ip printf 'a b\n1 2\n' >/dev/null 2>&1 || true
+echo "a note" >> "$IRWS5/datasets/ip.tsv"; echo scratch > "$IRWS5/notes.txt"
+ir_before="$(git -C "$IRWS5" status --porcelain; cksum "$IRWS5/datasets/ip.tsv" "$IRWS5/notes.txt" "$IRWS5/provenance.tsv")"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { %s; kill -INT -- "-$q"; sleep 5; }; done\nexec %q "$@"\n' \
+    "$PGUP" "$(command -v git)" > "$IRFB/git"
+PATH="$IRFB:$PATH" PROVOST_WORKSPACE="$IRWS5" own_pg "$PROVOST" run --name ip printf 'a b\n3 4\n' >/dev/null 2>&1 || true
+check "a stopped filing leaves earlier uncommitted changes as they were" "$ir_before" \
+    "$(git -C "$IRWS5" status --porcelain; cksum "$IRWS5/datasets/ip.tsv" "$IRWS5/notes.txt" "$IRWS5/provenance.tsv")"
+
+# In the background (--async) the interrupted capture is queued, marked.
+IRWS6="$(mktemp -d)/.ir6"
+ir_out="$(PROVOST_WORKSPACE="$IRWS6" own_pg "$PROVOST" run --async --name ip "$IRB/fping" INT 2>&1; echo "rc=$?")"
+check "an interrupted --async run is queued, and exits 130" "queued (async" "$ir_out"
+check "...130" "rc=130" "$(tail -n 1 <<< "$ir_out")"
+for _ in $(seq 300); do [ -f "$IRWS6/captures/c0001/meta.tsv" ] && break; sleep 0.1; done
+check "...and filed in the background, marked interrupted" "interrupted	SIGINT" "$(cat "$IRWS6/captures/c0001/meta.tsv" 2>&1)"
+
+# The setting is checked, as every numeric one is.
+check "PROVOST_INTERRUPT_GRACE must be a whole number" "2" "$(PROVOST_INTERRUPT_GRACE=soon rc_of "$PROVOST" ls)"
+check "store check refuses an interrupted value it does not know" "interrupted is \"SIGKILL\"" \
+    "$(sed -i.bak 's/^interrupted	SIGINT$/interrupted	SIGKILL/' "$IRWS/captures/c0001/meta.tsv"; PROVOST_WORKSPACE="$IRWS" "$PROVOST" store check 2>&1)"
+
+# Mutation: the plain traps provost had (exit 130 on SIGINT) file nothing,
+# so the first check above can fail.
+IRMUT="$(mktemp -d)"
+for f in extract analyze transform lib VERSION; do ln -s "$HERE/../$f" "$IRMUT/$f"; done
+sed "s/^    trap '_cap_on_sig INT 130' INT; trap '_cap_on_sig TERM 143' TERM; trap '_cap_on_sig HUP 129' HUP$/    trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP/" "$PROVOST" > "$IRMUT/provost"
+chmod +x "$IRMUT/provost"
+check "mutation: the mutant has the plain traps" "trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP" "$(grep -A1 '^_cap_traps ()' "$IRMUT/provost")"
+IRWS7="$(mktemp -d)/.ir7"
+ir_out="$(PROVOST_WORKSPACE="$IRWS7" own_pg "$IRMUT/provost" run --name ip "$IRB/fping" INT 2>&1; echo "rc=$?")"
+check "mutation: with the plain traps an interrupted run files nothing" "no captures yet" "$(PROVOST_WORKSPACE="$IRWS7" "$IRMUT/provost" log 2>&1)"
+fi
+
 if [[ -z "${PROVOST_SMOKE_PART:-}" ]]; then
     # one job (PROVOST_TEST_JOBS=1): the variants, each in a process of its own
     for v in "${SMOKE_VARIANTS[@]}"; do

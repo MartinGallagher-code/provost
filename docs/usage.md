@@ -19,6 +19,49 @@ $ provost listen <cmd>                 # file <cmd>'s output every time it runs 
 Injected input has no command, so it is named after the parser that recognised
 it (`csv`, `json-array`, `aligned-columns`, …); `--name` sets the name for either.
 
+### Interrupted runs
+
+Stopping a command is often how a run ends: `ping`, `tail -f`, `iostat 1` and
+`tcpdump` run until Ctrl-C, and a batch job runs until its walltime, when Slurm
+sends it SIGTERM (and SIGKILL `KillWait` seconds, 30 by default, later). provost
+keeps what such a run printed:
+
+- **The first SIGINT, SIGTERM or SIGHUP** while `provost run` runs its command,
+  or while piped input is read, does not stop the reading. The command (a
+  Ctrl-C at the terminal reaches it too, as it always did) has
+  `PROVOST_INTERRUPT_GRACE` seconds (default 2) to finish, time for `ping` to
+  print its summary; one still running then is sent SIGTERM.
+- **What it printed is filed** as any capture is, into the same dataset, so
+  `show`, `diff` and `qd` see it. Its `meta.tsv` says `interrupted<TAB>SIGINT` (or
+  `SIGTERM`, `SIGHUP`) beside the command's `rc` (empty if it had not ended),
+  and `provost log` shows `[interrupted: SIGINT]` after the command.
+- **provost exits 130** (143 for SIGTERM, 129 for SIGHUP), so a script still
+  sees the interruption.
+- **A second signal** (Ctrl-C twice), or one that arrives while provost is
+  filing a capture whose command ran to its end, stops provost at once and
+  files nothing. The store is left as it was: no commit, no tag, no lock, and
+  `provost verify` passes. That is the way out when filing itself hangs.
+- **Nothing printed** before the signal: nothing is captured.
+- **In the background** (`--async`, the default at a terminal), the capture is
+  queued once the reading stops, and a signal after that does not reach it.
+  `batch` reads files rather than a live command, and is unchanged.
+
+An interrupted capture you did not want goes with `provost rm --capture ID`.
+
+```console
+$ provost run --show ping -c 100 example.org
+64 bytes from 93.184.215.14: icmp_seq=1 ttl=56 time=11.2 ms
+64 bytes from 93.184.215.14: icmp_seq=2 ttl=56 time=11.0 ms
+^C
+--- example.org ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 11.0/11.1/11.2/0.1 ms
+interrupted (SIGINT): capturing what the command printed (it exited 0), marked interrupted.
+queued (async, pid 41822) — capturing in the background; see 'provost log' shortly.
+$ echo $?
+130
+```
+
 ### The command's name is used in detection
 
 The format is still detected from the output itself, but when provost knows
@@ -490,6 +533,7 @@ it but the pseudonyms and its id leaves. In the copy:
 | `PROVOST_OVERSIZE` | `keep`: an input over the cap is kept whole outside git and its head parsed; `refuse`: it is refused (same as `--refuse-oversize`) | `keep` |
 | `PROVOST_ARTIFACT_DIR` | where inputs over the cap are kept; never the store or inside it | `<store>.artifacts` |
 | `PROVOST_LOCK_TIMEOUT` | seconds to wait for the store lock | `30` |
+| `PROVOST_INTERRUPT_GRACE` | seconds an interrupted command has to finish before what it printed is filed (see [Interrupted runs](#interrupted-runs)); `0` = none | `2` |
 | `PROVOST_LOCK_MAX_AGE` | seconds after which a lock is presumed stale | `3600` |
 | `PROVOST_RECONCILE_OVERLAP` | % column overlap needed to merge a changed schema into a dataset instead of splitting `NAME.v2` | `60` |
 | `PROVOST_QUIET` | `1` suppresses progress/ok messages (same as `--silent`) | `0` |

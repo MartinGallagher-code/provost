@@ -108,6 +108,7 @@ PROVOST_ARTIFACT_DIR="${PROVOST_ARTIFACT_DIR:-}"     # where inputs over the cap
 PROVOST_TEMP_DIR="${TMPDIR:-/tmp}"
 PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
 PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any lock is stale
+PROVOST_INTERRUPT_GRACE="${PROVOST_INTERRUPT_GRACE:-2}" # seconds an interrupted command has to finish before what it printed is filed (PV-038)
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 PROVOST_CONTEXT_COLUMNS="${PROVOST_CONTEXT_COLUMNS:-0}" # 1 = '#% key=value' context becomes row columns (--context-columns)
@@ -183,6 +184,7 @@ _validate_settings () {
     _validate_uint PROVOST_RECONCILE_OVERLAP "$PROVOST_RECONCILE_OVERLAP" 0 101
     _validate_uint PROVOST_LOCK_TIMEOUT      "$PROVOST_LOCK_TIMEOUT"      0 86400
     _validate_uint PROVOST_LOCK_MAX_AGE      "$PROVOST_LOCK_MAX_AGE"      1
+    _validate_uint PROVOST_INTERRUPT_GRACE   "$PROVOST_INTERRUPT_GRACE"   0 3600
     _validate_uint PROVOST_MAX_INPUT         "$PROVOST_MAX_INPUT"         1
     _validate_uint PROVOST_FILES_MAX_SIZE    "$PROVOST_FILES_MAX_SIZE"    0
     # (validated above, so these arithmetic reads are safe)
@@ -192,6 +194,7 @@ _validate_settings () {
     PROVOST_RECONCILE_OVERLAP=$((10#$PROVOST_RECONCILE_OVERLAP))
     PROVOST_LOCK_TIMEOUT=$((10#$PROVOST_LOCK_TIMEOUT))
     PROVOST_LOCK_MAX_AGE=$((10#$PROVOST_LOCK_MAX_AGE))
+    PROVOST_INTERRUPT_GRACE=$((10#$PROVOST_INTERRUPT_GRACE))
     PROVOST_MAX_INPUT=$((10#$PROVOST_MAX_INPUT))
     PROVOST_FILES_MAX_SIZE=$((10#$PROVOST_FILES_MAX_SIZE))
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
@@ -663,22 +666,11 @@ _unstage_dir () {
     return 0
 }
 
-# _take_stdin RAW FALLBACK — stdin into RAW. Under refuse, its first
+# _take_file FILE RAW FALLBACK — FILE into RAW. Under refuse, its first
 # PROVOST_MAX_INPUT+1 bytes, as provost always read it; under keep, all of
 # it, and when that is over the cap _keep_oversize keeps the whole and RAW
-# gets its head. (head -c on a pipe may read past its count, so the rest of
-# a pipe cannot be picked up after it: the input is staged whole.)
-_take_stdin () {
-    local raw="$1" st
-    if [[ "$PROVOST_OVERSIZE" == refuse ]]; then
-        head -c "$((PROVOST_MAX_INPUT + 1))" > "$raw"; return 0
-    fi
-    _stage_file "$2"; st="$_STAGED"
-    cat > "$st"
-    _take_staged "$st" "$raw"
-}
-# _take_file FILE RAW FALLBACK — FILE into RAW, as _take_stdin; a file within
-# the cap (or under refuse) is read exactly as it always was.
+# gets its head. A file within the cap is read exactly as it always was.
+# (stdin is read by _cap_stream, the same way.)
 _take_file () {
     local f="$1" raw="$2" n st
     n="$(wc -c < "$f")"; n="${n//[!0-9]/}"
@@ -964,6 +956,9 @@ _lock () {
         die "the store at $dir is read-only (an imported archive, or a copy kept as evidence) — provost does not write to it."
     fi
     while ! mkdir "$lock" 2>/dev/null; do
+        # a signal that stops a capture's filing gives up the wait (PV-038):
+        # no lock is taken, and the caller files nothing
+        [[ -z "${_CAP_ABORT:-}" ]] || return 1
         [[ -d "$dir" ]] || die "cannot create the store directory: $dir"
         if _lock_stale "$lock" && _lock_break "$lock"; then continue; fi
         tries=$((tries + 1))
@@ -2409,7 +2404,7 @@ _llm_template () {
                 if _llm_reviewed "$new"; then
                     # kept even when unchanged: it now holds this capture, so
                     # these lines are not sent again
-                    mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
+                    _llm_keep "$new" "$tdir/$kf"
                     if [[ "${rstat%%$'\n'*}" == unchanged ]]; then
                         llm_how="template ${tpl##*/}, which Claude checked for $miss and left as it was (llm-templates/$kf)${llm_rev:+, $llm_rev}"
                         llm_seen_how=checked
@@ -2459,10 +2454,29 @@ _llm_template () {
     if ! _llm_reviewed "$new"; then
         llm_note="${prev:+$prev; }the template Claude wrote fails the gate: $llm_note"; return 1
     fi
-    mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
+    _llm_keep "$new" "$tdir/$kf"
     llm_how="a new template Claude wrote (llm-templates/$kf)${llm_rev:+, $llm_rev}"; llm_learned="llm-templates/$kf"
     llm_seen_how=learned; llm_seen_tpl="$tdir/$kf"
     return 0
+}
+
+# _llm_keep NEW DEST — a template Claude wrote or extended into the store's
+# llm-templates/ (the parse half writes it, before the store lock). In a
+# filing a signal can still undo (_ingest_guarded, PV-038), what DEST was
+# is kept first, so the undo can put it back: a copy, or a note that there
+# was none.
+_llm_keep () {
+    local new="$1" dest="$2" k
+    mkdir -p "${dest%/*}" || return 1
+    if [[ -n "${_FILING_REC:-}" ]]; then
+        k="$_FILING_REC/llm/${dest##*/}"
+        mkdir -p "$_FILING_REC/llm" || return 1
+        if [[ ! -e "$k" && ! -e "$k.none" ]]; then
+            if [[ -f "$dest" ]]; then cp -p -- "$dest" "$k" || return 1; else : > "$k.none"; fi
+            printf '%s\n' "$dest" >> "$_FILING_REC/llm.list"
+        fi
+    fi
+    cp -- "$new" "$dest"
 }
 
 # THE LEDGER: every capture an LLM template files is recorded beside the
@@ -2819,15 +2833,18 @@ _ingest_parse () {
 
 # _ingest_store IN SOURCE CMD RC WORKDIR COMMIT — the store half of a capture
 # parsed into WORKDIR. COMMIT=1 takes the store lock, commits and tags, as one
-# capture always has; COMMIT=0 is for `batch`, which holds the lock across all
-# its captures and makes one commit, and leaves the capture id in $_CAPID.
+# capture always has; COMMIT=2 commits and tags under a lock the caller took
+# and releases (_ingest_guarded); COMMIT=0 is for `batch`, which holds the
+# lock across all its captures and makes one commit, and leaves the capture
+# id in $_CAPID. A capture whose command (or input) was cut short by a signal
+# (_CAP_SIG, PV-038) records it in meta.tsv as `interrupted`.
 _ingest_store () {
     local in="$1" source="$2" cmd="${3:-}" rc="${4:-}" tmp="$5" commit="${6:-1}"
     # shellcheck source=/dev/null
     source "$tmp/state.sh"
 
     # --- critical section: assign #N, append, provenance, commit -----------
-    if (( commit )); then
+    if (( commit == 1 )); then
         _lock
         _require_on_branch
     fi
@@ -2967,6 +2984,7 @@ _ingest_store () {
         printf 'id\t%s\n' "$id";            printf 'ts\t%s\n' "$ts"
         printf 'source\t%s\n' "$source";    printf 'command\t%s\n' "$(_meta_safe "$cmd")"
         printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$(_meta_safe "$all_strats")"
+        [[ -n "${_CAP_SIG:-}" ]] && printf 'interrupted\t%s\n' "$_CAP_SIG"
         printf 'confidence\t%s\n' "$all_confs";  printf 'dataset\t%s\n' "$all_names"
         printf 'row_ids\t%s\n' "$( (( totalrows > 0 )) && echo "$firstid-$((nextid-1))" || echo none)"
         if [[ -n "$am_reason" ]]; then
@@ -3084,7 +3102,7 @@ _ingest_store () {
             _snapshot_files "$ctl_dir" "$id" \
                 || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
         fi
-        _unlock
+        if (( commit == 1 )); then _unlock; fi
     fi
     _CAPID="$id"
 
@@ -3125,6 +3143,9 @@ _ingest_store () {
     fi
     if [[ "$redacted" == *=* ]]; then
         info "      secrets scrubbed before filing: ${redacted//,/, } ('provost source' shows [REDACTED:kind] in their place)."
+    fi
+    if [[ -n "${_CAP_SIG:-}" ]]; then
+        info "      marked interrupted ($_CAP_SIG): it holds what came before the signal ('provost log' shows it)."
     fi
     # (the messages above end in `[[ ]] &&` tests; the capture itself is filed)
     return 0
@@ -3180,6 +3201,400 @@ _want_async () {
         1) return 0 ;; 0) return 1 ;;
     esac
     _is_tty
+}
+
+# ---------------------------------------------------------------------------
+# INTERRUPTED CAPTURES (PV-038). A signal used to end provost on the spot
+# (exit 130, 143) with nothing filed: the lines ping had shown and the
+# summary it prints on SIGINT were lost, as was the output of every job a
+# batch scheduler stops at its walltime (SIGTERM). Now, for `run` and for
+# piped input:
+#   * While the command runs (or the input is read), the first SIGINT,
+#     SIGTERM or SIGHUP does not stop the reading. The reading runs in the
+#     background with those signals ignored, and the command has them as
+#     provost got them, so it hears the Ctrl-C as before. The command then
+#     has PROVOST_INTERRUPT_GRACE seconds (2) to finish (ping prints its
+#     summary); one still running is sent SIGTERM. What it printed is filed
+#     as any capture is, marked `interrupted SIGINT` (SIGTERM, SIGHUP) in
+#     meta.tsv, and provost exits 130 (143, 129), so a script still sees
+#     the interruption.
+#   * A signal after that (a second Ctrl-C, or one while provost files a
+#     capture whose command ran to its end) stops provost at once and files
+#     nothing (_ingest_guarded): the parse and store halves run in a process
+#     group of their own, which is killed, and what the store half had
+#     changed is put back (_cap_rollback). This shell holds the store lock
+#     around the store half, so no lock is left behind and no other provost
+#     writes in between.
+# A background capture (--async) is detached already: only the reading is
+# as above. batch reads files, not a live command, and is unchanged.
+# ---------------------------------------------------------------------------
+_CAP_PHASE=""       # capture: reading; prepare: not yet filing; filing; filed
+_CAP_SIG=""         # the first signal while reading: SIGINT, SIGTERM or SIGHUP
+_CAP_SIGRC=0        # ...and the status provost exits with for it
+_CAP_ABORT=""       # a signal that stops provost with nothing filed
+_CAP_ABORTRC=0
+_CAP_LATE=0         # 1: the command had not finished in the grace, and was sent SIGTERM
+_CAP_RC=""          # the command's exit status ('' when it had not ended)
+_FILING_REC=""      # _ingest_guarded's record dir (_llm_keep writes there)
+_GUARD_RC=0
+_cap_on_sig () {
+    if [[ "$_CAP_PHASE" == capture && -z "$_CAP_SIG" ]]; then
+        _CAP_SIG="SIG$1"; _CAP_SIGRC="$2"
+    else
+        if [[ -z "$_CAP_ABORT" ]]; then _CAP_ABORT="SIG$1"; _CAP_ABORTRC="$2"; fi
+        # nothing of the store's has changed yet: stop here
+        [[ "$_CAP_PHASE" != prepare ]] || _cap_abort_exit
+    fi
+    # A `wait` that starts just after this ran would not see it (bash runs a
+    # trap between commands, and a wait it has not reached yet waits on):
+    # wake it a moment later, with a SIGUSR1 trapped as a no-op.
+    ( sleep 0.2; kill -USR1 "$$" ) </dev/null >/dev/null 2>&1 &
+    return 0
+}
+_cap_traps () {
+    trap '_cap_on_sig INT 130' INT; trap '_cap_on_sig TERM 143' TERM; trap '_cap_on_sig HUP 129' HUP
+    trap ':' USR1
+}
+# _cap_abort_exit [WHAT] — stop now, with nothing filed and the stopping
+# signal's status; WHAT is said after (what was put back).
+_cap_abort_exit () {
+    _CAP_PHASE=stopped
+    local m="interrupted ($_CAP_ABORT)"
+    [[ -z "$_CAP_SIG" ]] || m="interrupted again ($_CAP_ABORT)"
+    info "$m — stopped, nothing captured${1:+; $1}." || true
+    exit "$_CAP_ABORTRC"
+}
+
+# _cap_read MODE OUT — the reader of a capture's input (its stdin), into
+# OUT: show, all of it and through to stdout as well (tee); all, all of it;
+# head, its first PROVOST_MAX_INPUT+1 bytes (PROVOST_OVERSIZE=refuse).
+_cap_read () {
+    case "$1" in
+        show) exec tee "$2" ;;
+        all)  exec cat > "$2" ;;
+        *)    exec head -c "$((PROVOST_MAX_INPUT + 1))" > "$2" ;;
+    esac
+}
+
+# _cap_stream TMP MODE OUT [CMD...] — read a capture's input into OUT
+# (_cap_read MODE): CMD's stdout and stderr together, CMD run with this
+# provost's stdin; with no CMD, this provost's stdin. Sets _CAP_RC to CMD's
+# exit status ('' when it had not ended when the reading stopped), and
+# _CAP_SIG when a signal cut the reading short (see above). A second signal
+# stops provost at once, with nothing filed.
+_cap_stream () {
+    local tmp="$1" mode="$2" out="$3"; shift 3
+    local bg fd cpid="" rpid="" n
+    rm -f -- "${tmp:?}/cap.cpid" "${tmp:?}/cap.rpid" "${tmp:?}/cap.rc"
+    _CAP_RC=""; _CAP_LATE=0; _CAP_PHASE=capture; _cap_traps
+    exec {fd}<&0
+    if (( $# > 0 )); then
+        {
+            trap '' INT TERM HUP; set +e
+            ( trap - INT QUIT TERM HUP; printf '%s\n' "$BASHPID" > "$tmp/cap.cpid"; exec "$@" ) <&"$fd" {fd}<&- 2>&1 \
+                | { exec {fd}<&-; printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"; _cap_read "$mode" "$out"; }
+            printf '%s\n' "${PIPESTATUS[0]}" > "$tmp/cap.rc" 2>/dev/null
+        } &
+    else
+        {
+            trap '' INT TERM HUP
+            exec <&"$fd" {fd}<&-
+            printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"
+            _cap_read "$mode" "$out"
+        } &
+    fi
+    bg=$!
+    exec {fd}<&-
+    # until the reading is done, or a signal comes
+    while [[ -z "$_CAP_SIG" ]] && kill -0 "$bg" 2>/dev/null; do
+        wait "$bg" 2>/dev/null || true
+    done
+    if [[ -n "$_CAP_SIG" ]]; then
+        # the grace: time for the command (or whatever feeds the pipe) to finish
+        n=$((PROVOST_INTERRUPT_GRACE * 10))
+        while [[ -z "$_CAP_ABORT" ]] && (( n > 0 )) && kill -0 "$bg" 2>/dev/null; do
+            sleep 0.1 || true; n=$((n - 1))
+        done
+        if [[ -z "$_CAP_ABORT" ]] && kill -0 "$bg" 2>/dev/null && (( $# > 0 )); then
+            # still running: told to stop, and a second more for its last words
+            _CAP_LATE=1
+            { IFS= read -r cpid < "$tmp/cap.cpid"; } 2>/dev/null || true
+            [[ ! "$cpid" =~ ^[0-9]+$ ]] || kill -TERM "$cpid" 2>/dev/null || true
+            n=10
+            while [[ -z "$_CAP_ABORT" ]] && (( n > 0 )) && kill -0 "$bg" 2>/dev/null; do
+                sleep 0.1 || true; n=$((n - 1))
+            done
+        fi
+    fi
+    if kill -0 "$bg" 2>/dev/null; then
+        # the reading stops here (the grace is over, or a second signal came)
+        { IFS= read -r rpid < "$tmp/cap.rpid"; } 2>/dev/null || true
+        [[ ! "$rpid" =~ ^[0-9]+$ ]] || kill -KILL "$rpid" 2>/dev/null || true
+        if [[ -n "$_CAP_ABORT" ]] && (( $# > 0 )); then
+            { IFS= read -r cpid < "$tmp/cap.cpid"; } 2>/dev/null || true
+            [[ ! "$cpid" =~ ^[0-9]+$ ]] || kill -TERM "$cpid" 2>/dev/null || true
+        fi
+        n=5
+        while (( n > 0 )) && kill -0 "$bg" 2>/dev/null; do sleep 0.1 || true; n=$((n - 1)); done
+    fi
+    # (a command that ignores SIGTERM is not waited for: it is left running)
+    kill -0 "$bg" 2>/dev/null || wait "$bg" 2>/dev/null || true
+    if (( $# > 0 )); then
+        { IFS= read -r _CAP_RC < "$tmp/cap.rc"; } 2>/dev/null || _CAP_RC=""
+        [[ "$_CAP_RC" =~ ^[0-9]+$ ]] || _CAP_RC=""
+    fi
+    _CAP_PHASE=prepare
+    [[ -z "$_CAP_ABORT" ]] || _cap_abort_exit
+    return 0
+}
+
+# _cap_said_interrupted VERB — after _cap_stream: say that the capture was
+# cut short, and what is kept of it.
+_cap_said_interrupted () {
+    [[ -n "$_CAP_SIG" ]] || return 0
+    if (( _CAP_LATE )); then
+        info "interrupted ($_CAP_SIG): the command had not finished ${PROVOST_INTERRUPT_GRACE}s later, so it was sent SIGTERM; capturing what it printed, marked interrupted." || true
+    elif [[ "$1" == run ]]; then
+        info "interrupted ($_CAP_SIG): capturing what the command printed${_CAP_RC:+ (it exited $_CAP_RC)}, marked interrupted." || true
+    else
+        info "interrupted ($_CAP_SIG): capturing the input read until then, marked interrupted." || true
+    fi
+    return 0
+}
+
+# _guard_child DIR NAME FUNC ARGS... — FUNC ARGS in a child in a process
+# group of its own (set -m), so neither a Ctrl-C at the terminal nor a
+# signal to provost's group reaches it or the git and awk it runs; its
+# stdout and stderr kept in DIR/NAME.out and DIR/NAME.log (_guard_replay),
+# its temp files in DIR/tmp. Waits for it, giving way to a signal
+# (_CAP_ABORT): the child and everything it started are then killed at
+# once. Status 0 when it succeeded; else _GUARD_RC is its exit status
+# (255: killed).
+_guard_child () {
+    local g="$1" nm="$2"; shift 2
+    local b="$g/$nm" outer cpid="" w=0
+    _GUARD_RC=0
+    rm -f -- "${b:?}.pid" "${b:?}.rc" "${b:?}.log" "${b:?}.out"
+    (
+        trap '' INT TERM HUP
+        set +e; set -m
+        (
+            set -e
+            _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
+            PROVOST_TEMP_DIR="$g/tmp"; TMPDIR="$g/tmp"; export TMPDIR
+            "$@"
+        ) > "$b.out" 2> "$b.log" < /dev/null &
+        printf '%s\n' "$!" > "$b.pid"
+        wait "$!"
+        printf '%s\n' "$?" > "$b.rc"
+    ) < /dev/null > /dev/null 2>&1 &
+    outer=$!
+    while [[ -z "$_CAP_ABORT" ]] && kill -0 "$outer" 2>/dev/null; do
+        wait "$outer" 2>/dev/null || true
+    done
+    if [[ -n "$_CAP_ABORT" ]]; then
+        # the child's group (the outer names it as soon as it has started it)
+        while [[ ! -s "$b.pid" ]] && kill -0 "$outer" 2>/dev/null && (( w < 300 )); do
+            sleep 0.01 || true; w=$((w + 1))
+        done
+        { IFS= read -r cpid < "$b.pid"; } 2>/dev/null || true
+        if [[ "$cpid" =~ ^[0-9]+$ ]]; then
+            kill -KILL -- "-$cpid" 2>/dev/null || kill -KILL "$cpid" 2>/dev/null || true
+            # ...every process of it gone before the store is looked at
+            w=0
+            while kill -0 -- "-$cpid" 2>/dev/null && (( w < 150 )); do sleep 0.02 || true; w=$((w + 1)); done
+        fi
+        w=0
+        while kill -0 "$outer" 2>/dev/null && (( w < 100 )); do sleep 0.02 || true; w=$((w + 1)); done
+        kill -0 "$outer" 2>/dev/null || wait "$outer" 2>/dev/null || true
+        _GUARD_RC=255
+        return 1
+    fi
+    wait "$outer" 2>/dev/null || true
+    { IFS= read -r _GUARD_RC < "$b.rc"; } 2>/dev/null || _GUARD_RC=""
+    [[ "$_GUARD_RC" =~ ^[0-9]+$ ]] || _GUARD_RC=1
+    (( _GUARD_RC == 0 ))
+}
+# _guard_replay DIR/NAME — what a _guard_child printed, where it would have gone.
+_guard_replay () {
+    if [[ -s "$1.out" ]]; then cat -- "$1.out" || true; fi
+    if [[ -s "$1.log" ]]; then cat -- "$1.log" >&2 || true; fi
+    return 0
+}
+
+# _cap_gitlocks GITDIR REF — git's own lock files that a git killed while
+# it filed could leave behind (the index's, HEAD's, the branch's,
+# packed-refs', a tag's), and _snapshot_files' scratch index.
+_cap_gitlocks () {
+    local gd="$1" f
+    for f in index.lock HEAD.lock packed-refs.lock "$2.lock" provost-files.index provost-files.pathspec; do
+        [[ ! -e "$gd/$f" ]] || printf '%s\n' "$f"
+    done
+    if [[ -d "$gd/refs/tags" ]]; then (cd "$gd" && find refs/tags -name '*.lock' 2>/dev/null) || true; fi
+    return 0
+}
+
+# _cap_snapshot DIR — under the store lock, before the store half: what
+# _cap_rollback needs to put the store back as it is now, in DIR: the git
+# dir, HEAD and its branch, and the working tree as a tree object (every
+# file git would commit, as it is now, staged in a copy of the index, so
+# what was already changed and not committed stays changed) in DIR/rec; a
+# copy of the index; the capture and files tags; git's lock files present.
+_cap_snapshot () {
+    local g="$1" gd head0 ref t0
+    gd="$(_git rev-parse --absolute-git-dir 2>/dev/null)" || return 1
+    head0="$(_git rev-parse -q --verify HEAD 2>/dev/null)" || head0=""
+    ref="$(_git symbolic-ref -q HEAD 2>/dev/null)" || return 1
+    rm -f -- "${g:?}/index.0" "${g:?}/index.t0"
+    if [[ -f "$gd/index" ]]; then
+        cp -p -- "$gd/index" "$g/index.0" && cp -p -- "$gd/index" "$g/index.t0" || return 1
+    fi
+    _GIT_INDEX="$g/index.t0" _git add -A >/dev/null 2>&1 || return 1
+    t0="$(_GIT_INDEX="$g/index.t0" _git write-tree 2>/dev/null)" || return 1
+    _git for-each-ref --format='%(refname)' 'refs/tags/capture-*' 'refs/tags/files-*' > "$g/tags.0" 2>/dev/null || return 1
+    _cap_gitlocks "$gd" "$ref" > "$g/locks.0"
+    printf '%s\n%s\n%s\n%s\n' "$gd" "$head0" "$ref" "$t0" > "$g/rec"
+}
+
+# _cap_rollback DIR — put the store back as _cap_snapshot found it, after
+# the store half was killed part way, under the lock it ran under. The lock
+# files the killed git left go; its commit, if it landed, is taken off the
+# branch, and its tags go; the index is the copy again; and each path the
+# working tree changed since is put back: a file it added is removed (and
+# a capture directory it made), one it changed or removed is restored.
+# Status 1 when something could not be put back.
+_cap_rollback () {
+    local g="$1" ws="$PROVOST_WORKSPACE" gd head0 ref t0 t1 cur st p f d bad=0
+    { IFS= read -r gd; IFS= read -r head0; IFS= read -r ref; IFS= read -r t0; } < "$g/rec" || return 1
+    [[ -n "$gd" && -n "$ref" && -n "$t0" && -n "$ws" ]] || return 1
+    # git's lock files, and _snapshot_files' scratch, that were not there before
+    _cap_gitlocks "$gd" "$ref" > "$g/locks.1"
+    while IFS= read -r f; do
+        grep -qxF -- "$f" "$g/locks.0" || rm -f -- "${gd:?}/${f:?}" || bad=1
+    done < "$g/locks.1"
+    # the branch, back where it was if the commit landed
+    cur="$(_git rev-parse -q --verify HEAD 2>/dev/null)" || cur=""
+    if [[ "$cur" != "$head0" ]]; then
+        if [[ -n "$head0" ]]; then
+            _git update-ref -m "provost: interrupted capture undone" "$ref" "$head0" ${cur:+"$cur"} >/dev/null 2>&1 || bad=1
+        else
+            _git update-ref -d "$ref" >/dev/null 2>&1 || bad=1
+        fi
+    fi
+    # the tags it made
+    _git for-each-ref --format='%(refname)' 'refs/tags/capture-*' 'refs/tags/files-*' 2>/dev/null \
+        | awk 'NR == FNR { h[$0] = 1; next } !($0 in h) { print "delete " $0 }' "$g/tags.0" - > "$g/tags.del" || bad=1
+    if [[ -s "$g/tags.del" ]]; then _git update-ref --stdin < "$g/tags.del" >/dev/null 2>&1 || bad=1; fi
+    # the index, as it was
+    if [[ -f "$g/index.0" ]]; then
+        { cp -p -- "$g/index.0" "$gd/index.provost-undo" && mv -f -- "$gd/index.provost-undo" "$gd/index"; } || bad=1
+    else
+        rm -f -- "${gd:?}/index"
+    fi
+    # the working tree: what changed since the record, as it was
+    rm -f -- "${g:?}/index.t1"
+    if [[ -f "$g/index.0" ]]; then cp -p -- "$g/index.0" "$g/index.t1" || return 1; fi
+    _GIT_INDEX="$g/index.t1" _git add -A >/dev/null 2>&1 || return 1
+    t1="$(_GIT_INDEX="$g/index.t1" _git write-tree 2>/dev/null)" || return 1
+    if [[ "$t1" != "$t0" ]]; then
+        _git diff-tree -r -z --no-renames --name-status "$t0" "$t1" > "$g/changed" 2>/dev/null || return 1
+        : > "$g/restore"; : > "$g/added"
+        while IFS= read -r -d '' st && IFS= read -r -d '' p; do
+            if [[ "$st" == A ]]; then
+                rm -f -- "${ws:?}/${p:?}" || bad=1; printf '%s\n' "$p" >> "$g/added"
+            else
+                printf '%s\0' "$p" >> "$g/restore"
+            fi
+        done < "$g/changed"
+        if [[ -s "$g/restore" ]]; then
+            _GIT_INDEX="$g/index.t0" _git checkout-index -f -z --stdin < "$g/restore" >/dev/null 2>&1 || bad=1
+        fi
+        # a capture directory it made goes whole (with any scratch in it);
+        # other directories only when an added file left them empty
+        while IFS= read -r p; do
+            if [[ "$p" =~ ^captures/(c[0-9]+)/ ]]; then
+                d="captures/${BASH_REMATCH[1]}"
+                if ! _git cat-file -e "$t0:$d" 2>/dev/null; then
+                    rm -rf -- "${ws:?}/${d:?}" || bad=1
+                    continue
+                fi
+            fi
+            d="${p%/*}"
+            while [[ "$d" != "$p" && -n "$d" ]] && rmdir -- "$ws/$d" 2>/dev/null; do
+                p="$d"; d="${d%/*}"
+            done
+        done < "$g/added"
+    fi
+    # the store half's own scratch (ignored by git, so in neither tree)
+    rm -f -- "${ws:?}"/datasets/.recon.* "${ws:?}"/datasets/.stage.* "${ws:?}"/context/*.tmp 2>/dev/null || true
+    return "$bad"
+}
+
+# _cap_undo_llm DIR — put back the templates the parse half wrote into the
+# store (_llm_keep): each as it was, or gone if it was new.
+_cap_undo_llm () {
+    local g="$1" dest k
+    [[ -f "$g/llm.list" ]] || return 0
+    while IFS= read -r dest; do
+        k="$g/llm/${dest##*/}"
+        if [[ -f "$k" ]]; then cp -p -- "$k" "$dest" || true
+        elif [[ -e "$k.none" ]]; then rm -f -- "${dest:?}" || true; fi
+    done < "$g/llm.list"
+    rmdir -- "$PROVOST_WORKSPACE/llm-templates" 2>/dev/null || true
+    rm -f -- "${g:?}/llm.list"
+    return 0
+}
+
+# _ingest_guarded IN THRESHOLD SOURCE CMD RC NAME — _ingest, for a capture
+# that run or inject files in the foreground, so that a signal while it
+# files stops it at once with nothing filed (see above). The parse half and
+# the store half each run in a _guard_child; between them this shell takes
+# the store lock, notes what to put back (_cap_snapshot), and holds the lock
+# until the store half is done or undone. A half that fails on its own
+# (die) fails as _ingest would.
+_ingest_guarded () {
+    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}" name="${6:-}"
+    _mktempd provost; local tmp="$_MKTEMPD"
+    local g="$tmp/.guard"
+    mkdir -p "$g/tmp" || die "cannot create a temp dir in $tmp (set TMPDIR) — nothing captured."
+    _CAP_PHASE=filing; _cap_traps
+    [[ -z "$_CAP_ABORT" ]] || _cap_abort_exit
+    _FILING_REC="$g"
+    # 1. the parse half (it changes nothing in the store, Claude's templates aside)
+    if ! _guard_child "$g" parse _ingest_parse "$in" "$threshold" "$cmd" "$name" "$tmp"; then
+        if [[ -n "$_CAP_ABORT" ]]; then _cap_undo_llm "$g"; _cap_abort_exit; fi
+        _guard_replay "$g/parse"; exit "$_GUARD_RC"
+    fi
+    _guard_replay "$g/parse"
+    # 2. the lock (waiting for it gives way to a signal), and what to put back
+    if ! _lock || [[ -n "$_CAP_ABORT" ]]; then
+        _unlock; _cap_undo_llm "$g"; _cap_abort_exit
+    fi
+    _require_on_branch
+    if ! _cap_snapshot "$g"; then
+        _unlock
+        [[ -n "$_CAP_ABORT" ]] || die "could not note the store's state before filing (git failed in $PROVOST_WORKSPACE) — nothing captured."
+        _cap_undo_llm "$g"; _cap_abort_exit
+    fi
+    if [[ -n "$_CAP_ABORT" ]]; then _unlock; _cap_undo_llm "$g"; _cap_abort_exit; fi
+    # 3. the store half, under this shell's lock
+    if ! _guard_child "$g" store _ingest_store "$in" "$source" "$cmd" "$rc" "$tmp" 2 || [[ -n "$_CAP_ABORT" ]]; then
+        if [[ -n "$_CAP_ABORT" ]]; then
+            if _cap_rollback "$g"; then
+                _unlock; _cap_undo_llm "$g"; _cap_abort_exit "the store is as it was"
+            fi
+            _unlock; _cap_undo_llm "$g"
+            warn "the store could not all be put back as it was: see 'provost verify', and 'git -C $(printf '%q' "$PROVOST_WORKSPACE") status'." || true
+            _cap_abort_exit
+        fi
+        _guard_replay "$g/store"; _unlock; exit "$_GUARD_RC"
+    fi
+    _CAP_PHASE=filed
+    _unlock
+    _FILING_REC=""
+    _guard_replay "$g/store"
+    rm -rf -- "${tmp:?}"
+    return 0
 }
 
 # Unacknowledged background failures → one warning line on stderr.
@@ -3325,6 +3740,10 @@ usage: provost run [options] [--] <command> [args...]
   auto-detect the format and file it as a dataset named after the command
   (sudo/env/nice/timeout/... wrappers are looked through): 'provost run df -h'
   files into dataset 'df'. Exits with the command's own exit status.
+  Interrupted (Ctrl-C, SIGTERM, SIGHUP) while it runs, it files what the
+  command printed, marked interrupted, and exits 130 (143, 129); a second
+  signal stops it with nothing filed (INTERRUPTED RUNS in 'provost help
+  advanced').
 options:
   --name NAME             file into dataset NAME instead
   --min-confidence N      commit threshold 0-101 (default: $PROVOST_MIN_CONFIDENCE)
@@ -3927,19 +4346,31 @@ cmd_inject () {
         _take_file "$file" "$in.raw" "$tmp"
         _receive "$in.raw" "$in"
         (( _O_SHOW )) && cat -- "$file"
-    elif (( _O_SHOW )); then
-        # --show: pass all of stdin through to stdout (a tee), keep the bound.
+    else
+        # stdin. A signal while it is read keeps what was read, marked
+        # interrupted (PV-038, _cap_stream); a second one files nothing.
+        # --show passes all of it through to stdout (a tee), within the bound.
+        local mode=all; (( _O_SHOW )) && mode=show
         if [[ "$PROVOST_OVERSIZE" == refuse ]]; then
-            tee "$tmp/full"
-            head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" > "$in.raw"; rm -f "$tmp/full"
+            if (( _O_SHOW )); then
+                _cap_stream "$tmp" show "$tmp/full"
+                head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" > "$in.raw"; rm -f "$tmp/full"
+            else
+                _cap_stream "$tmp" head "$in.raw"
+            fi
         else
-            _stage_file "$tmp"; tee "$_STAGED"
+            # all of it, staged; over the cap _keep_oversize keeps the whole
+            # and RAW gets its head (head -c on a pipe may read past its
+            # count, so the rest of a pipe cannot be picked up after it)
+            _stage_file "$tmp"
+            _cap_stream "$tmp" "$mode" "$_STAGED"
             _take_staged "$_STAGED" "$in.raw"
         fi
+        _cap_said_interrupted inject
         _receive "$in.raw" "$in"
-    else
-        _take_stdin "$in.raw" "$tmp"
-        _receive "$in.raw" "$in"
+    fi
+    if [[ ! -s "$in" && -n "$_CAP_SIG" ]]; then
+        info "interrupted ($_CAP_SIG) before any input came — nothing captured." || true; exit "$_CAP_SIGRC"
     fi
     [[ -s "$in" ]] || die "no input to provost (empty)."
     size="$(wc -c < "$in")"; size="${size//[!0-9]/}"
@@ -3947,8 +4378,11 @@ cmd_inject () {
         || die "input too large (max $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT)."
     _manifest_apply "$in" "${file:-input}" || exit 1
 
-    if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"
-    else _ingest "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"; fi
+    if _want_async "$_O_ASYNC"; then _CAP_PHASE=filed; _ingest_async "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"
+    else _ingest_guarded "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"; fi
+    [[ -z "$_CAP_SIG" ]] || exit "$_CAP_SIGRC"
+    [[ -z "$_CAP_ABORT" ]] || exit "$_CAP_ABORTRC"
+    return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -3964,32 +4398,27 @@ cmd_run () {
     _ensure_workspace
     _require_on_branch
     _mktempd provost; local tmp="$_MKTEMPD"
-    local in="$tmp/in.txt" rc=0 size
+    local in="$tmp/in.txt" rc=0 size mode
     # Capture combined stdout+stderr (the thing you'd otherwise eyeball),
-    # bounded by PROVOST_MAX_INPUT exactly as inject is.
-    local -a st=()
-    set +e
+    # bounded by PROVOST_MAX_INPUT exactly as inject is. A signal while the
+    # command runs keeps what it printed, marked interrupted (PV-038,
+    # _cap_stream); a second one, or one while filing, files nothing.
+    mode=all; (( _O_SHOW )) && mode=show
     if [[ "$PROVOST_OVERSIZE" != refuse ]]; then
         # All of the output, staged; over the cap it is kept by hash and its
         # head parsed (PV-021).
         _stage_file "$tmp"
-        if (( _O_SHOW )); then "$@" 2>&1 | tee "$_STAGED"
-        else "$@" 2>&1 | cat > "$_STAGED"; fi
-        st=("${PIPESTATUS[@]}")
-        set -e
+        _cap_stream "$tmp" "$mode" "$_STAGED" "$@"
         _take_staged "$_STAGED" "$in.raw"
-        set +e
     elif (( _O_SHOW )); then
         # --show: the output goes to the terminal as it comes, as well.
-        "$@" 2>&1 | tee "$in.full"
-        st=("${PIPESTATUS[@]}")
+        _cap_stream "$tmp" show "$in.full" "$@"
         head -c "$((PROVOST_MAX_INPUT + 1))" "$in.full" > "$in.raw"; rm -f "$in.full"
     else
-        "$@" 2>&1 | head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
-        st=("${PIPESTATUS[@]}")
+        _cap_stream "$tmp" head "$in.raw" "$@"
     fi
-    set -e
-    rc="${st[0]}"
+    rc="$_CAP_RC"
+    _cap_said_interrupted run
     size="$(wc -c < "$in.raw")"; size="${size//[!0-9]/}"
     if (( size > PROVOST_MAX_INPUT )); then
         die "command output too large (more than $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT) — nothing captured."
@@ -4000,16 +4429,21 @@ cmd_run () {
     local cmd; cmd="$(_shell_quote "$@")"
     # ...with its secrets scrubbed too (mysql --password=..., curl -H 'Authorization: ...').
     if [[ "$PROVOST_REDACT" == 1 ]]; then cmd="$(_scrub_text "$cmd" "$in.redacted")"; fi
-    [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
+    if [[ ! -s "$in" ]]; then
+        if [[ -n "$_CAP_SIG" ]]; then info "interrupted ($_CAP_SIG) before the command printed anything — nothing captured." || true; exit "$_CAP_SIGRC"; fi
+        info "command produced no output (rc=$rc) — nothing captured."; return "$rc"
+    fi
     local name="$_O_NAME"
     # the command's name, for detection (PV-037; _ingest_parse): what was run,
     # looked through sudo, env, nice ... as the dataset name is
     _RUN_CMD="$(_run_name "$@")"
     [[ -n "$name" ]] || name="$_RUN_CMD"
     _manifest_apply "$in" "$1" || exit 1
-    if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"
-    else _ingest "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"; fi
-    return "$rc"
+    if _want_async "$_O_ASYNC"; then _CAP_PHASE=filed; _ingest_async "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"
+    else _ingest_guarded "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"; fi
+    [[ -z "$_CAP_SIG" ]] || exit "$_CAP_SIGRC"
+    [[ -z "$_CAP_ABORT" ]] || exit "$_CAP_ABORTRC"
+    return "${rc:-0}"
 }
 
 # ---------------------------------------------------------------------------
@@ -4305,11 +4739,14 @@ cmd_log () {
         files+=("$capdir/$b/meta.tsv")
     done < <(printf '%s\n' "${keys[@]}" | sort -n -k1,1)
     printf '%-6s %-20s %-7s %-14s %-12s %s\n' "ID" "WHEN" "SOURCE" "STRATEGY" "DATASET" "COMMAND" >&2
-    # One awk over every meta.tsv (not six per capture).
+    # One awk over every meta.tsv (not six per capture). A capture cut short
+    # by a signal (PV-038) says so after its command.
     awk -F'\t' '
-        function emit() {
+        function emit(   c) {
             if (!have) return
-            printf "%-6s %-20s %-7s %-14s %-12s %s\n", v["id"], v["ts"], v["source"], v["strategy"], v["dataset"], v["command"]
+            c = v["command"]
+            if (v["interrupted"] != "") c = c (c != "" ? "  " : "") "[interrupted: " v["interrupted"] "]"
+            printf "%-6s %-20s %-7s %-14s %-12s %s\n", v["id"], v["ts"], v["source"], v["strategy"], v["dataset"], c
             split("", v); have = 0
         }
         FNR == 1 { emit() }
@@ -7157,6 +7594,7 @@ _store_check () {
             { K[$1] = substr($0, length($1) + 2) }
             $1 ~ /^(input|output|raw)_sha256$/ && (length($2) != 64 || $2 ~ /[^0-9a-f]/) { fail($1 " is not a sha256") }
             $1 ~ /^(input_bytes|raw_bytes|parsed_bytes)$/ && $2 !~ /^[0-9]+$/ { fail($1 " is not a byte count") }
+            $1 == "interrupted" && $2 !~ /^SIG(INT|TERM|HUP)$/ { fail("interrupted is \"" $2 "\", not SIGINT, SIGTERM or SIGHUP") }
             END {
                 n = split("id ts source dataset row_ids", Q, " ")
                 for (i = 1; i <= n; i++) if (!(Q[i] in K)) fail("it has no " Q[i])
@@ -7466,7 +7904,8 @@ COMMANDS
   Capture
     provost run [OPTIONS] [--] CMD [ARGS...]
         Run CMD and file its stdout+stderr as dataset CMD (sudo, env, timeout
-        and other wrappers are looked through). Exits with CMD's status.
+        and other wrappers are looked through). Exits with CMD's status;
+        interrupted, with the signal's (INTERRUPTED RUNS below).
     CMD | provost [OPTIONS]        provost [OPTIONS] FILE
         File piped input, or a file, as a dataset named after the parser that
         read it (csv, free, aligned-columns, ...).
@@ -7672,6 +8111,27 @@ FOREGROUND AND BACKGROUND
     --async / --sync (or PROVOST_ASYNC=1 / 0) force either. A failed
     background capture is logged in the store, and every later command warns
     until you look at it with 'provost log --failed' or 'provost doctor'.
+
+INTERRUPTED RUNS
+    Ctrl-C (SIGINT), or a SIGTERM or SIGHUP, while 'provost run' runs its
+    command, or while piped input is read, does not throw the output away.
+    The command (a Ctrl-C reaches it too, as it always did) has
+    PROVOST_INTERRUPT_GRACE seconds (default 2) to finish, time for ping to
+    print its summary; one still running then is sent SIGTERM. What it
+    printed is filed as any capture is, its meta.tsv says 'interrupted
+    SIGINT' (or SIGTERM, SIGHUP) beside the command's rc ('' when it had
+    not ended), 'provost log' shows [interrupted: SIGINT] after its command,
+    and provost exits 130 (143, 129), so a script still sees the
+    interruption. A batch scheduler's walltime is the same case: Slurm sends
+    SIGTERM, then SIGKILL KillWait seconds (30) later.
+    A second signal, or one while provost is filing a capture whose command
+    ran to its end, stops provost at once and files nothing: the store is
+    left as it was (no commit, no tag, no lock), and 'provost verify' passes.
+    Nothing printed before the signal: nothing is captured, and provost
+    exits with the signal's status. A capture filed in the background
+    (--async, the default at a terminal) is queued once the reading stops;
+    a signal after that does not reach it. 'provost rm --capture ID' removes
+    an interrupted capture you did not want.
 
 HOW A CAPTURE IS FILED
     1. A leading run of '#%' lines is set aside as context (METADATA PROLOGUE).
@@ -8252,6 +8712,9 @@ SETTINGS (environment)
     PROVOST_OBJECT_FORMAT     sha256 = make a new store in git's SHA-256
                               object format (default: sha1)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
+    PROVOST_INTERRUPT_GRACE   seconds an interrupted command has to finish
+                              before what it printed is filed (default: 2;
+                              0 = none). INTERRUPTED RUNS
     PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even
                               if its owner cannot be checked (default: 3600)
     TMPDIR                    temp and background spool directories (default:

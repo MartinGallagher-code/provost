@@ -142,6 +142,12 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
   per record; same-typed captures reconcile into one table.
 - **Git core** — the store is a git repo; every capture is a commit tagged
   `capture-<id>`. `provost log` lists them, `provost restore <id>` brings one back up.
+- **Interrupted runs are kept** — Ctrl-C on `provost run ping host` (or a
+  SIGTERM at a batch job's walltime, or a SIGHUP) files what the command had
+  printed, the summary `ping` prints on Ctrl-C included, marked `interrupted`
+  in `meta.tsv` and in `provost log`, and exits 130 (143, 129). Piped input
+  does the same. A second Ctrl-C stops at once and files nothing, leaving the
+  store as it was. See [Interrupted runs](docs/usage.md#interrupted-runs).
 - **Units as data** — a unit stays where the tool printed it (the column name,
   the cell, or a `NAME_unit` column); `--units base` adds a `NAME[UNIT]`
   column beside each one in base units (`B`, `B/s`, `bit`, `bit/s`, `s`),
@@ -328,6 +334,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_OVERSIZE` | `keep` | `refuse` = refuse an input over the cap, as before 2.15.0 (same as `--refuse-oversize`) |
 | `PROVOST_ARTIFACT_DIR` | `<store>.artifacts` | where inputs over the cap are kept (never inside the store) |
 | `PROVOST_LOCK_TIMEOUT` | `30` | seconds to wait for the store lock |
+| `PROVOST_INTERRUPT_GRACE` | `2` | seconds an interrupted command has to finish (`ping`'s summary) before what it printed is filed; `0` = none |
 | `PROVOST_LOCK_MAX_AGE` | `3600` | seconds after which a lock is presumed stale |
 | `PROVOST_RECONCILE_OVERLAP` | `60` | % column overlap to union vs split a variant |
 | `PROVOST_QUIET` | `0` | `1` suppresses progress/ok messages (same as `--silent`) |
