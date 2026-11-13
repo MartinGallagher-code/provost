@@ -878,7 +878,8 @@ if [[ -n "$column_types_file" ]]; then
     _rt_first=1
     while IFS=$'\t' read -r _rt_col _rt_type _rt_rest || [[ -n "$_rt_col" ]]; do
         if (( _rt_first )); then _rt_first=0; [[ "$_rt_col" == column ]] && continue; fi
-        [[ -n "$_rt_col" && -n "$_rt_type" ]] && REC_TYPE["$_rt_col"]="$_rt_type"
+        # (a column named * or @ cannot be an associative array's key)
+        [[ -n "$_rt_col" && -n "$_rt_type" && "$_rt_col" != [*@] ]] && REC_TYPE["$_rt_col"]="$_rt_type"
     done < "$column_types_file"
 fi
 
@@ -973,7 +974,7 @@ while IFS=$'\t' read -r total missing num text min max mean std skew kurt; do
         col_type="numeric"
     elif [[ -n "$force_categorical_cols" ]] && _name_in_csv_list_ci "$col_name" "$force_categorical_cols"; then
         col_type="categorical"
-    elif [[ -n "${REC_TYPE[$col_name]+x}" ]]; then
+    elif [[ "$col_name" != [*@] && -n "${REC_TYPE[$col_name]+x}" ]]; then
         rec="${REC_TYPE[$col_name]}"
         case "$rec" in
             integer|decimal) col_type="numeric" ;;

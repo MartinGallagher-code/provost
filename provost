@@ -5048,7 +5048,7 @@ cmd_search () {
     fi
     local -a spec=()
     if (( ${#names[@]} )); then for v in "${names[@]}"; do spec+=("datasets/$v.tsv"); done
-    else spec=(datasets ':(exclude)datasets/unsorted.tsv'); fi
+    else spec=(datasets ':(exclude)datasets/unsorted.tsv' ':(exclude)datasets/types'); fi
     _git grep -I -n "${gopt[@]}" -e "$pat" "$rev" -- "${spec[@]}" > "$hits" 2>/dev/null || true
     # REV:datasets/NAME.tsv:LINE:ROW — line 1 is the header, not a row.
     R="$rev:" awk -v OFS='\t' 'BEGIN { r = ENVIRON["R"] }

@@ -36,7 +36,8 @@ type). Now the type is decided once, where the data is filed.
   would fail it), and `NAME.types` is a valid dataset name.
 - **Shown.** `provost show NAME --types` (any `--format`, `--tsv` for the file
   as stored, `--at ID` as it stood after a capture); `provost ls -l` adds
-  COLUMNS, TYPED and MIXED. Bash completion offers both.
+  COLUMNS, TYPED and MIXED. Bash completion offers both. `provost search`
+  leaves the records out of what it greps.
 - **Used.** `provost stats` passes them to the analyze engine's new
   `--column-types FILE`: integer and decimal columns are numeric, every other
   type categorical, `mixed` still guessed; `--numeric-columns` and

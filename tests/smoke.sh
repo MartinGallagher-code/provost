@@ -2530,6 +2530,9 @@ check "a held capture records no types for 'unsorted'" "none" "$(ls "$TWS/datase
 check "...and show --types says why" "'unsorted' holds inputs whole" "$(tp show unsorted --types)"
 PROVOST_WORKSPACE="$TWS" "$PROVOST" batch -q --name bat "$TD/c1.tsv" "$TD/c2.tsv" >/dev/null 2>&1 || true
 check "batch records them, capture by capture" "decimal 100 3 integer=2,decimal=1 c00" "$(tline bat used)"
+check "search does not take a types record for a dataset" "<>" "<$(tpo search quantity)>"
+check "...and finds the rows as before" "hosts" "$(tpo search web01)"
+check_not "...never a types/ name" "types/" "$(tpo search web01)"
 check "store check passes a store with types, and counts them" "with column types" "$(tp store check)"
 check "...a valid store" "a valid format-4 store" "$(tp store check)"
 check "verify is clean" "0" "$(PROVOST_WORKSPACE="$TWS" rc_of "$PROVOST" verify)"
