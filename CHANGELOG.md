@@ -1315,7 +1315,7 @@ benchmark analysis script, no behaviour changed.
 - `mkdocs.yml` lists the note under Design. HANDOFF "Next steps" 1 points to
   it.
 
-## 2.5.0 — 2026-11-10 — the HPC benchmark outputs the proposal names (PV-030)
+## 2.5.0 — 2026-11-10 — the HPC benchmark outputs (PV-030)
 
 `VERSION` 2.4.0 → 2.5.0, and the `man/provost.1` header. Minor: new
 parsing a user can use (six strategies, three generic parser abilities).
