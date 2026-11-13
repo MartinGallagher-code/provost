@@ -3284,27 +3284,31 @@ _cap_read () {
 # stops provost at once, with nothing filed.
 _cap_stream () {
     local tmp="$1" mode="$2" out="$3"; shift 3
-    local bg fd cpid="" rpid="" n
+    local bg fd="" cpid="" rpid="" n
     rm -f -- "${tmp:?}/cap.cpid" "${tmp:?}/cap.rpid" "${tmp:?}/cap.rc"
     _CAP_RC=""; _CAP_LATE=0; _CAP_PHASE=capture; _cap_traps
-    exec {fd}<&0
+    # this provost's stdin, for the reading in the background (which would
+    # otherwise get /dev/null); a closed one stays closed
+    if ! { exec {fd}<&0; } 2>/dev/null; then fd=""; fi
     if (( $# > 0 )); then
         {
             trap '' INT TERM HUP; set +e
-            ( trap - INT QUIT TERM HUP; printf '%s\n' "$BASHPID" > "$tmp/cap.cpid"; exec "$@" ) <&"$fd" {fd}<&- 2>&1 \
-                | { exec {fd}<&-; printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"; _cap_read "$mode" "$out"; }
+            ( trap - INT QUIT TERM HUP; printf '%s\n' "$BASHPID" > "$tmp/cap.cpid"
+              if [[ -n "$fd" ]]; then exec <&"$fd" {fd}<&-; else exec <&-; fi
+              exec "$@" ) 2>&1 \
+                | { [[ -z "$fd" ]] || exec {fd}<&-; printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"; _cap_read "$mode" "$out"; }
             printf '%s\n' "${PIPESTATUS[0]}" > "$tmp/cap.rc" 2>/dev/null
         } &
     else
         {
             trap '' INT TERM HUP
-            exec <&"$fd" {fd}<&-
+            if [[ -n "$fd" ]]; then exec <&"$fd" {fd}<&-; else exec <&-; fi
             printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"
             _cap_read "$mode" "$out"
         } &
     fi
     bg=$!
-    exec {fd}<&-
+    [[ -z "$fd" ]] || exec {fd}<&-
     # until the reading is done, or a signal comes
     while [[ -z "$_CAP_SIG" ]] && kill -0 "$bg" 2>/dev/null; do
         wait "$bg" 2>/dev/null || true
@@ -3430,7 +3434,10 @@ _cap_gitlocks () {
     for f in index.lock HEAD.lock packed-refs.lock "$2.lock" provost-files.index provost-files.pathspec; do
         [[ ! -e "$gd/$f" ]] || printf '%s\n' "$f"
     done
-    if [[ -d "$gd/refs/tags" ]]; then (cd "$gd" && find refs/tags -name '*.lock' 2>/dev/null) || true; fi
+    # (provost's tags are flat: refs/tags/capture-cNNNN, files-cNNNN)
+    for f in "$gd"/refs/tags/*.lock; do
+        [[ ! -e "$f" ]] || printf 'refs/tags/%s\n' "${f##*/}"
+    done
     return 0
 }
 
@@ -3441,10 +3448,17 @@ _cap_gitlocks () {
 # what was already changed and not committed stays changed) in DIR/rec; a
 # copy of the index; the capture and files tags; git's lock files present.
 _cap_snapshot () {
-    local g="$1" gd head0 ref t0
-    gd="$(_git rev-parse --absolute-git-dir 2>/dev/null)" || return 1
-    head0="$(_git rev-parse -q --verify HEAD 2>/dev/null)" || head0=""
-    ref="$(_git symbolic-ref -q HEAD 2>/dev/null)" || return 1
+    local g="$1" gd="" head0="" ref="" t0
+    # one git for all three (on a branch, as _require_on_branch made sure)
+    { IFS= read -r gd; IFS= read -r head0; IFS= read -r ref; } \
+        < <(_git rev-parse --absolute-git-dir HEAD --symbolic-full-name HEAD 2>/dev/null) || true
+    if [[ "$ref" != refs/heads/* ]]; then
+        # a branch with no commit yet
+        gd="$(_git rev-parse --absolute-git-dir 2>/dev/null)" || return 1
+        head0=""
+        ref="$(_git symbolic-ref -q HEAD 2>/dev/null)" || return 1
+    fi
+    [[ -n "$gd" && "$ref" == refs/heads/* ]] || return 1
     rm -f -- "${g:?}/index.0" "${g:?}/index.t0"
     if [[ -f "$gd/index" ]]; then
         cp -p -- "$gd/index" "$g/index.0" && cp -p -- "$gd/index" "$g/index.t0" || return 1
