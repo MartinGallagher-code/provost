@@ -2491,7 +2491,7 @@ check "a date is a datetime" "datetime 100 2 datetime=2 c0001" "$(tline hosts wh
 check "a version is a version" "version 100 2 version=2 c0001" "$(tline hosts ver)"
 check "words are text" "text 100 2 text=2 c0001" "$(tline hosts host)"
 check "provost's own # and capture columns are not listed" "n host size used when ver" "$(tail -n +2 "$TWS/datasets/types/hosts.tsv" | cut -f1 | tr '\n' ' ')"
-check "show --types prints them" "size	quantity	100	2	quantity=2	c0001" "$(tpo show hosts --types)"
+check "show --types prints them" "size quantity 100 2 quantity=2 c0001" "$(tpo show hosts --types | sq)"
 check "show --types --tsv is the file as stored" "$(cat "$TWS/datasets/types/hosts.tsv")" "$(tpo show hosts --types --tsv)"
 check "show --types --format json" '"type": "quantity"' "$(tpo show hosts --types --format json)"
 check "show --types --capture is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$TWS" rc_of "$PROVOST" show hosts --types --capture 1)"
@@ -2508,7 +2508,7 @@ printf 'host\tsize\tused\twhen\tver\nweb04\t1G\tlots\t2026-11-04\t1.2.6\nweb05\t
 tp --name hosts "$TD/c3.tsv" >/dev/null
 check "a column whose cells change kind becomes mixed, never retyped" "mixed  7 integer=2,decimal=1,text=4 c0003" "$(tline hosts used)"
 check "ls -l counts it" "hosts 7 6 6 1" "$(tpo ls -l | sq)"
-check "show --types --at shows them as they stood after a capture" "used	decimal" "$(tpo show hosts --types --at c0002)"
+check "show --types --at shows them as they stood after a capture" "used decimal" "$(tpo show hosts --types --at c0002 | sq)"
 tp --name hosts "$TD/c1.tsv" >/dev/null
 check "...and mixed stays mixed under later numbers" "mixed  9 integer=4,decimal=1,text=4 c0003" "$(tline hosts used)"
 check "stats uses them: a recorded integer column is numeric" "n: numeric (recorded at capture: integer)" "$(tpo stats hosts)"
