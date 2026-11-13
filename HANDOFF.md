@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.22.0 is everything through 2026-11-13** (`VERSION`, man header,
-the `## 2.21.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.22.1 is everything through 2026-11-13** (`VERSION`, man header,
+the `## 2.22.1` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -31,14 +31,16 @@ hand-written, tested with `provost template test`, time-limited, and TextFSM
 (PV-036, Next steps 1o; 2.20.1, docs only); the command's name used in
 detection, `pkg-config` narrowed and full mode checked in CI (PV-037, Next
 steps 1p; 2.21.0); `show --format`, `latest` as a capture id and a "Getting
-data out" section (PV-041, Next steps 1q; 2.22.0). 2.4.0 added `provost
+data out" section (PV-041, Next steps 1q; 2.22.0); the benchmark's LLM run
+records and two prescreen sheets moved out of the tree, kept at `d9c32f04`
+(PV-042, Next steps 1r; 2.22.1, tests and docs only). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.22.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.22.0`, not both). Either way the release workflow
+2.22.1 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.22.1`, not both). Either way the release workflow
 now also attaches the offline bundle to the GitHub release `v2.21.0`, creating
 that release on a dispatched run.
 
@@ -357,6 +359,32 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1r. **2026-11-13: the benchmark's LLM run records out of the tree** (PV-042,
+    2.22.1, tests and docs only). The owner asked how to make provost smaller
+    without changing what it does; the survey found the code carries almost
+    no dead weight, and the bulk of the tree is records. The 456 templates
+    Claude wrote for rounds 4 and 5, round 4's 107 `.note`s, the 7 API logs
+    and `docs/archive`'s two August prescreen sheets (572 files, 2.63 MB)
+    left the tree. They are at `d9c32f04`, the last commit that holds them;
+    every doc link points there, and `tests/benchmark/README.md` ("LLM run
+    records") and `docs/archive/README.md` restore them in one command.
+    Rating, summary and judge sheets and the frozen inputs stay. Two round-4
+    templates are smoke fixtures now (`tests/fixtures/llm-templates/`).
+    `llm_round.sh` and `judge_round.sh` stop (exit 2), with the restore
+    command, when a template directory is missing or empty
+    (`tests/benchmark/llm_archive.sh`). Tracked tree 16.47 MB / 10,396 files
+    → 13.85 MB / 9,829; the handover with shared_tools' recipe 58 packets
+    → 49. **Open, for the owner:** (a) trimming `CHANGELOG.md`
+    (688 KB, 595 KB of it 2.4.0 and older) behind a pointer, as this file did:
+    the next largest cut, but `CLAUDE.md` says to leave the old entries;
+    (b) shared_tools' provost bundling notes still say 31 packets and three
+    held-out files (an ST ticket); (c) the wheel does not ship
+    `extract/model/arbiter-lm.json` (not in `pyproject.toml`'s force-include
+    list; a 2.22.0 wheel built here has `arbiter.json` only), so a pip
+    install has no LM arbiter (PV-012) where a checkout does; (d)
+    `tests/smoke.sh` (288,775 bytes) is about to cross the 290,000-byte
+    hold-out.
 
 1q. **2026-11-13: getting data out** (PV-041, 2.22.0). `provost show NAME
     --format table|tsv|csv|json|ndjson|md` (`_show_as`), the names and shapes
