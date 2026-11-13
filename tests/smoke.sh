@@ -131,9 +131,17 @@ if [[ -z "${PROVOST_SMOKE_PART:-}" && $JOBS -gt 1 ]]; then
     trap 'rm -rf "$PW"' EXIT
     _has_wait_n=0
     (( BASH_VERSINFO[0] > 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] >= 3) )) && _has_wait_n=1
+    # A part that hangs fails by name, with what it printed, instead of
+    # holding the whole run until CI cancels it with nothing to show (PV-038).
+    # PROVOST_SMOKE_PART_TIMEOUT seconds a part (default 600; 0 = none);
+    # where there is no timeout(1), parts run unbounded as they always did.
+    PT="${PROVOST_SMOKE_PART_TIMEOUT:-600}"
+    [[ "$PT" =~ ^[0-9]+$ ]] || { echo "PROVOST_SMOKE_PART_TIMEOUT must be a whole number of seconds (got '$PT')" >&2; exit 2; }
+    PTO=()
+    if (( PT > 0 )) && command -v timeout >/dev/null 2>&1; then PTO=(timeout -k 10 "$PT"); fi
     for i in "${!PARTS[@]}"; do
         _pv=""; [[ "${PARTS[$i]}" == *@* ]] && _pv="${PARTS[$i]#*@}"
-        ( rc=0; t0=$SECONDS; PROVOST_SMOKE_PART="${PARTS[$i]%@*}" PROVOST_SMOKE_VARIANT="$_pv" bash "${BASH_SOURCE[0]}" > "$PW/$i.log" 2>&1 || rc=$?
+        ( rc=0; t0=$SECONDS; PROVOST_SMOKE_PART="${PARTS[$i]%@*}" PROVOST_SMOKE_VARIANT="$_pv" ${PTO[@]+"${PTO[@]}"} bash "${BASH_SOURCE[0]}" > "$PW/$i.log" 2>&1 || rc=$?
           echo "$((SECONDS - t0))" > "$PW/$i.t"
           echo "$rc" > "$PW/$i.rc.tmp" && mv "$PW/$i.rc.tmp" "$PW/$i.rc" ) &
         while [[ "$(jobs -rp | wc -l)" -ge "$JOBS" ]]; do
@@ -149,7 +157,11 @@ if [[ -z "${PROVOST_SMOKE_PART:-}" && $JOBS -gt 1 ]]; then
         if [[ -z "$line" ]]; then
             # The part stopped before its summary (set -e, a crash): what it
             # did not run cannot be counted, so the run fails.
-            echo "  FAIL part '${PARTS[$i]}' stopped early (exit $(cat "$PW/$i.rc"))"
+            if (( ${#PTO[@]} > 0 )) && [[ "$(cat "$PW/$i.rc")" =~ ^(124|137)$ ]]; then
+                echo "  FAIL part '${PARTS[$i]}' did not finish in ${PT}s (PROVOST_SMOKE_PART_TIMEOUT): it hung after the last check above"
+            else
+                echo "  FAIL part '${PARTS[$i]}' stopped early (exit $(cat "$PW/$i.rc"))"
+            fi
             fail=$((fail+1)); continue
         fi
         read -r _ p _ f _ <<< "$line"
