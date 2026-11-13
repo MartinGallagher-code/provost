@@ -1,6 +1,0 @@
-{
- "format": 2,
- "tool": "klog-kubelet",
- "detect": "^[IWEF]\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+ \\S+\\.go:\\d+\\] .*[Kk]ubelet",
- "parser": "import re\nLINE = re.compile(r\"^(?P<level>[IWEF])(?P<timestamp>\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d+)\\s+(?P<pid>\\d+) \"\n                  r\"(?P<source>\\S+\\.go:\\d+)\\] (?P<message>\\S.*?)\\s*$\")\nCLOSE = re.compile(r\"^\\s*>\\s*$\")\n\ndef parse(lines):\n    recs, used = [], []\n    cur = None\n    for j, ln in enumerate(lines):\n        if not ln.strip():\n            continue\n        m = LINE.match(ln)\n        if m:\n            cur = m.groupdict()\n            recs.append(cur)\n            used.append(j)\n            continue\n        if cur is None:\n            continue\n        # a continuation of the record above: the body of a multi-line\n        # value (key=< ... >) or any other wrapped text\n        if CLOSE.match(ln):\n            cur[\"message\"] = cur[\"message\"].rstrip() + \">\"\n        else:\n            sep = \"\" if cur[\"message\"].endswith(\"=<\") else \" \"\n            cur[\"message\"] = cur[\"message\"] + sep + ln.strip()\n        used.append(j)\n    return {\"blocks\": [{\"name\": \"log lines\", \"kind\": \"table\", \"lines\": used, \"records\": recs}],\n            \"skip\": []}\n"
-}

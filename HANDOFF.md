@@ -562,7 +562,7 @@ Suites (all CI-enforced):
     structural fixes, fed back to the writer once, kept only if the
     revision reads as well, still reads the earlier captures and passes
     the gate. On by default (`PROVOST_LLM_JUDGE=0` turns it off).
-    - **Measured on round 5's stored templates** (`round5/llm-judge/`,
+    - **Measured on round 5's stored templates** ([`round5/llm-judge/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-judge) at d9c32f04,
       `judge_round.sh`): 74 PASS, 26 revised; the 26 rated blind before and
       after, 17 / 9 / 0 → 25 / 1 / 0 (9 better, 1 worse: `postfix-qshape`'s
       TOTAL row lost its label). $3.70 for 126 calls. Round 5 was seen, so
@@ -982,8 +982,9 @@ Suites (all CI-enforced):
       held capture; before a generic parse the gate passed is trusted);
       `extract/llm/sandbox.py` runs a format-2 parser in a box;
       `PROVOST_LLM_TEMPLATE_DIRS`; `tests/benchmark/llm_round.sh`;
-      `tests/benchmark/round4/llm-templates/` (107 format-1 templates by
-      Claude helpers, with `.note`s on what format 1 could not express).
+      [`tests/benchmark/round4/llm-templates/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates)
+      (107 format-1 templates by Claude helpers, with `.note`s on what
+      format 1 could not express; at d9c32f04 since PV-042).
     - **Round 4 with templates** (`docs/benchmark-2026-10-27-llm-templates-round4.md`):
       format 1 alone **35 / 66 / 6**; with format-2 parsers for the 65
       inputs format 1 could not express, **86 / 18 / 3 (80% PASS, 97%

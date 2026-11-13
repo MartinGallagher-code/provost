@@ -1,1 +1,0 @@
-ok (the 'global' pseudo-host row with '-' cells is kept as a data row, as qhost prints it).

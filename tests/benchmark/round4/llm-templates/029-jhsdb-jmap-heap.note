@@ -1,1 +1,0 @@
-The Heap Usage section titles (G1 Heap, Eden Space, Survivor Space, G1 Old Generation) should become a column of the usage rows and the "% used" line a column of the same record; format 1 cannot, so titles are skipped, the usage rows are concatenated in order and the percentages are a separate one-column table.

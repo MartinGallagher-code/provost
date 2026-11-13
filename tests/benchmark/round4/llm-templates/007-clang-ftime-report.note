@@ -1,1 +1,0 @@
-Section titles (Pass execution timing report, DWARF Emission, ...) should become a column of the timer rows under them; captured titles and per-section totals as their own tables in section order instead. Timer tables have 3 or 4 time columns depending on the section: two table blocks (with/without System Time). Total rows are skipped.

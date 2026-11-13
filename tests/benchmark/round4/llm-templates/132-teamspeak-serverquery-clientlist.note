@@ -1,1 +1,0 @@
-all client records sit on ONE line separated by '|' (ServerQuery wire format); format 1 maps one line to one row and cannot split a line into records, so the first client gets its columns and the remaining records land in 'more_clients'. The 'error id=0 msg=ok' line is a one-row 'result' table.

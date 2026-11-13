@@ -1,6 +1,0 @@
-{
- "format": 2,
- "tool": "python-pyclbr",
- "detect": "^\\s*(class|def) \\S+ (\\[.*\\] )?\\d+$",
- "parser": "import re\nLINE = re.compile(r'^(?P<ind>\\s*)(?P<kind>class|def) (?P<name>\\S+)(?: \\[(?P<bases>.*)\\])? (?P<lineno>\\d+)\\s*$')\n\ndef parse(lines):\n    recs, used, stack = [], [], []\n    for i, ln in enumerate(lines):\n        m = LINE.match(ln)\n        if not m:\n            continue\n        ind = len(m.group('ind'))\n        while stack and stack[-1][0] >= ind:\n            stack.pop()\n        recs.append({'kind': m.group('kind'), 'name': m.group('name'),\n                     'parent': stack[-1][1] if stack else '', 'depth': len(stack),\n                     'bases': m.group('bases') or '', 'lineno': m.group('lineno')})\n        stack.append((ind, m.group('name')))\n        used.append(i)\n    return [{'name': 'definitions', 'kind': 'table', 'lines': used, 'records': recs}]"
-}

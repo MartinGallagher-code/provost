@@ -1,1 +1,0 @@
-ok. The op indentation encodes tree depth (parent/child), which a flat table cannot express; the columns are seq, class, op, flags, next.

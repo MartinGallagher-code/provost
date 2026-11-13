@@ -1,2 +1,0 @@
-records span several lines: a class line plus indented def lines that belong to it; format 1 cannot attach methods to their class.
-Did one table in document order with a kind column (class/def) so the grouping can be read back from row order.

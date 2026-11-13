@@ -1,1 +1,0 @@
-Interactive session: (lldb) command prompts are skipped, so each output block cannot name the command that produced it; struct members from several `p` commands land in one struct_fields table (the "(type) {" opener is skipped); source listing rows keep the -> marker as a column.

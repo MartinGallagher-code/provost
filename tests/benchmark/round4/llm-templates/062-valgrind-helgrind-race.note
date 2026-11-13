@@ -1,1 +1,0 @@
-records span several lines: each race report is a header line, a 'Locks held' line and an indented stack; format 1 cannot link frames or locks to their race or thread, so each line type is its own table (races, conflicts, threads, locks, frames, symbols) plus the ERROR SUMMARY kv; program stdout (lines without the ==pid== prefix) is skipped.

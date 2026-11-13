@@ -1,1 +1,0 @@
-Nested structure (class > sections > methods > parameters/return) cannot be expressed: each level is its own flat table, so parameters and returns are not tied to their method; "- Parameters [N] {" openers and closing braces are skipped.

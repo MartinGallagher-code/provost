@@ -1,1 +1,0 @@
-Records span two lines (a "* aliases:" line plus an indented description line); format 1 cannot join them, so aliases and descriptions are two parallel tables in the same row order.

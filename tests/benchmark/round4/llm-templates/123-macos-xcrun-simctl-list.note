@@ -1,1 +1,0 @@
-section titles should become a column: the "-- iOS 17.5 --" runtime group above each device and the pair UDID above its Watch/Phone members cannot be attached to the rows, so they are skipped / kept as separate "device pairs" and "device pair members" blocks.

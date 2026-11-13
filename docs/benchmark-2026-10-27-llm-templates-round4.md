@@ -6,6 +6,14 @@ whole-capture measurement of `--llm` on a benchmark round. Round 4
 parsed) was built and frozen on 2026-10-20; `--llm` was written on
 2026-10-26 against one tool (mcstatus) and had never seen it.
 
+> **Records moved (PV-042, 2.22.1).** The templates, notes and API logs this
+> report names are no longer in the tree. Its links point at commit
+> [`d9c32f04`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark), the last that holds them, and
+> `tests/benchmark/README.md` ("LLM run records") restores them in one
+> command. The commands below are as they were run, so restore a directory
+> before running one that names it. The rating and summary sheets are still
+> in the tree.
+
 ## Method
 
 - **Templates.** Eleven Claude helpers each wrote format-1 templates for ten
@@ -13,7 +21,7 @@ parsed) was built and frozen on 2026-10-20; `--llm` was written on
   strategies, no corpus, no ratings), checking each with
   `extract/llm/template.py apply` until it covered ≥80% of the lines and
   the records read right. Every template is in
-  `tests/benchmark/round4/llm-templates/<stem>.json`, with a `<stem>.note`
+  [`tests/benchmark/round4/llm-templates/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates) as `<stem>.json`, with a `<stem>.note`
   saying `ok` or what format 1 could not express. All 107 compile; 104
   cover 100%, the rest 84–97%. This stands in for `template.py learn`
   (the API path, the same guide, two attempts) because the session has no
@@ -117,7 +125,7 @@ the same day) is for, and the 65 notes are its work list.
 ## Part 2, the same day: format 2 on the 65 limited inputs
 
 Step 2 of the plan. Ten helpers rewrote the 65 templates whose note named a
-cross-line limit as **format-2 parsers** (`round4/llm-templates-f2/`), from
+cross-line limit as **format-2 parsers** ([`round4/llm-templates-f2/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-f2)), from
 the guide, the input, and the format-1 template with its note (not the
 ratings). All 65 compile and apply in the sandbox at 100% coverage. The
 round was run again with the format-2 set over the format-1 set
@@ -316,7 +324,7 @@ capture, claude-opus-5-5 at effort medium, at most two attempts) wrote each
 one and provost's own rules decided whether to file it.
 
 - **Cost:** 108 API calls, **$5.20**, 4.5 minutes at 8 in parallel
-  (`round4/llm-templates-learn/llm-log.jsonl`). 104 templates fit their
+  ([`round4/llm-templates-learn/llm-log.jsonl`](https://github.com/MartinGallagher-code/provost/blob/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn/llm-log.jsonl)). 104 templates fit their
   capture first time, 2 on the second attempt; one reply came from the
   refusal fallback model (`windows-whoami-priv`). None was over the
   400-line / 64 KB limit.
@@ -435,7 +443,10 @@ What a user with a key sees: the templates `learn` wrote on first contact
 (part 4, each holding its first capture), meeting the second capture of
 their tool, with repair on, and `learn` for the tools first contact kept
 no template for (`llm_round.sh --round4 --inputs round4/variants
---templates round4/llm-templates-learn --learn`). All 107 rated blind
+--templates round4/llm-templates-learn --learn`; the templates are
+[at d9c32f04](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn), and part 6's
+repairs [beside them](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn-repaired)).
+All 107 rated blind
 (`round4/ratings-variants-learn.tsv`).
 
 - **Cost:** 34 calls (26 repairs, 8 `learn`), **$1.87**, about five cents
@@ -504,7 +515,7 @@ rated again, the rest keep their rating):
 
 - **First contact** (`round4/ratings-learn-cleanup.tsv`): the same 98
   templates `learn` wrote, offline, plus a new first contact for the 7 the
-  old guard declined (`round4/llm-templates-learn-cleanup/`; 8 calls,
+  old guard declined ([`round4/llm-templates-learn-cleanup/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn-cleanup); 8 calls,
   $0.34). 66 outputs changed (55 gained only a notes dataset), all rated
   again.
 - **The whole pipeline, second capture**

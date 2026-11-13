@@ -1,1 +1,0 @@
-Records span several lines: each "func ..."/"type ..." signature is followed by its indented doc paragraph, and struct field lines belong to the "type X struct {" above them; format 1 cannot attach them, so doc prose, section titles (TYPES), closing braces and the package summary are skipped, and signatures, types and struct fields are flat tables.

@@ -1,1 +1,0 @@
-ok (option/value table rather than one 56-key kv record: indexed options like update-environment[N] are a list; quotes are kept as tmux prints them)

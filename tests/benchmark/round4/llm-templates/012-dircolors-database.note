@@ -1,1 +1,0 @@
-ok (comment lines, including the one indented continuation of an entry's trailing comment, are skipped; TERM/COLORTERM glob entries are their own table, and the colour entries keep a trailing "# comment" as a column)

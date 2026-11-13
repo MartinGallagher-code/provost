@@ -1,1 +1,0 @@
-Resource-pressure tables have one column per resource unit ([0]..[N], count varies by CPU), which named groups cannot express: each pressure row is kept as one "pressures" value plus the instruction. Instruction Info uses fixed-width 7-char cells (MayLoad/MayStore/HasSideEffects are blank or *), matched by width.
