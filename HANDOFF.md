@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.23.0 is everything through 2026-11-13** (`VERSION`, man header,
-the `## 2.23.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.24.0 is everything through 2026-11-13** (`VERSION`, man header,
+the `## 2.24.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -35,14 +35,15 @@ data out" section (PV-041, Next steps 1q; 2.22.0); the benchmark's LLM run
 records and two prescreen sheets moved out of the tree, kept at `d9c32f04`
 (PV-042, Next steps 1r; 2.22.1, tests and docs only); an interrupted run keeps
 what it had printed, marked, and a second signal files nothing (PV-038, Next
-steps 1s; 2.23.0). 2.4.0 added `provost
+steps 1s; 2.23.0); each dataset column's type recorded at capture, stored,
+shown and used (PV-040, Next steps 1t; 2.24.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.23.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.23.0`, not both). Either way the release workflow
+2.24.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.24.0`, not both). Either way the release workflow
 now also attaches the offline bundle to the GitHub release `v2.21.0`, creating
 that release on a dispatched run.
 
@@ -361,6 +362,28 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1t. **2026-11-13: column types** (PV-040, 2.24.0). Every capture records each
+    column's type in `datasets/types/NAME.tsv` (the spec's "Column types"),
+    from the engine's own cell classes, now in `extract/lib/_ctype.awk` and
+    read by both the engine and `transform/types.sh`. A column is never
+    silently retyped: counts add up across captures and the type is joined
+    with the one recorded, so a column whose cells change kind becomes
+    `mixed`. `show NAME --types`, `ls -l`, `stats` (the analyze engine's new
+    `--column-types`), `provost_data.load_df` and `store check` use it;
+    `rm --capture` and `prune` judge the rows that stay again. Took the
+    ticket's suggested answers: a sidecar (in `datasets/types/`, not
+    `datasets/NAME.types.tsv`, which an older `ls` and `store check` would
+    read as a dataset) and recorded, never enforced. **Follow-ups, not done
+    here:** (a) quarterdeck (QD-031) and Meridian Commander's plug-in can
+    read the file now; (b) `show --format json` still gives every value as
+    a string, as qd does: numbers could be numbers for integer and decimal
+    columns, a change to the shape qd shares, so the owner's call; (c) `stats`
+    cannot take a `quantity` or `percent` column as numeric (the analyze
+    engine reads bare numbers only): `--units base` columns are the way to
+    numbers today; (d) the cost is about 3 µs a cell under mawk (2.5 s for an
+    800,000-cell capture), paid once per capture, and once per dataset filed
+    before 2.24.0 at its next capture.
 
 1s. **2026-11-13: an interrupted run keeps what it had printed** (PV-038,
     2.23.0). The first SIGINT, SIGTERM or SIGHUP while `run` runs its command

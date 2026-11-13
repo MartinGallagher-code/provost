@@ -22,18 +22,19 @@ that is not.
 3. [Layout](#layout)
 4. [Files at the top of the store](#files-at-the-top-of-the-store)
 5. [Datasets](#datasets)
-6. [provenance.tsv](#provenancetsv)
-7. [Captures](#captures)
-8. [meta.tsv](#metatsv)
-9. [Git: the branch, the commits and the tags](#git-the-branch-the-commits-and-the-tags)
-10. [Inputs kept beside the store](#inputs-kept-beside-the-store)
-11. [The disposal log](#the-disposal-log)
-12. [Other files](#other-files)
-13. [Runtime files](#runtime-files)
-14. [Format history](#format-history)
-15. [Reading a store from another program](#reading-a-store-from-another-program)
-16. [Changing the format](#changing-the-format)
-17. [Archives](#archives)
+6. [Column types](#column-types)
+7. [provenance.tsv](#provenancetsv)
+8. [Captures](#captures)
+9. [meta.tsv](#metatsv)
+10. [Git: the branch, the commits and the tags](#git-the-branch-the-commits-and-the-tags)
+11. [Inputs kept beside the store](#inputs-kept-beside-the-store)
+12. [The disposal log](#the-disposal-log)
+13. [Other files](#other-files)
+14. [Runtime files](#runtime-files)
+15. [Format history](#format-history)
+16. [Reading a store from another program](#reading-a-store-from-another-program)
+17. [Changing the format](#changing-the-format)
+18. [Archives](#archives)
 
 ## The compatibility promise
 
@@ -121,7 +122,9 @@ STORE/
 ├── datasets/
 │   ├── NAME.tsv                one dataset
 │   ├── NAME.v2.tsv ...         another shape filed under the same name
-│   └── unsorted.tsv            inputs held back, whole
+│   ├── unsorted.tsv            inputs held back, whole
+│   └── types/
+│       └── NAME.tsv            each column's type, recorded at capture (2.24.0 on)
 ├── captures/
 │   └── c0007/
 │       ├── output.txt          the input as stored
@@ -206,6 +209,85 @@ Rules that hold for every dataset:
 confident enough, or the quality gate stopped it): one row per held capture,
 columns `#`, `capture` (format 3 on), `raw`, where `raw` is the whole stored
 input (`output.txt`) base64-encoded on one line.
+
+## Column types
+
+From provost 2.24.0 (PV-040), within format 4. `datasets/types/NAME.tsv`
+records the type of each column of `datasets/NAME.tsv`, decided at capture
+from the cells every capture filed into it. It is in a directory of its own
+so that nothing reading `datasets/*.tsv` takes it for a dataset. A dataset
+filed before 2.24.0 has none until its next capture, which judges every row
+the dataset then holds, capture by capture in the order they were filed.
+`unsorted` never has one. An older provost ignores the directory.
+
+Header and columns, one line per column of the dataset, in the dataset's
+order, provost's own `#` and capture column (column 2) left out:
+
+| Column | Holds |
+|---|---|
+| `column` | The column's name, as in the dataset's header. Each name once. |
+| `type` | One of the types below, `mixed`, or `empty` (no cell judged yet). |
+| `share` | Per cent, an integer rounded down, of the judged cells the type holds. Blank for `mixed` and `empty`. |
+| `cells` | How many cells were judged. A blank cell, and a placeholder (`-`, `n/a`, `none`, `null`, `nil`, `?`, `unknown`, ...), is not. |
+| `counts` | `KIND=N,...`: how many of those cells were of each kind, kinds in the order below, those with none left out. They add up to `cells`. Blank when `cells` is 0. |
+| `set_by` | The capture whose filing set the type as it now is: the first to fill the column, or the one that widened it or made it `mixed`. Blank for `empty`. |
+
+```
+column	type	share	cells	counts	set_by
+n	integer	100	3	integer=3	c0001
+Size	quantity	100	3	integer=1,quantity=2	c0001
+Use%	percent	100	3	percent=3	c0001
+Mounted_on	path	100	3	path=3	c0001
+```
+
+**Kinds.** Each cell is judged by the extract engine's cell classifier
+(`extract/lib/_ctype.awk`, the one its consistency measure uses) and given one
+kind; the type of a column is one of the same words:
+
+| Kind | Cells |
+|---|---|
+| `integer` | `42`, `-7`, `1,234` |
+| `decimal` | `3.14`, `.5`, `2.5e3`, `1,234.5` |
+| `percent` | `37%`, `12.5 %` |
+| `time` | A clock reading with no date: `10:23`, `00:05:01`, `10:23 PM` (a time of day or an elapsed time; provost cannot tell which) |
+| `duration` | `30ms`, `5m` (a bare `m` is minutes), `1h30m`, `5 days`, `2-03:04:05`, a clock reading of 24 hours or more |
+| `quantity` | Any other number with a unit: `20G` (`M` is mega), `1.5 KiB`, `100MB/s`, `$5` |
+| `datetime` | `2026-11-13`, `Nov 13 10:00`, `2026-11-13T10:00Z`, `Mon`, `5 days ago`, a dotted date (`13.11.2026`) |
+| `address` | An IPv4 or IPv6 address or network, `host:port`, a MAC; a dotted quad whose parts are all at most 255 |
+| `version` | `2.4.1`, `v1.0`, `1.2.3-rc1`, a dotted calendar version that is no date (`2024.1.0`) |
+| `hex` | `0x1f`, a hash, a uuid |
+| `path` | `/usr/bin`, `~/x`, `./a`, a URL |
+| `boolean` | `yes`, `no`, `true`, `false`, `on`, `off`, `enabled`, `disabled`, `y`, `n`, `ok`, `+` |
+| `text` | Anything else: a word, several words, punctuation |
+
+**A column's type.** A wider type holds every value a narrower one does:
+
+- `integer` < `decimal` < `percent` < `quantity`; `decimal` < `duration` < `quantity`;
+- `time` < `duration`; `time` < `datetime`;
+- `address`, `version`, `hex`, `path`, `boolean` < `text`;
+- `quantity`, `datetime` and `text` < `mixed`.
+
+From the counts of all the cells every capture filed into the column, its
+type is the narrowest that holds at least 90 per cent of them; else `text`,
+when more than half of them are of `text` or a kind `text` holds; else
+`mixed`. Each capture adds its counts, the type is decided again on the sums,
+and the result is **joined** with the type recorded before it: the narrowest
+type that holds both. So a capture can widen a column (`integer` to
+`decimal`, `path` to `text`) but never narrows one, and a column whose cells
+change kind (numbers that became words) has only `mixed` to hold both: it
+becomes `mixed`, and stays so. Git's history keeps each earlier record.
+
+The types are recorded, never enforced: a capture whose cells break a
+column's type is filed like any other. `provost rm --capture`, `prune --yes`
+and `archive --purge --yes` judge again, from nothing and capture by
+capture, the rows each dataset they touch keeps (as if the captures removed
+had never been filed); `rm NAME` removes the dataset's file with it.
+
+`store check` checks each file's header and form (a known type, share,
+cells and counts that agree, a capture id in `set_by`, each column once),
+that its dataset exists and is not `unsorted`, and that it names only
+columns its dataset has. A dataset without one, and a column without a line
+(written by an older provost after a newer one), are noted, not failed.
 
 ## provenance.tsv
 
@@ -519,6 +601,10 @@ shorter). A dataset it cannot put right that way is left as it is.
   log](#the-disposal-log)) and the `prune:` and `archive:` commit subjects,
   within format 4: an older reader can ignore the file, and nothing a reader
   relied on changed, so nothing is migrated.
+- 2.24.0 (PV-040) added `datasets/types/` ([Column types](#column-types)),
+  within format 4: an older reader ignores the directory (it holds no
+  `datasets/*.tsv`), and nothing is migrated; a dataset gets its record with
+  its next capture.
 - 2.18.0 (PV-027) added, all within format 4: the `Operator:` commit
   trailer; signed commits and signed annotated `capture-*` tags when the
   writer sets `PROVOST_SIGN`; and SHA-256 stores. None needs a migration (an
@@ -543,6 +629,10 @@ expect a second `#` column in such a dataset.
   prefer `provenance.tsv` too (PV-015).
 - Tell context columns from data by `meta.tsv`'s `context_columns`, not by
   position or name.
+- Take a column's type from `datasets/types/NAME.tsv` when there is one
+  ([Column types](#column-types)), rather than guess it again; treat a
+  column it does not list, or lists as `mixed` or `empty`, as text. A type
+  you do not know is to be read as `mixed`.
 - Read `meta.tsv` as key/value pairs, ignore keys you do not know, and turn
   `\t` and `\n` back into a tab and a newline. A comma-separated value
   (`dataset`, `strategy`) has one entry per dataset.

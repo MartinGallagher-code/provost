@@ -374,7 +374,9 @@ cover ~100%. A person sees at once that "column `Size` holds `Oct`, `2`,
 `12:01`" is wrong; the engine measures the same thing:
 
 - **Consistency** (`_FR_CONS_AWK`, lib/_discovery.sh; computed in the same awk
-  pass as coverage, on the same inputs up to `_FR_COV_BYTES`). Every cell of a
+  pass as coverage, on the same inputs up to `_FR_COV_BYTES`; the cell
+  classifier itself, `ctype`, is `lib/_ctype.awk`, which provost's column
+  types, `transform/types.sh`, read too). Every cell of a
   record stream (`<label><N>.<field> value`) is typed cheaply: integer,
   decimal, number with a unit (size, rate, duration, percent, `1,234`, `2
   weeks ago`), date / time / datetime, IP / CIDR / MAC / host:port, hex / hash

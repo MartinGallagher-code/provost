@@ -55,8 +55,9 @@ provost doctor                   # check engines + store
 
 free -m | provost                # capture stdin → auto-detect → tidy dataset 'free'
 provost run df -h                # capture a command's output → dataset 'df'
-provost ls                       # list datasets
+provost ls                       # list datasets (ls -l: their columns, and how many are typed)
 provost show df                  # present a dataset (leading #N = row index)
+provost show df --types          # each column's type, recorded at capture
 provost source 5                 # the original input behind row #5
 provost stats df                 # statistics on the dataset
 ```
@@ -79,8 +80,13 @@ df[df.access != "remove"][["bw_mib_s", "iops", "latency_s"]].corr()
 
 - `load(name, store=None, capture=None)` gives every value as the string
   provost stored, or `None` for a blank cell. `load_df` takes the same
-  arguments: a blank cell is `NaN`, and a column whose every non-blank value is
-  a number becomes numeric. A blank is never read as 0.
+  arguments: a blank cell is `NaN`, and each column's dtype follows the type
+  provost recorded for it at capture (`provost show NAME --types`): an
+  integer or decimal column becomes numeric, and a column of any other type
+  keeps its strings, even when every value it holds looks like a number. A
+  column with no type recorded (`#`, `capture`, or a dataset filed before
+  2.24.0) becomes numeric when every non-blank value is a number. A blank is
+  never read as 0.
 - The columns are those of `provost show`: `#` (the row's number, which
   `provost source` takes), `capture`, `n`, then the data.
 - `store=` is a store directory or a controlled directory (its `.provost` is
@@ -148,6 +154,13 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
   in `meta.tsv` and in `provost log`, and exits 130 (143, 129). Piped input
   does the same. A second Ctrl-C stops at once and files nothing, leaving the
   store as it was. See [Interrupted runs](docs/usage.md#interrupted-runs).
+- **Column types** — every capture records each column's type (integer,
+  decimal, percent, quantity, time, duration, datetime, address, version,
+  hex, path, boolean or text) from the engine's own cell classes, in
+  `datasets/types/NAME.tsv`; a column whose cells change kind across captures
+  is recorded as `mixed`, never silently retyped. `provost show NAME --types`
+  shows them, `provost ls -l` counts them, and `stats` and
+  `provost_data.load_df` use them. See [Column types](docs/usage.md#column-types).
 - **Units as data** — a unit stays where the tool printed it (the column name,
   the cell, or a `NAME_unit` column); `--units base` adds a `NAME[UNIT]`
   column beside each one in base units (`B`, `B/s`, `bit`, `bit/s`, `s`),
@@ -190,6 +203,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `… --env` | record where the capture was taken (host, kernel, OS, modules, Slurm job, user, allow-listed variables) in its `#%` prologue (`--env=modules`: and the kernel modules) |
 | `… --units base` | add a `NAME[UNIT]` column in base units after each column with a readable unit (inject/run/batch; [Units](docs/usage.md#units)) |
 | `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then; `--format csv\|json\|ndjson\|md\|tsv\|table`: for another tool, [Getting data out](#getting-data-out); `--tsv`: the same as `--format tsv`) |
+| `provost ls -l` / `show <name> --types` | each dataset's columns and how many are typed; one dataset's column types, recorded at capture ([Column types](docs/usage.md#column-types)) |
 | `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
 | `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
 | `provost check-manifest [ID\|NAME...]` | which captures lack required run-manifest keys (`--post`, `--strict`, `--profile P`) |
@@ -351,6 +365,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 bash tests/smoke.sh                  # end-to-end
 bash transform/tests/test_melt.sh    # transform unit tests
 bash transform/tests/test_units.sh   # --units: the conversion table and rules
+bash transform/tests/test_types.sh   # column types: each kind, the joins, a frozen corpus sample
 bash extract/tests/run_tests.sh      # extract strategies + engine
 bash analyze/tests/run_tests.sh      # analyze engine
 bash tests/corpus/run.sh --golden    # tidy output of ~3,500 real tools vs goldens

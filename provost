@@ -486,6 +486,15 @@ if [[ -r "$PROVOST_ROOT/transform/units.sh" ]]; then
 else
     die "transform module not found (expected at $PROVOST_ROOT/transform/units.sh)."
 fi
+# Column types (PV-040, `_core_types_update`): transform/types.sh, which
+# judges cells with the extract engine's own classifier (extract/lib/_ctype.awk).
+if [[ -r "$PROVOST_ROOT/transform/types.sh" ]]; then
+    # shellcheck source=transform/types.sh
+    _CORE_CTYPE_FILE="$PROVOST_ROOT/extract/lib/_ctype.awk"
+    source "$PROVOST_ROOT/transform/types.sh"
+else
+    die "transform module not found (expected at $PROVOST_ROOT/transform/types.sh)."
+fi
 
 _ds_dir ()  { printf '%s/datasets\n' "$PROVOST_WORKSPACE"; }
 _cap_dir () { printf '%s/captures\n' "$PROVOST_WORKSPACE"; }
@@ -494,6 +503,12 @@ _rowid_file () { printf '%s/.next_row_id\n' "$PROVOST_WORKSPACE"; }
 _capid_file () { printf '%s/.next_capture_id\n' "$PROVOST_WORKSPACE"; }
 _faillog ()    { printf '%s/.async-failures.log\n' "$PROVOST_WORKSPACE"; }
 _failseen ()   { printf '%s/.async-failures.seen\n' "$PROVOST_WORKSPACE"; }
+# A dataset's column types (PV-040): datasets/types/NAME.tsv, beside
+# datasets/NAME.tsv. In a directory of their own, so nothing that reads
+# datasets/*.tsv (an older provost's ls and store check, quarterdeck) takes
+# one for a dataset, and a dataset may still be named NAME.types.
+_types_dir ()  { printf '%s/datasets/types\n' "$PROVOST_WORKSPACE"; }
+_types_file () { printf '%s/datasets/types/%s.tsv\n' "$PROVOST_WORKSPACE" "$1"; }
 
 # git wrapper:
 #   * pinned identity, and signing off unless PROVOST_SIGN turns it on (then
@@ -2946,6 +2961,16 @@ _ingest_store () {
         _store_append "${ds_name[k]}" "$tmp/id.tsv"
         final="$_SA_TARGET"
         out_names+=("$final")
+        # its column types (PV-040), from the cells it filed: folded into
+        # what the dataset recorded, or, for a dataset with none yet (new, or
+        # filed before 2.24.0), judged from every row it now holds. A failure
+        # here costs the record, never the capture.
+        if [[ "$final" != unsorted ]]; then
+            local tyf; tyf="$(_types_file "$final")"
+            if ! { mkdir -p "${tyf%/*}" && _core_types_update "$tyf" "$(_ds_dir)/$final.tsv" "$tmp/id.tsv" "$id" "$tmp"; }; then
+                warn "could not record the column types of '$final' (the capture itself is filed)."
+            fi
+        fi
         # the columns --units base added, as units.tsv (see _ingest_parse)
         if [[ -n "${ds_units[k]:-}" && -s "${ds_units[k]}" ]]; then
             [[ -f "$capd/units.tsv" ]] || printf 'dataset\tcolumn\tunit_column\tbase\tfrom\tread\n' > "$capd/units.tsv"
@@ -4049,12 +4074,30 @@ EOF
             ;;
         next) echo "usage: provost next    step the restored store forward one capture (past the last: back to the latest)" ;;
         prev) echo "usage: provost prev    step the store back one capture (from the latest: the last capture)" ;;
-        ls) echo "usage: provost ls    list datasets" ;;
+        ls) cat <<'EOF'
+usage: provost ls [-l]
+  List the datasets and their row counts.
+  -l, --long   also each one's data columns (provost's '#' and capture left
+               out), how many have a type recorded at capture (TYPED), and how
+               many of those are mixed ('-' for a dataset filed before
+               provost 2.24.0 and not since); 'provost show NAME --types'
+EOF
+            ;;
         show) cat <<'EOF'
 usage: provost show NAME [--capture ID] [--at ID] [--format FMT | --tsv]
+       provost show NAME --types [--at ID] [--format FMT | --tsv]
   Present a dataset as a table: '#' is each row's index in the store,
   'capture' the capture it came from, 'n' its record number in that capture.
 options:
+  --types                 the dataset's column types instead of its rows:
+                          one line a column, its type (integer, decimal,
+                          percent, time, duration, quantity, datetime,
+                          address, version, hex, path, boolean, text, mixed
+                          or empty), the share of its cells that type holds,
+                          how many cells were judged, how many of each kind,
+                          and the capture that set it. Recorded at capture
+                          ('provost help advanced', COLUMN TYPES); --tsv
+                          gives the file as stored (datasets/types/NAME.tsv)
   --capture ID            only the rows capture ID filed (c0007, 7, latest,
                           or latest~1 for the one before the latest)
   --at ID                 the dataset as it stood just after capture ID, read
@@ -4166,7 +4209,15 @@ options:
   --strict                exit 1 if any capture is incomplete (default: 0)
 EOF
             ;;
-        stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
+        stats) cat <<'EOF'
+usage: provost stats NAME [analyze-args...]
+  Statistics on a dataset (--all for everything). Its column types recorded
+  at capture decide which columns are numeric (integer and decimal) and
+  which categorical, in place of the analyze engine's guess; a mixed
+  column, and every column of a dataset with none recorded, is guessed.
+  --numeric-columns and --categorical-columns still win.
+EOF
+            ;;
         triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
         doctor) echo "usage: provost doctor    check the engines and the store (its object format, the operator, signing); lists failed background captures" ;;
         init) cat <<'EOF'
@@ -4226,9 +4277,11 @@ usage: provost store check [DIR]
   dataset (headers, field counts, each row id in provenance under its own
   dataset, and from format 3 the capture in column 2); each capture's
   output.txt and meta.tsv (its keys, its tag, a truncated capture's kept
-  input); files-* tags; the template ledgers. A store an older provost
-  wrote is checked as that format, and passes. It only reads: no lock, no
-  migration, no commit. Exit 0 with no findings, 1 with them.
+  input); files-* tags; the template ledgers; each dataset's column types
+  (datasets/types/NAME.tsv: its form, and that it names only columns its
+  dataset has). A store an older provost wrote is checked as that format,
+  and passes. It only reads: no lock, no migration, no commit. Exit 0 with
+  no findings, 1 with them.
   'provost verify' is the integrity check (fsck, hashes, the history).
 EOF
             ;;
@@ -4995,7 +5048,7 @@ cmd_search () {
     fi
     local -a spec=()
     if (( ${#names[@]} )); then for v in "${names[@]}"; do spec+=("datasets/$v.tsv"); done
-    else spec=(datasets ':(exclude)datasets/unsorted.tsv'); fi
+    else spec=(datasets ':(exclude)datasets/unsorted.tsv' ':(exclude)datasets/types'); fi
     _git grep -I -n "${gopt[@]}" -e "$pat" "$rev" -- "${spec[@]}" > "$hits" 2>/dev/null || true
     # REV:datasets/NAME.tsv:LINE:ROW — line 1 is the header, not a row.
     R="$rev:" awk -v OFS='\t' 'BEGIN { r = ENVIRON["R"] }
@@ -5779,26 +5832,49 @@ cmd_stats () {
     [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
     local analyze; analyze="$(_find_analyze)" \
         || die "analyze engine not found (expected at $PROVOST_ROOT/analyze/provost-analyze)."
+    # The column types recorded at capture (PV-040), where there are some,
+    # in place of the engine's own guess: integer and decimal columns are
+    # numeric, the others categorical, mixed ones left to the guess. Extra
+    # args come after, so --numeric-columns, --categorical-columns or a
+    # --column-types of the caller's own win.
+    local -a ty=()
+    [[ -f "$(_types_file "$name")" ]] && ty=(--column-types "$(_types_file "$name")")
     # Datasets are TSV; suppress the gawk-preference banner. Extra args pass
     # straight through (e.g. --all, a numbered analysis list, --format json).
-    PROVOST_ANALYZE_SUPPRESS_AWK_WARNING=1 _run_engine "$analyze" "$f" "$@"
+    PROVOST_ANALYZE_SUPPRESS_AWK_WARNING=1 _run_engine "$analyze" "$f" ${ty[@]+"${ty[@]}"} "$@"
 }
 
 # ---------------------------------------------------------------------------
 # ls / show / triage / doctor
 # ---------------------------------------------------------------------------
 cmd_ls () {
-    case "${1:-}" in -h|--help) _cmd_help ls ;; esac
-    [[ $# -eq 0 ]] || _cmd_usage_die ls
+    local long=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help ls ;;
+            -l|--long) long=1; shift ;;
+            *) _cmd_usage_die ls ;;
+        esac
+    done
     local dir; dir="$(_ds_dir)"
     [[ -d "$dir" ]] || { info "no datasets yet — pipe something into 'provost'."; return 0; }
     shopt -s nullglob
-    local f name rows any=0
-    printf '%-24s %8s\n' "DATASET" "ROWS" >&2
+    local f name rows any=0 cols typed mixed
+    if (( long )); then printf '%-24s %8s %7s %5s %5s\n' "DATASET" "ROWS" "COLUMNS" "TYPED" "MIXED" >&2
+    else printf '%-24s %8s\n' "DATASET" "ROWS" >&2; fi
     for f in "$dir"/*.tsv; do
         any=1; name="$(basename "$f" .tsv)"
         rows=$(( $(wc -l < "$f") - 1 )); (( rows < 0 )) && rows=0
-        printf '%-24s %8d\n' "$name" "$rows"
+        if (( ! long )); then printf '%-24s %8d\n' "$name" "$rows"; continue; fi
+        # -l: its data columns (provost's '#' and capture column left out),
+        # how many have a type recorded at capture (PV-040) and how many of
+        # those are mixed; '-' for a dataset with none recorded yet
+        cols="$(head -n 1 "$f" | awk -F'\t' '{ s = ($1 == "#") ? (($2 ~ /^_*capture$/) ? 2 : 1) : 0; print NF - s }')"
+        typed=-; mixed=-
+        if [[ -f "$(_types_file "$name")" ]]; then
+            read -r typed mixed < <(awk -F'\t' 'NR > 1 && $2 != "empty" { t++; if ($2 == "mixed") m++ } END { print t + 0, m + 0 }' "$(_types_file "$name")")
+        fi
+        printf '%-24s %8d %7s %5s %5s\n' "$name" "$rows" "${cols:-0}" "$typed" "$mixed"
     done
     shopt -u nullglob
     [[ $any -eq 1 ]] || info "no datasets yet — pipe something into 'provost'."
@@ -5986,10 +6062,13 @@ _show_as () {
 
 cmd_show () {
     [[ $# -ge 1 ]] || _cmd_usage_die show
-    local name="" at="" cap="" v out=table
+    local name="" at="" cap="" v out=table types=0
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help) _cmd_help show ;;
+            # --types: the dataset's column types, recorded at capture
+            # (PV-040), instead of its rows
+            --types) types=1; shift ;;
             # --tsv (--format tsv): the rows as tab-separated text, exactly
             # as stored (the 'unsorted' raw column still decoded), never
             # through column(1): in an aligned table a blank cell is only
@@ -6017,6 +6096,11 @@ cmd_show () {
     done
     [[ -n "$name" ]] || _cmd_usage_die show
     _require_name "$name"
+    if (( types )); then
+        [[ -z "$cap" ]] || usage_die "--types shows the column types of the whole dataset: it takes no --capture (--at ID shows them as they stood after a capture)."
+        _show_types "$name" "$at" "$out"
+        return
+    fi
     local f prov
     if [[ -n "$at" ]]; then
         # The dataset as it stood just after capture AT, read from git: no
@@ -6049,6 +6133,38 @@ cmd_show () {
     fi
     if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | _show_as "$out"
     else _show_as "$out" < "$f"; fi
+}
+
+# _show_types NAME AT FMT — show --types: datasets/types/NAME.tsv (PV-040),
+# as it is, or as it stood just after capture AT (read from git), written as
+# FMT. A dataset with none recorded (filed before 2.24.0 and not since, or
+# 'unsorted', which holds inputs whole): a table says so; every other format
+# prints the empty shape (the header alone, '[]', nothing for ndjson), so a
+# program reads "no types" the way it reads "no rows".
+_show_types () {
+    local name="$1" at="$2" out="$3" tf why=""
+    _mktempd types; tf="$_MKTEMPD/types.tsv"
+    if [[ -n "$at" ]]; then
+        _git rev-parse -q --verify "refs/tags/capture-$at" >/dev/null 2>&1 \
+            || die "no such capture: $at (see 'provost log')."
+        _git cat-file -e "capture-$at:datasets/$name.tsv" 2>/dev/null \
+            || die "no dataset '$name' at capture $at."
+        _git show "capture-$at:datasets/types/$name.tsv" > "$tf" 2>/dev/null \
+            || { : > "$tf"; why="at capture $at"; }
+    else
+        [[ -f "$(_ds_dir)/$name.tsv" ]] || die "no such dataset: $name (try 'provost ls')."
+        if [[ -f "$(_types_file "$name")" ]]; then cp "$(_types_file "$name")" "$tf"
+        else : > "$tf"; why="yet"; fi
+    fi
+    if [[ ! -s "$tf" ]]; then
+        if [[ "$out" == table ]]; then
+            if [[ "$name" == unsorted ]]; then info "'unsorted' holds inputs whole: it has no column types."
+            else info "no column types recorded for '$name' $why (a dataset filed before provost 2.24.0 gets them with its next capture)."; fi
+            return 0
+        fi
+        printf '%s\n' "$_CORE_TYPES_HDR" > "$tf"
+    fi
+    _show_as "$out" < "$tf"
 }
 
 cmd_triage () {
@@ -6150,8 +6266,9 @@ cmd_rm () {
     # The removed names, newline-joined, drive the awk membership tests.
     local rmset; rmset="$(printf '%s\n' "${names[@]}")"
 
-    # Drop the dataset files.
-    for n in "${names[@]}"; do rm -f "$dir/$n.tsv"; done
+    # Drop the dataset files, and their column types.
+    for n in "${names[@]}"; do rm -f "$dir/$n.tsv" "$(_types_file "$n")"; done
+    rmdir "$(_types_dir)" 2>/dev/null || true
 
     # Prune provenance rows whose dataset was removed (keep the header).
     local prov ptmp; prov="$(_prov_file)"
@@ -6248,7 +6365,7 @@ cmd_rm () {
 _rm_cap_scan () {
     local n f k=0 pv=/dev/null before after
     names=(); keep=(); gone=(); removed=0
-    rm -f "$tmpd"/ds.* "$tmpd/prov"; : > "$tmpd/rows"
+    rm -f "$tmpd"/ds.* "$tmpd"/ty.* "$tmpd/prov"; : > "$tmpd/rows"
     if [[ -f "$prov" ]]; then
         pv="$prov"
         awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
@@ -6274,6 +6391,11 @@ _rm_cap_scan () {
         before=$(awk 'END { print NR }' "$f"); after=$(awk 'END { print NR }' "$tmpd/ds.$k")
         removed=$((removed + before - after))
         if (( after <= 1 )); then gone+=("$n"); keep+=(""); else keep+=("$k"); fi
+        # its column types (PV-040), judged again from the rows that stay,
+        # as if the removed captures had never been filed
+        if (( after > 1 )) && [[ -f "$(_types_file "$n")" ]]; then
+            _core_types_update "$tmpd/ty.$k" "$tmpd/ds.$k" "" "" "$tmpd" || return 1
+        fi
     done
     if [[ -f "$prov" ]]; then
         awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
@@ -6288,10 +6410,14 @@ _rm_cap_scan () {
 _rm_cap_apply () {
     local n c k=0
     for n in ${names[@]+"${names[@]}"}; do
-        if [[ -z "${keep[k]}" ]]; then rm -f "$dir/$n.tsv" || return 1
-        else mv "$tmpd/ds.${keep[k]}" "$dir/$n.tsv" || return 1; fi
+        if [[ -z "${keep[k]}" ]]; then rm -f "$dir/$n.tsv" "$(_types_file "$n")" || return 1
+        else
+            mv "$tmpd/ds.${keep[k]}" "$dir/$n.tsv" || return 1
+            if [[ -f "$tmpd/ty.${keep[k]}" ]]; then mv "$tmpd/ty.${keep[k]}" "$(_types_file "$n")" || return 1; fi
+        fi
         k=$((k + 1))
     done
+    rmdir "$(_types_dir)" 2>/dev/null || true
     if [[ -f "$tmpd/prov" ]]; then mv "$tmpd/prov" "$prov" || return 1; fi
     while IFS= read -r c; do rm -rf "${cap:?}/$c" || return 1; done < "$tmpd/ids"
     # prune and archive --purge (PV-029): their disposal records, appended
@@ -7632,6 +7758,41 @@ _store_check () {
         esac
     done < "$tmp/ds"
 
+    # 5b. column types (2.24.0 on, PV-040): datasets/types/NAME.tsv, one
+    # per dataset at most, each of its own form, naming only columns its
+    # dataset has. A dataset filed before 2.24.0 has none until its next
+    # capture: noted, not failed.
+    local ntyped=0 nuntyped=0 tyf b
+    if [[ -d "$(_types_dir)" ]]; then
+        for tyf in "$(_types_dir)"/* "$(_types_dir)"/.[!.]*; do
+            [[ -e "$tyf" ]] || continue
+            b="${tyf##*/}"
+            if [[ "$b" != *.tsv || ! -f "$tyf" ]]; then _sfail "datasets/types/$b: not a column-types file (datasets/types/NAME.tsv)"; continue; fi
+            b="${b%.tsv}"
+            if [[ "$b" == unsorted ]]; then _sfail "datasets/types/unsorted.tsv: 'unsorted' holds inputs whole and has no column types"; continue; fi
+            if [[ ! -f "$(_ds_dir)/$b.tsv" ]]; then _sfail "datasets/types/$b.tsv: there is no dataset $b"; continue; fi
+            ntyped=$((ntyped + 1))
+            while IFS= read -r msg; do _sfail "datasets/types/$b.tsv: $msg"; done < <(_core_types_valid "$tyf")
+            # the columns it names against the dataset's own
+            head -n 1 "$(_ds_dir)/$b.tsv" | LC_ALL=C awk -F'\t' -v B="$b" '
+                NR == FNR { s = ($1 == "#") ? (($2 ~ /^_*capture$/) ? 3 : 2) : 1
+                            for (i = s; i <= NF; i++) H[$i] = 1; next }
+                FNR == 1 { next }
+                { L[$1] = 1; if (!($1 in H) && bad++ < 3) print "F\tdatasets/types/" B ".tsv: column \"" $1 "\" is not a column of datasets/" B ".tsv" }
+                END { for (c in H) if (!(c in L)) miss++
+                      if (miss) print "N\tdatasets/types/" B ".tsv: " miss " column(s) of datasets/" B ".tsv have no type recorded (filed by an older provost?)" }' \
+                - "$tyf" > "$tmp/ty" 2>/dev/null || true
+            while IFS=$'\t' read -r kind msg; do
+                case "$kind" in F) _sfail "$msg" ;; N) _snote "$msg" ;; esac
+            done < "$tmp/ty"
+        done
+    fi
+    for f in ${dsf[@]+"${dsf[@]}"}; do
+        b="${f##*/}"; b="${b%.tsv}"
+        [[ "$b" == unsorted || -f "$(_types_file "$b")" ]] || nuntyped=$((nuntyped + 1))
+    done
+    (( nuntyped > 0 )) && _snote "$nuntyped dataset(s) have no column types recorded (filed before provost 2.24.0; the next capture into each records them)"
+
     # 6. the captures: each directory's files and meta.tsv, and its tag
     local -a caps=()
     for f in "$(_cap_dir)"/*/; do [[ -d "$f" ]] && { f="${f%/}"; caps+=("${f##*/}"); }; done
@@ -7743,6 +7904,7 @@ _store_check () {
     fi
 
     printf '   %d dataset(s), %d row(s), %d capture(s)' "${#dsf[@]}" "$nrows" "${#caps[@]}"
+    (( ntyped > 0 )) && printf ', %d with column types' "$ntyped"
     (( ntrunc > 0 )) && printf ' (%d truncated, kept input checked)' "$ntrunc"
     (( nfiles > 0 )) && printf ', %d files-* tag(s)' "$nfiles"
     (( ndisp > 0 )) && printf ', %d disposal(s) recorded' "$ndisp"
@@ -7975,13 +8137,16 @@ COMMANDS
         \${XDG_CONFIG_HOME:-~/.config}/provost/listen.sh; provost says how to
         load it). No CMD: list them.
   Look
-    provost ls                     list datasets and their row counts
+    provost ls [-l]                list datasets and their row counts (-l:
+                                   their columns, and how many are typed)
     provost show NAME [--capture ID] [--at ID] [--format FMT | --tsv]
         A dataset as a table; --capture: only the rows capture ID filed;
         --at: the dataset as it stood just after capture ID; --format: as
         table, tsv (as stored; = --tsv), csv (RFC 4180), json (an array of
         objects; a blank cell is null), ndjson (an object a line) or md
         (Markdown), the shapes of quarterdeck's 'qd show --format'.
+    provost show NAME --types [--at ID] [--format FMT | --tsv]
+        The dataset's column types, recorded at capture (COLUMN TYPES below).
     provost search PATTERN [NAME...] [-i -F -w] [--at ID] [--output | --files]
         git grep over the rows (or the captured outputs, or a controlled
         directory's run files), shown per dataset under its header.
@@ -7991,7 +8156,9 @@ COMMANDS
         files that changed (with PATH: their full diff). Default: the last
         two captures, or NAME's.
     provost stats NAME [ARGS]      statistics (ARGS go to the analyze engine;
-                                   --all for every analysis)
+                                   --all for every analysis; the column
+                                   types recorded at capture say which
+                                   columns are numeric)
     provost triage                 the 'unsorted' bucket: what was held, why
     provost check-manifest [--profile P] [--post] [--strict] [ID|NAME...]
         The captures whose run manifest lacks a required key (RUN MANIFEST
@@ -8254,6 +8421,41 @@ COLUMN-TYPE CONSISTENCY
     and another generic parse within 20 confidence points keeps as many
     lines, types its columns better (95% or more) and mixes fewer columns,
     the capture is filed with that parse instead.
+
+COLUMN TYPES
+    Every capture records the type of each column it files, from the same
+    cell classes the engine weighs consistency with, in
+    datasets/types/NAME.tsv beside the dataset ('provost show NAME --types';
+    none for 'unsorted'). The types, narrowest first:
+      integer 42, 1,234   decimal 3.14   percent 37%   quantity 20G, 1.5 KiB,
+      100MB/s, \$5   time 10:23, 00:05:01 (a clock reading: a time of day or
+      an elapsed time)   duration 30ms, 5m, 1h30m, 5 days, 2-03:04:05
+      datetime 2026-11-13, Nov 13 10:00, Mon   address 10.0.0.1, ::1,
+      host:port, a MAC   version 2.4.1, v1.0   hex 0x1f, a hash, a uuid
+      path /usr/bin, ~/x, a URL   boolean yes, no, true, off, enabled
+      text anything else
+    A blank cell, or a placeholder (-, n/a, none, null, ?), is not judged; a
+    bare m after a number is minutes, M mega. A wider type holds a narrower
+    one: integer < decimal < percent < quantity, decimal < duration <
+    quantity, time < duration, time < datetime, and address, version, hex,
+    path and boolean < text. A column is given the narrowest type that holds
+    at least 90% of its cells (all the cells every capture filed into it);
+    else text, when most of them are words; else mixed.
+    A column is never silently retyped: each capture's counts are added, the
+    type is decided again, and the result is joined with the type already
+    recorded, so a capture can widen a column (integer to decimal, path to
+    text), but one whose cells change kind (numbers that became words) is
+    recorded as mixed, and stays so; git's history keeps what it was. The
+    file has one line a column: column, type, share (per cent of the judged
+    cells the type holds), cells (how many were judged), counts (KIND=N,...)
+    and set_by (the capture that set the type as it is). 'rm --capture' and
+    'prune' judge the rest again, as if the captures removed had never been
+    filed. A dataset filed before provost 2.24.0 gets its types with its next
+    capture, judged from every row it holds. 'stats' uses them to tell
+    numeric columns from categorical ones; provost_data.load_df makes integer
+    and decimal columns numeric and keeps every other type's strings. The
+    types are recorded, never enforced: a capture whose cells break a
+    column's type is filed, and the column becomes mixed.
 
 QUALITY GATE
     A GENERIC parse that keeps under --min-coverage % of the input's lines

@@ -67,6 +67,61 @@ test_override_case_insensitive () {
     assert_contains "$out" "zip_code: categorical (forced" "match should be case-insensitive"
 }
 
+# PV-040: --column-types, the types provost recorded at capture -------
+
+_TYPES="$TMPDIR/pv040_types.tsv"
+_write_types () {
+    printf 'column\ttype\tshare\tcells\tcounts\tset_by\n' > "$_TYPES"
+    printf 'zip_code\ttext\t100\t5\ttext=5\tc0001\n' >> "$_TYPES"
+    printf 'age\tinteger\t100\t4\tinteger=4\tc0001\n' >> "$_TYPES"
+    printf 'status\tmixed\t\t5\tinteger=2,text=3\tc0002\n' >> "$_TYPES"
+}
+
+test_column_types_recorded_categorical () {
+    _write_fixture; _write_types
+    local out
+    out=$(bash "$MDA_SCRIPT" --all --column-types "$_TYPES" "$_FIXTURE" 2>&1)
+    assert_contains "$out" "zip_code: categorical (recorded at capture: text)" "a recorded text column is categorical, numbers or not"
+}
+
+test_column_types_recorded_numeric () {
+    _write_fixture; _write_types
+    local out
+    out=$(bash "$MDA_SCRIPT" --all --column-types "$_TYPES" "$_FIXTURE" 2>&1)
+    assert_contains "$out" "age: numeric (recorded at capture: integer)" "a recorded integer column is numeric"
+    assert_contains "$out" "Column types (recorded at capture; guessed where none was)" "the title says where the types came from"
+}
+
+test_column_types_mixed_is_guessed () {
+    _write_fixture; _write_types
+    local out
+    out=$(bash "$MDA_SCRIPT" --all --column-types "$_TYPES" "$_FIXTURE" 2>&1)
+    assert_contains "$out" "status: categorical (ratio" "a mixed column is left to the heuristic"
+}
+
+test_column_types_explicit_override_wins () {
+    _write_fixture; _write_types
+    local out
+    out=$(bash "$MDA_SCRIPT" --all --column-types "$_TYPES" --numeric-columns zip_code "$_FIXTURE" 2>&1)
+    assert_contains "$out" "zip_code: numeric (forced via --numeric-columns)" "--numeric-columns wins over a recorded type"
+}
+
+test_column_types_unreadable_errors () {
+    _write_fixture
+    local out code=0
+    out=$(bash "$MDA_SCRIPT" --column-types "$TMPDIR/pv040_no_such_file" "$_FIXTURE" 2>&1) || code=$?
+    [[ "$code" -ne 0 ]] || { echo "  ASSERT FAILED: an unreadable --column-types should fail"; return 1; }
+    assert_contains "$out" "cannot read" "should say it cannot read the file"
+}
+
+test_column_types_without_is_unchanged () {
+    _write_fixture
+    local out
+    out=$(bash "$MDA_SCRIPT" --all "$_FIXTURE" 2>&1)
+    assert_contains "$out" "Column types (guessed)" "without --column-types the title is as before"
+    assert_contains "$out" "zip_code: numeric (ratio 1.00)" "...and the guess as before"
+}
+
 # ENV-026 ---------------------------------------------------------------
 
 test_missing_values_custom_list () {
@@ -163,6 +218,12 @@ run_test "ENV-025: --categorical-columns forces categorical" test_categorical_co
 run_test "ENV-025: unknown column in --numeric-columns errors" test_numeric_columns_unknown_errors
 run_test "ENV-025: overlapping --numeric and --categorical errors" test_numeric_and_categorical_overlap_errors
 run_test "ENV-025: column match is case-insensitive" test_override_case_insensitive
+run_test "PV-040: --column-types: a recorded text column is categorical" test_column_types_recorded_categorical
+run_test "PV-040: --column-types: a recorded integer column is numeric" test_column_types_recorded_numeric
+run_test "PV-040: --column-types: a mixed column is guessed" test_column_types_mixed_is_guessed
+run_test "PV-040: --column-types: --numeric-columns wins" test_column_types_explicit_override_wins
+run_test "PV-040: --column-types: an unreadable file errors" test_column_types_unreadable_errors
+run_test "PV-040: without --column-types nothing changes" test_column_types_without_is_unchanged
 run_test "ENV-026: custom --missing-values list works" test_missing_values_custom_list
 run_test "ENV-026: --missing-values-case-insensitive works" test_missing_values_case_insensitive
 run_test "ENV-026: empty string always counts as missing" test_missing_empty_always_missing
@@ -174,5 +235,5 @@ run_test "ENV-027: unknown column in threshold errors" test_threshold_unknown_co
 run_test "ENV-027: single-condition threshold still works" test_threshold_single_condition_backward_compat
 run_test "ENV-027: lowercase 'and' / 'or' accepted" test_threshold_case_insensitive_operators
 
-rm -f "$_FIXTURE"
+rm -f "$_FIXTURE" "$_TYPES"
 print_summary
