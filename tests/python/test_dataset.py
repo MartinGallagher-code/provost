@@ -45,6 +45,10 @@ def project(tmp_path_factory):
                PROVOST_HOME=str(root / "home"), PROVOST_ASYNC="0")
     _file(env, "k\tv\tw\nx\t\ty\nz\t1\t\n", "blanks")
     _file(env, "k\tv\tw\nq\t2\t3\n", "blanks")
+    # 'tag' is words in its first capture, a number in its second: its type
+    # is text, so a load of the second capture alone keeps it a string
+    _file(env, "tag\tsize\nalpha\t1.5\nbeta\t2\ngamma\t3\n", "typed")
+    _file(env, "tag\tsize\n5\t4\n", "typed")
     return root
 
 
@@ -247,3 +251,47 @@ def test_load_df_errors_are_loads(store):
     pytest.importorskip("pandas")
     with pytest.raises(provost_data.ProvostError, match="no such dataset"):
         provost_data.load_df("nope", store=store)
+
+
+# --- column types (PV-040) -----------------------------------------------------
+
+def test_types_are_the_ones_provost_recorded(store):
+    assert _dataset._types("typed", store) == {"n": "integer", "tag": "text", "size": "decimal"}
+    assert _dataset._types("blanks", store)["w"] == "mixed"
+
+
+def test_types_of_a_provost_without_them_are_none(tmp_path, monkeypatch):
+    # an older provost refuses --types: the columns are read as before
+    _fake_provost(tmp_path, monkeypatch, 'case "$*" in *--types*) exit 2 ;; esac\nprintf "a\\n1\\n"\n')
+    assert _dataset._types("x", None) == {}
+
+
+def test_types_that_are_not_a_types_table_are_none(tmp_path, monkeypatch):
+    _fake_provost(tmp_path, monkeypatch, 'printf "a\\tb\\n1\\t2\\n"\n')
+    assert _dataset._types("x", None) == {}
+
+
+def test_load_df_a_text_column_stays_strings_however_it_looks(store):
+    pytest.importorskip("pandas")
+    df = provost_data.load_df("typed", store=store, capture=4)
+    assert list(df["tag"]) == ["5"]                    # text, recorded: not 5
+    assert list(df["size"]) == [4]                     # decimal, recorded: a number
+    assert list(df["#"]) == [7]                        # no type recorded: as before
+
+
+def test_load_df_a_recorded_number_with_a_word_keeps_its_strings(tmp_path, monkeypatch):
+    pytest.importorskip("pandas")
+    _fake_provost(tmp_path, monkeypatch, """case "$*" in
+  *--types*) printf 'column\\ttype\\tshare\\tcells\\tcounts\\tset_by\\nv\\tinteger\\t50\\t2\\tinteger=1,text=1\\tc0001\\n' ;;
+  *) printf 'v\\n1\\nx\\n' ;;
+esac
+""")
+    df = provost_data.load_df("x")
+    assert list(df["v"]) == ["1", "x"]
+
+
+def test_load_df_with_a_provost_without_types_reads_as_before(tmp_path, monkeypatch):
+    pytest.importorskip("pandas")
+    _fake_provost(tmp_path, monkeypatch, 'case "$*" in *--types*) exit 2 ;; esac\nprintf "a\\tb\\n1\\tx\\n"\n')
+    df = provost_data.load_df("x")
+    assert list(df["a"]) == [1] and list(df["b"]) == ["x"]

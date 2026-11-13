@@ -94,6 +94,7 @@ packages = ["src/provost_data"]
 "analyze/schemas" = "provost_data/_bundle/analyze/schemas"
 "transform/melt.sh" = "provost_data/_bundle/transform/melt.sh"
 "transform/units.sh" = "provost_data/_bundle/transform/units.sh"
+"transform/types.sh" = "provost_data/_bundle/transform/types.sh"
 "lib" = "provost_data/_bundle/lib"
 "completions" = "provost_data/_bundle/completions"
 "man" = "provost_data/_bundle/man"

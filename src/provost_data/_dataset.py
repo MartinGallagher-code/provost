@@ -67,21 +67,26 @@ def _store_dir(store):
     raise ProvostError("no provost store at %s" % path)
 
 
-def _tsv(name, store, capture):
-    """``provost show NAME --tsv``'s output, as text."""
-    argv = _command() + ["show", name, "--tsv"]
-    if capture is not None:
-        argv += ["--capture", str(capture)]
+def _run(args, store):
+    """Run ``provost ARGS`` on the store, its output held."""
     env = dict(os.environ)
     if store is not None:
         env["PROVOST_WORKSPACE"] = _store_dir(store)
-    proc = subprocess.run(
-        argv,
+    return subprocess.run(
+        _command() + args,
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
     )
+
+
+def _tsv(name, store, capture):
+    """``provost show NAME --tsv``'s output, as text."""
+    args = ["show", name, "--tsv"]
+    if capture is not None:
+        args += ["--capture", str(capture)]
+    proc = _run(args, store)
     err = proc.stderr.decode("utf-8", "replace").strip()
     if proc.returncode != 0:
         raise ProvostError(
@@ -156,21 +161,49 @@ def load(name, store=None, capture=None):
         return [dict(zip(header, row)) for row in rows]
 
 
+def _types(name, store):
+    """{column: type}, the column types provost recorded for the dataset at
+    capture (``provost show NAME --types --tsv``, PV-040). Empty when none
+    are recorded, and when the provost run predates them (it refuses
+    ``--types``): the columns are then read as they were before."""
+    proc = _run(["show", name, "--types", "--tsv"], store)
+    if proc.returncode != 0:
+        return {}
+    header, rows = _parse(name, proc.stdout.decode("utf-8", "replace"))
+    if header[:2] != ["column", "type"]:
+        return {}
+    return {row[0]: row[1] for row in rows}
+
+
+# The recorded types load_df makes numeric; every other recorded type (text,
+# version, datetime, quantity, mixed, ...) keeps its strings.
+NUMERIC_TYPES = ("integer", "decimal")
+
+
 def load_df(name, store=None, capture=None):
     """A provost dataset as a pandas DataFrame (``pip install 'provost[pandas]'``).
 
-    The same rows and columns as :func:`load`. A blank cell is NaN, and a
-    column whose every non-blank value is a number becomes numeric; any other
-    column keeps its strings. Raises ImportError, with the install command,
-    when pandas is not installed.
+    The same rows and columns as :func:`load`. A blank cell is NaN. A
+    column's dtype follows the type provost recorded for it at capture
+    (``provost show NAME --types``): an integer or decimal column becomes
+    numeric (it keeps its strings if a value is not a number after all);
+    a column of any other type keeps its strings, even when every value it
+    holds looks like a number. A column with no type recorded (``#``, the
+    capture column, a dataset filed before provost 2.23.0) becomes numeric
+    when every non-blank value is a number. Raises ImportError, with the
+    install command, when pandas is not installed.
     """
     try:
         import pandas
     except ImportError:
         raise ImportError(PANDAS_HINT) from None
     header, rows = _parse(name, _tsv(name, store, capture))
+    types = _types(name, store)
     frame = pandas.DataFrame(rows, columns=header)
     for column in header:
+        kind = types.get(column, "empty")
+        if kind != "empty" and kind not in NUMERIC_TYPES:
+            continue
         try:
             frame[column] = pandas.to_numeric(frame[column])
         except (ValueError, TypeError):

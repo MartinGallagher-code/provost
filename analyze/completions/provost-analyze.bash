@@ -65,7 +65,7 @@ _provost_analyze_complete () {
             return 0
             ;;
         --delimiter|--max-corr-cols|--max-groups|--max-group-unique|\
-        --columns|--threshold|--top-n|--numeric-columns|\
+        --columns|--threshold|--top-n|--numeric-columns|--column-types|\
         --categorical-columns|--missing-values|--categorical-unique-max|\
         --categorical-ratio-max|--head|--sample|--seed|--log-file)
             # Free-form values; fall through to default completion (files)
@@ -81,7 +81,7 @@ _provost_analyze_complete () {
             --format --max-corr-cols --max-groups --max-group-unique
             --columns --compare --threshold --mode --summary
             --timeseries --top-n
-            --numeric-columns --categorical-columns
+            --numeric-columns --categorical-columns --column-types
             --missing-values --missing-values-case-insensitive
             --categorical-unique-max --categorical-ratio-max
             --benford-alpha --color

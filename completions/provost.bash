@@ -43,7 +43,7 @@ _provost_complete () {
             # complete dataset names from the active store (rm also offers flags)
             case "$cur" in
                 -*) case "$verb" in
-                        show)   COMPREPLY=( $(compgen -W "--capture --at --format --tsv --help" -- "$cur") ) ;;
+                        show)   COMPREPLY=( $(compgen -W "--capture --at --format --tsv --types --help" -- "$cur") ) ;;
                         search) COMPREPLY=( $(compgen -W "-i -F -w -e --at --output --files --help" -- "$cur") ) ;;
                         diff)   COMPREPLY=( $(compgen -W "--help" -- "$cur") ) ;;
                         *)      COMPREPLY=( $(compgen -W "-f --yes --purge --no-purge --keep-captures --help" -- "$cur") ) ;;
@@ -58,6 +58,8 @@ _provost_complete () {
             COMPREPLY=( $(compgen -W "$capids --help" -- "$cur") ) ;;
         log)
             COMPREPLY=( $(compgen -W "--failed --help" -- "$cur") ) ;;
+        ls)
+            COMPREPLY=( $(compgen -W "-l --long --help" -- "$cur") ) ;;
         template)
             # provost template test TEMPLATE CAPTURE [EXPECTED.tsv] [--tables]
             if [[ $cword -eq 2 ]]; then COMPREPLY=( $(compgen -W "test --help" -- "$cur") )

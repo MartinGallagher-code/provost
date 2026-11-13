@@ -193,6 +193,12 @@ Options:
   --numeric-columns LIST    Comma-separated column names to force numeric
                             (overrides the 0.80 auto-detection heuristic)
   --categorical-columns LIST Comma-separated column names to force categorical
+  --column-types FILE   Column types recorded at capture (provost's
+                        datasets/types/NAME.tsv: column<TAB>type...):
+                        integer and decimal columns are numeric, mixed and
+                        empty ones are left to the 0.80 heuristic, any other
+                        type is categorical. --numeric-columns and
+                        --categorical-columns win over it.
   --strict              Exit non-zero when any column classified as numeric
                         has non-numeric rows (rows that would be silently
                         excluded from mean / std). Off by default; intended
@@ -265,6 +271,7 @@ top_n=""
 # ENV-025: explicit type overrides. Comma-separated column names; case-insensitive match.
 force_numeric_cols=""
 force_categorical_cols=""
+column_types_file=""
 # ENV-132: --strict makes provost-analyze exit non-zero if any numeric
 # column has impure rows (any value rejected by the numeric parse). Off by
 # default; intended for CI / scripted consumers that want fail-fast.
@@ -464,6 +471,12 @@ while [[ $# -gt 0 ]]; do
         --categorical-columns)
             force_categorical_cols="${2:-}"
             [[ -n "$force_categorical_cols" ]] || err "--categorical-columns requires a comma-separated column list"
+            shift 2
+            ;;
+        --column-types)
+            column_types_file="${2:-}"
+            [[ -n "$column_types_file" ]] || err "--column-types requires a file"
+            [[ -f "$column_types_file" && -r "$column_types_file" ]] || err "--column-types: cannot read $column_types_file"
             shift 2
             ;;
         --strict)
@@ -856,6 +869,19 @@ add_item "Dataset overview" "$_overview_body" "GOOD" "overview"
 col_types=""
 missing_report=""
 
+# --column-types FILE: the type each column was recorded with at capture
+# (provost, PV-040). Read once; a column it does not name, or names as
+# mixed or empty, is left to the heuristic below.
+declare -A REC_TYPE=()
+rec_used=0
+if [[ -n "$column_types_file" ]]; then
+    _rt_first=1
+    while IFS=$'\t' read -r _rt_col _rt_type _rt_rest || [[ -n "$_rt_col" ]]; do
+        if (( _rt_first )); then _rt_first=0; [[ "$_rt_col" == column ]] && continue; fi
+        [[ -n "$_rt_col" && -n "$_rt_type" ]] && REC_TYPE["$_rt_col"]="$_rt_type"
+    done < "$column_types_file"
+fi
+
 COL_TYPE=()
 COL_NUMERIC=()
 # ENV-132: parallel-array of non-numeric value counts per column. Set for
@@ -942,10 +968,22 @@ while IFS=$'\t' read -r total missing num text min max mean std skew kurt; do
     # Match is case-insensitive against the header row. Columns in both lists are
     # rejected earlier at startup.
     col_type=""
+    rec=""
     if [[ -n "$force_numeric_cols" ]] && _name_in_csv_list_ci "$col_name" "$force_numeric_cols"; then
         col_type="numeric"
     elif [[ -n "$force_categorical_cols" ]] && _name_in_csv_list_ci "$col_name" "$force_categorical_cols"; then
         col_type="categorical"
+    elif [[ -n "${REC_TYPE[$col_name]+x}" ]]; then
+        rec="${REC_TYPE[$col_name]}"
+        case "$rec" in
+            integer|decimal) col_type="numeric" ;;
+            mixed|empty)     rec="" ;;
+            *)               col_type="categorical" ;;
+        esac
+        [[ -n "$rec" ]] && rec_used=1
+    fi
+    if [[ -n "$col_type" ]]; then
+        :
     elif [[ "$num" -gt 0 ]] && float_cmp "$ratio" ">=" "0.80"; then
         col_type="numeric"
     else
@@ -966,6 +1004,10 @@ while IFS=$'\t' read -r total missing num text min max mean std skew kurt; do
         COL_KURT+=("$kurt")
         if [[ -n "$force_numeric_cols" ]] && _name_in_csv_list_ci "$col_name" "$force_numeric_cols"; then
             col_types+="$col_name: numeric (forced via --numeric-columns)"$'\n'
+        elif [[ -n "$rec" ]] && [[ "$text" -gt 0 ]]; then
+            col_types+="$col_name: numeric (recorded at capture: $rec; $text non-numeric values excluded)"$'\n'
+        elif [[ -n "$rec" ]]; then
+            col_types+="$col_name: numeric (recorded at capture: $rec)"$'\n'
         elif float_cmp "$ratio" "<" "1.00"; then
             col_types+="$col_name: numeric (ratio $ratio, $text non-numeric values excluded)"$'\n'
         else
@@ -980,6 +1022,8 @@ while IFS=$'\t' read -r total missing num text min max mean std skew kurt; do
         # came from the user's override or from the heuristic.
         if [[ -n "$force_categorical_cols" ]] && _name_in_csv_list_ci "$col_name" "$force_categorical_cols"; then
             col_types+="$col_name: categorical (forced via --categorical-columns)"$'\n'
+        elif [[ -n "$rec" ]]; then
+            col_types+="$col_name: categorical (recorded at capture: $rec)"$'\n'
         else
             col_types+="$col_name: categorical (ratio $ratio)"$'\n'
             # Warn when a column has significant numeric content but falls below 80% threshold.
@@ -997,7 +1041,11 @@ Consider: is this column actually numeric with non-numeric outliers?" "DIAGNOSTI
     COL_UNIQUE+=("0")
 done <<< "$all_col_stats"
 
-add_item "Column types (guessed)" "${col_types%$'\n'}" "GOOD" "col_types"
+if (( rec_used )); then
+    add_item "Column types (recorded at capture; guessed where none was)" "${col_types%$'\n'}" "GOOD" "col_types"
+else
+    add_item "Column types (guessed)" "${col_types%$'\n'}" "GOOD" "col_types"
+fi
 add_item "Missing values" "${missing_report%$'\n'}" "GOOD" "missing"
 
 # Missingness ranking
