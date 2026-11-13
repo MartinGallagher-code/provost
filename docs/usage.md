@@ -84,6 +84,7 @@ $ provost show NAME              # present a dataset ('#', 'capture', 'n' lead e
 $ provost show NAME --capture ID # only the rows capture ID filed
 $ provost show NAME --at ID      # the dataset as it stood just after capture ID
 $ provost show NAME --tsv        # tab-separated, as stored: what a program reads
+$ provost show NAME --format F   # table, tsv, csv, json, ndjson or md (Getting data out, below)
 $ provost search PATTERN [NAME]  # git grep over the rows (--output, --files, --at ID)
 $ provost log [--failed]         # list captures (the git history) / failed background ones
 $ provost source <#N | ID>       # the original input behind row #N, or a capture
@@ -101,7 +102,90 @@ $ provost archive --to DIR --before DATE # a verifiable archive of older capture
 Every row carries `#` (its number in the store, `provost source N`),
 `capture` (the capture it came from, `provost source c0007`) and, for
 records, `n` (its place within that capture). An ID is `c0007`, `7` or
-`capture-c0007`.
+`capture-c0007`, or `latest` (the newest capture) or `latest~N` (the Nth
+before it), so a script never has to read `provost log` for the id of the
+capture it just made. `latest` counts the captures the store has: after
+`provost rm --capture`, `latest~1` is the one before that is still there.
+`provost restore latest` is the one place it means something else: it returns
+the store to the present, which can be a commit past the newest capture (an
+`rm` or an `annotate`); `restore latest~0` brings up the newest capture itself.
+A word that is a capture ID is read as one where a command takes either an ID
+or a name, as `7` already was: `provost diff latest` is the newest capture, and
+`provost files -- latest` the path called `latest`.
+
+## Getting data out
+
+A dataset is a table, and it leaves provost in one of four ways. None of them
+adds a query language, a metrics exporter or a viewer to provost (one tool
+that captures, [docs/0001](0001-rename-and-simplification.md)): each is a
+format other tools read, or a tool that reads the store as it is.
+
+**`provost show --format`** writes a dataset as `table` (the default, for
+people), `tsv` (as stored; `--tsv` is the same), `csv`, `json`, `ndjson` or
+`md`. The names and shapes are those of quarterdeck's `qd show --format`, so a
+script moves between the two unchanged (`text` and `markdown` are taken too,
+for qd's and `provost stats`'s names):
+
+- `csv` is RFC 4180: a cell holding a comma, a double quote or a line break is
+  quoted, with its quotes doubled. Lines end in LF.
+- `json` is an array of objects, one a row; `ndjson` is one object a line.
+  The keys are the columns, in order. A blank cell is `null`, never `""` or
+  0, as `provost_data` reads it. Every other value is a string, as stored
+  (`"82%"`, `"50G"`, `"3"`): typed numbers come with column types (PV-040),
+  and a reader that takes strings will keep working then.
+- `md` is a Markdown table. A `|` in a cell is written `\|`, and a column whose
+  every filled cell is a number, bare or with a unit (`12`, `3.5 ms`, `37%`),
+  is right-aligned, as qd aligns it.
+- `--capture` and `--at` work with every format. With no rows, `csv`, `tsv`
+  and `md` print the header alone, `json` prints `[]` and `ndjson` nothing.
+- Text that is not ASCII is written as the UTF-8 it is, in every format.
+- Beside `qd show ds:NAME`, the columns differ (qd leaves out `#` and calls
+  the capture column `capture` whatever provost named it), qd's JSON has its
+  keys sorted, numbers as numbers and non-ASCII text as `\u` escapes, qd's
+  NDJSON leaves out a blank cell's key where provost writes `null`, and qd's
+  TSV quotes a cell that holds a `"`, where provost's is the store's own.
+
+```bash
+provost show df --capture latest --format csv > df.csv      # the last capture's rows, for a spreadsheet
+provost show df --format json | jq -r '.[] | select(.Size == "50G") | .Mounted_on'
+provost show df --format ndjson | jq -c '{capture, Mounted_on, Avail}'
+provost show df --format md                                 # a table to paste into a ticket
+provost diff df latest~1 latest                             # what the last capture changed
+python3 -c 'import provost_data; print(provost_data.load("df", capture="latest")[0]["Mounted_on"])'
+```
+
+**`provost_data`**, the Python package (the README's "From Python and
+Jupyter"), gives the same rows as a list of dicts (`load`) or a pandas
+DataFrame (`load_df`); `capture="latest"` works there too.
+
+**The store's own files.** `datasets/NAME.tsv` is the dataset, in a format
+[docs/store-format.md](store-format.md) specifies and keeps compatible:
+tab-separated, a header line, no quoting, and no tab or newline in a cell. The
+store is `~/.provost` unless `PROVOST_HOME`, `PROVOST_WORKSPACE` or a
+controlled directory says otherwise (`provost doctor` names it). DuckDB and
+Miller read it in place:
+
+```bash
+duckdb -c "SELECT Mounted_on, Avail FROM read_csv('~/.provost/datasets/df.tsv', delim='\t', quote='', escape='') ORDER BY Mounted_on"
+mlr --itsv --opprint sort -f Mounted_on ~/.provost/datasets/df.tsv
+provost show df --format csv | mlr --icsv --ojson filter '$Size == "50G"'
+```
+
+DuckDB needs `quote=''` and `escape=''` because the store does not quote and a
+cell may hold a `"`. Miller's TSV reader turns a `\t` or `\n` in a cell into a
+tab or a newline, where provost keeps them as the two characters (the
+`unsorted` dataset's decoded inputs have them); piping `--format csv` into
+`mlr --icsv` reads every cell as stored.
+
+**quarterdeck** (`qd`, a fleet tool that reads provost's store) filters,
+exports and views any dataset as `ds:NAME`:
+
+```bash
+qd show ds:df --where 'Use%>80' --cols Mounted_on,Avail --format csv
+qd export ds:df --format openmetrics --labels capture,Mounted_on   # Prometheus gauges; --format hec: Splunk HEC events
+qd view ds:df                                               # interactive: full screen in a terminal
+qd web                                                      # interactive: every dataset, in a browser
+```
 
 ## Instances and portability
 

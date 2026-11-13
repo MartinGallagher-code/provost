@@ -377,11 +377,32 @@ _valid_name () { [[ "$1" =~ $_NAME_RE && "$1" != *..* ]]; }
 _require_name () { _valid_name "$1" || usage_die "invalid dataset name '$1' (allowed: letters, digits, '.', '_', '-'; must start with a letter or digit; no '..')."; }
 _valid_capid () { [[ "$1" =~ ^c[0-9]{1,12}$ ]]; }
 # A capture id from what a user types for one: c0007, c7, 7 or capture-c0007
-# all mean c0007. Prints it; fails on anything else.
+# all mean c0007; 'latest' is the newest capture in the store and 'latest~N'
+# the Nth before it (PV-041), counted over the captures the store still has
+# ('rm --capture' takes one out of the count). Prints it; fails on anything
+# else, and on a 'latest' the store has no capture for (_capid_refuse says so).
+_LATEST_RE='^latest(~([0-9]{1,12}))?$'
 _capid_of () {
+    if [[ "$1" =~ $_LATEST_RE ]]; then
+        local back=$((10#${BASH_REMATCH[2]:-0})) x
+        local -a ids=()
+        [[ -d "$PROVOST_WORKSPACE/.git" ]] || return 1
+        while IFS= read -r x; do [[ -n "$x" ]] && ids+=("$x"); done < <(_capture_ids)
+        (( back < ${#ids[@]} )) || return 1
+        printf '%s\n' "${ids[${#ids[@]} - 1 - back]}"
+        return 0
+    fi
     local t="${1#capture-}"
     [[ "$t" =~ ^c?([0-9]{1,12})$ ]] || return 1
     printf 'c%04d\n' "$((10#${BASH_REMATCH[1]}))"
+}
+# _capid_refuse WORD — when _capid_of refused WORD because it is a 'latest'
+# the store has no capture for, stop with the message any capture the store
+# does not have gets; return for anything else, so the caller's own
+# "invalid capture id" message stands as it was.
+_capid_refuse () {
+    [[ "$1" =~ $_LATEST_RE ]] || return 0
+    die "no such capture: $1 (see 'provost log')."
 }
 
 # Turn an arbitrary word (a command's basename) into a valid dataset name.
@@ -3457,7 +3478,7 @@ EOF
         source) cat <<'EOF'
 usage: provost source <#N | ID>
   The original captured input behind dataset row #N, or behind capture ID
-  (c0007 or capture-c0007), with that capture's details.
+  (c0007, capture-c0007, latest or latest~1), with that capture's details.
   A capture of an input over PROVOST_MAX_INPUT is marked 'truncated: 1': only
   its first parsed_bytes are shown and parsed, and the whole input is kept
   outside git, at raw_artifact. source re-hashes that copy and adds a line,
@@ -3545,6 +3566,7 @@ usage: provost diff [NAME] [A [B]] [-- PATH...]
   provost adds; and, in a controlled directory, which files changed. With
   NAME, only that dataset, and the default captures are its own.
   No A: the last two captures; A alone: A against the capture before it.
+  A and B are capture ids: c0007, 7, latest or latest~1.
   -- PATH...              the full diff of those files between A and B
 EOF
             ;;
@@ -3552,16 +3574,30 @@ EOF
         prev) echo "usage: provost prev    step the store back one capture (from the latest: the last capture)" ;;
         ls) echo "usage: provost ls    list datasets" ;;
         show) cat <<'EOF'
-usage: provost show NAME [--capture ID] [--at ID] [--tsv]
+usage: provost show NAME [--capture ID] [--at ID] [--format FMT | --tsv]
   Present a dataset as a table: '#' is each row's index in the store,
   'capture' the capture it came from, 'n' its record number in that capture.
 options:
-  --capture ID            only the rows capture ID filed (c0007, or 7)
+  --capture ID            only the rows capture ID filed (c0007, 7, latest,
+                          or latest~1 for the one before the latest)
   --at ID                 the dataset as it stood just after capture ID, read
                           from git (the store stays where it is)
+  --format FMT            write it as FMT, for another tool (the names and
+                          shapes of quarterdeck's 'qd show --format'):
+                            table   aligned, for people (the default)
+                            tsv     tab-separated, as stored (= --tsv)
+                            csv     RFC 4180: a cell with a comma, a quote or
+                                    a line break is quoted, quotes doubled
+                            json    an array of objects, one a row
+                            ndjson  one object a line
+                            md      a Markdown table
+                          In JSON a blank cell is null, never "" or 0, and
+                          every other value is a string, as stored.
   --tsv                   tab-separated, as stored, for a program to read: a
                           blank cell stays blank, and no matching rows print
                           the header alone (Python: provost_data.load)
+  With no matching rows, every format but the table prints its empty shape
+  (the header alone, [] for json, nothing for ndjson).
 EOF
             ;;
         rm) cat <<'EOF'
@@ -4296,7 +4332,7 @@ cmd_restore () {
         ok "restored workspace to latest ($main)."
         return 0
     fi
-    target="$(_capid_of "$target")" || usage_die "invalid capture id '$1' (expected e.g. c0003, 3 or latest)."
+    target="$(_capid_of "$target")" || { _capid_refuse "$1"; usage_die "invalid capture id '$1' (expected e.g. c0003, 3 or latest)."; }
     _git rev-parse -q --verify "refs/tags/capture-$target" >/dev/null 2>&1 \
         || die "no such capture: $target (see 'provost log')."
     # Bring that capture's committed tree back up (detached).
@@ -4369,6 +4405,7 @@ cmd_files () {
             -?*) usage_die "unknown option for 'files': $a (see 'provost files --help')." ;;
         esac
         if [[ -z "$id" && -z "$path" ]] && v="$(_capid_of "$a")"; then id="$v"
+        elif [[ -z "$id" && -z "$path" && "$a" =~ $_LATEST_RE ]]; then _capid_refuse "$a"
         elif [[ -z "$path" ]]; then path="${a#./}"
         else _cmd_usage_die files; fi
         shift
@@ -4426,7 +4463,7 @@ cmd_search () {
             --output) what=output; shift ;;
             --files) what=files; shift ;;
             --at) [[ $# -ge 2 ]] || usage_die "--at needs a capture id (e.g. c0007)."
-                  at="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
+                  at="$(_capid_of "$2")" || { _capid_refuse "$2"; usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."; }
                   shift 2 ;;
             -e) [[ $# -ge 2 && -z "$pat" ]] || _cmd_usage_die search; pat="$2"; shift 2 ;;
             --) shift; if [[ -z "$pat" && $# -gt 0 ]]; then pat="$1"; shift; fi; names+=("$@"); break ;;
@@ -4496,6 +4533,8 @@ cmd_diff () {
         esac
         if v="$(_capid_of "$1")"; then
             if [[ -z "$a" ]]; then a="$v"; elif [[ -z "$b" ]]; then b="$v"; else _cmd_usage_die diff; fi
+        elif [[ "$1" =~ $_LATEST_RE ]]; then
+            _capid_refuse "$1"
         elif [[ -z "$name" && -z "$a" ]]; then
             _require_name "$1"; name="$1"
         else _cmd_usage_die diff; fi
@@ -5057,8 +5096,13 @@ cmd_source () {
     [[ $# -ge 1 ]] || _cmd_usage_die source
     case "$1" in -h|--help) _cmd_help source ;; esac
     [[ $# -eq 1 ]] || _cmd_usage_die source
-    # A capture id (c0007, capture-c0007) shows that whole capture.
+    # A capture id (c0007, capture-c0007, latest, latest~1) shows that whole
+    # capture.
     if [[ "$1" =~ ^(capture-)?c[0-9]{1,12}$ ]]; then _source_capture "$(_capid_of "$1")"; return; fi
+    if [[ "$1" =~ $_LATEST_RE ]]; then
+        local id; id="$(_capid_of "$1")" || _capid_refuse "$1"
+        _source_capture "$id"; return
+    fi
     local n="${1#\#}"                             # tolerate a leading '#'
     [[ "$n" =~ ^[0-9]{1,15}$ ]] || usage_die "row index must be a number (got '$1')."
     local prov; prov="$(_prov_file)"
@@ -5126,7 +5170,7 @@ cmd_annotate () {
     case "${1:-}" in -h|--help) _cmd_help annotate ;; esac
     [[ $# -ge 2 ]] || _cmd_usage_die annotate
     local id kv k v
-    id="$(_capid_of "$1")" || usage_die "not a capture id: '$1' (c0007, 7 or capture-c0007)."
+    id="$(_capid_of "$1")" || { _capid_refuse "$1"; usage_die "not a capture id: '$1' (c0007, 7 or capture-c0007)."; }
     shift
     local -a keys=() lines=()
     for kv in "$@"; do
@@ -5187,10 +5231,11 @@ cmd_check_manifest () {
     else
         local prov; prov="$(_prov_file)"
         for a in "${args[@]}"; do
-            if id="$(_capid_of "$a")" && [[ "$a" =~ ^(capture-)?c[0-9]+$ ]]; then
+            if id="$(_capid_of "$a")" && [[ "$a" =~ ^(capture-)?c[0-9]+$ || "$a" =~ $_LATEST_RE ]]; then
                 [[ -d "$capdir/$id" ]] || die "no such capture in the store: $id (see 'provost log')."
                 ids+=("$id")
             else
+                _capid_refuse "$a"
                 _require_name "$a"
                 local before=${#ids[@]}
                 if [[ -f "$prov" ]]; then
@@ -5305,21 +5350,170 @@ _decode_unsorted_tsv () {
 
 _table () { if command -v column >/dev/null 2>&1; then column -t -s $'\t'; else cat; fi; }
 
+# The formats 'show --format' writes (PV-041), and the other names it takes
+# for them: text (qd's name for the table) and markdown (stats' name for md).
+_SHOW_FORMATS="table tsv csv json ndjson md"
+_show_format_of () {
+    case "$1" in
+        table|text) echo table ;;
+        md|markdown) echo md ;;
+        tsv|csv|json|ndjson) echo "$1" ;;
+        *) return 1 ;;
+    esac
+}
+
+# _show_as FMT — a dataset's TSV, on stdin, written as FMT (PV-041):
+#   table   aligned columns for people (column(1), where it is installed)
+#   tsv     as stored: tab-separated, a blank cell blank (provost_data reads it)
+#   csv     RFC 4180: a cell holding a comma, a double quote, a CR or an LF
+#           is quoted, its quotes doubled; LF line ends
+#   json    an array of objects, one a row, keys in column order (indent 2)
+#   ndjson  one object a line
+#   md      a Markdown table; a '|' in a cell is written '\|'
+# The shapes are quarterdeck's 'qd show --format' ones, so a script moves
+# between the two unchanged: a blank cell is null in JSON, never "" or 0;
+# values are strings until column types (PV-040) make numbers numbers; md
+# right-aligns a column whose every filled cell is a number, bare or with a
+# unit (12, 3.5 ms, 37%), by qd's rule (its table.py split_unit,
+# column_numbers and kind). The store's TSV has no quoting and no tab or
+# newline in a cell (docs/store-format.md), so a tab-split is the whole
+# parse. mawk-safe, and byte-wise (LC_ALL=C): text that is not ASCII is
+# written as the UTF-8 it is, never as \u escapes.
+_show_as () {
+    case "$1" in
+        table) _table; return ;;
+        tsv)   cat; return ;;
+    esac
+    LC_ALL=C awk -F'\t' -v FMT="$1" '
+        function rep(s, a, b,   o, i) {
+            o = ""
+            while ((i = index(s, a)) > 0) { o = o substr(s, 1, i - 1) b; s = substr(s, i + length(a)) }
+            return o s
+        }
+        function jstr(s,   o, i, n, c) {
+            if (index(s, "\\")) s = rep(s, "\\", "\\\\")
+            if (index(s, "\"")) s = rep(s, "\"", "\\\"")
+            if (s ~ CTL) {
+                o = ""; n = length(s)
+                for (i = 1; i <= n; i++) { c = substr(s, i, 1); o = o ((c in ESC) ? ESC[c] : c) }
+                s = o
+            }
+            return "\"" s "\""
+        }
+        function jval(s) { return s == "" ? "null" : jstr(s) }
+        function cq(s) { return (s ~ CSVQ) ? "\"" rep(s, "\"", "\"\"") "\"" : s }
+        function mq(s) { return rep(rep(s, "|", "\\|"), LF, " ") }
+        # A cell as qd reads a number: 1 when it is one, with its unit in NU
+        # ("" for a bare number). float() first (underscores between digits,
+        # as Python takes them); else a number and a unit qd knows.
+        function isnum(s,   u) {
+            NU = ""
+            sub(TRL, "", s); sub(TRR, "", s)
+            if (s ~ PYNUM) return 1
+            if (!match(s, UNUM)) return 0
+            u = substr(s, RLENGTH + 1); sub(TRL, "", u)
+            if (u !~ /^[A-Za-z%\/]+$/ || length(u) > 8) return 0
+            if (!(tolower(u) in UNITS) && substr(u, length(u) - 1) != "/s") return 0
+            NU = u; return 1
+        }
+        BEGIN {
+            LF = sprintf("%c", 10)
+            CTL = "["; for (i = 1; i < 32; i++) { c = sprintf("%c", i); CTL = CTL c; ESC[c] = sprintf("\\u%04x", i) }
+            CTL = CTL "]"
+            ESC[sprintf("%c", 8)] = "\\b"; ESC[sprintf("%c", 9)] = "\\t"; ESC[LF] = "\\n"
+            ESC[sprintf("%c", 12)] = "\\f"; ESC[sprintf("%c", 13)] = "\\r"
+            CSVQ = "[,\"" sprintf("%c", 13) LF "]"
+            WS = "[ " sprintf("%c%c%c%c", 9, 11, 12, 13) "]"; TRL = "^" WS "+"; TRR = WS "+$"
+            DP = "[0-9](_?[0-9])*"
+            PYNUM = "^[-+]?(" DP "(\\.(" DP ")?)?|\\." DP ")([eE][-+]?" DP ")?$"
+            UNUM = "^[-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][-+]?[0-9]+)?"
+            n = split("b k kb kib m mb mib g gb gib t tb tib p pb pib e eb eib", a, " ")
+            for (i = 1; i <= n; i++) { UNITS[a[i]] = 1; SIZE[a[i]] = 1 }
+            n = split("ns us ms s sec min h", a, " ")
+            for (i = 1; i <= n; i++) { UNITS[a[i]] = 1; TIME[a[i]] = 1 }
+            n = split("% hz khz mhz ghz bps kbps mbps gbps pps kpps mpps iops ops c w kw v mv a ma rpm x kbit mbit gbit", a, " ")
+            for (i = 1; i <= n; i++) UNITS[a[i]] = 1
+        }
+        NR == 1 {
+            nc = NF
+            for (i = 1; i <= NF; i++) { H[i] = $i; K[i] = jstr($i) }
+            if (FMT == "csv") { o = cq($1); for (i = 2; i <= NF; i++) o = o "," cq($i); print o }
+            next
+        }
+        FMT == "csv" { o = cq($1); for (i = 2; i <= NF; i++) o = o "," cq($i); print o; next }
+        FMT == "ndjson" {
+            o = "{"; for (i = 1; i <= nc; i++) o = o (i > 1 ? ", " : "") K[i] ": " jval($i)
+            print o "}"; next
+        }
+        FMT == "json" {
+            printf "%s", (rows++ ? ",\n  {\n" : "[\n  {\n")
+            for (i = 1; i <= nc; i++) printf "    %s: %s%s\n", K[i], jval($i), (i < nc ? "," : "")
+            printf "  }"; next
+        }
+        FMT == "md" {
+            nr++
+            for (i = 1; i <= nc; i++) {
+                R[nr, i] = $i; t = $i; sub(TRL, "", t); sub(TRR, "", t)
+                if (t == "") continue
+                F[i]++
+                if (!isnum(t)) continue
+                if (NU == "") { B[i]++; continue }
+                if (!((i, NU) in U)) { UL[i, ++un[i]] = NU }
+                U[i, NU]++
+            }
+        }
+        END {
+            if (FMT == "json") { print (rows ? "\n]" : "[]"); exit }
+            if (FMT != "md" || nc == 0) exit
+            o = "|"; for (i = 1; i <= nc; i++) o = o " " mq(H[i]) " |"; print o
+            o = "|"
+            for (i = 1; i <= nc; i++) {
+                # How many filled cells qd counts as numbers: all of them in
+                # one unit (or none), or in sizes or times it puts on one
+                # scale; else only the bare ones and the commonest unit
+                # (the first seen of those as common).
+                m = B[i]; sz = 1; tm = 1; best = ""
+                for (j = 1; j <= un[i]; j++) {
+                    u = UL[i, j]; m += U[i, u]
+                    if (!(tolower(u) in SIZE)) sz = 0
+                    if (!(tolower(u) in TIME)) tm = 0
+                    if (best == "" || U[i, u] > U[i, best]) best = u
+                }
+                if (un[i] > 1 && !sz && !tm) m = B[i] + U[i, best]
+                o = o ((F[i] > 0 && m == F[i]) ? "---:" : "---") "|"
+            }
+            print o
+            for (r = 1; r <= nr; r++) {
+                o = "|"; for (i = 1; i <= nc; i++) o = o " " mq(R[r, i]) " |"; print o
+            }
+        }'
+}
+
 cmd_show () {
     [[ $# -ge 1 ]] || _cmd_usage_die show
-    local name="" at="" cap="" v out=_table
+    local name="" at="" cap="" v out=table
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help) _cmd_help show ;;
-            # --tsv: the rows as tab-separated text, exactly as stored (the
-            # 'unsorted' raw column still decoded), never through column(1):
-            # in an aligned table a blank cell is only spaces, and whether
-            # the table has tabs or spaces depends on column(1) being
-            # installed. What a program reads (provost_data.load, PV-031).
-            --tsv) out=cat; shift ;;
+            # --tsv (--format tsv): the rows as tab-separated text, exactly
+            # as stored (the 'unsorted' raw column still decoded), never
+            # through column(1): in an aligned table a blank cell is only
+            # spaces, and whether the table has tabs or spaces depends on
+            # column(1) being installed. What a program reads
+            # (provost_data.load, PV-031).
+            --tsv) out=tsv; shift ;;
+            --format|--format=*)
+                if [[ "$1" == --format ]]; then
+                    [[ $# -ge 2 ]] || usage_die "--format needs a format (${_SHOW_FORMATS// /, })."
+                    v="$2"; shift 2
+                else
+                    v="${1#--format=}"; shift
+                fi
+                out="$(_show_format_of "$v")" \
+                    || usage_die "unknown --format '$v' for 'show' (want ${_SHOW_FORMATS// /, })." ;;
             --at|--capture)
                 [[ $# -ge 2 ]] || usage_die "$1 needs a capture id (e.g. c0007)."
-                v="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
+                v="$(_capid_of "$2")" || { _capid_refuse "$2"; usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."; }
                 if [[ "$1" == --at ]]; then at="$v"; else cap="$v"; fi
                 shift 2 ;;
             -?*) usage_die "unknown option for 'show': $1 (see 'provost show --help')." ;;
@@ -5352,13 +5546,14 @@ cmd_show () {
             FNR == 1 { col = ($1 == "#" && $2 ~ /^_*capture$/); print; next }
             (col ? $2 : pc[$1]) == C' "$prov" "$f" > "$only"
         f="$only"
-        # None: a table says so; --tsv prints the header alone (no rows).
-        if [[ "$(wc -l < "$f")" -le 1 && "$out" == _table ]]; then
+        # None: a table says so; every other format prints the shape with
+        # no rows in it (the header alone, '[]', or nothing for ndjson).
+        if [[ "$(wc -l < "$f")" -le 1 && "$out" == table ]]; then
             info "no rows in '$name' from capture $cap."; return 0
         fi
     fi
-    if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | "$out"
-    else "$out" < "$f"; fi
+    if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | _show_as "$out"
+    else _show_as "$out" < "$f"; fi
 }
 
 cmd_triage () {
@@ -5406,7 +5601,7 @@ cmd_rm () {
                 IFS=',' read -r -a parts <<< "$v" || true
                 [[ ${#parts[@]} -gt 0 ]] || usage_die "--capture needs a capture id (e.g. c0007)."
                 for v in "${parts[@]}"; do
-                    c="$(_capid_of "$v")" || usage_die "invalid capture id '$v' (expected e.g. c0007 or 7)."
+                    c="$(_capid_of "$v")" || { _capid_refuse "$v"; usage_die "invalid capture id '$v' (expected e.g. c0007 or 7)."; }
                     caps+=("$c")
                 done ;;
             -h|--help)               _cmd_help rm ;;
@@ -6554,7 +6749,7 @@ cmd_verify () {
     done
     local -a norm=()
     for v in ${want[@]+"${want[@]}"}; do
-        norm+=("$(_capid_of "$v")") || usage_die "verify: not a capture id: $v (ids look like c0007, 7 or capture-c0007)."
+        norm+=("$(_capid_of "$v")") || { _capid_refuse "$v"; usage_die "verify: not a capture id: $v (ids look like c0007, 7 or capture-c0007)."; }
     done
     want=(${norm[@]+"${norm[@]}"})
     [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no git-backed store at $PROVOST_WORKSPACE — nothing to verify."
@@ -7227,7 +7422,7 @@ CAPTURE
 
 LOOK
     provost ls                    list datasets
-    provost show NAME             show a dataset as a table
+    provost show NAME             a dataset as a table (--format csv|json|md)
     provost search PATTERN        find matching rows in every dataset
     provost log                   list captures (c0001, c0002, ...)
     provost source ID             a capture's original output
@@ -7284,9 +7479,12 @@ COMMANDS
         load it). No CMD: list them.
   Look
     provost ls                     list datasets and their row counts
-    provost show NAME [--capture ID] [--at ID]
+    provost show NAME [--capture ID] [--at ID] [--format FMT | --tsv]
         A dataset as a table; --capture: only the rows capture ID filed;
-        --at: the dataset as it stood just after capture ID.
+        --at: the dataset as it stood just after capture ID; --format: as
+        table, tsv (as stored; = --tsv), csv (RFC 4180), json (an array of
+        objects; a blank cell is null), ndjson (an object a line) or md
+        (Markdown), the shapes of quarterdeck's 'qd show --format'.
     provost search PATTERN [NAME...] [-i -F -w] [--at ID] [--output | --files]
         git grep over the rows (or the captured outputs, or a controlled
         directory's run files), shown per dataset under its header.
@@ -7357,7 +7555,9 @@ COMMANDS
         tables, coverage and unread lines; with EXPECTED, a diff, and exit 1
         on a difference (TEMPLATES below).
 
-  An ID is a capture id: c0007, 7 or capture-c0007.
+  An ID is a capture id: c0007, 7 or capture-c0007; or latest, the newest
+  capture, and latest~N, the Nth before it (counted over the captures the
+  store has). 'restore latest' alone means the present, not a capture.
 
 CAPTURE OPTIONS (run, piped input, FILE)
     --name NAME             file into dataset NAME

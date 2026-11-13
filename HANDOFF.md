@@ -5,7 +5,7 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.21.0 is everything through 2026-11-12** (`VERSION`, man header,
+**provost 2.22.0 is everything through 2026-11-13** (`VERSION`, man header,
 the `## 2.21.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
@@ -30,14 +30,15 @@ hand-written, tested with `provost template test`, time-limited, and TextFSM
 (PV-039, Next steps 1n; 2.20.0); a survey of the tools near provost
 (PV-036, Next steps 1o; 2.20.1, docs only); the command's name used in
 detection, `pkg-config` narrowed and full mode checked in CI (PV-037, Next
-steps 1p; 2.21.0). 2.4.0 added `provost
+steps 1p; 2.21.0); `show --format`, `latest` as a capture id and a "Getting
+data out" section (PV-041, Next steps 1q; 2.22.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.21.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.21.0`, not both). Either way the release workflow
+2.22.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.22.0`, not both). Either way the release workflow
 now also attaches the offline bundle to the GitHub release `v2.21.0`, creating
 that release on a dispatched run.
 
@@ -343,7 +344,8 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (737, with the `units` part's 41)
+- `tests/smoke.sh` (about 2,000 in 32 parts, the core part three times;
+  the `units` part's 41, `show-format`'s 103, 111 with qd installed)
 - `transform/tests/test_melt.sh` (70)
 - `transform/tests/test_units.sh` (86; mawk and gawk)
 - `extract/tests/run_tests.sh` (70 files)
@@ -355,6 +357,26 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1q. **2026-11-13: getting data out** (PV-041, 2.22.0). `provost show NAME
+    --format table|tsv|csv|json|ndjson|md` (`_show_as`), the names and shapes
+    of quarterdeck's `qd show --format`: JSON an array of objects, NDJSON one a
+    line, a blank cell `null`, values strings (the ticket's question, taken at
+    its suggested answer: typed values wait for PV-040); CSV RFC 4180; md with
+    qd's right-alignment rule. `--tsv` is `--format tsv`, unchanged, and
+    `provost_data` still reads it. `latest` and `latest~N` are capture ids
+    everywhere one is taken (`_capid_of`; `_capid_refuse` gives an unknown
+    one the message any unknown capture gets). `docs/usage.md` and the README
+    have "Getting data out": `show --format` with jq, `provost_data`, DuckDB
+    and Miller on `datasets/NAME.tsv`, and qd's `show ds:NAME --where`,
+    `export --format openmetrics|hec`, `view` and `web`; the smoke part
+    `show-format` runs every command in both sections as written (skipping a
+    missing tool, and saying so). Checked against qd's own output: CSV and md
+    are the same less qd's columns; qd's JSON sorts keys and types numbers,
+    its NDJSON leaves a blank key out, its TSV quotes a `"`. **Open:** when
+    PV-040 lands, `json`/`ndjson` should write typed values (the docs already
+    say so); whether NDJSON should leave a blank cell's key out, as qd does,
+    is the owner's call (it writes `null` now, as the ticket asked).
 
 1p. **2026-11-12: the command's name in detection; full mode checked**
     (PV-037, 2.21.0). Tools like jc, ntc-templates and Genie pick a parser by
@@ -396,7 +418,7 @@ Suites (all CI-enforced):
       1n, 2.20.0).
     - PV-040: record each column's type once, at capture.
     - PV-041: `provost show --format`, `--capture latest`, and a "Getting
-      data out" section.
+      data out" section (since done: 1q, 2.22.0).
     Runners-up, changes to provost's shape (listed, not filed) and
     quarterdeck's share are in the report. PV-006's pick (docs/0004) is still
     open.
