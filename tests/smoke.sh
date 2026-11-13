@@ -1321,9 +1321,11 @@ PY
     # PV-010: the fragments rule sizes a block by its lines OR its rows. A
     # ServerQuery client list is one line holding six clients: a block of one
     # line and six rows is no fragment, so the template files it.
-    R4="$HERE/benchmark/round4"; LTL="$LTD/lib"; mkdir -p "$LTL"
-    cp "$R4/llm-templates-f2/132-teamspeak-serverquery-clientlist.json" "$LTL/teamspeak-clientlist.json"
-    cp "$R4/llm-templates-f2/020-golangci-lint-linters.json" "$LTL/golangci-lint-linters.json"
+    # (two of round 4's format-2 templates, kept as fixtures: PV-042 moved the
+    # rest of the benchmark's LLM-written templates out of the tree)
+    R4="$HERE/benchmark/round4"; LTF="$HERE/fixtures/llm-templates"; LTL="$LTD/lib"; mkdir -p "$LTL"
+    cp "$LTF/132-teamspeak-serverquery-clientlist.json" "$LTL/teamspeak-clientlist.json"
+    cp "$LTF/020-golangci-lint-linters.json" "$LTL/golangci-lint-linters.json"
     lt_out="$(PROVOST_WORKSPACE="$LTD/.frag" PROVOST_LLM_TEMPLATE_DIRS="$LTL" \
         "$PROVOST" --sync --llm --name teamspeak-clientlist "$R4/inputs/132-teamspeak-serverquery-clientlist.txt" 2>&1)"
     check "a one-line block of six records is not a fragment" "read by template teamspeak-clientlist.json" "$lt_out"
