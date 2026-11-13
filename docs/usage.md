@@ -30,10 +30,12 @@ keeps what such a run printed:
   or while piped input is read, does not stop the reading. The command (a
   Ctrl-C at the terminal reaches it too, as it always did) has
   `PROVOST_INTERRUPT_GRACE` seconds (default 2) to finish, time for `ping` to
-  print its summary; one still running then is sent SIGTERM.
+  print its summary; one still running then is sent SIGTERM, and SIGKILL a
+  second later.
 - **What it printed is filed** as any capture is, into the same dataset, so
   `show`, `diff` and `qd` see it. Its `meta.tsv` says `interrupted<TAB>SIGINT` (or
-  `SIGTERM`, `SIGHUP`) beside the command's `rc` (empty if it had not ended),
+  `SIGTERM`, `SIGHUP`) beside the command's `rc` (143 or 137 when provost had
+  to stop it),
   and `provost log` shows `[interrupted: SIGINT]` after the command.
 - **provost exits 130** (143 for SIGTERM, 129 for SIGHUP), so a script still
   sees the interruption.

@@ -116,7 +116,9 @@ bash transform/tests/test_units.sh  # --units base: conversion table and rules (
 `tests/smoke.sh` and `extract/tests/run_tests.sh` run in parallel, as the corpus
 gate does: one job per CPU (`nproc`), each part's or file's output held and
 printed whole, in order. `PROVOST_TEST_JOBS=N` sets the job count, and
-`PROVOST_TEST_JOBS=1` runs them one at a time, as they used to (PV-018). A new
+`PROVOST_TEST_JOBS=1` runs them one at a time, as they used to (PV-018). In
+parallel, a smoke part that runs past `PROVOST_SMOKE_PART_TIMEOUT` seconds (600)
+fails by name, after the checks it printed (PV-038). A new
 smoke check goes inside an `if _part NAME; then ... fi` block: the one for its
 store, or `core` if it uses the default workspace `$WS`, since each part runs
 with a fresh one.

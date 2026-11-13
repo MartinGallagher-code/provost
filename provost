@@ -3210,14 +3210,19 @@ _want_async () {
 # batch scheduler stops at its walltime (SIGTERM). Now, for `run` and for
 # piped input:
 #   * While the command runs (or the input is read), the first SIGINT,
-#     SIGTERM or SIGHUP does not stop the reading. The reading runs in the
-#     background with those signals ignored, and the command has them as
-#     provost got them, so it hears the Ctrl-C as before. The command then
-#     has PROVOST_INTERRUPT_GRACE seconds (2) to finish (ping prints its
-#     summary); one still running is sent SIGTERM. What it printed is filed
-#     as any capture is, marked `interrupted SIGINT` (SIGTERM, SIGHUP) in
+#     SIGTERM or SIGHUP does not stop the reading. The command runs as it
+#     always did, in the foreground with the signals provost got, so it
+#     hears the Ctrl-C as before; the reading ignores them; and a watchdog
+#     in provost's process group (_cap_watchdog: this shell cannot act while
+#     it waits on the foreground) gives the command PROVOST_INTERRUPT_GRACE
+#     seconds (2) to finish (ping prints its summary), then sends it
+#     SIGTERM, and SIGKILL a second later. What it printed is filed as any
+#     capture is, marked `interrupted SIGINT` (SIGTERM, SIGHUP) in
 #     meta.tsv, and provost exits 130 (143, 129), so a script still sees
-#     the interruption.
+#     the interruption. (Not in the background: bash 5.3 starts whatever an
+#     async list or a process substitution runs with SIGINT ignored, beyond
+#     the reach of `trap -`, so a command started there would not hear the
+#     Ctrl-C at all.)
 #   * A signal after that (a second Ctrl-C, or one while provost files a
 #     capture whose command ran to its end) stops provost at once and files
 #     nothing (_ingest_guarded): the parse and store halves run in a process
@@ -3234,7 +3239,7 @@ _CAP_SIGRC=0        # ...and the status provost exits with for it
 _CAP_ABORT=""       # a signal that stops provost with nothing filed
 _CAP_ABORTRC=0
 _CAP_LATE=0         # 1: the command had not finished in the grace, and was sent SIGTERM
-_CAP_RC=""          # the command's exit status ('' when it had not ended)
+_CAP_RC=""          # the command's exit status
 _FILING_REC=""      # _ingest_guarded's record dir (_llm_keep writes there)
 _GUARD_RC=0
 _cap_on_sig () {
@@ -3248,7 +3253,8 @@ _cap_on_sig () {
     # A `wait` that starts just after this ran would not see it (bash runs a
     # trap between commands, and a wait it has not reached yet waits on):
     # wake it a moment later, with a SIGUSR1 trapped as a no-op.
-    ( sleep 0.2; kill -USR1 "$$" ) </dev/null >/dev/null 2>&1 &
+    ( exec 3>&- 4>&- 5>&- 6>&- 7>&- 8>&- 9>&-; sleep 0.2; kill -USR1 "$$" ) </dev/null >/dev/null 2>&1 &
+    disown "$!" 2>/dev/null || true
     return 0
 }
 _cap_traps () {
@@ -3276,79 +3282,117 @@ _cap_read () {
     esac
 }
 
+# _cap_watchdog TMP — a capture's watchdog. It runs in the background, in
+# provost's process group, so the Ctrl-C (or the scheduler's SIGTERM) that
+# reaches the command and this shell reaches it too, while this shell waits
+# in the foreground on the reading and cannot act until that ends. From the
+# first SIGINT, SIGTERM or SIGHUP it gives the command
+# PROVOST_INTERRUPT_GRACE seconds to finish, then sends it SIGTERM (TMP/
+# cap.late), SIGKILL a second later if it is still there (this shell waits
+# on it in the foreground), and stops the reading; a second signal stops
+# both at once (TMP/cap.abort, holding its name). It only signals and
+# writes those files, so it does not matter that bash 5.3 starts anything
+# in the background with SIGINT ignored (a trap may still be set there).
+# TMP/cap.wready says its traps are set. The caller kills it when the
+# reading is done.
+_cap_watchdog () {
+    local tmp="$1" s="" n sp cpid="" rpid=""
+    # nothing of the caller's held open (a $(...) reading provost's output
+    # would wait on its sleep)
+    exec 3>&- 4>&- 5>&- 6>&- 7>&- 8>&- 9>&-
+    trap 's="$s INT"' INT; trap 's="$s TERM"' TERM; trap 's="$s HUP"' HUP
+    : > "$tmp/cap.wready"
+    while [[ -z "$s" ]]; do
+        # gone with provost, should it die before it can kill this
+        kill -0 "$$" 2>/dev/null || return 0
+        sleep 5 & sp=$!
+        wait "$sp" 2>/dev/null || true
+        kill "$sp" 2>/dev/null || true
+    done
+    { IFS= read -r cpid < "$tmp/cap.cpid"; } 2>/dev/null || true
+    { IFS= read -r rpid < "$tmp/cap.rpid"; } 2>/dev/null || true
+    [[ "$cpid" =~ ^[0-9]+$ ]] || cpid=""
+    [[ "$rpid" =~ ^[0-9]+$ ]] || rpid=""
+    # the grace: until the command and the reading are done, or a second signal
+    n=$((PROVOST_INTERRUPT_GRACE * 10))
+    while (( n > 0 )) && [[ "$s" != *" "*" "* ]] \
+          && { { [[ -n "$cpid" ]] && kill -0 "$cpid" 2>/dev/null; } || { [[ -n "$rpid" ]] && kill -0 "$rpid" 2>/dev/null; }; }; do
+        sleep 0.1 || true; n=$((n - 1))
+    done
+    if [[ "$s" == *" "*" "* ]]; then
+        # a second signal: stop now
+        s="${s# }"; s="${s#* }"; printf '%s\n' "${s%% *}" > "$tmp/cap.abort"
+        [[ -z "$rpid" ]] || kill -KILL "$rpid" 2>/dev/null || true
+    elif [[ -n "$cpid" ]] && kill -0 "$cpid" 2>/dev/null; then
+        # still running: told to stop, and a second more for its last words
+        : > "$tmp/cap.late"
+    fi
+    if [[ -n "$cpid" ]] && kill -0 "$cpid" 2>/dev/null; then
+        kill -TERM "$cpid" 2>/dev/null || true
+        n=10
+        while (( n > 0 )) && kill -0 "$cpid" 2>/dev/null; do sleep 0.1 || true; n=$((n - 1)); done
+        # one that ignores SIGTERM too would hold provost for ever
+        kill -KILL "$cpid" 2>/dev/null || true
+        n=5
+        while (( n > 0 )) && [[ -n "$rpid" ]] && kill -0 "$rpid" 2>/dev/null; do sleep 0.1 || true; n=$((n - 1)); done
+    fi
+    # the reading stops here (whatever still holds the pipe open)
+    [[ -z "$rpid" ]] || kill -KILL "$rpid" 2>/dev/null || true
+    return 0
+}
+
 # _cap_stream TMP MODE OUT [CMD...] — read a capture's input into OUT
-# (_cap_read MODE): CMD's stdout and stderr together, CMD run with this
-# provost's stdin; with no CMD, this provost's stdin. Sets _CAP_RC to CMD's
-# exit status ('' when it had not ended when the reading stopped), and
-# _CAP_SIG when a signal cut the reading short (see above). A second signal
-# stops provost at once, with nothing filed.
+# (_cap_read MODE): CMD's stdout and stderr together, CMD run as provost
+# always ran it, in the foreground with this provost's stdin and signals
+# as provost got them; with no CMD, this provost's stdin. The reading
+# ignores SIGINT, SIGTERM and SIGHUP, and _cap_watchdog sees to the grace,
+# so a first signal leaves _CAP_SIG set (by _cap_on_sig, once the reading
+# is done) and what came before it, and the command's last words, in OUT.
+# Sets _CAP_RC to CMD's exit status, and _CAP_LATE when the command had to
+# be sent SIGTERM. A second signal stops provost at once, with nothing
+# filed. The command starts only once the reading and the watchdog are
+# ready, so a signal that comes at once cannot find either unprepared.
 _cap_stream () {
     local tmp="$1" mode="$2" out="$3"; shift 3
-    local bg fd="" cpid="" rpid="" n
-    rm -f -- "${tmp:?}/cap.cpid" "${tmp:?}/cap.rpid" "${tmp:?}/cap.rc"
+    local w a=""
+    rm -f -- "${tmp:?}/cap.cpid" "${tmp:?}/cap.rpid" "${tmp:?}/cap.wready" "${tmp:?}/cap.late" "${tmp:?}/cap.abort"
     _CAP_RC=""; _CAP_LATE=0; _CAP_PHASE=capture; _cap_traps
-    # this provost's stdin, for the reading in the background (which would
-    # otherwise get /dev/null); a closed one stays closed
-    if ! { exec {fd}<&0; } 2>/dev/null; then fd=""; fi
+    _cap_watchdog "$tmp" </dev/null >/dev/null 2>&1 &
+    w=$!
+    disown "$w" 2>/dev/null || true
+    set +e
     if (( $# > 0 )); then
-        {
-            trap '' INT TERM HUP; set +e
-            ( trap - INT QUIT TERM HUP; printf '%s\n' "$BASHPID" > "$tmp/cap.cpid"
-              if [[ -n "$fd" ]]; then exec <&"$fd" {fd}<&-; else exec <&-; fi
-              exec "$@" ) 2>&1 \
-                | { [[ -z "$fd" ]] || exec {fd}<&-; printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"; _cap_read "$mode" "$out"; }
-            printf '%s\n' "${PIPESTATUS[0]}" > "$tmp/cap.rc" 2>/dev/null
-        } &
+        ( _cap_ready "$tmp"; printf '%s\n' "$BASHPID" > "$tmp/cap.cpid"; exec "$@" ) 2>&1 \
+            | ( trap '' INT TERM HUP; printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"; _cap_read "$mode" "$out" )
+        _CAP_RC="${PIPESTATUS[0]}"
     else
-        {
-            trap '' INT TERM HUP
-            if [[ -n "$fd" ]]; then exec <&"$fd" {fd}<&-; else exec <&-; fi
-            printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"
-            _cap_read "$mode" "$out"
-        } &
+        ( trap '' INT TERM HUP; printf '%s\n' "$BASHPID" > "$tmp/cap.rpid"; _cap_read "$mode" "$out" )
     fi
-    bg=$!
-    [[ -z "$fd" ]] || exec {fd}<&-
-    # until the reading is done, or a signal comes
-    while [[ -z "$_CAP_SIG" ]] && kill -0 "$bg" 2>/dev/null; do
-        wait "$bg" 2>/dev/null || true
-    done
-    if [[ -n "$_CAP_SIG" ]]; then
-        # the grace: time for the command (or whatever feeds the pipe) to finish
-        n=$((PROVOST_INTERRUPT_GRACE * 10))
-        while [[ -z "$_CAP_ABORT" ]] && (( n > 0 )) && kill -0 "$bg" 2>/dev/null; do
-            sleep 0.1 || true; n=$((n - 1))
-        done
-        if [[ -z "$_CAP_ABORT" ]] && kill -0 "$bg" 2>/dev/null && (( $# > 0 )); then
-            # still running: told to stop, and a second more for its last words
-            _CAP_LATE=1
-            { IFS= read -r cpid < "$tmp/cap.cpid"; } 2>/dev/null || true
-            [[ ! "$cpid" =~ ^[0-9]+$ ]] || kill -TERM "$cpid" 2>/dev/null || true
-            n=10
-            while [[ -z "$_CAP_ABORT" ]] && (( n > 0 )) && kill -0 "$bg" 2>/dev/null; do
-                sleep 0.1 || true; n=$((n - 1))
-            done
-        fi
-    fi
-    if kill -0 "$bg" 2>/dev/null; then
-        # the reading stops here (the grace is over, or a second signal came)
-        { IFS= read -r rpid < "$tmp/cap.rpid"; } 2>/dev/null || true
-        [[ ! "$rpid" =~ ^[0-9]+$ ]] || kill -KILL "$rpid" 2>/dev/null || true
-        if [[ -n "$_CAP_ABORT" ]] && (( $# > 0 )); then
-            { IFS= read -r cpid < "$tmp/cap.cpid"; } 2>/dev/null || true
-            [[ ! "$cpid" =~ ^[0-9]+$ ]] || kill -TERM "$cpid" 2>/dev/null || true
-        fi
-        n=5
-        while (( n > 0 )) && kill -0 "$bg" 2>/dev/null; do sleep 0.1 || true; n=$((n - 1)); done
-    fi
-    # (a command that ignores SIGTERM is not waited for: it is left running)
-    kill -0 "$bg" 2>/dev/null || wait "$bg" 2>/dev/null || true
-    if (( $# > 0 )); then
-        { IFS= read -r _CAP_RC < "$tmp/cap.rc"; } 2>/dev/null || _CAP_RC=""
-        [[ "$_CAP_RC" =~ ^[0-9]+$ ]] || _CAP_RC=""
+    set -e
+    kill -KILL "$w" 2>/dev/null || true
+    [[ "$_CAP_RC" =~ ^[0-9]+$ ]] || _CAP_RC=""
+    [[ ! -e "$tmp/cap.late" ]] || _CAP_LATE=1
+    if [[ -z "$_CAP_ABORT" && -e "$tmp/cap.abort" ]]; then
+        { IFS= read -r a < "$tmp/cap.abort"; } 2>/dev/null || true
+        case "$a" in
+            INT) _CAP_ABORT=SIGINT; _CAP_ABORTRC=130 ;;
+            TERM) _CAP_ABORT=SIGTERM; _CAP_ABORTRC=143 ;;
+            *) _CAP_ABORT=SIGHUP; _CAP_ABORTRC=129 ;;
+        esac
+        [[ -n "$_CAP_SIG" ]] || { _CAP_SIG="$_CAP_ABORT"; _CAP_SIGRC="$_CAP_ABORTRC"; }
     fi
     _CAP_PHASE=prepare
     [[ -z "$_CAP_ABORT" ]] || _cap_abort_exit
+    return 0
+}
+# _cap_ready TMP — in the command's subshell, before it starts: wait (a
+# moment, at most 5 s) until the reading ignores the signals and the
+# watchdog has its traps.
+_cap_ready () {
+    local i=0
+    while { [[ ! -e "$1/cap.rpid" ]] || [[ ! -e "$1/cap.wready" ]]; } && (( i < 500 )); do
+        sleep 0.01 2>/dev/null || true; i=$((i + 1))
+    done
     return 0
 }
 
@@ -8131,10 +8175,10 @@ INTERRUPTED RUNS
     command, or while piped input is read, does not throw the output away.
     The command (a Ctrl-C reaches it too, as it always did) has
     PROVOST_INTERRUPT_GRACE seconds (default 2) to finish, time for ping to
-    print its summary; one still running then is sent SIGTERM. What it
-    printed is filed as any capture is, its meta.tsv says 'interrupted
-    SIGINT' (or SIGTERM, SIGHUP) beside the command's rc ('' when it had
-    not ended), 'provost log' shows [interrupted: SIGINT] after its command,
+    print its summary; one still running then is sent SIGTERM, and SIGKILL
+    a second later. What it printed is filed as any capture is, its
+    meta.tsv says 'interrupted SIGINT' (or SIGTERM, SIGHUP) beside the
+    command's rc, 'provost log' shows [interrupted: SIGINT] after its command,
     and provost exits 130 (143, 129), so a script still sees the
     interruption. A batch scheduler's walltime is the same case: Slurm sends
     SIGTERM, then SIGKILL KillWait seconds (30) later.

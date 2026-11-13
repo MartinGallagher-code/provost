@@ -364,10 +364,12 @@ Suites (all CI-enforced):
 
 1s. **2026-11-13: an interrupted run keeps what it had printed** (PV-038,
     2.23.0). The first SIGINT, SIGTERM or SIGHUP while `run` runs its command
-    or piped input is read keeps the reading going (`_cap_stream`: the reader
-    in the background, signals ignored; the command with them as provost got
-    them), gives the command `PROVOST_INTERRUPT_GRACE` seconds (2) and then
-    SIGTERM, and files what it printed with `interrupted SIGINT` in
+    or piped input is read keeps the reading going (`_cap_stream`: the
+    command in the foreground as it always was, the reader ignoring the
+    signals, and `_cap_watchdog` in the background giving the command
+    `PROVOST_INTERRUPT_GRACE` seconds (2), then SIGTERM, then SIGKILL; not the
+    command in the background, which bash 5.3 starts with SIGINT ignored for
+    good), and files what it printed with `interrupted SIGINT` in
     `meta.tsv`, `[interrupted: SIGINT]` in `log`, exit 130/143/129. A second
     signal, or one while filing, stops at once with nothing filed: the
     foreground filing is now `_ingest_guarded`, its parse and store halves
@@ -376,7 +378,8 @@ Suites (all CI-enforced):
     `_cap_snapshot` whatever the killed store half changed (commit, tags,
     git's lock files, index, working tree; earlier uncommitted changes kept).
     The owner's two questions taken at their suggested answers (kept by
-    default; 2 s). Smoke part `interrupt`. **Open:** a `SIGKILL` (Slurm's,
+    default; 2 s). Smoke part `interrupt`; the smoke runner now fails a part
+    that runs past `PROVOST_SMOKE_PART_TIMEOUT` (600 s) by name. **Open:** a `SIGKILL` (Slurm's,
     `KillWait` after the SIGTERM) can still land while filing; it cannot be
     caught, and a store left mid-filing is what `verify` reports; an input
     over `PROVOST_MAX_INPUT` whose filing is stopped leaves its kept copy in

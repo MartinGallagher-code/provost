@@ -8,14 +8,15 @@ the signal, marked"; nothing that ran to its end works differently.
 
 - **The first SIGINT, SIGTERM or SIGHUP while `provost run` runs its command,
   or while piped input is read, no longer throws the output away**
-  (`provost`: `_cap_stream`, `_cap_on_sig`, `cmd_run`, `cmd_inject`). The
-  reading runs in the background with those signals ignored, and the command
-  with them as provost got them, so a Ctrl-C still reaches it. The command has
+  (`provost`: `_cap_stream`, `_cap_watchdog`, `_cap_on_sig`, `cmd_run`,
+  `cmd_inject`). The command runs as it always did, in the foreground with the
+  signals provost got, so a Ctrl-C still reaches it; the reading ignores those
+  signals; and a watchdog in provost's process group gives the command
   `PROVOST_INTERRUPT_GRACE` seconds (new; default 2, 0 to 3600) to finish
-  (`ping` prints its summary on SIGINT); one still running is sent SIGTERM and
-  given a second more. What it printed is filed as any capture is, its
+  (`ping` prints its summary on SIGINT), then sends it SIGTERM, and SIGKILL a
+  second later. What it printed is filed as any capture is, its
   `meta.tsv` gets `interrupted<TAB>SIGINT` (`SIGTERM`, `SIGHUP`) beside the
-  command's `rc` (empty when it had not ended), `provost log` shows
+  command's `rc`, `provost log` shows
   `[interrupted: SIGINT]` after the command, and provost exits 130 (143, 129).
   Nothing printed: nothing captured, same exit status. The owner's two
   questions were taken at their suggested answers: kept by default, no
@@ -37,6 +38,15 @@ the signal, marked"; nothing that ran to its end works differently.
   wrote in the parse half is put back as it was (`_llm_keep`,
   `_cap_undo_llm`). Before this, a signal while filing could leave the
   capture's files uncommitted in the store.
+- **Why the command is not started in the background:** bash 5.3 starts
+  whatever an async list or a process substitution runs with SIGINT (and
+  SIGQUIT) ignored, beyond the reach of `trap -` (`setup_async_signals`, its
+  new `set_signal_async_ignored`); 5.2 let `trap -` undo it. A first version
+  of this change ran the command in a background group and passed every check
+  on bash 5.2, and on CI's bash 5.3 the command never heard the Ctrl-C (ping
+  printed no summary and was stopped by the grace's SIGTERM), and one check
+  then hung. Only the watchdog runs in the background, and it only traps,
+  signals and writes marker files, which 5.3 allows.
 - **Not changed:** a background capture (`--async`, the default at a
   terminal) is queued once the reading stops, as before; `batch` reads files,
   not a live command; `listen` runs `provost run --show`, so it gains the
@@ -48,6 +58,11 @@ the signal, marked"; nothing that ran to its end works differently.
   ("Interrupted runs", and the setting), `provost help advanced` (INTERRUPTED
   RUNS, the setting) and `provost help run`, `man/provost.1` (INTERRUPTED
   RUNS, the setting, EXIT STATUS), `docs/store-format.md` (the key).
+- **`tests/smoke.sh`:** the parallel runner gives each part
+  `PROVOST_SMOKE_PART_TIMEOUT` seconds (default 600; 0 = none, and none where
+  `timeout` is missing). A part past it fails as "did not finish", after the
+  checks it printed, instead of holding the whole run until CI cancels the
+  job with nothing to show, which is what the hang above did first.
 - **Tests:** smoke part `interrupt` (43 checks). In a process group of its own
   (`own_pg`), a fake `ping` sends SIGINT, SIGTERM and SIGHUP to its group: the
   lines and the summary are filed and marked, provost exits 130, 143 and 129,

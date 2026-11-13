@@ -813,9 +813,9 @@ Ctrl-C (\fBSIGINT\fR), or a \fBSIGTERM\fR or \fBSIGHUP\fR, while
 throw the output away. The command (a Ctrl-C reaches it too, as it always did)
 has \fBPROVOST_INTERRUPT_GRACE\fR seconds (default 2) to finish, time for
 \fBping\fR to print its summary; one still running then is sent
-\fBSIGTERM\fR. What it printed is filed as any capture is: its
-\fImeta.tsv\fR says \fBinterrupted SIGINT\fR (or \fBSIGTERM\fR,
-\fBSIGHUP\fR) beside the command's \fBrc\fR (empty when it had not ended),
+\fBSIGTERM\fR, and \fBSIGKILL\fR a second later. What it printed is filed as
+any capture is: its \fImeta.tsv\fR says \fBinterrupted SIGINT\fR (or
+\fBSIGTERM\fR, \fBSIGHUP\fR) beside the command's \fBrc\fR,
 \fBprovost log\fR shows \fB[interrupted: SIGINT]\fR after its command, and
 provost exits 130 (143, 129), so a script still sees the interruption. A batch
 scheduler's walltime is the same case: Slurm sends \fBSIGTERM\fR, then

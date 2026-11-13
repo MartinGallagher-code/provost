@@ -3660,6 +3660,16 @@ ir_out="$(PROVOST_WORKSPACE="$IRWS" own_pg "$PROVOST" run --name ip "$IRB/fping"
 check "run interrupted by SIGHUP exits 129, filed and marked" "rc=129 interrupted	SIGHUP" \
     "$(tail -n 1 <<< "$ir_out") $(grep '^interrupted' "$IRWS/captures/c0003/meta.tsv" 2>&1)"
 check "after SIGTERM and SIGHUP the store is clean, unlocked, verified" "$IRCLEAN" "$(irstate "$IRWS")"
+# The command starts with SIGINT as provost got it, not ignored: bash 5.3
+# starts what a background list runs with SIGINT ignored for good, and a
+# command started there never hears the Ctrl-C (CI found it; 5.2 hid it).
+if [[ -r /proc/self/status ]]; then
+    IRWS8="$(mktemp -d)/.ir8"
+    PROVOST_WORKSPACE="$IRWS8" own_pg "$PROVOST" run --name sigign sh -c 'grep "^SigIgn" /proc/self/status' >/dev/null 2>&1 || true
+    ir_m="$(awk '$1 == "SigIgn:" { print $2 }' "$IRWS8/captures/c0001/output.txt" 2>/dev/null)"
+    check "the command provost runs does not start with SIGINT ignored" "no" \
+        "$( [[ "$ir_m" =~ ^[0-9a-fA-F]{1,16}$ ]] && { (( (16#$ir_m & 2) != 0 )) && echo yes || echo no; } || echo "unread: [$ir_m]")"
+fi
 # A run that ends on its own is not marked.
 PROVOST_WORKSPACE="$IRWS" "$PROVOST" run --name ip printf 'a b\n1 2\n' >/dev/null 2>&1 || true
 check_not "a run that ends on its own is not marked interrupted" "interrupted" "$(cat "$IRWS/captures/c0004/meta.tsv" 2>&1)"
