@@ -216,7 +216,7 @@ provost looks in three places, in this order:
    (`PROVOST_LLM_TEMPLATE_DIRS`, its older name, is read too);
 3. the templates shipped with provost (`extract/llm/templates/`).
 
-   Since 2.25.0 (PV-007) that is 30 templates: `ip-addr` and `mcstatus`,
+   Since 2.26.0 (PV-007) that is 30 templates: `ip-addr` and `mcstatus`,
    and 28 that Claude wrote through the API for captures the engine could
    not read, each rated PASS on the benchmark criteria and checked not to
    take any tool's output in `tests/corpus/`

@@ -164,7 +164,7 @@ input set. Two of round 4's format-2 templates are smoke fixtures, in
 | [`round5/llm-templates-learn/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-templates-learn) | 100 templates `--llm` wrote at first contact, and the API log | [round 5 report](../../docs/benchmark-2026-11-04-generalisation-round5.md) |
 | [`round5/llm-judge/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-judge) | the 26 templates the judge revised (`revised/`), and the API log | round 5 report, the addendum on the `--llm` judge (PV-009) |
 
-PV-007 (2.25.0) kept its own run records the same way, at commit
+PV-007 (2.26.0) kept its own run records the same way, at commit
 [`c9797028`](https://github.com/MartinGallagher-code/provost/tree/c9797028c4aa0ec2715fd8446d26456f81c52784/tests/benchmark/llm-held):
 the 34 templates `--llm` wrote for the held captures of rounds 2-4 and the API
 log of its 100 replies, under `tests/benchmark/llm-held/`. The 28 that rated

@@ -705,6 +705,26 @@ check "no duplicate row indices under concurrency" "0" "$dup"
 check "6 concurrent captures got 6 distinct capture ids" "6" "$(find "$CWS/captures" -mindepth 1 -maxdepth 1 -type d -name 'c*' | wc -l | tr -d ' ')"
 check "the store lock is never committed" "0" "$(git -C "$CWS" ls-files | grep -c '^\.lock' || true)"
 check "the store has a .gitignore for runtime files" ".lock" "$(cat "$CWS/.gitignore" 2>&1)"
+# PV-043: a mkdir that reports success when the directory already exists
+# (uutils mkdir before 0.11.0, /usr/bin/mkdir on Ubuntu 25.10) first on
+# PATH. The lock must not depend on its exit status: 8 writers at once
+# still file every capture, each row once.
+UUBIN="$(mktemp -d)"; real_mkdir="$(command -v mkdir)"
+printf '#!/usr/bin/env bash\n%q "$@" 2>/dev/null\nexit 0\n' "$real_mkdir" > "$UUBIN/mkdir"; chmod +x "$UUBIN/mkdir"
+check "setup: the stand-in mkdir exits 0 on a directory that exists" "0" "$(PATH="$UUBIN:$PATH" rc_of mkdir "$UUBIN")"
+UWS="$(mktemp -d)/uushared"
+printf 'k=v0\n' | PATH="$UUBIN:$PATH" PROVOST_WORKSPACE="$UWS" PROVOST_ASYNC=0 "$PROVOST" --name uu >/dev/null 2>&1
+for i in 1 2 3 4 5 6 7 8; do ( rc=0; PATH="$UUBIN:$PATH" PROVOST_WORKSPACE="$UWS" "$PROVOST" run --name uu printf "k=v$i\n" >/dev/null 2>&1 || rc=$?; echo "$rc" > "$UUBIN/rc.$i" ) & done
+wait
+check "8 writers under a mkdir that always succeeds all finish" "0 0 0 0 0 0 0 0" "$(cat "$UUBIN"/rc.? | tr '\n' ' ' | sed 's/ $//')"
+check "...every capture is filed (9 captures)" "9" "$(find "$UWS/captures" -mindepth 1 -maxdepth 1 -type d -name 'c*' | wc -l | tr -d ' ')"
+check "...every row is in the dataset, none duplicated" "9 9" \
+    "$(awk -F'\t' 'NR > 1 { n++; if (!seen[$1]++) u++ } END { print n+0, u+0 }' "$UWS/datasets/uu.tsv")"
+check "...every row is in provenance, none duplicated" "9 9" \
+    "$(tail -n +2 "$UWS/provenance.tsv" | awk -F'\t' '{ n++; if (!seen[$1]++) u++ } END { print n+0, u+0 }')"
+check "...and every value is there" "v0 v1 v2 v3 v4 v5 v6 v7 v8" \
+    "$(grep -o 'v[0-9]' "$UWS/datasets/uu.tsv" | sort | tr '\n' ' ' | sed 's/ $//')"
+check "...and no lock is left behind" "no" "$([[ -e "$UWS/.lock" || -e "$UWS/.lock.break" ]] && echo yes || echo no)"
 fi
 
 if _part lock; then
@@ -740,6 +760,51 @@ mkdir "$LWS/.lock"; dead_pid > "$LWS/.lock/pid"
 check "a legacy pid-file lock whose pid is gone is broken" "0" \
     "$(printf 'a=6\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
 check "no lock is left behind after captures" "false" "$([[ -e "$LWS/.lock" ]] && echo true || echo false)"
+# PV-043: the claim is an exclusive create of .lock/owner. A .lock with no
+# owner record yet is a claim in progress (an older provost between its
+# mkdir and its record): respected while fresh, broken after a minute.
+mkdir "$LWS/.lock"
+check "a fresh .lock with no owner record is respected" "store is locked" \
+    "$(printf 'a=7\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+touch -d '2 minutes ago' "$LWS/.lock" 2>/dev/null || touch -t "$(date -d '2 minutes ago' +%Y%m%d%H%M.%S 2>/dev/null || echo 200001010000)" "$LWS/.lock"
+check "a .lock with no owner record for over a minute is broken" "0" \
+    "$(printf 'a=8\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+# a record still being written (no newline yet) is never judged: here its
+# pid looks dead, yet the lock is respected while the record is fresh
+mkdir "$LWS/.lock"; printf '%s\t%s' "$LOCK_HOST" "$(dead_pid)" > "$LWS/.lock/owner"
+check "a half-written owner record is not taken for a dead holder" "store is locked" \
+    "$(printf 'a=9\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+touch -d '2 minutes ago' "$LWS/.lock/owner" 2>/dev/null || touch -t 200001010000 "$LWS/.lock/owner"
+check "...and is broken once it has stayed half-written a minute" "0" \
+    "$(printf 'a=10\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+# an older provost's lock (owner record put in place by mv) is honoured
+mkdir "$LWS/.lock"; printf 'elsewhere.example/pid:[1]\t1\t0\t%s\n' "$(date +%s)" > "$LWS/.lock/owner.tmp"; mv "$LWS/.lock/owner.tmp" "$LWS/.lock/owner"
+check "an older provost's lock is honoured" "store is locked" \
+    "$(printf 'a=11\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+check "...and left as it was" "elsewhere.example/pid:[1]" "$(cat "$LWS/.lock/owner")"
+rm -rf "$LWS/.lock"
+# the break mutex: an older provost's (a directory) or this one's (a file)
+# held by a live breaker stops a break; an abandoned one is cleared
+mkdir "$LWS/.lock"; printf '%s\t%s\t0\t%s\n' "$LOCK_HOST" "$(dead_pid)" "$(date +%s)" > "$LWS/.lock/owner"
+mkdir "$LWS/.lock.break"
+check "a fresh break mutex of an older provost (a directory) is respected" "store is locked" \
+    "$(printf 'a=12\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+rmdir "$LWS/.lock.break"; : > "$LWS/.lock.break"
+check "a fresh break mutex (a file) is respected" "store is locked" \
+    "$(printf 'a=13\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+touch -d '2 hours ago' "$LWS/.lock.break" 2>/dev/null || touch -t 200001010000 "$LWS/.lock.break"
+check "an abandoned break mutex is cleared and the stale lock broken" "0" \
+    "$(printf 'a=14\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=3 rc_of "$PROVOST")"
+check "...leaving neither behind" "no" "$([[ -e "$LWS/.lock" || -e "$LWS/.lock.break" ]] && echo yes || echo no)"
+# the same rules hold when mkdir always reports success (PV-043)
+UUL="$(mktemp -d)"; printf '#!/usr/bin/env bash\n%q "$@" 2>/dev/null\nexit 0\n' "$(command -v mkdir)" > "$UUL/mkdir"; chmod +x "$UUL/mkdir"
+mkdir "$LWS/.lock"; printf 'elsewhere.example/pid:[1]\t1\t0\t%s\n' "$(date +%s)" > "$LWS/.lock/owner"
+check "a held lock is respected when mkdir always reports success" "store is locked" \
+    "$(printf 'a=15\n' | PATH="$UUL:$PATH" PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+rm -rf "$LWS/.lock"; mkdir "$LWS/.lock"; dead_pid > "$LWS/.lock/pid"
+check "a legacy pid-file lock is still broken when mkdir always reports success" "0" \
+    "$(printf 'a=16\n' | PATH="$UUL:$PATH" PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+check "...and leaves no lock behind" "no" "$([[ -e "$LWS/.lock" ]] && echo yes || echo no)"
 fi
 
 if _part control; then
@@ -826,6 +891,17 @@ check "and the copy is a working store" "free" "$(PROVOST_WORKSPACE="$NOREPO/cop
 printf 'not a bundle\n' > "$NOREPO/junk.bundle"
 check "a file that is not a bundle is still refused" "not a valid provost export bundle" "$(cd "$NOREPO" && "$PROVOST" import junk.bundle junk 2>&1 || true)"
 check "and leaves no destination behind" "absent" "$([[ -e "$NOREPO/junk" ]] || echo absent)"
+# PV-043: the claim on an import's destination does not rest on mkdir's
+# exit status. Under a mkdir that always reports success, two imports to
+# one place: one wins, the other is refused, and no claim file is left.
+UUI="$(mktemp -d)"; printf '#!/usr/bin/env bash\n%q "$@" 2>/dev/null\nexit 0\n' "$(command -v mkdir)" > "$UUI/mkdir"; chmod +x "$UUI/mkdir"
+for i in 1 2; do ( rc=0; cd "$NOREPO" && PATH="$UUI:$PATH" GIT_CEILING_DIRECTORIES="$NOREPO/.." PROVOST_WORKSPACE="" "$PROVOST" import store.bundle racer >/dev/null 2>&1 || rc=$?; echo "$rc" > "$UUI/rc.$i" ) & done
+wait
+check "two imports to one place under a mkdir that always succeeds: exactly one wins" "0 1" "$(sort "$UUI"/rc.? | tr '\n' ' ' | sed 's/ $//')"
+check "...the winner's copy is a working store" "free" "$(PROVOST_WORKSPACE="$NOREPO/racer" "$PROVOST" ls 2>&1)"
+check "...and no claim file is left" "none" "$(ls -A "$NOREPO" | grep -c 'provost-claim' | sed 's/^0$/none/')"
+check "an import onto an existing destination is still refused" "destination already exists" \
+    "$(cd "$NOREPO" && PATH="$UUI:$PATH" PROVOST_WORKSPACE="" "$PROVOST" import store.bundle racer 2>&1 || true)"
 
 # --- plugin strategies + metadata prologue (deframe integration) -----------
 # An external project's strategies reach detection via --plugin-dir (or
@@ -966,7 +1042,7 @@ rm -f "$COV_IN.frag"
 # and declined for box chrome (round 2's 102), a header-like line right above
 # it (round 3's 115: the header sat over a rule line) or rows shredded into
 # words (round 4's 031).
-# Those three are the engine's own: since 2.25.0 (PV-007) a shipped template
+# Those three are the engine's own: since 2.26.0 (PV-007) a shipped template
 # reads each of them, so they run with PROVOST_TEMPLATES=0.
 BR="$HERE/benchmark"
 am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/048-pytest-ra-report.txt" 2>&1)"
@@ -3632,6 +3708,74 @@ for n in 1 2 3 4; do
     (( n == 3 )) && check "format 3: the migration puts PV-015's wrong rows right" "$(printf '8\tc0004\t1\tsdh\t500\t7\t\tsnap1')" "$(cat "$FX/store/datasets/disks.tsv")"
     (( n == 1 )) && check_not "format 1: the migration drops total_entries" "total_entries" "$(head -1 "$FX/store/datasets/aligned-columns.tsv")"
 done
+# PV-045: provost store upgrade runs a first write's migrations on their
+# own, in one commit; the datasets come out exactly as the implicit upgrade
+# (the loop above) leaves them. --dry-run changes nothing; a second run
+# changes nothing.
+dsets () { ( cd "$1/store/datasets" && for f in *.tsv; do [[ "$f" == late.tsv ]] || { echo "== $f"; cat "$f"; }; done ); }
+for n in 1 2 3; do
+    FX="$(fx_open "$n")"; REF="$(fx_open "$n")"
+    printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$REF/store" "$PROVOST" --sync --name late >/dev/null 2>&1
+    check "format $n: store format prints $n" "<$n>" "<$(fxp store format)>"
+    before="$(snapshot "$FX")"
+    dry="$(fxp store upgrade --dry-run || true)"
+    check "format $n: store upgrade --dry-run says what it would do" "format $n → 4, would:" "$dry"
+    check "...and that it changed nothing" "nothing was changed" "$dry"
+    check "format $n: --dry-run changed no byte" "<same>" "<$([[ "$before" == "$(snapshot "$FX")" ]] && echo same || echo changed)>"
+    h0="$(tgit "$FX/store" rev-parse HEAD)"
+    up="$(fxp store upgrade || true)"
+    check "format $n: store upgrade brings it to format 4" "format $n → 4" "$up"
+    check "format $n: ...in one commit" "1 store format 4" "$(tgit "$FX/store" rev-list --count "$h0..HEAD") $(tgit "$FX/store" log -1 --format=%s | grep -o 'store format 4')"
+    check "format $n: ...the store records format 4" "<4>" "<$(fxp store format)>"
+    check "format $n: ...every dataset as the implicit upgrade leaves it" "<same>" \
+        "<$([[ "$(dsets "$FX")" == "$(dsets "$REF")" ]] && echo same || diff <(dsets "$REF") <(dsets "$FX") | head -n 6)>"
+    check "format $n: ...and it passes store check and verify" "a valid format-4 store <0>" "$(fxp store check | grep -o 'a valid format-4 store') $(fxrc verify)"
+    h1="$(tgit "$FX/store" rev-parse HEAD)"; before="$(snapshot "$FX")"
+    check "format $n: a second store upgrade has nothing to do" "current: nothing to upgrade" "$(fxp store upgrade)"
+    check "format $n: ...and changes nothing" "<same $h1>" "<$([[ "$before" == "$(snapshot "$FX")" ]] && echo same || echo changed) $(tgit "$FX/store" rev-parse HEAD)>"
+done
+FX="$(fx_open 4)"
+check "format 4: store upgrade has nothing to do" "format 4, current: nothing to upgrade" "$(fxp store upgrade)"
+check "store upgrade DIR upgrades that store" "format 2 → 4" "$("$PROVOST" store upgrade "$(fx_open 2)/store" 2>&1)"
+check "store upgrade with no store is an error" "1" "$(PROVOST_WORKSPACE="$(mktemp -d)" rc_of "$PROVOST" store upgrade)"
+check "store upgrade's unknown option is a usage error" "2" "$(rc_of "$PROVOST" store upgrade --frob)"
+
+# PV-045: a store newer than this provost is refused by every command that
+# uses it, reads included, with exit 3, and not a byte of it changes.
+FX="$(fx_open 4)"; echo 5 > "$FX/store/.store_format"
+tgit "$FX/store" add .store_format >/dev/null 2>&1; tgit "$FX/store" commit -qm "a format-5 store" >/dev/null 2>&1
+check "a newer store: store format prints its number, exit 3" "5 <3>" "$(fxp store format | head -n 1) $(fxrc store format)"
+check "a newer store: store check still reports it" "store format 5 is newer than this provost knows (4)" "$(fxp store check)"
+before="$(snapshot "$FX")"
+nwr=""
+for c in "ls" "ls -l" "show disks" "show disks --types" "source 1" "source c0002" "log" "log --failed" "search sdh" \
+         "stats disks" "diff c0001 c0002" "files" "triage" "verify" "doctor" "export $FX/x.bundle" "check-manifest" \
+         "restore latest" "next" "rm -f disks" "rm -f --capture 1" "annotate c0001 note" "prune --policy $FX.pol" \
+         "archive --to $FX.arch --before 2099-01-01" "run --name t printf a=1" "batch --name t $FX.pol" "store upgrade" \
+         "store upgrade --dry-run" "inject --name t"; do
+    # shellcheck disable=SC2086
+    rc="$(printf 'a=1\n' | PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" $c)"
+    [[ "$rc" == 3 ]] || nwr="$nwr [$c: $rc]"
+done
+check "a newer store: every command refuses it with exit 3" "<>" "<$nwr>"
+check "a newer store: the refusal names both formats" "is format 5, newer than this provost" "$(fxp ls)"
+check "...and says nothing was read or written" "Nothing was read or written" "$(fxp ls)"
+check "a newer store: no command changed a byte of it" "<same>" \
+    "<$([[ "$before" == "$(snapshot "$FX")" ]] && echo same || diff <(printf '%s\n' "$before") <(snapshot "$FX") | head -n 6)>"
+check "a newer store: --help still works" "usage: provost ls" "$(fxp ls --help)"
+# the fall-through: a newer store missing the .gitignore marker was taken
+# for one to migrate, and the migration wrote 4 over the 5
+sed -i.bak 1d "$FX/store/.gitignore" && rm -f "$FX/store/.gitignore.bak"
+check "a newer store missing the .gitignore marker: a write is refused" "3" \
+    "$(printf 'a=1\n' | PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" --sync --name t)"
+check "...and it is not relabelled" "5" "$(cat "$FX/store/.store_format")"
+rm -f "$FX/store/.next_capture_id"
+check "a newer store missing its capture counter: a write is refused, not relabelled" "3 5" \
+    "$(printf 'a=1\n' | PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" --sync --name t) $(cat "$FX/store/.store_format")"
+echo 'v5' > "$FX/store/.store_format"
+check "a .store_format that is not a number is refused too (exit 3)" "3" "$(PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" ls)"
+check "...naming what it holds" "holds 'v5'" "$(fxp ls)"
+
 FX="$(fx_open 3)"
 check "format 3: store check names PV-015's rows without failing them" "known fault (PV-015)" "$(fxp store check)"
 FX="$(fx_open 4)"
@@ -3648,6 +3792,7 @@ check "...exit 0" "0" "$(PROVOST_WORKSPACE="$SC" rc_of "$PROVOST" store check)"
 check "store check DIR checks that store" "a valid format-4 store" "$("$PROVOST" store check "$SC" 2>&1)"
 check "store with no subcommand is a usage error" "2" "$(rc_of "$PROVOST" store frob)"
 check "store --help prints its usage" "usage: provost store check" "$("$PROVOST" store --help)"
+check "...and names store upgrade and store format" "provost store upgrade [--dry-run] [DIR]" "$("$PROVOST" store --help)"
 cp "$SC/.next_row_id" "$SC/.keep"; rm -f "$SC/.next_row_id"
 check "a missing row counter fails it" ".next_row_id is missing" "$(scp)"
 check "...exit 1" "1" "$(PROVOST_WORKSPACE="$SC" rc_of "$PROVOST" store check)"

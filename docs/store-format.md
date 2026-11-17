@@ -66,12 +66,24 @@ wrote is read, as it is, by every later release.
   next release. The promise above is what makes that enough, since any later
   release opens an older store; evidence filed at one stage of a programme is
   read by whatever provost is current at the next.
-- **Not promised: an older provost on a newer store.** A provost does not
-  refuse a store whose format is newer than the one it writes. Reading one
-  mostly works (a later format has so far only added to what an earlier one
-  held), but writing to one can file data in the older shape. Use a provost
-  at least as new as the store's format to write to it; `store check` says
-  when a store is newer than the provost running it.
+- **A newer store is refused (since 2.25.0, PV-045).** A provost refuses a
+  store whose format is newer than the one it writes, and one whose
+  `.store_format` is not a number, in every command that uses the store,
+  reads included, before anything is read or written: exit status 3, with
+  one message naming both formats. A later format may hold what this
+  provost would misread, and a write would file data in the older shape.
+  `store check` still reports on such a store and `store format` prints its
+  number; `import`, `template` and `archive verify`/`import` do not use the
+  active store and are not refused. A provost before 2.25.0 does not refuse
+  a newer store (2.24.0 and older could even write its own number over a
+  newer one's when the `.gitignore` marker or the capture counter was
+  missing), so use a provost at least as new as the store.
+- **Upgrading.** An older store is upgraded in place by the first write, as
+  it always was; reads never upgrade it. `provost store upgrade` runs the
+  same migrations on purpose, in one commit, and reports the format it went
+  from and to (`--dry-run` says what it would do). `provost store format`
+  prints the number, so a tool downstream can ask provost rather than read
+  `.store_format` itself.
 - **Not part of the format:** the exact tidy table a parser files for a given
   tool's output (parsers improve between releases; a capture already filed
   never changes), the wording of commit messages beyond what is listed here,
@@ -523,7 +535,8 @@ These are in a store's directory but are not its content: never committed
 
 | File | What |
 |---|---|
-| `.lock/` | The writer's lock, held while a store is written; `owner` names the holder (`host<TAB>pid<TAB>uid<TAB>epoch`). |
+| `.lock/` | The writer's lock, held while a store is written; `owner` names the holder (`host<TAB>pid<TAB>uid<TAB>epoch`, one whole line). See **The writer's lock** below. |
+| `.lock.break` | Held while a stale lock is broken (a file; an older provost made it a directory). |
 | `.async-failures.log`, `.async-failures.seen` | Background captures that failed, and how many of them `log --failed` has shown. |
 | `instances.tsv` | The global store's list of controlled directories (`provost instances`). |
 | `datasets/.recon.*`, `.stage.*`, `.rm.*`, `.rmprov.*`, `captures/*/.meta.tmp`, `context/*.tmp` | Work files during a write. |
@@ -531,6 +544,39 @@ These are in a store's directory but are not its content: never committed
 A format-1 store committed some of these (`.lock/pid` in particular); its
 migration untracks them, and until then `verify` and `store check` leave
 them out.
+
+### The writer's lock
+
+Since provost 2.24.1 (PV-043) the lock is taken by an **exclusive create of
+`.lock/owner`**: bash's own noclobber open (`O_CREAT|O_EXCL`), not the exit
+status of the system `mkdir`. `.lock` is still a directory, made with
+`mkdir -p` whose status is ignored, so a provost of either kind sees the
+other's lock. Whoever creates `owner` holds the lock; the record is written
+in one write and read only as a whole line.
+
+- A `.lock` with no `owner` yet is a claim in progress (an older provost
+  between its `mkdir` and its record) and is waited for; one that has had
+  no whole record for a minute is stale.
+- A lock is otherwise stale when it is older than `PROVOST_LOCK_MAX_AGE`, or
+  was taken on this host and its pid is gone. A legacy `pid`-file lock
+  follows the same rules.
+- Breaking a stale lock is serialised by `.lock.break`, taken the same way,
+  and done by renaming the lock aside and checking it was the one judged.
+- Release removes `.lock` only while `owner` is still this process's record.
+
+Why: provost 2.24.0 and older claimed the lock with `mkdir .lock` and
+trusted its exit status. uutils `mkdir` before 0.11.0 (`/usr/bin/mkdir` on
+Ubuntu 25.10 and 26.04) exits 0 when the directory already exists, so two
+writers both held the lock and a table could lose rows. Every provost up to
+and including 2.24.0 is affected on such a system.
+
+`O_EXCL` is honoured on local file systems and on NFSv3 and later; a store on
+an NFSv2 mount cannot be locked safely by any provost. While an older and a
+newer provost share one store, a newer one that arrives in the instant
+between an older one's `mkdir` and its owner record can still take the lock
+beside it, a window of microseconds that 2.24.0 itself did not have against
+another 2.24.0 under GNU `mkdir`; upgrade every machine that writes a shared
+store.
 
 ## Format history
 

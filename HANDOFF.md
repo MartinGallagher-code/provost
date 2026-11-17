@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.25.0 is everything through 2026-11-17** (`VERSION`, man header,
-the `## 2.25.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.26.0 is everything through 2026-11-17** (`VERSION`, man header,
+the `## 2.26.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -36,14 +36,19 @@ records and two prescreen sheets moved out of the tree, kept at `d9c32f04`
 (PV-042, Next steps 1r; 2.22.1, tests and docs only); an interrupted run keeps
 what it had printed, marked, and a second signal files nothing (PV-038, Next
 steps 1s; 2.23.0); each dataset column's type recorded at capture, stored,
-shown and used (PV-040, Next steps 1t; 2.24.0); 28 templates Claude wrote through the real API for the captures rounds 2-4 held, shipped (PV-007, Next steps 1u; 2.25.0). 2.4.0 added `provost
+shown and used (PV-040, Next steps 1t; 2.24.0); the store lock taken by an
+exclusive create rather than `mkdir`'s exit status (PV-043, Next steps 1u;
+2.24.1); a newer store refused by
+every command, `store upgrade` and `store format` (PV-045, Next steps 1v;
+2.25.0); 28 templates Claude wrote through the real API for the captures rounds 2-4
+held, shipped (PV-007, Next steps 1w; 2.26.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.25.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.25.0`, not both). Either way the release workflow
+2.26.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.26.0`, not both). Either way the release workflow
 now also attaches the offline bundle to the GitHub release `v2.21.0`, creating
 that release on a dispatched run.
 
@@ -363,8 +368,8 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-1u. **2026-11-17: `--llm` through the real API on the 38 held captures**
-    (PV-007, 2.25.0; `docs/benchmark-2026-11-17-llm-held-captures.md`,
+1w. **2026-11-17: `--llm` through the real API on the 38 held captures**
+    (PV-007, 2.26.0; `docs/benchmark-2026-11-17-llm-held-captures.md`,
     `tests/benchmark/llm-held/summary.tsv`). 0i's steps 1 and 2, done with a
     key the owner provided for this run, passed per command as
     `PROVOST_LLM_API_KEY` and never written anywhere.
@@ -395,6 +400,24 @@ Suites (all CI-enforced):
       template is passed over offline (round 4 part 3: about one in three
       needed a repair); (d) 0i step 3, letting `--llm` re-check generic
       parses the gate passed, is still open.
+1v. **2026-11-17: store format guard** (PV-045, 2.25.0). A store whose
+    format is newer than this provost (or not a number) is refused by every
+    command that uses it, exit 3, before anything is read or written;
+    `_migrate_store` can no longer write 4 over a newer number.
+    `provost store upgrade [--dry-run]` runs the migrations on purpose (one
+    commit); `provost store format` prints the number. The automatic upgrade
+    on first write stays (owner, BN-008 Q6). **Follow-up, not done here:**
+    quarterdeck can call `provost store format` instead of reading
+    `.store_format` (quarterdeck store.py:302,486).
+
+1u. **2026-11-17: the store lock** (PV-043, 2.24.1). The lock, its break
+    mutex, `rm --capture`'s claim and `import`/`archive` destinations no
+    longer trust `mkdir`'s exit status (uutils `mkdir` before 0.11.0 exits 0
+    on a directory that exists): the claim is an exclusive create (bash
+    noclobber) of `.lock/owner`; `.lock` is still a directory for older
+    provosts. Spec: `docs/store-format.md`, "The writer's lock".
+    **Follow-up, not done here:** a quarterdeck ticket to make parallel
+    filing the default again (lift QD-022) once 2.24.1 is its floor.
 
 1t. **2026-11-13: column types** (PV-040, 2.24.0). Every capture records each
     column's type in `datasets/types/NAME.tsv` (the spec's "Column types"),
@@ -1140,9 +1163,9 @@ Suites (all CI-enforced):
     - **Not yet run against the real API:** the session's key was deleted.
     - **Next:**
       1. ~~With a real key, run `--llm` over the 38 captures held in rounds
-         2–4 and rate the templates.~~ Done 2026-11-17 (PV-007, 1u).
+         2–4 and rate the templates.~~ Done 2026-11-17 (PV-007, 1w).
       2. ~~Grow `extract/llm/templates/` from the templates that prove good.~~
-         Done: 28 shipped (1u).
+         Done: 28 shipped (1w).
       3. Consider letting `--llm` re-check generic parses the gate passed.
 
 0h. **2026-10-26: `--model` ships the LLM-trained trees, with a refitted

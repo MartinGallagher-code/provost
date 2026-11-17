@@ -1,8 +1,8 @@
 # provost — Changelog
 
-## 2.25.0 — 2026-11-17 — 28 templates Claude wrote for the held benchmark captures ship with provost (PV-007)
+## 2.26.0 — 2026-11-17 — 28 templates Claude wrote for the held benchmark captures ship with provost (PV-007)
 
-`VERSION` 2.24.0 → 2.25.0, and the `man/provost.1` header. Minor: provost
+`VERSION` 2.25.0 → 2.26.0, and the `man/provost.1` header. Minor: provost
 now reads 28 more tools' output with no `--llm` and no key. Nothing that
 worked works differently: no template takes any tool's output in
 `tests/corpus/`.
@@ -36,8 +36,99 @@ The full report is `docs/benchmark-2026-11-17-llm-held-captures.md`.
 - **Run records.** The 34 templates written and the API log were committed at
   `c9797028` and taken out of the tree in the next commit, as PV-042 set
   (`tests/benchmark/README.md`, "LLM run records").
-- Docs: `docs/templates.md` (the shipped library), `HANDOFF.md` (Next steps 1u,
+- Docs: `docs/templates.md` (the shipped library), `HANDOFF.md` (Next steps 1w,
   0i), `tests/benchmark/README.md`.
+## 2.25.0 — 2026-11-17 — a newer store refused by every command; `store upgrade` and `store format` (PV-045)
+
+`VERSION` 2.24.1 → 2.25.0, and the `man/provost.1` header. Minor: two new commands, and a store newer than this
+provost is now refused where it used to be read.
+
+- **A store newer than this provost is refused** by every command that uses
+  the active store, reads included, before anything is read or written:
+  exit status **3**, one message naming the store's format and this
+  provost's. A `.store_format` that is not a number is refused the same
+  way. Not refused: `--help`, `import` (it makes a new store), `template`,
+  `archive verify`/`import` (another directory); `store check` still
+  reports such a store as a finding, and `store format` prints its number.
+  The check is also in `_ensure_workspace` and `_migrate_store`, so no path
+  reaches a migration without it.
+- **Fixed: a newer store relabelled as format 4.** `_migrate_store`'s early
+  return needed the format to be current *and* the `.gitignore` marker
+  *and* the capture counter; with either of the last two missing, a
+  format-5 store fell through to the migrations and had `4` written over
+  its `5` (provost 2.24.0 does this; the smoke test shows it). Now the
+  store is refused, and the migration never writes a lower number than the
+  one recorded.
+- **`provost store upgrade [--dry-run] [DIR]`** runs the migrations a
+  store's first write would run, on purpose, in one commit, and lists what
+  it did and the format it went from and to. `--dry-run` (`-n`) lists what
+  it would do and changes nothing; a current store is left alone. The
+  **automatic upgrade on first write stays** (the owner's answer on BN-008):
+  this is the explicit command beside it.
+- **`provost store format [DIR]`** prints the format a store records (1
+  when it has no `.store_format`), exit 3 when it is newer than this
+  provost, so a tool downstream (quarterdeck reads the file itself today)
+  can ask provost.
+- Also: `_migrate_store` no longer prints "No such file or directory" when
+  it migrates a store with no `.gitignore` (format 1).
+
+PyPI note: 2.24.0, published on 2026-11-16, writes format 4; installs still
+on 2.3.0 write format 3 and cannot be given this refusal after the fact.
+
+Docs: `docs/store-format.md` (the compatibility promise: a newer store is
+refused; upgrading), `man/provost.1` (both commands, exit status 3),
+`provost help store` and `help advanced`, README's command table.
+Tests (`tests/smoke.sh`, `store-spec`): `store upgrade` on the format 1, 2
+and 3 fixtures (one commit, datasets byte-identical to the implicit
+upgrade's, `store check` and `verify` pass, a second run changes nothing,
+`--dry-run` changes nothing); a format-5 store refused with exit 3 by 29
+command lines with not a byte changed; the same store with the `.gitignore`
+marker or the capture counter removed is refused, not relabelled (fails on
+2.24.0); a non-numeric `.store_format`.
+## 2.24.1 — 2026-11-17 — the store lock is an exclusive create, not mkdir's exit status (PV-043)
+
+`VERSION` 2.24.0 → 2.24.1, and the `man/provost.1` header. Patch: a fix;
+the lock's layout on disk is unchanged, and a store reads and writes as it
+did.
+
+**Affected: every provost up to and including 2.24.0, on a system whose
+`mkdir` is uutils before 0.11.0** (`/usr/bin/mkdir` on Ubuntu 25.10 and
+26.04). provost took the store lock with `mkdir .lock` and trusted its exit
+status; that `mkdir` exits 0 when the directory already exists, so two
+writers both held the lock and a table could lose rows. With such a `mkdir`
+first on `PATH`, 8 writers at once into one store lost rows on 2.24.0 in
+every run tried (8 rows of 9 in provenance, 4 distinct row indices).
+
+- **The claim is an exclusive create of `.lock/owner`**: bash's own
+  noclobber open (`O_CREAT|O_EXCL`), in a subshell so noclobber never leaks
+  into provost's other redirections. `.lock` stays a directory, made with
+  `mkdir -p` whose status is ignored, so an older provost still sees the
+  lock and this one still sees an older provost's.
+- **A `.lock` with no owner record yet is held**, not free: an older
+  provost between its `mkdir` and its record. As before, one with no record
+  for a minute is stale.
+- **The owner record is written in one write and read only as a whole
+  line**: a half-written record is never judged (its pid could look dead),
+  and one that stays half-written for a minute is stale.
+- **The break mutex `.lock.break`**, and `rm --capture`'s claim and
+  hand-back under it, take the same exclusive create (a file now; an older
+  provost's, a directory, is still respected and cleared when abandoned).
+- **`import`'s and `archive`'s new directories** are claimed by an
+  exclusive create of `.NAME.provost-claim` beside them, removed on exit,
+  instead of by `mkdir`'s status: two imports to one place cannot both win.
+- `docs/store-format.md` has a section on the lock, including NFS (O_EXCL
+  needs NFSv3 or later) and the short window while older and newer
+  provosts share a store.
+
+**quarterdeck:** its QD-022 workaround (filing captures one at a time,
+`QD_FILE_JOBS`) can be lifted once 2.24.1 is the oldest provost it accepts.
+
+Tests (`tests/smoke.sh`): `concurrency` runs 8 writers under a `mkdir` that
+always exits 0 (fails on 2.24.0); `lock` adds an ownerless `.lock` (fresh
+and old), a half-written record (fresh and old), an older provost's lock,
+both kinds of break mutex (fresh and abandoned), and the stale rules under
+the faulty `mkdir`; `core` races two imports to one destination under it.
+Files: `provost`, `tests/smoke.sh`, `docs/store-format.md`, `HANDOFF.md`.
 
 ## 2.24.0 — 2026-11-13 — each dataset column's type recorded once, at capture, stored and shown (PV-040)
 

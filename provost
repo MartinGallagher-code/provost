@@ -23,7 +23,7 @@
 # directory. Every dataset row carries a globally-unique visible index (#N);
 # `provost source N` maps it back to the exact captured input that produced it.
 # The store may be shared by multiple users (point PROVOST_HOME at a shared,
-# group-writable dir); a mkdir-based lock serialises concurrent writers.
+# group-writable dir); a lock (an exclusive create) serialises concurrent writers.
 #
 # CODE vs DATA: executable code (the extract/analyze engines, the transform
 # module) is loaded ONLY from provost's own install dir ($PROVOST_ROOT, the
@@ -868,15 +868,25 @@ _require_on_branch () {
 }
 
 # --- store lock (a shared PROVOST_HOME may have concurrent writers) ----------
-# mkdir is atomic across processes/users; spin up to PROVOST_LOCK_TIMEOUT
-# seconds. The lock records "host<TAB>pid<TAB>uid<TAB>epoch" (owner file).
+# The claim is an exclusive create of .lock/owner (PV-043): bash's own
+# noclobber open, O_CREAT|O_EXCL, so exclusion never rests on an external
+# command's exit status (uutils mkdir before 0.11.0 exits 0 on a directory
+# that exists, and two writers then both held a mkdir lock). .lock stays a
+# directory, as older provosts made it: `mkdir -p` it, ignore the status,
+# then create the owner record in it; whoever creates it holds the lock. A
+# .lock with no owner record yet is held (an older provost between its
+# mkdir and its record, or one of this version between its mkdir -p and its
+# create). Spin up to PROVOST_LOCK_TIMEOUT seconds. The lock records
+# "host<TAB>pid<TAB>uid<TAB>epoch" (owner file), one whole line.
 # A lock is STALE only if:
 #   * it is older than PROVOST_LOCK_MAX_AGE seconds (any host), or
 #   * it was taken on THIS host (and pid namespace) and its pid definitely no
-#     longer exists (ESRCH — NOT EPERM: another user's live process is alive).
-# Breaking is serialised by a second mkdir mutex (.lock.break) and done by an
-# atomic rename, after re-checking staleness under that mutex — so two
-# breakers can never delete each other's (or a newcomer's) fresh lock.
+#     longer exists (ESRCH — NOT EPERM: another user's live process is alive), or
+#   * it has no whole owner record and has had none for a minute.
+# Breaking is serialised by a second exclusive create (the .lock.break
+# mutex) and done by an atomic rename, after re-checking staleness under
+# that mutex — so two breakers can never delete each other's (or a
+# newcomer's) fresh lock.
 # $BASHPID (this process), NOT $$: a detached async ingest runs in a subshell
 # where $$ is still the already-exited parent provost.
 _LOCK_HOST=""
@@ -900,61 +910,101 @@ _pid_gone () {
     err="$(LC_ALL=C kill -0 "$pid" 2>&1)" && return 1       # alive and ours
     [[ "$err" == *"No such process"* ]]                     # ESRCH; EPERM = alive
 }
+# _excl_create PATH [TEXT] -- create PATH holding TEXT, failing if anything
+# is there already: bash's noclobber open, O_CREAT|O_EXCL (in a subshell, so
+# noclobber never leaks into provost's own redirections). TEXT goes out in
+# one write. On NFS, O_EXCL needs NFSv3 or later.
+_excl_create () { ( set -C; printf '%s' "${2:-}" > "$1" ) 2>/dev/null; }
+# _mutex_clear PATH -- remove an abandoned mutex: this version's (a file) or
+# an older provost's (an empty directory). Anything else stays.
+_mutex_clear () { rm -f -- "$1" 2>/dev/null || rmdir -- "$1" 2>/dev/null || true; }
+# _lock_seen LOCK -- what a lock is, as one string a breaker can compare
+# before and after it moves it: the owner record; "partial" while one is
+# being written (a reader only ever judges a whole line); "legacy:PID" for a
+# pid-file lock of an older provost; "none" for no record at all.
+_lock_seen () {
+    local lock="$1" r=""
+    _SEEN=""
+    if [[ -e "$lock/owner" ]]; then
+        if { IFS= read -r r < "$lock/owner"; } 2>/dev/null && [[ -n "$r" ]]; then _SEEN="$r"; else _SEEN="partial"; fi
+    elif [[ -f "$lock/pid" ]]; then
+        r=""; { IFS= read -r r < "$lock/pid"; } 2>/dev/null || true
+        _SEEN="legacy:$r"
+    else
+        _SEEN="none"
+    fi
+}
 # 0 = the lock is stale. Sets $_STALE_SEEN to the owner record it judged, so a
 # breaker can verify it removed THAT lock and not a newcomer's.
 _lock_stale () {
-    local lock="$1" owner="" host="" pid="" t="" now age
+    local lock="$1" host="" pid="" t="" now age
     _STALE_SEEN=""
     [[ -d "$lock" ]] || return 1
     now="$(date +%s)"
-    owner="$(cat "$lock/owner" 2>/dev/null || true)"
-    if [[ -z "$owner" ]]; then
-        age="$(_age "$lock")"
-        if [[ -f "$lock/pid" ]]; then               # a lock from an older provost
-            pid="$(cat "$lock/pid" 2>/dev/null || true)"
-            _STALE_SEEN="legacy:$pid"
+    _lock_seen "$lock"; _STALE_SEEN="$_SEEN"
+    case "$_SEEN" in
+        legacy:*)                                   # a lock from an older provost
+            pid="${_SEEN#legacy:}"; age="$(_age "$lock")"
             (( age > PROVOST_LOCK_MAX_AGE )) && return 0
             _pid_gone "$pid" && return 0
-            return 1
-        fi
-        # mkdir'd but no owner yet: a holder is between mkdir and writing it —
-        # or died right there. Give it a minute.
-        _STALE_SEEN="none"
-        (( age > 60 )) && return 0
-        return 1
-    fi
-    _STALE_SEEN="$owner"
-    IFS=$'\t' read -r host pid _ t <<< "$owner" || true
+            return 1 ;;
+        none|partial)
+            # no whole owner record yet: a holder is between taking the lock
+            # and writing it — or died right there. Give it a minute.
+            if [[ "$_SEEN" == partial ]]; then age="$(_age "$lock/owner")"; else age="$(_age "$lock")"; fi
+            (( age > 60 )) && return 0
+            return 1 ;;
+    esac
+    IFS=$'\t' read -r host pid _ t <<< "$_SEEN" || true
     if [[ "$t" =~ ^[0-9]{1,12}$ ]] && (( now - t > PROVOST_LOCK_MAX_AGE )); then return 0; fi
     _lock_host_init
     [[ "$host" == "$_LOCK_HOST" ]] && _pid_gone "$pid" && return 0
     return 1
 }
 _lock_break () {  # 0 = we removed a stale lock
-    local lock="$1" brk="$1.break" rc=1 aside seen got
-    if ! mkdir "$brk" 2>/dev/null; then
+    local lock="$1" brk="$1.break" rc=1 aside seen
+    if ! _excl_create "$brk"; then
         # Another process is breaking it. Clear an abandoned break mutex.
-        if (( $(_age "$brk") > 60 )); then rmdir "$brk" 2>/dev/null || true; fi
+        if (( $(_age "$brk") > 60 )); then _mutex_clear "$brk"; fi
         return 1
     fi
     if _lock_stale "$lock"; then
         seen="$_STALE_SEEN"
         aside="$lock.stale.$BASHPID.$RANDOM"
-        if mv "$lock" "$aside" 2>/dev/null; then
+        if mv "$lock" "$aside" 2>/dev/null && [[ -d "$aside" ]]; then
             # Verify we moved the lock we judged (not one created meanwhile).
-            got="$(cat "$aside/owner" 2>/dev/null || true)"
-            if [[ -z "$got" ]]; then
-                if [[ -f "$aside/pid" ]]; then got="legacy:$(cat "$aside/pid" 2>/dev/null || true)"; else got="none"; fi
-            fi
-            if [[ "$got" == "$seen" ]]; then
+            _lock_seen "$aside"
+            if [[ "$_SEEN" == "$seen" ]]; then
                 rm -rf "$aside" 2>/dev/null || true; rc=0
             else
                 mv "$aside" "$lock" 2>/dev/null || true     # not ours to break: put it back
             fi
         fi
     fi
-    rmdir "$brk" 2>/dev/null || true
+    rm -f -- "$brk" 2>/dev/null || true
     return $rc
+}
+# _lock_claim LOCK -- one attempt at the lock; 0 = this process holds it,
+# its owner record in $_LOCK_REC.
+_lock_claim () {
+    local lock="$1" myuid
+    # a .lock with no owner record is someone's claim in progress, not free
+    [[ -d "$lock" && ! -e "$lock/owner" ]] && return 1
+    mkdir -p "$lock" 2>/dev/null || true      # its status proves nothing
+    [[ -d "$lock" ]] || return 1
+    _lock_host_init
+    myuid="$(id -u 2>/dev/null || echo "?")"
+    printf -v _LOCK_REC "%s\t%s\t%s\t%s" "$_LOCK_HOST" "$BASHPID" "$myuid" "$(date +%s)"
+    _excl_create "$lock/owner" "$_LOCK_REC"$'\n'
+}
+# _claim_new PATH -- claim a path that is about to be made (an import's or
+# an archive's new directory) for this process: an exclusive create of
+# .NAME.provost-claim beside it, removed when this process exits. 1 = some
+# other provost holds the claim.
+_claim_new () {
+    local c="${1%/}"; c="$(dirname -- "$c")/.$(basename -- "$c").provost-claim"
+    _excl_create "$c" "$BASHPID"$'\n' || return 1
+    _TMPDIRS+=("$c")
 }
 # _lock [STORE-DIR] (default: the active store)
 _lock () {
@@ -970,7 +1020,7 @@ _lock () {
     if [[ -d "$dir" && ! -w "$dir" && ! -e "$lock" ]]; then
         die "the store at $dir is read-only (an imported archive, or a copy kept as evidence) — provost does not write to it."
     fi
-    while ! mkdir "$lock" 2>/dev/null; do
+    while ! _lock_claim "$lock"; do
         # a signal that stops a capture's filing gives up the wait (PV-038):
         # no lock is taken, and the caller files nothing
         [[ -z "${_CAP_ABORT:-}" ]] || return 1
@@ -978,16 +1028,13 @@ _lock () {
         if _lock_stale "$lock" && _lock_break "$lock"; then continue; fi
         tries=$((tries + 1))
         if (( tries > max )); then
-            owner="$(cat "$lock/owner" 2>/dev/null || cat "$lock/pid" 2>/dev/null || echo unknown)"
+            _lock_seen "$lock"; owner="$_SEEN"
+            [[ "$owner" == none || "$owner" == partial ]] && owner="a claim with no owner record yet"
             die "store is locked (waited ${PROVOST_LOCK_TIMEOUT}s): $lock — held by ${owner//$'\t'/ }. If that holder is gone, remove the lock dir."
         fi
         sleep 0.2
     done
-    _lock_host_init
-    local mypid="$BASHPID" myuid; myuid="$(id -u 2>/dev/null || echo "?")"
-    printf -v owner "%s\t%s\t%s\t%s" "$_LOCK_HOST" "$mypid" "$myuid" "$(date +%s)"
-    printf '%s\n' "$owner" > "$lock/owner.tmp" && mv "$lock/owner.tmp" "$lock/owner"
-    _LOCKS_HELD+=("$lock"); _LOCKS_OWNER+=("$owner")
+    _LOCKS_HELD+=("$lock"); _LOCKS_OWNER+=("$_LOCK_REC")
 }
 # _lock_if_writable -- _lock, for a reader that wants a consistent view: in
 # a store this process can write; in one it cannot, nothing (no writer can
@@ -1075,7 +1122,30 @@ _scan_max_capture_num () {
 # got wrong are put right from provenance.tsv.
 _STORE_FORMAT=4
 _store_format_file () { printf '%s/.store_format\n' "$PROVOST_WORKSPACE"; }
-_store_format () { local f; f="$(cat "$(_store_format_file)" 2>/dev/null || true)"; [[ "$f" =~ ^[0-9]{1,6}$ ]] && echo "$f" || echo 1; }
+_store_format () { local f; f="$(cat "$(_store_format_file)" 2>/dev/null || true)"; [[ "$f" =~ ^[0-9]{1,6}$ ]] && echo "$((10#$f))" || echo 1; }
+
+# A store newer than this provost (PV-045): every command that uses a store
+# refuses it, reads included, before anything is read or written, with exit
+# status 3. A later format may hold what this provost would misread, and a
+# write would file data in the older shape -- or, before 2.25.0, relabel the
+# store with the older number. A .store_format this provost cannot read as
+# a number is refused the same way: it is no format this provost wrote.
+_STORE_TOO_NEW_RC=3
+_refuse_newer_store () {
+    local f raw=""
+    f="$(_store_format_file)"
+    [[ -f "$f" ]] || return 0
+    raw="$(cat "$f" 2>/dev/null || true)"
+    if [[ "$raw" =~ ^[0-9]{1,6}$ ]]; then
+        (( 10#$raw > _STORE_FORMAT )) || return 0
+        printf '%serror%s the store at %s is format %d, newer than this provost (%s) understands (format %d). Nothing was read or written. Use a provost that knows format %d (provost store format prints a store'"'"'s format).\n' \
+            "$C_ERR" "$C_RST" "$PROVOST_WORKSPACE" "$((10#$raw))" "$PROVOST_VERSION" "$_STORE_FORMAT" "$((10#$raw))" >&2
+    else
+        printf '%serror%s the store at %s records a format this provost (%s) cannot read: .store_format holds '"'"'%s'"'"'. Nothing was read or written ('"'"'provost store check'"'"' reports on it).\n' \
+            "$C_ERR" "$C_RST" "$PROVOST_WORKSPACE" "$PROVOST_VERSION" "${raw:0:40}" >&2
+    fi
+    exit "$_STORE_TOO_NEW_RC"
+}
 
 # Format 1 -> 2: drop the `total_entries` column from every dataset that has
 # one. It is the engine's per-capture record count, not a variable; in a
@@ -1193,11 +1263,12 @@ _migrate_fix_capture_column () {
 _migrate_store () {
     local ws="$PROVOST_WORKSPACE" first=""
     [[ -d "$ws/.git" && -w "$ws" ]] || return 0
+    _refuse_newer_store         # never relabel a newer store with this format
     [[ -f "$ws/.gitignore" ]] && { IFS= read -r first < "$ws/.gitignore" || true; }
     [[ "$first" == "$_GITIGNORE_MARK" && -f "$(_capid_file)" && "$(_store_format)" -ge $_STORE_FORMAT ]] && return 0
     _git symbolic-ref -q HEAD >/dev/null 2>&1 || return 0      # restored/detached: later
     _lock
-    IFS= read -r first < "$ws/.gitignore" 2>/dev/null || first=""
+    { IFS= read -r first < "$ws/.gitignore"; } 2>/dev/null || first=""
     if [[ "$first" != "$_GITIGNORE_MARK" ]]; then
         _write_gitignore
         _git rm -r -q --cached --ignore-unmatch -- .lock instances.tsv \
@@ -1215,7 +1286,7 @@ _migrate_store () {
     if (( $(_store_format) < 4 )); then
         _migrate_fix_capture_column
     fi
-    echo "$_STORE_FORMAT" > "$(_store_format_file)"
+    (( $(_store_format) >= _STORE_FORMAT )) || echo "$_STORE_FORMAT" > "$(_store_format_file)"
     _commit "provost: store maintenance (.gitignore, untrack runtime files, capture counter, store format $_STORE_FORMAT)"
     _unlock
 }
@@ -1226,6 +1297,7 @@ _migrate_store () {
 # store don't race on `git init`.
 _ensure_workspace () {
     _vet_store_config
+    _refuse_newer_store
     # A new store's object format is asked for before anything is made.
     if [[ ! -d "$PROVOST_WORKSPACE/.git" && "$PROVOST_OBJECT_FORMAT" == sha256 ]]; then
         _git_at_least 2 29 || die "PROVOST_OBJECT_FORMAT=sha256 needs git 2.29 or later (this is git $_GITVER); the store at $PROVOST_WORKSPACE was not created."
@@ -4271,7 +4343,9 @@ EOF
             ;;
         store) cat <<'EOF'
 usage: provost store check [DIR]
-  Check a store (DIR, else the active store) against the store format it
+       provost store format [DIR]
+       provost store upgrade [--dry-run] [DIR]
+  check: check a store (DIR, else the active store) against the store format it
   records in .store_format (docs/store-format.md): the format number; the
   .gitignore and the row and capture counters; provenance.tsv and every
   dataset (headers, field counts, each row id in provenance under its own
@@ -4283,6 +4357,16 @@ usage: provost store check [DIR]
   and passes. It only reads: no lock, no migration, no commit. Exit 0 with
   no findings, 1 with them.
   'provost verify' is the integrity check (fsck, hashes, the history).
+  format: print the format the store records (one number; 1 when it has no
+  .store_format). Exit 3 when it is newer than this provost.
+  upgrade: run the migrations a store's first write would run, now and on
+  their own, in one commit, and say what was done and the format it went
+  from and to. --dry-run (-n) says what it would do and changes nothing. A
+  current store is left as it is. The first write still upgrades a store
+  by itself; this is for doing it on purpose.
+  A store newer than this provost is refused by every command that uses it,
+  reads included, before anything is read or written: exit 3 (store check
+  and store format report on it instead).
 EOF
             ;;
         template) cat <<'EOF'
@@ -5622,10 +5706,13 @@ cmd_import () {
     _mktempd import
     git init -q "$_MKTEMPD" >/dev/null 2>&1 || die "cannot create a scratch repository in $PROVOST_TEMP_DIR (set TMPDIR)."
     git -C "$_MKTEMPD" bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
-    # mkdir is the atomic claim on the destination (two concurrent imports to
-    # the same place cannot both win); the clone then fills the empty dir.
+    # the claim on the destination is an exclusive create beside it (two
+    # concurrent imports to the same place cannot both win; PV-043: not
+    # mkdir's exit status); the clone then fills the empty dir.
     [[ -e "$dest" ]] && die "destination already exists: $dest"
-    mkdir "$dest" 2>/dev/null || die "destination already exists (or cannot be created): $dest"
+    _claim_new "$dest" || die "destination is being created by another provost (or cannot be created): $dest"
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    mkdir "$dest" 2>/dev/null; [[ -d "$dest" ]] || die "destination cannot be created: $dest"
     if ! out="$(git clone -q "$file" "$dest" 2>&1)"; then
         rm -rf "$dest"; printf 'git: %s\n' "$out" >&2; die "import (clone) failed."
     fi
@@ -6503,11 +6590,11 @@ _rm_cap_owner () {
     # little, as the hand-back does; one older than a minute was abandoned
     # (_lock_break's own rule) and is cleared.
     local w=0 cleared=0
-    until mkdir "$lock.break" 2>/dev/null; do
-        # cleared at most once: one that cannot be removed (not empty, not a
-        # directory, another user's) is waited out like a busy one
+    until _excl_create "$lock.break"; do
+        # cleared at most once: one that cannot be removed (a directory not
+        # empty, another user's) is waited out like a busy one
         if (( ! cleared )) && (( $(_age "$lock.break") > 60 )); then
-            cleared=1; rmdir "$lock.break" 2>/dev/null || true
+            cleared=1; _mutex_clear "$lock.break"
         fi
         w=$((w + 1)); (( w < 30 )) || { : > "$tmpd/claimbusy"; return 1; }; sleep 0.1
     done
@@ -6518,7 +6605,7 @@ _rm_cap_owner () {
         printf '%s\n' "$rmchild" > "$lock/owner.tmp" 2>/dev/null \
             && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null && rc=0
     fi
-    rmdir "$lock.break" 2>/dev/null || true
+    rm -f -- "$lock.break" 2>/dev/null || true
     return $rc
 }
 
@@ -6529,14 +6616,14 @@ _rm_cap_hand_back () {
     [[ -n "$1" ]] || return 0
     # under _lock_break's mutex, as the claim; if it cannot be had the record
     # stays as it is (a dead owner's lock is broken as stale in time)
-    until mkdir "$lock.break" 2>/dev/null; do
+    until _excl_create "$lock.break"; do
         w=$((w + 1)); (( w < 20 )) || return 0; sleep 0.1
     done
     { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
     if [[ "$cur" == "$1" ]]; then
         printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
     fi
-    rmdir "$lock.break" 2>/dev/null || true
+    rm -f -- "$lock.break" 2>/dev/null || true
     return 0
 }
 
@@ -7064,7 +7151,9 @@ cmd_archive () {
     local dest; dest="$(_abspath "$to")"
     [[ -e "$dest" ]] && die "the archive's directory already exists: $dest (an archive is always written to a new one)."
     mkdir -p -- "$(dirname -- "$dest")" 2>/dev/null || true
-    mkdir -- "$dest" 2>/dev/null || die "cannot create the archive's directory: $dest"
+    _claim_new "$dest" || die "the archive's directory is being created by another provost (or cannot be created): $dest"
+    [[ -e "$dest" ]] && die "the archive's directory already exists: $dest (an archive is always written to a new one)."
+    mkdir -- "$dest" 2>/dev/null; [[ -d "$dest" ]] || die "cannot create the archive's directory: $dest"
     _TMPDIRS+=("$dest")      # removed on any failure until it is complete
     local c ts e ds osha isha rsha rart commit kp got out
     printf '%s\n' "$_ARCHIVE_CAPS_HDR" > "$dest/captures.tsv"
@@ -7320,7 +7409,9 @@ _archive_import () {
     if ! _archive_verify "$d" "$PROVOST_ALLOWED_SIGNERS" 0 > "$vout" 2>&1; then
         cat "$vout" >&2; die "the archive does not verify — not imported."
     fi
-    mkdir -- "$dest" 2>/dev/null || die "cannot create $dest"
+    _claim_new "$dest" || die "$dest is being created by another provost (or cannot be created)"
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    mkdir -- "$dest" 2>/dev/null; [[ -d "$dest" ]] || die "cannot create $dest"
     rmdir -- "$dest"
     mv -- "$_ARCHIVE_CLONE" "$dest" 2>/dev/null || cp -R -- "$_ARCHIVE_CLONE" "$dest" || die "could not put the store at $dest"
     git -C "$dest" remote remove origin >/dev/null 2>&1 || true
@@ -7608,9 +7699,120 @@ cmd_store () {
     local sub="${1:-}"
     case "$sub" in
         check) shift; _store_check "$@" ;;
+        format) shift; _store_format_cmd "$@" ;;
+        upgrade) shift; _store_upgrade "$@" ;;
         -h|--help|"") _cmd_help store ;;
         *) usage_die "store: unknown subcommand '$sub' (see 'provost help store')." ;;
     esac
+}
+
+# _store_dir_arg SUB [DIR] -- point the store commands at DIR when given.
+_store_dir_arg () {
+    local dir="$1"
+    [[ -n "$dir" ]] || return 0
+    [[ -d "$dir" ]] || die "no such directory: $dir"
+    PROVOST_WORKSPACE="$(_abspath "$dir")"; PROVOST_STORE_KIND="explicit override"
+    _vet_store_config
+}
+
+# store format [DIR] -- print the format a store records (PV-045): one
+# number, 1 for a store with no .store_format, so a tool downstream asks
+# provost rather than reading the file itself. Exit 0; 3 when the store is
+# newer than this provost (the number is still printed), 1 when there is no
+# store or its .store_format cannot be read.
+_store_format_cmd () {
+    local dir="" raw=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help store ;;
+            -?*) usage_die "store format: unknown option: $1 (see 'provost help store')." ;;
+            *) [[ -z "$dir" ]] || _cmd_usage_die store; dir="$1"; shift ;;
+        esac
+    done
+    _store_dir_arg "$dir"
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no git-backed store at $PROVOST_WORKSPACE."
+    if [[ -f "$(_store_format_file)" ]]; then
+        raw="$(cat "$(_store_format_file)" 2>/dev/null || true)"
+        [[ "$raw" =~ ^[0-9]{1,6}$ ]] || die ".store_format holds '${raw:0:40}', not a format number."
+        printf '%d\n' "$((10#$raw))"
+        (( 10#$raw <= _STORE_FORMAT )) || exit "$_STORE_TOO_NEW_RC"
+        return 0
+    fi
+    echo 1
+}
+
+# _upgrade_plan -- what _migrate_store would do to the active store, one
+# line each, into _PLAN (empty: nothing).
+_upgrade_plan () {
+    local ws="$PROVOST_WORKSPACE" first="" fmt n f
+    _PLAN=()
+    [[ -f "$ws/.gitignore" ]] && { IFS= read -r first < "$ws/.gitignore" || true; }
+    [[ "$first" == "$_GITIGNORE_MARK" ]] \
+        || _PLAN+=(".gitignore: write it, and untrack the runtime files (.lock, instances.tsv, the failure log)")
+    [[ -f "$(_capid_file)" ]] \
+        || _PLAN+=(".next_capture_id: seed it at $(( $(_scan_max_capture_num) + 1 ))")
+    fmt="$(_store_format)"
+    if (( fmt < 2 )); then
+        n=0; for f in "$(_ds_dir)"/*.tsv; do [[ -f "$f" ]] && head -n 1 "$f" | tr '\t' '\n' | grep -qx total_entries && n=$((n + 1)); done
+        _PLAN+=("format 1 → 2: drop the engine's total_entries record count from the datasets that carry it ($n dataset(s); a column of that name holding data is kept)")
+    fi
+    if (( fmt < 3 )); then
+        n=0; for f in "$(_ds_dir)"/*.tsv; do [[ -f "$f" ]] && n=$((n + 1)); done
+        _PLAN+=("format 2 → 3: add the capture column to every dataset, filled in from provenance.tsv ($n dataset(s))")
+    fi
+    (( fmt < 4 )) && _PLAN+=("format 3 → 4: put right any row whose capture column a reconcile matched by name (PV-015), from provenance.tsv")
+    (( fmt < _STORE_FORMAT )) && _PLAN+=(".store_format: $fmt → $_STORE_FORMAT")
+    return 0
+}
+
+# store upgrade [--dry-run] [DIR] -- the migrations a store's first write
+# would run, run now and on their own (PV-045): one commit, reporting the
+# format it was and is. A store already current is left as it is (exit 0);
+# a newer one is refused (exit 3). --dry-run says what it would do and
+# changes nothing. The first write still upgrades a store by itself.
+_store_upgrade () {
+    local dir="" dry=0 from to l head0 head1 todo=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help store ;;
+            -n|--dry-run) dry=1; shift ;;
+            -?*) usage_die "store upgrade: unknown option: $1 (see 'provost help store')." ;;
+            *) [[ -z "$dir" ]] || _cmd_usage_die store; dir="$1"; shift ;;
+        esac
+    done
+    _store_dir_arg "$dir"
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no git-backed store at $PROVOST_WORKSPACE — nothing to upgrade."
+    _refuse_newer_store
+    from="$(_store_format)"
+    _upgrade_plan
+    if (( ${#_PLAN[@]} == 0 )); then
+        ok "the store at $PROVOST_WORKSPACE is format $from, current: nothing to upgrade."
+        return 0
+    fi
+    if (( dry )); then
+        printf 'store upgrade (dry run): %s, format %d → %d, would:\n' "$PROVOST_WORKSPACE" "$from" "$_STORE_FORMAT"
+        for l in "${_PLAN[@]}"; do printf '  - %s\n' "$l"; done
+        printf 'nothing was changed.\n'
+        return 0
+    fi
+    todo=("${_PLAN[@]}")
+    [[ -w "$PROVOST_WORKSPACE" ]] \
+        || die "the store at $PROVOST_WORKSPACE is read-only — provost does not write to it, so it cannot be upgraded (reads open it as format $from)."
+    _require_on_branch
+    _sign_check
+    head0="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
+    _migrate_store
+    to="$(_store_format)"
+    _upgrade_plan
+    (( ${#_PLAN[@]} == 0 )) || die "store upgrade did not finish: ${_PLAN[0]}"
+    head1="$(_git rev-parse -q --short HEAD 2>/dev/null || true)"
+    printf 'store upgrade: %s, format %d → %d:\n' "$PROVOST_WORKSPACE" "$from" "$to"
+    printf '  - %s\n' "${todo[@]}"
+    if [[ -n "$head1" && "$(_git rev-parse -q --verify HEAD 2>/dev/null)" != "$head0" ]]; then
+        ok "upgraded in one commit ($head1)."
+    else
+        ok "upgraded (nothing to commit)."
+    fi
 }
 
 _store_check () {
@@ -8211,6 +8413,10 @@ COMMANDS
                                    signatures (SIGNING)
     provost store check [DIR]      check a store against the store format
                                    (docs/store-format.md); reads only
+    provost store format [DIR]     the format a store records (one number)
+    provost store upgrade [-n] [DIR]
+                                   upgrade an older store's format now, in
+                                   one commit (-n: say what, change nothing)
     provost help [advanced]        the short help / this text
     provost COMMAND --help         one command's usage
   Templates
@@ -9030,6 +9236,16 @@ main () {
     esac
     _validate_settings
     _vet_store_config
+    # a store newer than this provost is refused by every command that uses
+    # the active store (PV-045). Not: help, import (makes a new store),
+    # template (no store), archive verify/import (another directory), and
+    # store: check and format report on a store, upgrade refuses one itself
+    # (each may name another directory).
+    case "$verb ${2:-}" in
+        "import "*|"template "*|"archive verify"|"archive import"|"store "*) ;;
+        *" -h"|*" --help") ;;
+        *) _refuse_newer_store ;;
+    esac
     # Bare 'provost' on a terminal: there is nothing piped in — show help
     # instead of silently waiting on stdin.
     if [[ $# -eq 0 && -t 0 ]]; then cmd_help; exit 0; fi
