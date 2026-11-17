@@ -362,6 +362,7 @@ Present when they apply:
 | `datasets`, `dataset_rows`, `dataset_coverage`, `dataset_consistency` | With more than one dataset: how many, and per dataset `NAME:#A..B` (or `NAME:none`), its coverage and its consistency. |
 | `auto_multi`, `auto_multi_model_parts` | The input was segmented into parts (`segmented (KIND): REASON`), or segmenting was tried and declined (`declined: ...`). |
 | `layout_model` | `filed: ...` or `declined: ...`: whether the layout model filed it. |
+| `labeller` | When the layout model ran: `lm` (the tiny LM labelled), `trees`, or `trees (fallback: WHY)` when an LM was asked for and did not load (2.26.0 on). |
 | `llm_template`, `llm_skip_audit` | `filed by ...` or `declined: ...`; what the template skipped. |
 | `template` | The template that filed it (2.20.0 on): `llm-templates/NAME.json`, `shipped:NAME.json`, or its path in a template directory (`PROVOST_TEMPLATE_DIRS`). |
 | `single_strategy`, `single_confidence`, `single_coverage`, `single_consistency` | The single parse that another route replaced, kept for the record. |

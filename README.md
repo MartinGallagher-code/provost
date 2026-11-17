@@ -32,7 +32,9 @@ This adds a better reader for `--model`: a tiny pretrained language model
 fine-tuned on provost's own labels. It comes as the
 [`provost-model`](https://github.com/MartinGallagher-code/provost_model)
 package (85 MB) and runs on numpy, with no torch or GPU. Without it,
-`--model` uses the small decision trees provost ships.
+`--model` uses the small decision trees provost ships. When it is installed
+(or `PROVOST_LAYOUT_LM` names one) but does not load, provost warns once and
+the trees label; `--strict-model` makes that an error.
 
 ```bash
 pip install provost[pandas]
@@ -331,6 +333,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_ENV_VARS` | `OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*` | the variables `--env` records: names or glob patterns, space- or comma-separated; set but empty = none |
 | `PROVOST_AUTO_MULTI` | `1` | segment a parse the quality gate would hold, when the parts are clearly better (`0` = hold it; same as `--no-auto-multi`) |
 | `PROVOST_MODEL` | `0` | `1` = when the gate would still hold a parse, try the learned layout model and file its table if it passes the same gate (needs `python3`; same as `--model`) |
+| `PROVOST_MODEL_STRICT` | `0` | `1` = when the layout LM asked for (`PROVOST_LAYOUT_LM`, or `provost-model` installed) does not load, fail with exit 4 and file nothing instead of letting the trees label (same as `--strict-model`); `0` = warn once and use the trees |
 | `PROVOST_LAYOUT_LM` | unset | the tiny LM `--model` labels with: a model directory, or unset for the installed `provost-model` package (`pip install provost[lm]`); `0` = the trees only |
 | `PROVOST_PYTHON` | `python3` | the interpreter that runs the layout model and the templates (the pip launcher sets it to its own, where `pip install 'provost[textfsm]'` puts textfsm) |
 | `PROVOST_TEMPLATES` | `1` | apply a parsing template that fits (one you wrote, one Claude wrote, or one shipped: [docs/templates.md](docs/templates.md)) before a generic parse is trusted or a capture held; nothing is sent anywhere. `0` = don't (same as `--no-templates`) |

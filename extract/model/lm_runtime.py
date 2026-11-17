@@ -128,16 +128,40 @@ def load_model(path):
     return model, hf_encoder(tok, cfg.get("max_tok", MAX_TOK))
 
 
+def missing_runtime():
+    """Why available() is False, in words ("" when it is True)."""
+    if torch is None:
+        return "torch is not installed"
+    for mod in ("transformers", "peft"):
+        try:
+            __import__(mod)
+        except ImportError:
+            return f"{mod} is not installed"
+    return ""
+
+
+def load_why(path):
+    """(load_model(path), "") or, when the runtime or the model is missing or
+    broken, (None, why) -- why in words, for the warning provost prints."""
+    if not path:
+        return None, "no model directory"
+    if not is_numpy_dir(path):
+        if not os.path.isdir(path):
+            return None, f"{path} is not a directory"
+        if not os.path.isfile(os.path.join(path, "weights.pt")):
+            return None, f"{path} has no weights.pt"
+        why = missing_runtime()
+        if why:
+            return None, why
+    try:
+        return load_model(path), ""
+    except Exception as e:  # noqa: BLE001 -- a broken or unfetchable model declines, like a missing one
+        return None, f"it failed to load: {type(e).__name__}: {e}".strip()
+
+
 def load(path):
     """load_model, or None when the runtime or the model is missing."""
-    if not path:
-        return None
-    if not is_numpy_dir(path) and (not os.path.isfile(os.path.join(path, "weights.pt")) or not available()):
-        return None
-    try:
-        return load_model(path)
-    except Exception:  # noqa: BLE001 -- a broken or unfetchable model declines, like a missing one
-        return None
+    return load_why(path)[0]
 
 
 def run(lm, lines, role_probs=False):

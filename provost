@@ -121,6 +121,7 @@ PROVOST_ENV="${PROVOST_ENV:-0}"                      # 1 = record where a captur
 PROVOST_ENV_VARS="${PROVOST_ENV_VARS-OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_* UCX_* CUDA_* NCCL_*}"
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
+PROVOST_MODEL_STRICT="${PROVOST_MODEL_STRICT:-0}"    # 1 = an LM asked for that does not load is an error, not the trees (--strict-model, PV-044)
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = may have Claude write or extend a parsing template (see _llm_template)
 PROVOST_TEMPLATES="${PROVOST_TEMPLATES:-1}"          # 1 = apply a stored, PROVOST_TEMPLATE_DIRS or shipped parsing template that fits, --llm or not (--no-templates: 0)
 PROVOST_TEMPLATE_TIMEOUT="${PROVOST_TEMPLATE_TIMEOUT:-10}"  # seconds one template may take on one capture; past it, it is declined
@@ -210,6 +211,7 @@ _validate_settings () {
     done
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
+    [[ "$PROVOST_MODEL_STRICT" == 0 || "$PROVOST_MODEL_STRICT" == 1 ]] || usage_die "PROVOST_MODEL_STRICT must be 0 or 1 (got '$PROVOST_MODEL_STRICT')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
     [[ "$PROVOST_TEMPLATES" == 0 || "$PROVOST_TEMPLATES" == 1 ]] || usage_die "PROVOST_TEMPLATES must be 0 or 1 (got '$PROVOST_TEMPLATES')."
     if [[ ! "$PROVOST_TEMPLATE_TIMEOUT" =~ ^[0-9]{1,4}$ ]] || (( 10#$PROVOST_TEMPLATE_TIMEOUT < 1 || 10#$PROVOST_TEMPLATE_TIMEOUT > 3600 )); then
@@ -2048,6 +2050,50 @@ _am_part_check () {
     return 0
 }
 
+# _lm_labeller -- after the layout model ran (_model_table, _model_multi):
+# which labeller it used, from the line layout_model.py wrote to
+# PROVOST_LM_STATUS ($tmp/lm.status: lm or trees, a tab, and why the trees
+# ran in place of an LM that was asked for -- PROVOST_LAYOUT_LM set, or the
+# provost-model package installed, torch or not). lm_labeller (for meta.tsv)
+# gets "lm", "trees", or "trees (fallback: WHY)". A fallback is warned of once
+# per provost process (_warn_once); under --strict-model it is an error:
+# exit 4 before anything is filed (PV-044).
+_lm_labeller () {
+    local f="$tmp/lm.status" who="" why=""
+    [[ -s "$f" ]] || return 0
+    { IFS=$'\t' read -r who why < "$f"; } 2>/dev/null || true
+    rm -f "$f"
+    case "$who" in
+        lm) lm_labeller="lm"; return 0 ;;
+        trees) ;;
+        *) return 0 ;;
+    esac
+    if [[ -z "$why" ]]; then
+        [[ -n "$lm_labeller" ]] || lm_labeller="trees"
+        return 0
+    fi
+    lm_labeller="trees (fallback: $why)"
+    if [[ "$PROVOST_MODEL_STRICT" == 1 ]]; then
+        printf '%serror%s --strict-model: %s. The decision trees were not used in its place; nothing was filed.\n' \
+            "$C_ERR" "$C_RST" "$why" >&2
+        exit 4
+    fi
+    _warn_once lm-fallback "$why; the layout model's decision trees labelled in its place (--strict-model makes this an error)."
+}
+# _warn_once KEY MESSAGE -- warn once per provost process. In one of batch's
+# parse children (whose stderr goes to a log) the message is left in
+# _BATCH_WARN_DIR for the batch to print once, after its parses.
+_WARNED_ONCE=" "
+_warn_once () {
+    if [[ -n "${_BATCH_WARN_DIR:-}" ]]; then
+        printf '%s\n' "$2" > "$_BATCH_WARN_DIR/$1" 2>/dev/null || true
+        return 0
+    fi
+    [[ "$_WARNED_ONCE" == *" $1 "* ]] && return 0
+    _WARNED_ONCE="$_WARNED_ONCE$1 "
+    warn "$2"
+}
+
 # _model_table INPUT ENGINE_WIDE ENGINE_META TAG — the layout model's table
 # for INPUT (the explicit-only layout-model strategy, measured by the engine
 # like any parser), arbitrating line by line with the engine's own parse of
@@ -2058,10 +2104,13 @@ _am_part_check () {
 _model_table () {
     local inp="$1" ew="$2" em="$3" tag="$4" lmeta="$tmp/lm.$4.meta" ls=""
     _MT_OUT="$tmp/lm.$tag.tsv"; _MT_C=""; _MT_V=""; _MT_T=""
-    PROVOST_LM_ENGINE_WIDE="$ew" PROVOST_LM_ENGINE_META="$em" \
+    rm -f "$tmp/lm.status"
+    PROVOST_LM_ENGINE_WIDE="$ew" PROVOST_LM_ENGINE_META="$em" PROVOST_LM_STATUS="$tmp/lm.status" \
+        PROVOST_MODEL_STRICT="$PROVOST_MODEL_STRICT" \
         _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
         ${eargs[@]+"${eargs[@]}"} -s layout-model --emit-meta -f tsv --max-strategies 1 "$inp" \
         >"$_MT_OUT" 2>"$lmeta" || true
+    _lm_labeller
     IFS=$'\t' read -r ls _MT_C _MT_V _MT_T < <(awk -F'\t' \
         '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4; t = $5 } END { printf "%s\t%s\t%s\t%s\n", s, c, v, t }' "$lmeta" 2>/dev/null) || true
     [[ "$ls" == layout-model && -s "$_MT_OUT" ]] && grep -q . "$_MT_OUT" || return 1
@@ -2211,8 +2260,13 @@ _model_multi () {
     local segd="$tmp/lmseg" i f n=0 dstrat dconf dcov dcons dlines tot=0 sub=0 covl=0 alll jcov need
     command -v "${PROVOST_PYTHON:-python3}" >/dev/null 2>&1 || { mm_note="python3 is not installed"; return 1; }
     rm -rf "$segd"; mkdir -p "$segd"
-    "${PROVOST_PYTHON:-python3}" "$PROVOST_ROOT/extract/model/layout_model.py" "$body" --segments "$segd" >/dev/null 2>&1 \
-        || { mm_note="it finds no two sections it can read"; return 1; }
+    rm -f "$tmp/lm.status"
+    local segrc=0
+    PROVOST_LM_STATUS="$tmp/lm.status" PROVOST_MODEL_STRICT="$PROVOST_MODEL_STRICT" \
+        "${PROVOST_PYTHON:-python3}" "$PROVOST_ROOT/extract/model/layout_model.py" "$body" --segments "$segd" >/dev/null 2>&1 \
+        || segrc=$?
+    _lm_labeller
+    (( segrc == 0 )) || { mm_note="it finds no two sections it can read"; return 1; }
     while [[ -f "$segd/seg.$((n + 1)).txt" ]]; do n=$((n + 1)); done
     local -a an=() as=() ac=() af=() acv=() acs=()
     for (( i = 1; i <= n; i++ )); do
@@ -2711,7 +2765,7 @@ _ingest_parse () {
     # LAYOUT MODEL state (see _layout_model): lm_reason = why the gate held the
     # engine's parse that the model's table replaced; lm_note = why the model
     # was declined; single_cov / single_cons = the held parse's measures.
-    local lm_reason="" lm_note="" single_cov="" single_cons="" mm_note=""
+    local lm_reason="" lm_note="" single_cov="" single_cons="" mm_note="" lm_labeller=""
     local llm_reason="" llm_note="" llm_how="" llm_learned="" llm_multi=0 llm_floor=gain llm_notes="" llm_notes_base=""
     local llm_audit="" llm_seen_how="" llm_seen_tpl=""
 
@@ -2913,7 +2967,7 @@ _ingest_parse () {
     declare -p ds_name ds_strategy ds_conf ds_file ds_cov ds_cons reason \
         cmd_name cmd_state cmd_top cmd_raw cmd_fit \
         strategy conf cov tcons am_reason am_note am_cov am_kind am_model \
-        single_strategy single_conf single_cov single_cons lm_reason lm_note \
+        single_strategy single_conf single_cov single_cons lm_reason lm_note lm_labeller \
         llm_reason llm_note llm_how llm_learned llm_audit llm_seen_how llm_seen_tpl ctxf detection \
         ds_units units_mode > "$tmp/state.sh"
 }
@@ -3107,6 +3161,7 @@ _ingest_store () {
             [[ -n "$single_cons" ]] && printf 'single_consistency\t%s\n' "$single_cons"
         fi
         [[ -n "$lm_note" ]] && printf 'layout_model\t%s\n' "$(_meta_safe "declined: $lm_note")"
+        [[ -n "${lm_labeller:-}" ]] && printf 'labeller\t%s\n' "$(_meta_safe "$lm_labeller")"
         if [[ -n "$llm_how" ]]; then
             printf 'llm_template\t%s\n' "$(_meta_safe "filed by $llm_how")"
             # which template, wherever it came from (PV-039)
@@ -3914,6 +3969,10 @@ options:
   --model                 before holding such a parse, try the learned layout
                           model (needs python3; --no-model: don't, the default,
                           PROVOST_MODEL)
+  --strict-model          --model, and when the layout LM asked for
+                          (PROVOST_LAYOUT_LM, or provost-model installed) does
+                          not load, fail (exit 4, nothing filed) rather than
+                          let the decision trees label (PROVOST_MODEL_STRICT)
   --no-templates          do not apply a parsing template written for this
                           tool, by hand or by Claude, stored or shipped
                           (--templates: apply one that fits before trusting a
@@ -3973,6 +4032,10 @@ options:
   --model                 before holding such a parse, try the learned layout
                           model (needs python3; --no-model: don't, the default,
                           PROVOST_MODEL)
+  --strict-model          --model, and when the layout LM asked for
+                          (PROVOST_LAYOUT_LM, or provost-model installed) does
+                          not load, fail (exit 4, nothing filed) rather than
+                          let the decision trees label (PROVOST_MODEL_STRICT)
   --no-templates          do not apply a parsing template written for this
                           tool, by hand or by Claude, stored or shipped
                           (--templates: apply one that fits before trusting a
@@ -4434,6 +4497,7 @@ _capture_opt () {
         --no-auto-multi) PROVOST_AUTO_MULTI=0 ;;
         --model) PROVOST_MODEL=1 ;;
         --no-model) PROVOST_MODEL=0 ;;
+        --strict-model) PROVOST_MODEL=1; PROVOST_MODEL_STRICT=1 ;;
         --llm) PROVOST_LLM=1 ;;
         --no-llm) PROVOST_LLM=0 ;;
         --templates) PROVOST_TEMPLATES=1 ;;
@@ -4749,6 +4813,7 @@ cmd_batch () {
     _ensure_workspace
     _require_on_branch
     _mktempd batch; local broot="$_MKTEMPD" d size failed=0 skipped=0
+    local bwarn="$broot/warn" strictfail=0; mkdir -p "$bwarn"
     local -a todo=()
     # Stage each input as inject does: bounded by PROVOST_MAX_INPUT, CRs
     # stripped. An empty one is said and skipped, as `run` skips a command
@@ -4799,6 +4864,7 @@ cmd_batch () {
             (
                 _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
                 trap _cleanup EXIT
+                _BATCH_WARN_DIR="$bwarn"
                 _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
             ) > "$d/parse.log" 2>&1 &
             pre_g+=("$g"); pre_pid+=("$!")
@@ -4824,6 +4890,7 @@ cmd_batch () {
             (
                 _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
                 trap _cleanup EXIT
+                _BATCH_WARN_DIR="$bwarn"
                 _BATCH_HINT="${hint_of[=${names[i]}]:-}" \
                     _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
             ) > "$d/parse.log" 2>&1 &
@@ -4833,6 +4900,7 @@ cmd_batch () {
             rc=0
             if [[ -n "${pids[head]}" ]]; then wait "${pids[head]}" || rc=$?
             else rc="${pre_rc[$head]}"; fi
+            (( rc == 4 && PROVOST_MODEL_STRICT == 1 )) && strictfail=1
             if (( rc == 0 )); then parsed+=("${todo[head]}")
             else
                 warn "${files[${todo[head]}]}: not captured: $(awk 'NF { l = $0 } END { print l }' "$broot/${todo[head]}/parse.log")"
@@ -4845,6 +4913,7 @@ cmd_batch () {
         rc=0
         if [[ -n "${pids[head]}" ]]; then wait "${pids[head]}" || rc=$?
         else rc="${pre_rc[$head]}"; fi
+        (( rc == 4 && PROVOST_MODEL_STRICT == 1 )) && strictfail=1
         if (( rc == 0 )); then parsed+=("${todo[head]}")
         else
             warn "${files[${todo[head]}]}: not captured: $(awk 'NF { l = $0 } END { print l }' "$broot/${todo[head]}/parse.log")"
@@ -4854,6 +4923,15 @@ cmd_batch () {
     done
     # (waited in launch order, so parsed[] is in input order: capture ids are
     # given out in the order the inputs were named, whatever finished first)
+    # a warning a parse left for the batch (_warn_once), printed once
+    local wf
+    for wf in "$bwarn"/*; do [[ -f "$wf" ]] && warn "$(cat "$wf")"; done
+    # --strict-model: an LM that did not load fails the whole batch, which
+    # files nothing (PV-044)
+    if (( strictfail )); then
+        printf '%serror%s batch: --strict-model, and the layout LM asked for did not load (above); nothing was filed.\n' "$C_ERR" "$C_RST" >&2
+        exit 4
+    fi
 
     if (( ${#parsed[@]} > 0 )); then
         _lock
@@ -8718,8 +8796,13 @@ LAYOUT MODEL (--model, PROVOST_MODEL=1)
     rejects; and when the whole-capture table is declined, the model cuts
     the report into its own uniform sections (a key/value block, a table,
     a list), filed under AUTO-MULTI's rules. meta.tsv records
-    'layout_model' (filed or declined, and why). Needs python3 (no
-    packages); declines inputs over 600 lines.
+    'layout_model' (filed or declined, and why) and 'labeller' (lm,
+    trees, or trees with why the LM asked for did not load). An LM is
+    asked for by PROVOST_LAYOUT_LM, or by installing provost-model (torch
+    or not); when it does not load, provost warns once and the trees
+    label, or under --strict-model (PROVOST_MODEL_STRICT=1) it stops with
+    exit 4 and files nothing. Needs python3 (no packages); declines inputs
+    over 600 lines.
 
 TEMPLATES (--no-templates, PROVOST_TEMPLATES=0; --llm, PROVOST_LLM=1)
     A template is a parser for one tool's output, written once and applied
@@ -9121,6 +9204,9 @@ SETTINGS (environment)
                               0 = off, as --no-auto-multi)
     PROVOST_MODEL             1 = try the learned layout model (as --model;
                               needs python3)
+    PROVOST_MODEL_STRICT      1 = an LM asked for that does not load is an
+                              error (exit 4, nothing filed), not the trees
+                              (as --strict-model)
     PROVOST_LAYOUT_LM         with --model, label with the tiny pretrained LM
                               in this directory, not the trees; unset, the
                               installed provost-model package (pip install

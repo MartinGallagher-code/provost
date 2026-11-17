@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.25.0 is everything through 2026-11-17** (`VERSION`, man header,
-the `## 2.25.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.26.0 is everything through 2026-11-17** (`VERSION`, man header,
+the `## 2.26.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -40,7 +40,8 @@ shown and used (PV-040, Next steps 1t; 2.24.0); the store lock taken by an
 exclusive create rather than `mkdir`'s exit status (PV-043, Next steps 1u;
 2.24.1); a newer store refused by
 every command, `store upgrade` and `store format` (PV-045, Next steps 1v;
-2.25.0). 2.4.0 added `provost
+2.25.0); a warning and a meta.tsv record when the layout model falls back
+to the trees, and `--strict-model` (PV-044, Next steps 1w; 2.26.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -366,6 +367,13 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1w. **2026-11-17: layout-model fallback** (PV-044, 2.26.0). When the tiny LM
+    asked for (`PROVOST_LAYOUT_LM`, or `provost-model` installed, torch or
+    not) does not load, provost warns once per process and records
+    `labeller` = `trees (fallback: WHY)` in meta.tsv; `--strict-model`
+    (`PROVOST_MODEL_STRICT=1`) makes it exit 4 with nothing filed. The
+    reason comes back from `layout_model.py` through `PROVOST_LM_STATUS`.
 
 1v. **2026-11-17: store format guard** (PV-045, 2.25.0). A store whose
     format is newer than this provost (or not a number) is refused by every

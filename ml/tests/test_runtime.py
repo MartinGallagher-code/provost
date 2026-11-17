@@ -327,5 +327,77 @@ class LMArbiter(unittest.TestCase):
             os.environ.update(saved[2])
 
 
+class LMFallbackTest(unittest.TestCase):
+    """PV-044: why the LM asked for did not load reaches provost."""
+
+    def test_no_lm_asked_for_is_no_fallback(self):
+        self.assertIsNone(LM.load_lm({"PROVOST_LAYOUT_LM": "0"}))
+        self.assertEqual(LM.LM_FALLBACK, "")
+
+    def test_a_directory_with_no_weights_says_so(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIsNone(LM.load_lm({"PROVOST_LAYOUT_LM": d}))
+            self.assertIn("has no weights.pt", LM.LM_FALLBACK)
+            self.assertIn(d, LM.LM_FALLBACK)
+
+    def test_a_missing_runtime_is_named(self):
+        import lm_runtime
+        saved = lm_runtime.torch
+        try:
+            lm_runtime.torch = None
+            self.assertEqual(lm_runtime.missing_runtime(), "torch is not installed")
+            with tempfile.TemporaryDirectory() as d:
+                with open(os.path.join(d, "weights.pt"), "w"):
+                    pass
+                self.assertEqual(lm_runtime.load_why(d), (None, "torch is not installed"))
+                self.assertIsNone(lm_runtime.load(d))
+        finally:
+            lm_runtime.torch = saved
+
+    def test_a_path_that_is_not_a_directory(self):
+        import lm_runtime
+        self.assertIn("is not a directory", lm_runtime.load_why("/nonexistent/lm")[1])
+        self.assertEqual(lm_runtime.load_why(""), (None, "no model directory"))
+
+    def test_a_broken_numpy_model_is_a_fallback(self):
+        with tempfile.TemporaryDirectory() as d:
+            import lm_encode
+            with open(os.path.join(d, "config.json"), "w", encoding="utf-8") as fh:
+                json.dump({"format": lm_encode.NUMPY_FORMAT, "shards": ["missing.npz"]}, fh)
+            self.assertIsNone(LM.load_lm({"PROVOST_LAYOUT_LM": d}))
+            self.assertIn("did not load", LM.LM_FALLBACK)
+
+    def test_write_status(self):
+        with tempfile.TemporaryDirectory() as d:
+            st = os.path.join(d, "status")
+            LM.LM_FALLBACK = "the layout LM at x did not load\t(torch\nis not installed)"
+            LM.write_status(None, {"PROVOST_LM_STATUS": st})
+            with open(st, encoding="utf-8") as fh:
+                self.assertEqual(fh.read(), "trees\tthe layout LM at x did not load (torch is not installed)\n")
+            LM.write_status(("m", "e"), {"PROVOST_LM_STATUS": st})
+            with open(st, encoding="utf-8") as fh:
+                self.assertEqual(fh.read(), "lm\t\n")
+            LM.write_status(None, {})          # no file named: nothing written
+            LM.LM_FALLBACK = ""
+
+    def test_main_under_strict_does_not_label_with_the_trees(self):
+        saved = dict(os.environ)
+        try:
+            with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as t:
+                src = os.path.join(t, "in.txt")
+                with open(src, "w", encoding="utf-8") as fh:
+                    fh.write("NAME    STATE\nweb     up\ndb      down\n")
+                st = os.path.join(t, "status")
+                os.environ.update(PROVOST_LAYOUT_LM=d, PROVOST_LM_STATUS=st, PROVOST_MODEL_STRICT="1")
+                self.assertEqual(LM.main([src]), 4)
+                with open(st, encoding="utf-8") as fh:
+                    self.assertTrue(fh.read().startswith("trees\tthe layout LM at "))
+                os.environ["PROVOST_MODEL_STRICT"] = "0"
+                self.assertNotEqual(LM.main([src]), 4)
+        finally:
+            os.environ.clear()
+            os.environ.update(saved)
+
+
 if __name__ == "__main__":
     unittest.main()
