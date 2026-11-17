@@ -3700,6 +3700,74 @@ for n in 1 2 3 4; do
     (( n == 3 )) && check "format 3: the migration puts PV-015's wrong rows right" "$(printf '8\tc0004\t1\tsdh\t500\t7\t\tsnap1')" "$(cat "$FX/store/datasets/disks.tsv")"
     (( n == 1 )) && check_not "format 1: the migration drops total_entries" "total_entries" "$(head -1 "$FX/store/datasets/aligned-columns.tsv")"
 done
+# PV-045: provost store upgrade runs a first write's migrations on their
+# own, in one commit; the datasets come out exactly as the implicit upgrade
+# (the loop above) leaves them. --dry-run changes nothing; a second run
+# changes nothing.
+dsets () { ( cd "$1/store/datasets" && for f in *.tsv; do [[ "$f" == late.tsv ]] || { echo "== $f"; cat "$f"; }; done ); }
+for n in 1 2 3; do
+    FX="$(fx_open "$n")"; REF="$(fx_open "$n")"
+    printf 'a b\n1 2\n' | PROVOST_WORKSPACE="$REF/store" "$PROVOST" --sync --name late >/dev/null 2>&1
+    check "format $n: store format prints $n" "<$n>" "<$(fxp store format)>"
+    before="$(snapshot "$FX")"
+    dry="$(fxp store upgrade --dry-run || true)"
+    check "format $n: store upgrade --dry-run says what it would do" "format $n → 4, would:" "$dry"
+    check "...and that it changed nothing" "nothing was changed" "$dry"
+    check "format $n: --dry-run changed no byte" "<same>" "<$([[ "$before" == "$(snapshot "$FX")" ]] && echo same || echo changed)>"
+    h0="$(tgit "$FX/store" rev-parse HEAD)"
+    up="$(fxp store upgrade || true)"
+    check "format $n: store upgrade brings it to format 4" "format $n → 4" "$up"
+    check "format $n: ...in one commit" "1 store format 4" "$(tgit "$FX/store" rev-list --count "$h0..HEAD") $(tgit "$FX/store" log -1 --format=%s | grep -o 'store format 4')"
+    check "format $n: ...the store records format 4" "<4>" "<$(fxp store format)>"
+    check "format $n: ...every dataset as the implicit upgrade leaves it" "<same>" \
+        "<$([[ "$(dsets "$FX")" == "$(dsets "$REF")" ]] && echo same || diff <(dsets "$REF") <(dsets "$FX") | head -n 6)>"
+    check "format $n: ...and it passes store check and verify" "a valid format-4 store <0>" "$(fxp store check | grep -o 'a valid format-4 store') $(fxrc verify)"
+    h1="$(tgit "$FX/store" rev-parse HEAD)"; before="$(snapshot "$FX")"
+    check "format $n: a second store upgrade has nothing to do" "current: nothing to upgrade" "$(fxp store upgrade)"
+    check "format $n: ...and changes nothing" "<same $h1>" "<$([[ "$before" == "$(snapshot "$FX")" ]] && echo same || echo changed) $(tgit "$FX/store" rev-parse HEAD)>"
+done
+FX="$(fx_open 4)"
+check "format 4: store upgrade has nothing to do" "format 4, current: nothing to upgrade" "$(fxp store upgrade)"
+check "store upgrade DIR upgrades that store" "format 2 → 4" "$("$PROVOST" store upgrade "$(fx_open 2)/store" 2>&1)"
+check "store upgrade with no store is an error" "1" "$(PROVOST_WORKSPACE="$(mktemp -d)" rc_of "$PROVOST" store upgrade)"
+check "store upgrade's unknown option is a usage error" "2" "$(rc_of "$PROVOST" store upgrade --frob)"
+
+# PV-045: a store newer than this provost is refused by every command that
+# uses it, reads included, with exit 3, and not a byte of it changes.
+FX="$(fx_open 4)"; echo 5 > "$FX/store/.store_format"
+tgit "$FX/store" add .store_format >/dev/null 2>&1; tgit "$FX/store" commit -qm "a format-5 store" >/dev/null 2>&1
+check "a newer store: store format prints its number, exit 3" "5 <3>" "$(fxp store format | head -n 1) $(fxrc store format)"
+check "a newer store: store check still reports it" "store format 5 is newer than this provost knows (4)" "$(fxp store check)"
+before="$(snapshot "$FX")"
+nwr=""
+for c in "ls" "ls -l" "show disks" "show disks --types" "source 1" "source c0002" "log" "log --failed" "search sdh" \
+         "stats disks" "diff c0001 c0002" "files" "triage" "verify" "doctor" "export $FX/x.bundle" "check-manifest" \
+         "restore latest" "next" "rm -f disks" "rm -f --capture 1" "annotate c0001 note" "prune --policy $FX.pol" \
+         "archive --to $FX.arch --before 2099-01-01" "run --name t printf a=1" "batch --name t $FX.pol" "store upgrade" \
+         "store upgrade --dry-run" "inject --name t"; do
+    # shellcheck disable=SC2086
+    rc="$(printf 'a=1\n' | PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" $c)"
+    [[ "$rc" == 3 ]] || nwr="$nwr [$c: $rc]"
+done
+check "a newer store: every command refuses it with exit 3" "<>" "<$nwr>"
+check "a newer store: the refusal names both formats" "is format 5, newer than this provost" "$(fxp ls)"
+check "...and says nothing was read or written" "Nothing was read or written" "$(fxp ls)"
+check "a newer store: no command changed a byte of it" "<same>" \
+    "<$([[ "$before" == "$(snapshot "$FX")" ]] && echo same || diff <(printf '%s\n' "$before") <(snapshot "$FX") | head -n 6)>"
+check "a newer store: --help still works" "usage: provost ls" "$(fxp ls --help)"
+# the fall-through: a newer store missing the .gitignore marker was taken
+# for one to migrate, and the migration wrote 4 over the 5
+sed -i.bak 1d "$FX/store/.gitignore" && rm -f "$FX/store/.gitignore.bak"
+check "a newer store missing the .gitignore marker: a write is refused" "3" \
+    "$(printf 'a=1\n' | PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" --sync --name t)"
+check "...and it is not relabelled" "5" "$(cat "$FX/store/.store_format")"
+rm -f "$FX/store/.next_capture_id"
+check "a newer store missing its capture counter: a write is refused, not relabelled" "3 5" \
+    "$(printf 'a=1\n' | PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" --sync --name t) $(cat "$FX/store/.store_format")"
+echo 'v5' > "$FX/store/.store_format"
+check "a .store_format that is not a number is refused too (exit 3)" "3" "$(PROVOST_WORKSPACE="$FX/store" rc_of "$PROVOST" ls)"
+check "...naming what it holds" "holds 'v5'" "$(fxp ls)"
+
 FX="$(fx_open 3)"
 check "format 3: store check names PV-015's rows without failing them" "known fault (PV-015)" "$(fxp store check)"
 FX="$(fx_open 4)"
@@ -3716,6 +3784,7 @@ check "...exit 0" "0" "$(PROVOST_WORKSPACE="$SC" rc_of "$PROVOST" store check)"
 check "store check DIR checks that store" "a valid format-4 store" "$("$PROVOST" store check "$SC" 2>&1)"
 check "store with no subcommand is a usage error" "2" "$(rc_of "$PROVOST" store frob)"
 check "store --help prints its usage" "usage: provost store check" "$("$PROVOST" store --help)"
+check "...and names store upgrade and store format" "provost store upgrade [--dry-run] [DIR]" "$("$PROVOST" store --help)"
 cp "$SC/.next_row_id" "$SC/.keep"; rm -f "$SC/.next_row_id"
 check "a missing row counter fails it" ".next_row_id is missing" "$(scp)"
 check "...exit 1" "1" "$(PROVOST_WORKSPACE="$SC" rc_of "$PROVOST" store check)"

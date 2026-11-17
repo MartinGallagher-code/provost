@@ -1,5 +1,52 @@
 # provost — Changelog
 
+## 2.25.0 — 2026-11-17 — a newer store refused by every command; `store upgrade` and `store format` (PV-045)
+
+`VERSION` 2.24.1 → 2.25.0, and the `man/provost.1` header. Minor: two new commands, and a store newer than this
+provost is now refused where it used to be read.
+
+- **A store newer than this provost is refused** by every command that uses
+  the active store, reads included, before anything is read or written:
+  exit status **3**, one message naming the store's format and this
+  provost's. A `.store_format` that is not a number is refused the same
+  way. Not refused: `--help`, `import` (it makes a new store), `template`,
+  `archive verify`/`import` (another directory); `store check` still
+  reports such a store as a finding, and `store format` prints its number.
+  The check is also in `_ensure_workspace` and `_migrate_store`, so no path
+  reaches a migration without it.
+- **Fixed: a newer store relabelled as format 4.** `_migrate_store`'s early
+  return needed the format to be current *and* the `.gitignore` marker
+  *and* the capture counter; with either of the last two missing, a
+  format-5 store fell through to the migrations and had `4` written over
+  its `5` (provost 2.24.0 does this; the smoke test shows it). Now the
+  store is refused, and the migration never writes a lower number than the
+  one recorded.
+- **`provost store upgrade [--dry-run] [DIR]`** runs the migrations a
+  store's first write would run, on purpose, in one commit, and lists what
+  it did and the format it went from and to. `--dry-run` (`-n`) lists what
+  it would do and changes nothing; a current store is left alone. The
+  **automatic upgrade on first write stays** (the owner's answer on BN-008):
+  this is the explicit command beside it.
+- **`provost store format [DIR]`** prints the format a store records (1
+  when it has no `.store_format`), exit 3 when it is newer than this
+  provost, so a tool downstream (quarterdeck reads the file itself today)
+  can ask provost.
+- Also: `_migrate_store` no longer prints "No such file or directory" when
+  it migrates a store with no `.gitignore` (format 1).
+
+PyPI note: 2.24.0, published on 2026-11-16, writes format 4; installs still
+on 2.3.0 write format 3 and cannot be given this refusal after the fact.
+
+Docs: `docs/store-format.md` (the compatibility promise: a newer store is
+refused; upgrading), `man/provost.1` (both commands, exit status 3),
+`provost help store` and `help advanced`, README's command table.
+Tests (`tests/smoke.sh`, `store-spec`): `store upgrade` on the format 1, 2
+and 3 fixtures (one commit, datasets byte-identical to the implicit
+upgrade's, `store check` and `verify` pass, a second run changes nothing,
+`--dry-run` changes nothing); a format-5 store refused with exit 3 by 29
+command lines with not a byte changed; the same store with the `.gitignore`
+marker or the capture counter removed is refused, not relabelled (fails on
+2.24.0); a non-numeric `.store_format`.
 ## 2.24.1 — 2026-11-17 — the store lock is an exclusive create, not mkdir's exit status (PV-043)
 
 `VERSION` 2.24.0 → 2.24.1, and the `man/provost.1` header. Patch: a fix;

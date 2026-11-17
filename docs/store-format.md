@@ -66,12 +66,24 @@ wrote is read, as it is, by every later release.
   next release. The promise above is what makes that enough, since any later
   release opens an older store; evidence filed at one stage of a programme is
   read by whatever provost is current at the next.
-- **Not promised: an older provost on a newer store.** A provost does not
-  refuse a store whose format is newer than the one it writes. Reading one
-  mostly works (a later format has so far only added to what an earlier one
-  held), but writing to one can file data in the older shape. Use a provost
-  at least as new as the store's format to write to it; `store check` says
-  when a store is newer than the provost running it.
+- **A newer store is refused (since 2.25.0, PV-045).** A provost refuses a
+  store whose format is newer than the one it writes, and one whose
+  `.store_format` is not a number, in every command that uses the store,
+  reads included, before anything is read or written: exit status 3, with
+  one message naming both formats. A later format may hold what this
+  provost would misread, and a write would file data in the older shape.
+  `store check` still reports on such a store and `store format` prints its
+  number; `import`, `template` and `archive verify`/`import` do not use the
+  active store and are not refused. A provost before 2.25.0 does not refuse
+  a newer store (2.24.0 and older could even write its own number over a
+  newer one's when the `.gitignore` marker or the capture counter was
+  missing), so use a provost at least as new as the store.
+- **Upgrading.** An older store is upgraded in place by the first write, as
+  it always was; reads never upgrade it. `provost store upgrade` runs the
+  same migrations on purpose, in one commit, and reports the format it went
+  from and to (`--dry-run` says what it would do). `provost store format`
+  prints the number, so a tool downstream can ask provost rather than read
+  `.store_format` itself.
 - **Not part of the format:** the exact tidy table a parser files for a given
   tool's output (parsers improve between releases; a capture already filed
   never changes), the wording of commit messages beyond what is listed here,

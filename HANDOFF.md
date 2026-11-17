@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.24.1 is everything through 2026-11-17** (`VERSION`, man header,
-the `## 2.24.1` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.25.0 is everything through 2026-11-17** (`VERSION`, man header,
+the `## 2.25.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -38,7 +38,9 @@ what it had printed, marked, and a second signal files nothing (PV-038, Next
 steps 1s; 2.23.0); each dataset column's type recorded at capture, stored,
 shown and used (PV-040, Next steps 1t; 2.24.0); the store lock taken by an
 exclusive create rather than `mkdir`'s exit status (PV-043, Next steps 1u;
-2.24.1). 2.4.0 added `provost
+2.24.1); a newer store refused by
+every command, `store upgrade` and `store format` (PV-045, Next steps 1v;
+2.25.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -364,6 +366,16 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1v. **2026-11-17: store format guard** (PV-045, 2.25.0). A store whose
+    format is newer than this provost (or not a number) is refused by every
+    command that uses it, exit 3, before anything is read or written;
+    `_migrate_store` can no longer write 4 over a newer number.
+    `provost store upgrade [--dry-run]` runs the migrations on purpose (one
+    commit); `provost store format` prints the number. The automatic upgrade
+    on first write stays (owner, BN-008 Q6). **Follow-up, not done here:**
+    quarterdeck can call `provost store format` instead of reading
+    `.store_format` (quarterdeck store.py:302,486).
 
 1u. **2026-11-17: the store lock** (PV-043, 2.24.1). The lock, its break
     mutex, `rm --capture`'s claim and `import`/`archive` destinations no
