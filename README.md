@@ -218,6 +218,8 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 | `provost init [--object-format sha256]` | make the store now; `sha256`: in git's SHA-256 object format (git 2.29+); never converts one |
 | `provost verify [--capture ID] [--require-signed] [--allowed-signers FILE]` | store integrity: `git fsck`, each capture's output against its recorded sha256, tags, id gaps, signatures |
 | `provost store check [DIR]` | check a store against the [store format](docs/store-format.md); reads only |
+| `provost store format [DIR]` | the format a store records, as one number |
+| `provost store upgrade [--dry-run] [DIR]` | upgrade an older store's format now, in one commit (the first write still does it by itself) |
 | `provost prune --policy FILE [--yes]` | dispose of captures a retention policy no longer keeps (a dry run without `--yes`); each disposal logged in `disposals.tsv` |
 | `provost archive --to DIR --before DATE [--purge --yes]` / `archive verify DIR` / `archive import DIR [DEST]` | a verifiable (and, with `PROVOST_SIGN`, signed) archive of older captures; re-imported read-only |
 | `provost template test T CAPTURE [EXPECTED.tsv]` | try parsing template `T` on a saved capture: its tables, coverage and unread lines; with `EXPECTED`, a diff (exit 1 on a difference; `--tables` prints what `EXPECTED` holds; [docs/templates.md](docs/templates.md)) |
