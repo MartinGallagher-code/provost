@@ -5,8 +5,8 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.26.0 is everything through 2026-11-17** (`VERSION`, man header,
-the `## 2.26.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
+**provost 2.27.0 is everything through 2026-11-17** (`VERSION`, man header,
+the `## 2.27.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
 (PV-010, 2.5.2, below) and auto-multi's retuned guards (PV-013, Next steps 1f;
@@ -40,15 +40,17 @@ shown and used (PV-040, Next steps 1t; 2.24.0); the store lock taken by an
 exclusive create rather than `mkdir`'s exit status (PV-043, Next steps 1u;
 2.24.1); a newer store refused by
 every command, `store upgrade` and `store format` (PV-045, Next steps 1v;
-2.25.0); a warning and a meta.tsv record when the layout model falls back
-to the trees, and `--strict-model` (PV-044, Next steps 1w; 2.26.0). 2.4.0 added `provost
+2.25.0); 28 templates Claude wrote through the real API for the captures rounds 2-4
+held, shipped (PV-007, Next steps 1w; 2.26.0); a warning and a meta.tsv record when the
+layout model falls back to the trees, and `--strict-model` (PV-044, Next
+steps 1x; 2.27.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
 `tests/check_version.sh` and CI's `version` job enforce it), so the version at
 the top of CHANGELOG is always the version `main` is at. None of 2.4.0 to
-2.24.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
-GitHub release tagged `v2.24.0`, not both). Either way the release workflow
+2.26.0 is published yet: run the "Release to PyPI" workflow on `main` (or a
+GitHub release tagged `v2.26.0`, not both). Either way the release workflow
 now also attaches the offline bundle to the GitHub release `v2.21.0`, creating
 that release on a dispatched run.
 
@@ -368,13 +370,45 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-1w. **2026-11-17: layout-model fallback** (PV-044, 2.26.0). When the tiny LM
+1x. **2026-11-17: layout-model fallback** (PV-044, 2.27.0). When the tiny LM
     asked for (`PROVOST_LAYOUT_LM`, or `provost-model` installed, torch or
     not) does not load, provost warns once per process and records
     `labeller` = `trees (fallback: WHY)` in meta.tsv; `--strict-model`
     (`PROVOST_MODEL_STRICT=1`) makes it exit 4 with nothing filed. The
     reason comes back from `layout_model.py` through `PROVOST_LM_STATUS`.
 
+1w. **2026-11-17: `--llm` through the real API on the 38 held captures**
+    (PV-007, 2.26.0; `docs/benchmark-2026-11-17-llm-held-captures.md`,
+    `tests/benchmark/llm-held/summary.tsv`). 0i's steps 1 and 2, done with a
+    key the owner provided for this run, passed per command as
+    `PROVOST_LLM_API_KEY` and never written anywhere.
+    - **The 38, listed:** a count until now. The 2026-10-25 engine
+      (`2d4fac58`) holds 7 / 16 / 15 of rounds 2 / 3 / 4. Today's holds 35
+      of them, and files round 4's 003, 029 and 137 (not sent).
+    - **Result:** of the 35 sent, the default pipeline (learn, skip audit,
+      judge, revise; `claude-opus-5-5`) gives **30 PASS / 4 PARTIAL / 1 FAIL**
+      (blind ratings, seen captures). The engine filed none of the 35.
+      035-od-hex stays held: its template's blocks are fragments.
+    - **Cost:** 100 calls, 397,537 input + 130,434 output tokens,
+      **US$4.20** (US$0.12 a capture; US$4 / US$20 per million).
+    - **Shipped:** 28 of the 30 PASS templates, in `extract/llm/templates/`
+      (30 there now). update-alternatives-query and
+      cmake-cache-advanced-help rated PASS and are **not** shipped. Their
+      `detect` takes corpus captures from their own parsers through the CLI:
+      44 (`pip show`, `kubectl describe`, `dpkg -s` ...) and 1
+      (`cmake-list-cache`). `ShippedLibrary` in `ml/tests/test_llm_template.py`
+      fails any PV-007 template that scores 0.5 or more on a corpus input.
+    - **The run records** (all 34 templates, the API log) are at `c9797028`,
+      out of the tree as PV-042 set (`tests/benchmark/README.md`).
+    - **Follow-ups, not done here:** (a) the two templates not shipped
+      could ship with a narrower `detect`, a hand edit to what was rated;
+      (b) the 4 PARTIALs (a stack trace cut to one frame, sort's key
+      underlines, a merged preamble value, a half line) are what the judge
+      misses: a pattern that reads a line, but reads it short;
+      (c) a second capture of each shipped tool, to see how often a shipped
+      template is passed over offline (round 4 part 3: about one in three
+      needed a repair); (d) 0i step 3, letting `--llm` re-check generic
+      parses the gate passed, is still open.
 1v. **2026-11-17: store format guard** (PV-045, 2.25.0). A store whose
     format is newer than this provost (or not a number) is refused by every
     command that uses it, exit 3, before anything is read or written;
@@ -1137,9 +1171,10 @@ Suites (all CI-enforced):
     - **Tested** end to end against a fake API (`tests/fake_anthropic.py`).
     - **Not yet run against the real API:** the session's key was deleted.
     - **Next:**
-      1. With a real key, run `--llm` over the 38 captures held in rounds
-         2–4 and rate the templates.
-      2. Grow `extract/llm/templates/` from the templates that prove good.
+      1. ~~With a real key, run `--llm` over the 38 captures held in rounds
+         2–4 and rate the templates.~~ Done 2026-11-17 (PV-007, 1w).
+      2. ~~Grow `extract/llm/templates/` from the templates that prove good.~~
+         Done: 28 shipped (1w).
       3. Consider letting `--llm` re-check generic parses the gate passed.
 
 0h. **2026-10-26: `--model` ships the LLM-trained trees, with a refitted

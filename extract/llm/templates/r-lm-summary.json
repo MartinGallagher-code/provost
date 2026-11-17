@@ -1,0 +1,91 @@
+{
+ "format": 1,
+ "tool": "r-lm-summary",
+ "detect": "^(?:Coefficients:|Residual standard error:)",
+ "skip": [
+  "^Call:\\s*$",
+  "^Residuals:\\s*$",
+  "^Coefficients:\\s*$",
+  "^---\\s*$",
+  "^Signif\\. codes:"
+ ],
+ "blocks": [
+  {
+   "name": "residual_standard_error",
+   "kind": "table",
+   "line": "^Residual standard error:\\s+(?P<residual_standard_error>\\S+) on (?P<df>\\d+) degrees of freedom\\s*$",
+   "columns": {
+    "residual_standard_error": "Residual standard error",
+    "df": "degrees of freedom"
+   }
+  },
+  {
+   "name": "r_squared",
+   "kind": "table",
+   "line": "^Multiple R-squared:\\s+(?P<multiple_r_squared>[^,\\s]+),\\s+Adjusted R-squared:\\s+(?P<adjusted_r_squared>\\S+)\\s*$",
+   "columns": {
+    "multiple_r_squared": "Multiple R-squared",
+    "adjusted_r_squared": "Adjusted R-squared"
+   }
+  },
+  {
+   "name": "f_statistic",
+   "kind": "table",
+   "line": "^F-statistic:\\s+(?P<f_statistic>\\S+) on (?P<df1>\\d+) and (?P<df2>\\d+) DF,\\s+p-value:\\s+(?P<p_value>\\S(?:.*?\\S)?)\\s*$",
+   "columns": {
+    "f_statistic": "F-statistic",
+    "df1": "numerator DF",
+    "df2": "denominator DF",
+    "p_value": "p-value"
+   }
+  },
+  {
+   "name": "call",
+   "kind": "table",
+   "line": "^(?P<function>[\\w.]+)\\((?P<arguments>.*)\\)\\s*$",
+   "columns": {
+    "function": "function",
+    "arguments": "arguments"
+   }
+  },
+  {
+   "name": "residuals",
+   "kind": "table",
+   "header": "^\\s*Min\\s+1Q\\s+Median\\s+3Q\\s+Max\\s*$",
+   "line": "^\\s*(?P<min>-?[\\d.]+(?:e[-+]?\\d+)?)\\s+(?P<q1>-?[\\d.]+(?:e[-+]?\\d+)?)\\s+(?P<median>-?[\\d.]+(?:e[-+]?\\d+)?)\\s+(?P<q3>-?[\\d.]+(?:e[-+]?\\d+)?)\\s+(?P<max>-?[\\d.]+(?:e[-+]?\\d+)?)\\s*$",
+   "columns": {
+    "min": "Min",
+    "q1": "1Q",
+    "median": "Median",
+    "q3": "3Q",
+    "max": "Max"
+   }
+  },
+  {
+   "name": "coefficients",
+   "kind": "table",
+   "header": "^\\s+Estimate\\s+Std\\. Error\\s+[tz] value\\s+Pr\\(>\\|[tz]\\|\\)",
+   "line": "^(?P<term>\\S+)\\s+(?P<estimate>-?[\\d.]+(?:e[-+]?\\d+)?|NA)\\s+(?P<std_error>-?[\\d.]+(?:e[-+]?\\d+)?|NA)\\s+(?P<t_value>-?[\\d.]+(?:e[-+]?\\d+)?|NA)\\s+(?P<p_value><\\s*[\\d.]+(?:e[-+]?\\d+)?|[\\d.]+(?:e[-+]?\\d+)?|NA)(?:\\s+(?P<signif>[*.]+))?\\s*$",
+   "columns": {
+    "term": "term",
+    "estimate": "Estimate",
+    "std_error": "Std. Error",
+    "t_value": "t value",
+    "p_value": "Pr(>|t|)",
+    "signif": "signif"
+   }
+  }
+ ],
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "\nCall:\nlm(formula = price ~ carat + cut + clarity, data = sample_diamonds)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-4812.3  -671.9  -178.4   488.2  9311.7 \n\nCoefficients:\n            Estimate Std. Error t value Pr(>|t|)    \n(Intercept) -4321.18     201.44 -21.452  < 2e-16 ***\ncarat        8412.07      48.91 171.993  < 2e-16 ***\ncutGood       612.40     118.02   5.189 2.21e-07 ***\ncutIdeal      903.77     104.35   8.661  < 2e-16 ***\ncutPremium    781.15     107.80   7.246 5.12e-13 ***\nclarityVS1    104.92      71.66   1.464   0.1432    \nclaritySI1   -393.04      69.18  -5.681 1.41e-08 ***\nclaritySI2   -811.53     160.72  -5.049 4.61e-07 *  \n---\nSignif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1\n\nResidual standard error: 1302 on 4992 degrees of freedom\nMultiple R-squared:  0.8931,\tAdjusted R-squared:  0.8929 \nF-statistic:  5957 on 7 and 4992 DF,  p-value: < 2.2e-16\n"
+ ],
+ "decoration": [
+  "Call:",
+  "Coefficients:",
+  "Residuals:",
+  "Signif. a: a ‘*’ a ‘*’ a ‘*’ a ‘a’ a ‘ ’ a"
+ ]
+}

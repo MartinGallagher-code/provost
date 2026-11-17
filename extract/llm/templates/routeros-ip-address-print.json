@@ -1,0 +1,15 @@
+{
+ "format": 2,
+ "tool": "routeros-ip-address-print",
+ "detect": "#\\s+ADDRESS\\s+NETWORK\\s+INTERFACE",
+ "parser": "import re\n\ndef parse(lines):\n    blocks = []\n    skip = []\n    rows = []\n    rl = []\n    flags = {}\n    fl = []\n    pend = None\n    for i, l in enumerate(lines):\n        s = l.rstrip()\n        if not s.strip():\n            continue\n        if s.startswith('Flags:'):\n            for m in re.finditer(r'(\\S+) - ([^,]+)', s[6:]):\n                flags[m.group(1)] = m.group(2).strip()\n            fl.append(i)\n            continue\n        if re.match(r'^\\s*#\\s+ADDRESS', s):\n            skip.append(i)\n            continue\n        m = re.match(r'^\\s*(?P<idx>\\d+)\\s+(?P<flags>[A-Z]*)\\s*;;;\\s*(?P<c>.*)$', s)\n        if m:\n            pend = {'idx': m.group('idx'), 'flags': m.group('flags'), 'comment': m.group('c').strip(), 'lines': [i]}\n            continue\n        m = re.match(r'^\\s*(?:(?P<idx>\\d+)\\s+(?P<flags>[A-Z]*)\\s+)?(?P<addr>\\S+/\\d+)\\s+(?P<net>\\S+)\\s+(?P<iface>\\S+)\\s*$', s)\n        if m:\n            if m.group('idx') is None and pend is not None:\n                idx = pend['idx']\n                fg = pend['flags']\n                cm = pend['comment']\n                rl.extend(pend['lines'])\n            else:\n                idx = m.group('idx') or ''\n                fg = m.group('flags') or ''\n                cm = ''\n            pend = None\n            rows.append({'#': idx, 'FLAGS': fg, 'ADDRESS': m.group('addr'), 'NETWORK': m.group('net'), 'INTERFACE': m.group('iface'), 'COMMENT': cm})\n            rl.append(i)\n            continue\n    if fl:\n        blocks.append({'name': 'flags', 'kind': 'kv', 'lines': fl, 'records': [flags]})\n    if rows:\n        blocks.append({'name': 'addresses', 'kind': 'table', 'lines': sorted(rl), 'records': rows})\n    return {'blocks': blocks, 'skip': skip}\n",
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "Flags: X - disabled, I - invalid, D - dynamic \n #   ADDRESS            NETWORK         INTERFACE                                                  \n 0   ;;; default configuration\n     192.0.2.1/24       192.0.2.0       bridge                                                     \n 1   ;;; uplink from ISP (static, ticket 4471)\n     198.51.100.2/30    198.51.100.0    ether1                                                     \n 2 D 203.0.113.17/28    203.0.113.16    pppoe-out1                                                 \n 3 X ;;; old guest network - kept for rollback\n     192.0.2.129/25     192.0.2.128     vlan30-guest                                               \n 4   192.0.2.65/27      192.0.2.64      vlan20-voice                                               \n 5 I 198.51.100.10/30   198.51.100.8    ether5-gone                                                "
+ ],
+ "decoration": [
+  "# a"
+ ]
+}
