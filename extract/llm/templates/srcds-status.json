@@ -1,0 +1,42 @@
+{
+ "format": 1,
+ "tool": "srcds-status",
+ "detect": "#\\s*userid\\s+name\\s+uniqueid|^hostname\\s*:",
+ "skip": [
+  "^#end\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "players",
+   "kind": "table",
+   "header": "^#\\s*userid\\s+name\\s+uniqueid",
+   "line": "^#\\s*(?P<userid>\\d+)\\s+(?P<index>\\d+)\\s+\"(?P<name>.*)\"\\s+(?P<uniqueid>\\S+)(?:\\s+(?P<connected>\\d+(?::\\d+)+)\\s+(?P<ping>\\d+)\\s+(?P<loss>\\d+))?\\s+(?P<state>[A-Za-z]+)\\s+(?P<rate>\\d+)(?:\\s+(?P<adr>\\S+))?\\s*$",
+   "columns": {
+    "userid": "userid",
+    "index": "index",
+    "name": "name",
+    "uniqueid": "uniqueid",
+    "connected": "connected",
+    "ping": "ping",
+    "loss": "loss",
+    "state": "state",
+    "rate": "rate",
+    "adr": "adr"
+   }
+  },
+  {
+   "name": "server",
+   "kind": "kv",
+   "line": "^(?P<key>[A-Za-z][\\w/ ]*?)\\s*:\\s*(?P<value>\\S.*?)\\s*$"
+  }
+ ],
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "hostname: [EU] Example Community #2 | Casual\nversion : 1.38.8.1/13881 9442 secure  [G:1:1234567] \nudp/ip  : 203.0.113.80:27015  (public ip: 203.0.113.80)\nos      :  Linux\ntype    :  community dedicated\nmap     : de_inferno\nplayers : 5 humans, 2 bots (12/0 max) (not hibernating)\n\n# userid name uniqueid connected ping loss state rate adr\n#  2 1 \"GOTV\" BOT active 64\n# 3 2 \"Ковальски\" STEAM_1:0:11223344 41:07 38 0 active 196608 198.51.100.21:27005\n# 4 3 \"anna the sniper\" STEAM_1:1:55667788 1:02:51 52 0 active 786432 198.51.100.34:27005\n# 5 4 \"ゆうき\" STEAM_1:0:99001122 12:44 112 2 active 196608 198.51.100.57:27005\n#11 10 \"Brett\" BOT active 64\n#12 11 \"mehmet_ö\" STEAM_1:1:33445566 03:19 67 0 spawning 196608 198.51.100.90:27005\n#13 12 \"x\" STEAM_1:0:77889900 00:41 49 0 active 786432 198.51.100.112:27005\n#end"
+ ],
+ "decoration": [
+  "#end"
+ ]
+}

@@ -1,0 +1,13 @@
+{
+ "format": 2,
+ "tool": "teamspeak-serverquery-clientlist",
+ "detect": "(?:^|\\|)clid=\\d+ cid=\\d+|^error id=\\d+ msg=",
+ "parser": "import re\n\nESC = {'s': ' ', 'p': '|', '/': '/', '\\\\': '\\\\', 'n': '\\n', 't': '\\t'}\n\ndef unesc(v):\n    return re.sub(r'\\\\(.)', lambda m: ESC.get(m.group(1), m.group(1)), v)\n\ndef pairs(s):\n    d = {}\n    for tok in s.split():\n        if '=' in tok:\n            k, v = tok.split('=', 1)\n            d[k] = unesc(v)\n        else:\n            d[tok] = ''\n    return d\n\ndef parse(lines):\n    rows, rl, kv, kl, skip = [], [], {}, [], []\n    for i, ln in enumerate(lines):\n        s = ln.strip()\n        if not s:\n            continue\n        m = re.match(r'error\\s+(.*)$', s)\n        if m:\n            kv.update(pairs(m.group(1)))\n            kl.append(i)\n            continue\n        if '=' in s:\n            for rec in s.split('|'):\n                if rec.strip():\n                    rows.append(pairs(rec))\n            rl.append(i)\n            continue\n        skip.append(i)\n    keys = []\n    for r in rows:\n        for k in r:\n            if k not in keys:\n                keys.append(k)\n    recs = [dict((k, r.get(k, '')) for k in keys) for r in rows]\n    blocks = []\n    if rl:\n        blocks.append({'name': 'clients', 'kind': 'table', 'lines': rl, 'records': recs})\n    if kl:\n        blocks.append({'name': 'status', 'kind': 'kv', 'lines': kl, 'records': [kv]})\n    return {'blocks': blocks, 'skip': skip}\n",
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "clid=1 cid=1 client_database_id=1 client_nickname=serveradmin\\sfrom\\s192.0.2.40:51822 client_type=1|clid=4 cid=2 client_database_id=12 client_nickname=Jürgen client_type=0|clid=5 cid=2 client_database_id=31 client_nickname=Ania\\s(AFK) client_type=0|clid=7 cid=5 client_database_id=44 client_nickname=Тимур client_type=0|clid=9 cid=5 client_database_id=2 client_nickname=MusicBot\\s\\p\\sRadio client_type=0|clid=11 cid=8 client_database_id=58 client_nickname=Kenji\\s健二 client_type=0\nerror id=0 msg=ok"
+ ],
+ "decoration": []
+}

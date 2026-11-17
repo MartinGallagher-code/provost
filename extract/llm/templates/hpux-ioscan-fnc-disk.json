@@ -1,0 +1,13 @@
+{
+ "format": 2,
+ "tool": "hpux-ioscan-fnc-disk",
+ "detect": "Class\\s+I\\s+H/W Path\\s+Driver\\s+S/W State\\s+H/W Type\\s+Description",
+ "parser": "import re\n\nROW = re.compile(r'^(?P<cls>[A-Za-z_]\\S*)\\s+(?P<inst>\\d+)\\s+(?P<path>\\S+)\\s+(?P<drv>\\S+)\\s+(?P<sw>\\S+)\\s+(?P<hw>\\S+)(?:\\s+(?P<desc>\\S.*?))?\\s*$')\nCONT = re.compile(r'^\\s+(?P<files>/\\S+(?:\\s+/\\S+)*)\\s*$')\nHDR = re.compile(r'^Class\\s+I\\s+H/W Path')\n\ndef parse(lines):\n    records = []\n    used = []\n    skip = []\n    cur = None\n    for i, line in enumerate(lines):\n        if not line.strip():\n            continue\n        if HDR.search(line):\n            used.append(i)\n            continue\n        if re.match(r'^\\s*[=\\-]+\\s*$', line):\n            skip.append(i)\n            continue\n        m = CONT.match(line)\n        if m and cur is not None:\n            for f in m.group('files').split():\n                key = 'Raw Device File' if '/rdsk/' in f or '/rdisk/' in f else 'Block Device File'\n                cur[key] = (cur[key] + ' ' + f) if cur[key] else f\n            used.append(i)\n            continue\n        m = ROW.match(line)\n        if m:\n            cur = {'Class': m.group('cls'), 'I': m.group('inst'), 'H/W Path': m.group('path'), 'Driver': m.group('drv'), 'S/W State': m.group('sw'), 'H/W Type': m.group('hw'), 'Description': m.group('desc') or '', 'Block Device File': '', 'Raw Device File': ''}\n            records.append(cur)\n            used.append(i)\n            continue\n    return {'blocks': [{'name': 'disks', 'kind': 'table', 'lines': used, 'records': records}], 'skip': skip}\n",
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "Class     I  H/W Path        Driver S/W State   H/W Type     Description\n==========================================================================\ndisk      0  0/0/1/1.0.0     sdisk   CLAIMED     DEVICE       HP 146 GST3146707LC\n                            /dev/dsk/c1t0d0   /dev/rdsk/c1t0d0\ndisk      1  0/0/1/1.2.0     sdisk   CLAIMED     DEVICE       HP 146 GST3146707LC\n                            /dev/dsk/c1t2d0   /dev/rdsk/c1t2d0\ndisk      2  0/0/2/0.2.0     sdisk   CLAIMED     DEVICE       HP      DVD-ROM 305\n                            /dev/dsk/c0t2d0   /dev/rdsk/c0t2d0\ndisk      5  0/2/1/0.1.4.0.0.0.1  sdisk   CLAIMED     DEVICE       HP      HSV300\n                            /dev/dsk/c4t0d1   /dev/rdsk/c4t0d1\ndisk      6  0/2/1/0.1.4.0.0.0.2  sdisk   CLAIMED     DEVICE       HP      HSV300\n                            /dev/dsk/c4t0d2   /dev/rdsk/c4t0d2\ndisk      7  0/2/1/0.1.5.0.0.0.1  sdisk   NO_HW       DEVICE       HP      HSV300\n                            /dev/dsk/c6t0d1   /dev/rdsk/c6t0d1"
+ ],
+ "decoration": []
+}

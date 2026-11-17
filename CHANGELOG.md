@@ -1,5 +1,43 @@
 # provost — Changelog
 
+## 2.26.0 — 2026-11-17 — 28 templates Claude wrote for the held benchmark captures ship with provost (PV-007)
+
+`VERSION` 2.25.0 → 2.26.0, and the `man/provost.1` header. Minor: provost
+now reads 28 more tools' output with no `--llm` and no key. Nothing that
+worked works differently: no template takes any tool's output in
+`tests/corpus/`.
+
+HANDOFF 0i's first two steps, with a key the owner provided for the run.
+The full report is `docs/benchmark-2026-11-17-llm-held-captures.md`.
+
+- **The 38 held captures, listed.** Until now they were a count. The
+  2026-10-25 engine (`2d4fac58`) holds 7 / 16 / 15 of rounds 2 / 3 / 4. Today's
+  engine files 3 of them (round 4's 003-bison-report-states,
+  029-jhsdb-jmap-heap and 137-windows-robocopy-log), and those were not sent.
+- **`--llm` over the other 35**, through the real API, one capture at a time,
+  each once. It used the default pipeline (learn, skip audit, judge, revise)
+  and the default model, `claude-opus-5-5`. **30 PASS / 4 PARTIAL / 1 FAIL**,
+  rated blind on round 4's `CRITERIA.md`; the engine filed none of the 35.
+  100 calls, 397,537 input and 130,434 output tokens: **US$4.20**.
+  `tests/benchmark/llm-held/summary.tsv` has each capture's calls, tokens,
+  cost, rating and reason.
+- **28 of the 30 PASS templates ship** in `extract/llm/templates/`, as Claude
+  wrote them. Two PASS templates are not shipped, because through the CLI their
+  `detect` took corpus captures from their own parsers:
+  `update-alternatives-query` took 44 (`pip show`, `kubectl describe`,
+  `dpkg -s` ...) and `cmake-cache-advanced-help` took `cmake-list-cache`.
+- **Tests.** `ml/tests/test_llm_template.py` has a new `ShippedLibrary` class.
+  It checks that the 28 are shipped, and that each shipped template is the one
+  `find` picks for the capture it was written from, at full coverage. It checks
+  that each benchmark input is read by its template. It fails any PV-007
+  template that scores 0.5 or more on a corpus input; with
+  update-alternatives-query put back, that test fails on 49. `tests/smoke.sh`
+  reads round 4's Junos capture through a shipped template with no `--llm`.
+- **Run records.** The 34 templates written and the API log were committed at
+  `c9797028` and taken out of the tree in the next commit, as PV-042 set
+  (`tests/benchmark/README.md`, "LLM run records").
+- Docs: `docs/templates.md` (the shipped library), `HANDOFF.md` (Next steps 1w,
+  0i), `tests/benchmark/README.md`.
 ## 2.25.0 — 2026-11-17 — a newer store refused by every command; `store upgrade` and `store format` (PV-045)
 
 `VERSION` 2.24.1 → 2.25.0, and the `man/provost.1` header. Minor: two new commands, and a store newer than this
