@@ -1,0 +1,17 @@
+{
+ "format": 2,
+ "tool": "diff-normal",
+ "detect": "(?m)^\\d+(?:,\\d+)?[acd]\\d+(?:,\\d+)?$",
+ "parser": "import re\n\ndef parse(lines):\n    hre = re.compile(r'^(?P<old>\\d+(?:,\\d+)?)(?P<op>[acd])(?P<new>\\d+(?:,\\d+)?)$')\n    cre = re.compile(r'^(?P<side>[<>])(?: (?P<text>.*))?$')\n    used = []\n    recs = []\n    skip = []\n    cur = None\n    for i, l in enumerate(lines):\n        m = hre.match(l)\n        if m:\n            cur = (m.group('old'), m.group('op'), m.group('new'))\n            used.append(i)\n            continue\n        m = cre.match(l)\n        if m and cur is not None:\n            recs.append({'old lines': cur[0], 'change': cur[1], 'new lines': cur[2], 'side': m.group('side'), 'text': m.group('text') or ''})\n            used.append(i)\n            continue\n        if l.strip() == '---':\n            skip.append(i)\n    blocks = []\n    if recs:\n        blocks.append({'name': 'changes', 'kind': 'table', 'lines': used, 'records': recs})\n    return {'blocks': blocks, 'skip': skip}\n",
+ "judge": {
+  "verdict": "FIX",
+  "fixes": [
+   "Lines 1-5 are the changed lines of the hunk headed on line 0 (`2,3c2,3`), and lines 7-10 belong to the hunk headed on line 6 (`5c5,6`). As written, the `changes` table cannot tell which hunk a row belongs to, so `> tls=on` could be from either. Use a format-2 parser that carries each hunk header down to the `<` and `>` lines under it. Add `old lines`, `change` and `new lines` columns to the `changes` rows, filled from the header line above them. The hunk header then becomes the parent of its change rows rather than an unlinked separate table."
+  ],
+  "applied": true
+ },
+ "examples": [
+  "2,3c2,3\n< port=8080\n< workers=4\n---\n> port=8443\n> workers=8\n5c5,6\n< log=info\n---\n> log=debug\n> tls=on"
+ ],
+ "decoration": []
+}

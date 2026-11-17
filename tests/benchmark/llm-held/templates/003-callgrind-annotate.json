@@ -1,0 +1,58 @@
+{
+ "format": 1,
+ "tool": "callgrind-annotate",
+ "detect": "Profile data file '.*' \\(creator: callgrind",
+ "skip": [
+  "^-{10,}\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "profile",
+   "kind": "table",
+   "line": "^Profile data file '(?P<file>[^']*)' \\(creator: (?P<creator>[^)]*)\\)\\s*$",
+   "columns": {
+    "file": "Profile data file",
+    "creator": "creator"
+   }
+  },
+  {
+   "name": "totals",
+   "kind": "table",
+   "header": "^Ir\\s*$",
+   "line": "^\\s*(?P<Ir>[\\d,]+) \\(\\s*(?P<pct>[\\d.]+%)\\)\\s+PROGRAM TOTALS\\s*$",
+   "columns": {
+    "Ir": "Ir",
+    "pct": "%"
+   }
+  },
+  {
+   "name": "functions",
+   "kind": "table",
+   "header": "^Ir\\s+file:function",
+   "line": "^\\s*(?P<Ir>[\\d,]+) \\(\\s*(?P<pct>[\\d.]+%)\\)\\s+(?P<file>.*?):(?P<function>.*?)(?:\\s+\\[(?P<object>[^\\]]+)\\])?\\s*$",
+   "columns": {
+    "Ir": "Ir",
+    "pct": "%",
+    "file": "file",
+    "function": "function",
+    "object": "object"
+   }
+  },
+  {
+   "name": "settings",
+   "kind": "kv",
+   "line": "^(?P<key>[A-Za-z][\\w./-]*(?: [\\w./-]+)*):\\s*(?P<value>.*?)\\s*$"
+  }
+ ],
+ "judge": {
+  "verdict": "FIX",
+  "fixes": [
+   "Line 23 (`Ir                   file:function`) is the column header of the functions table, but the `settings` kv pattern matches it first and adds a bogus row `Ir_file = function` to the settings table. Tighten the settings key regex so it cannot span the header's run of padding spaces, for example `^(?P<key>[A-Za-z][\\w./-]*(?: [\\w./-]+)*):\\s*(?P<value>.*?)\\s*$` (single spaces only between key words). Alternatively, place the `functions` block (with its `^Ir\\s+file:function` header) ahead of `settings` so line 23 is consumed as that table's header."
+  ],
+  "applied": true
+ },
+ "examples": [
+  "--------------------------------------------------------------------------------\nProfile data file 'cg2.out' (creator: callgrind-3.22.0)\n--------------------------------------------------------------------------------\nI1 cache: \nD1 cache: \nLL cache: \nTimerange: Basic block 0 - 3964882\nTrigger: Program termination\nProfiled target:  ./pack (PID 28440, part 1)\nEvents recorded:  Ir\nEvents shown:     Ir\nEvent sort order: Ir\nThresholds:       99\nInclude dirs:     \nUser annotated:   \nAuto-annotation:  on\n\n--------------------------------------------------------------------------------\nIr                  \n--------------------------------------------------------------------------------\n15,946,242 (100.0%)  PROGRAM TOTALS\n\n--------------------------------------------------------------------------------\nIr                   file:function\n--------------------------------------------------------------------------------\n14,661,251 (91.94%)  pack.c:first_fit [/home/dev/src/pack]\n   522,884 ( 3.28%)  ./stdlib/./stdlib/qsort.c:msort_with_tmp.part.0'2 [/usr/lib/x86_64-linux-gnu/libc.so.6]\n   123,556 ( 0.77%)  pack.c:cmp [/home/dev/src/pack]\n    96,245 ( 0.60%)  ./elf/./elf/dl-tunables.c:__GI___tunables_init [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]\n    83,904 ( 0.53%)  ./stdlib/./stdlib/random_r.c:random_r [/usr/lib/x86_64-linux-gnu/libc.so.6]\n    78,843 ( 0.49%)  ./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:__memcpy_avx_unaligned_erms [/usr/lib/x86_64-linux-gnu/libc.so.6]\n    72,034 ( 0.45%)  pack.c:main [/home/dev/src/pack]\n    69,000 ( 0.43%)  ./stdlib/./stdlib/random.c:random [/usr/lib/x86_64-linux-gnu/libc.so.6]\n    38,873 ( 0.24%)  ./stdlib/./stdlib/qsort.c:msort_with_tmp.part.0 [/usr/lib/x86_64-linux-gnu/libc.so.6]\n    25,943 ( 0.16%)  ./elf/./elf/dl-lookup.c:do_lookup_x [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]"
+ ],
+ "decoration": []
+}

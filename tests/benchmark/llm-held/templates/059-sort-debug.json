@@ -1,0 +1,37 @@
+{
+ "format": 1,
+ "tool": "sort-debug",
+ "detect": "^sort: (?:text ordering performed using|note numbers use|using )",
+ "skip": [
+  "^[\\s_^]+$"
+ ],
+ "blocks": [
+  {
+   "name": "locale_notes",
+   "kind": "kv",
+   "line": "^sort: (?P<key>[^‘]*?)\\s*‘(?P<value>[^’]*)’.*$"
+  },
+  {
+   "name": "messages",
+   "kind": "kv",
+   "line": "^(?P<key>sort): (?P<value>.+)$"
+  },
+  {
+   "name": "sorted_lines",
+   "kind": "table",
+   "line": "^(?P<field1>[^>]*)>(?P<field2>[^>]*)(?:>(?P<field3>.*))?$",
+   "columns": {
+    "field1": "field 1",
+    "field2": "field 2",
+    "field3": "field 3"
+   }
+  }
+ ],
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "sort: text ordering performed using ‘C.UTF-8’ sorting rules\nsort: note numbers use ‘.’ as a decimal point in this locale\nhinge 50mm>12>1.40\n           __\n__________________\nbolt M8>40>0.18\n        __\n_______________\nnut M6>95>0.05\n       __\n______________\nbolt M6>120>0.10\n        ___\n________________\nwasher M6>300>0.02\n          ___\n__________________\nscrew 4x30>1000>0.03\n           ____\n____________________"
+ ],
+ "decoration": []
+}

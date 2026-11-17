@@ -1,0 +1,68 @@
+{
+ "format": 1,
+ "tool": "macos-log-show",
+ "detect": "^Timestamp\\s+Thread\\s+Type\\s+Activity\\s+PID",
+ "skip": [
+  "^-{5,}\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "filter",
+   "kind": "kv",
+   "line": "^(?P<key>Filtering the log data using)\\s+\"(?P<value>.*)\"\\s*$"
+  },
+  {
+   "name": "skipped",
+   "kind": "kv",
+   "line": "^(?P<key>Skipping)\\s+(?P<value>.+?),\\s+pass\\s.*$"
+  },
+  {
+   "name": "entries",
+   "kind": "table",
+   "header": "^Timestamp\\s+Thread\\s+Type\\s+Activity\\s+PID\\s+TTL",
+   "line": "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:[+-]\\d{4})?)\\s+(?P<thread>0x[0-9a-fA-F]+)\\s+(?P<type>\\S+)\\s+(?P<activity>0x[0-9a-fA-F]+)\\s+(?P<pid>\\d+)\\s+(?P<ttl>\\d+)\\s+(?P<process>[^:\\[\\s][^:\\[]*?):(?: \\((?P<library>[^)]*)\\))?(?: \\[(?P<subsystem>[^:\\]]+):(?P<category>[^\\]]+)\\])?\\s*(?P<message>.*)$",
+   "columns": {
+    "timestamp": "Timestamp",
+    "thread": "Thread",
+    "type": "Type",
+    "activity": "Activity",
+    "pid": "PID",
+    "ttl": "TTL",
+    "process": "Process",
+    "library": "Library",
+    "subsystem": "Subsystem",
+    "category": "Category",
+    "message": "Message"
+   }
+  },
+  {
+   "name": "log_counts",
+   "kind": "table",
+   "line": "^Log\\s+-\\s+Default:\\s+(?P<default>\\d+),\\s+Info:\\s+(?P<info>\\d+),\\s+Debug:\\s+(?P<debug>\\d+),\\s+Error:\\s+(?P<error>\\d+),\\s+Fault:\\s+(?P<fault>\\d+)\\s*$",
+   "columns": {
+    "default": "Default",
+    "info": "Info",
+    "debug": "Debug",
+    "error": "Error",
+    "fault": "Fault"
+   }
+  },
+  {
+   "name": "activity_counts",
+   "kind": "table",
+   "line": "^Activity\\s+-\\s+Create:\\s+(?P<create>\\d+),\\s+Transition:\\s+(?P<transition>\\d+),\\s+Actions:\\s+(?P<actions>\\d+)\\s*$",
+   "columns": {
+    "create": "Create",
+    "transition": "Transition",
+    "actions": "Actions"
+   }
+  }
+ ],
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "Filtering the log data using \"subsystem == \"com.apple.network\" AND messageType == error\"\nSkipping info and debug messages, pass --info and/or --debug to include.\nTimestamp                       Thread     Type        Activity             PID    TTL  \n2026-10-15 09:14:02.118330+0100 0x1a2f3    Error       0x0                  412    0    nesessionmanager: [com.apple.network:connection] nw_connection_copy_connected_local_endpoint_block_invoke [C3] Connection has no local endpoint\n2026-10-15 09:14:02.120871+0100 0x1a2f3    Error       0x0                  412    0    nesessionmanager: [com.apple.network:connection] nw_connection_copy_connected_remote_endpoint_block_invoke [C3] Connection has no connected path\n2026-10-15 09:14:07.553019+0100 0x1a301    Error       0x4c21a              688    0    Safari: (Network) [com.apple.network:path] nw_path_evaluator_evaluate NECP_CLIENT_ACTION_ADD error [1: Operation not permitted]\n2026-10-15 09:15:44.002741+0100 0x1a3c9    Fault       0x0                  97     14   mDNSResponder: [com.apple.network:resolver] nw_resolver_create_dns_service_locked [C11.1] DNSServiceCreateDelegateConnection failed: ServiceNotRunning(-65563)\n2026-10-15 09:16:30.774102+0100 0x1a412    Error       0x4c3f0              688    0    Safari: (libnetwork.dylib) [com.apple.network:connection] nw_socket_handle_socket_event [C14.1.1:3] Socket SO_ERROR [61: Connection refused]\n--------------------------------------------------------------------------------------------------------------------\nLog      - Default:          0, Info:                0, Debug:             0, Error:          4, Fault:          1\nActivity - Create:           0, Transition:          0, Actions:           0"
+ ],
+ "decoration": []
+}

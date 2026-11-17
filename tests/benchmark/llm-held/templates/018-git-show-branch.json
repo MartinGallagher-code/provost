@@ -1,0 +1,13 @@
+{
+ "format": 2,
+ "tool": "git-show-branch",
+ "detect": "^\\s*[!*] \\[[^\\]]+\\] ",
+ "parser": "import re\n\ndef parse(lines):\n    head_re = re.compile(r'^(?P<pad> *)(?P<marker>[!*]) \\[(?P<branch>[^\\]]+)\\](?:\\s+(?P<subject>.*))?$')\n    sep_re = re.compile(r'^-+$')\n    commit_re = re.compile(r'^(?P<flags>[ +*\\-]*?) ?\\[(?P<ref>[^\\]]+)\\](?:\\s+(?P<subject>.*))?$')\n    branches, blines = [], []\n    commits, clines = [], []\n    skip = []\n    names = []\n    width = 0\n    after = False\n    for i, line in enumerate(lines):\n        if not line.strip():\n            continue\n        if not after and sep_re.match(line):\n            after = True\n            width = len(line)\n            skip.append(i)\n            continue\n        if not after:\n            m = head_re.match(line)\n            if m:\n                names.append(m.group('branch'))\n                branches.append({'Column': len(m.group('pad')) + 1, 'Marker': m.group('marker'), 'Branch': m.group('branch'), 'Subject': (m.group('subject') or '').strip()})\n                blines.append(i)\n            continue\n        m = commit_re.match(line)\n        if m:\n            flags = m.group('flags')\n            if width:\n                flags = flags.ljust(width)[:width]\n            inb = [names[k] for k, c in enumerate(flags) if k < len(names) and c in '+*-']\n            commits.append({'Flags': flags.rstrip(), 'Ref': m.group('ref'), 'Subject': (m.group('subject') or '').strip(), 'Branches': ', '.join(inb)})\n            clines.append(i)\n    blocks = []\n    if branches:\n        blocks.append({'name': 'branches', 'kind': 'table', 'lines': blines, 'records': branches})\n    if commits:\n        blocks.append({'name': 'commits', 'kind': 'table', 'lines': clines, 'records': commits})\n    return {'blocks': blocks, 'skip': skip}\n",
+ "judge": {
+  "verdict": "PASS"
+ },
+ "examples": [
+  "! [feature/tls] Move to port 8443\n ! [hotfix/timeout] Longer upstream timeout\n  * [main] Debug logging for rollout\n---\n +  [hotfix/timeout] Longer upstream timeout\n +* [main] Debug logging for rollout\n+   [feature/tls] Move to port 8443\n+   [feature/tls^] Enable TLS\n++* [main^] Add health endpoint"
+ ],
+ "decoration": []
+}
