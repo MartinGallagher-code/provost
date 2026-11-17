@@ -1,5 +1,50 @@
 # provost — Changelog
 
+## 2.24.1 — 2026-11-17 — the store lock is an exclusive create, not mkdir's exit status (PV-043)
+
+`VERSION` 2.24.0 → 2.24.1, and the `man/provost.1` header. Patch: a fix;
+the lock's layout on disk is unchanged, and a store reads and writes as it
+did.
+
+**Affected: every provost up to and including 2.24.0, on a system whose
+`mkdir` is uutils before 0.11.0** (`/usr/bin/mkdir` on Ubuntu 25.10 and
+26.04). provost took the store lock with `mkdir .lock` and trusted its exit
+status; that `mkdir` exits 0 when the directory already exists, so two
+writers both held the lock and a table could lose rows. With such a `mkdir`
+first on `PATH`, 8 writers at once into one store lost rows on 2.24.0 in
+every run tried (8 rows of 9 in provenance, 4 distinct row indices).
+
+- **The claim is an exclusive create of `.lock/owner`**: bash's own
+  noclobber open (`O_CREAT|O_EXCL`), in a subshell so noclobber never leaks
+  into provost's other redirections. `.lock` stays a directory, made with
+  `mkdir -p` whose status is ignored, so an older provost still sees the
+  lock and this one still sees an older provost's.
+- **A `.lock` with no owner record yet is held**, not free: an older
+  provost between its `mkdir` and its record. As before, one with no record
+  for a minute is stale.
+- **The owner record is written in one write and read only as a whole
+  line**: a half-written record is never judged (its pid could look dead),
+  and one that stays half-written for a minute is stale.
+- **The break mutex `.lock.break`**, and `rm --capture`'s claim and
+  hand-back under it, take the same exclusive create (a file now; an older
+  provost's, a directory, is still respected and cleared when abandoned).
+- **`import`'s and `archive`'s new directories** are claimed by an
+  exclusive create of `.NAME.provost-claim` beside them, removed on exit,
+  instead of by `mkdir`'s status: two imports to one place cannot both win.
+- `docs/store-format.md` has a section on the lock, including NFS (O_EXCL
+  needs NFSv3 or later) and the short window while older and newer
+  provosts share a store.
+
+**quarterdeck:** its QD-022 workaround (filing captures one at a time,
+`QD_FILE_JOBS`) can be lifted once 2.24.1 is the oldest provost it accepts.
+
+Tests (`tests/smoke.sh`): `concurrency` runs 8 writers under a `mkdir` that
+always exits 0 (fails on 2.24.0); `lock` adds an ownerless `.lock` (fresh
+and old), a half-written record (fresh and old), an older provost's lock,
+both kinds of break mutex (fresh and abandoned), and the stale rules under
+the faulty `mkdir`; `core` races two imports to one destination under it.
+Files: `provost`, `tests/smoke.sh`, `docs/store-format.md`, `HANDOFF.md`.
+
 ## 2.24.0 — 2026-11-13 — each dataset column's type recorded once, at capture, stored and shown (PV-040)
 
 `VERSION` 2.23.0 → 2.24.0, and the `man/provost.1` header. Minor: new

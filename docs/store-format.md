@@ -523,7 +523,8 @@ These are in a store's directory but are not its content: never committed
 
 | File | What |
 |---|---|
-| `.lock/` | The writer's lock, held while a store is written; `owner` names the holder (`host<TAB>pid<TAB>uid<TAB>epoch`). |
+| `.lock/` | The writer's lock, held while a store is written; `owner` names the holder (`host<TAB>pid<TAB>uid<TAB>epoch`, one whole line). See **The writer's lock** below. |
+| `.lock.break` | Held while a stale lock is broken (a file; an older provost made it a directory). |
 | `.async-failures.log`, `.async-failures.seen` | Background captures that failed, and how many of them `log --failed` has shown. |
 | `instances.tsv` | The global store's list of controlled directories (`provost instances`). |
 | `datasets/.recon.*`, `.stage.*`, `.rm.*`, `.rmprov.*`, `captures/*/.meta.tmp`, `context/*.tmp` | Work files during a write. |
@@ -531,6 +532,39 @@ These are in a store's directory but are not its content: never committed
 A format-1 store committed some of these (`.lock/pid` in particular); its
 migration untracks them, and until then `verify` and `store check` leave
 them out.
+
+### The writer's lock
+
+Since provost 2.24.1 (PV-043) the lock is taken by an **exclusive create of
+`.lock/owner`**: bash's own noclobber open (`O_CREAT|O_EXCL`), not the exit
+status of the system `mkdir`. `.lock` is still a directory, made with
+`mkdir -p` whose status is ignored, so a provost of either kind sees the
+other's lock. Whoever creates `owner` holds the lock; the record is written
+in one write and read only as a whole line.
+
+- A `.lock` with no `owner` yet is a claim in progress (an older provost
+  between its `mkdir` and its record) and is waited for; one that has had
+  no whole record for a minute is stale.
+- A lock is otherwise stale when it is older than `PROVOST_LOCK_MAX_AGE`, or
+  was taken on this host and its pid is gone. A legacy `pid`-file lock
+  follows the same rules.
+- Breaking a stale lock is serialised by `.lock.break`, taken the same way,
+  and done by renaming the lock aside and checking it was the one judged.
+- Release removes `.lock` only while `owner` is still this process's record.
+
+Why: provost 2.24.0 and older claimed the lock with `mkdir .lock` and
+trusted its exit status. uutils `mkdir` before 0.11.0 (`/usr/bin/mkdir` on
+Ubuntu 25.10 and 26.04) exits 0 when the directory already exists, so two
+writers both held the lock and a table could lose rows. Every provost up to
+and including 2.24.0 is affected on such a system.
+
+`O_EXCL` is honoured on local file systems and on NFSv3 and later; a store on
+an NFSv2 mount cannot be locked safely by any provost. While an older and a
+newer provost share one store, a newer one that arrives in the instant
+between an older one's `mkdir` and its owner record can still take the lock
+beside it, a window of microseconds that 2.24.0 itself did not have against
+another 2.24.0 under GNU `mkdir`; upgrade every machine that writes a shared
+store.
 
 ## Format history
 
