@@ -23,7 +23,7 @@
 # directory. Every dataset row carries a globally-unique visible index (#N);
 # `provost source N` maps it back to the exact captured input that produced it.
 # The store may be shared by multiple users (point PROVOST_HOME at a shared,
-# group-writable dir); a mkdir-based lock serialises concurrent writers.
+# group-writable dir); a lock (an exclusive create) serialises concurrent writers.
 #
 # CODE vs DATA: executable code (the extract/analyze engines, the transform
 # module) is loaded ONLY from provost's own install dir ($PROVOST_ROOT, the
@@ -868,15 +868,25 @@ _require_on_branch () {
 }
 
 # --- store lock (a shared PROVOST_HOME may have concurrent writers) ----------
-# mkdir is atomic across processes/users; spin up to PROVOST_LOCK_TIMEOUT
-# seconds. The lock records "host<TAB>pid<TAB>uid<TAB>epoch" (owner file).
+# The claim is an exclusive create of .lock/owner (PV-043): bash's own
+# noclobber open, O_CREAT|O_EXCL, so exclusion never rests on an external
+# command's exit status (uutils mkdir before 0.11.0 exits 0 on a directory
+# that exists, and two writers then both held a mkdir lock). .lock stays a
+# directory, as older provosts made it: `mkdir -p` it, ignore the status,
+# then create the owner record in it; whoever creates it holds the lock. A
+# .lock with no owner record yet is held (an older provost between its
+# mkdir and its record, or one of this version between its mkdir -p and its
+# create). Spin up to PROVOST_LOCK_TIMEOUT seconds. The lock records
+# "host<TAB>pid<TAB>uid<TAB>epoch" (owner file), one whole line.
 # A lock is STALE only if:
 #   * it is older than PROVOST_LOCK_MAX_AGE seconds (any host), or
 #   * it was taken on THIS host (and pid namespace) and its pid definitely no
-#     longer exists (ESRCH — NOT EPERM: another user's live process is alive).
-# Breaking is serialised by a second mkdir mutex (.lock.break) and done by an
-# atomic rename, after re-checking staleness under that mutex — so two
-# breakers can never delete each other's (or a newcomer's) fresh lock.
+#     longer exists (ESRCH — NOT EPERM: another user's live process is alive), or
+#   * it has no whole owner record and has had none for a minute.
+# Breaking is serialised by a second exclusive create (the .lock.break
+# mutex) and done by an atomic rename, after re-checking staleness under
+# that mutex — so two breakers can never delete each other's (or a
+# newcomer's) fresh lock.
 # $BASHPID (this process), NOT $$: a detached async ingest runs in a subshell
 # where $$ is still the already-exited parent provost.
 _LOCK_HOST=""
@@ -900,61 +910,101 @@ _pid_gone () {
     err="$(LC_ALL=C kill -0 "$pid" 2>&1)" && return 1       # alive and ours
     [[ "$err" == *"No such process"* ]]                     # ESRCH; EPERM = alive
 }
+# _excl_create PATH [TEXT] -- create PATH holding TEXT, failing if anything
+# is there already: bash's noclobber open, O_CREAT|O_EXCL (in a subshell, so
+# noclobber never leaks into provost's own redirections). TEXT goes out in
+# one write. On NFS, O_EXCL needs NFSv3 or later.
+_excl_create () { ( set -C; printf '%s' "${2:-}" > "$1" ) 2>/dev/null; }
+# _mutex_clear PATH -- remove an abandoned mutex: this version's (a file) or
+# an older provost's (an empty directory). Anything else stays.
+_mutex_clear () { rm -f -- "$1" 2>/dev/null || rmdir -- "$1" 2>/dev/null || true; }
+# _lock_seen LOCK -- what a lock is, as one string a breaker can compare
+# before and after it moves it: the owner record; "partial" while one is
+# being written (a reader only ever judges a whole line); "legacy:PID" for a
+# pid-file lock of an older provost; "none" for no record at all.
+_lock_seen () {
+    local lock="$1" r=""
+    _SEEN=""
+    if [[ -e "$lock/owner" ]]; then
+        if { IFS= read -r r < "$lock/owner"; } 2>/dev/null && [[ -n "$r" ]]; then _SEEN="$r"; else _SEEN="partial"; fi
+    elif [[ -f "$lock/pid" ]]; then
+        r=""; { IFS= read -r r < "$lock/pid"; } 2>/dev/null || true
+        _SEEN="legacy:$r"
+    else
+        _SEEN="none"
+    fi
+}
 # 0 = the lock is stale. Sets $_STALE_SEEN to the owner record it judged, so a
 # breaker can verify it removed THAT lock and not a newcomer's.
 _lock_stale () {
-    local lock="$1" owner="" host="" pid="" t="" now age
+    local lock="$1" host="" pid="" t="" now age
     _STALE_SEEN=""
     [[ -d "$lock" ]] || return 1
     now="$(date +%s)"
-    owner="$(cat "$lock/owner" 2>/dev/null || true)"
-    if [[ -z "$owner" ]]; then
-        age="$(_age "$lock")"
-        if [[ -f "$lock/pid" ]]; then               # a lock from an older provost
-            pid="$(cat "$lock/pid" 2>/dev/null || true)"
-            _STALE_SEEN="legacy:$pid"
+    _lock_seen "$lock"; _STALE_SEEN="$_SEEN"
+    case "$_SEEN" in
+        legacy:*)                                   # a lock from an older provost
+            pid="${_SEEN#legacy:}"; age="$(_age "$lock")"
             (( age > PROVOST_LOCK_MAX_AGE )) && return 0
             _pid_gone "$pid" && return 0
-            return 1
-        fi
-        # mkdir'd but no owner yet: a holder is between mkdir and writing it —
-        # or died right there. Give it a minute.
-        _STALE_SEEN="none"
-        (( age > 60 )) && return 0
-        return 1
-    fi
-    _STALE_SEEN="$owner"
-    IFS=$'\t' read -r host pid _ t <<< "$owner" || true
+            return 1 ;;
+        none|partial)
+            # no whole owner record yet: a holder is between taking the lock
+            # and writing it — or died right there. Give it a minute.
+            if [[ "$_SEEN" == partial ]]; then age="$(_age "$lock/owner")"; else age="$(_age "$lock")"; fi
+            (( age > 60 )) && return 0
+            return 1 ;;
+    esac
+    IFS=$'\t' read -r host pid _ t <<< "$_SEEN" || true
     if [[ "$t" =~ ^[0-9]{1,12}$ ]] && (( now - t > PROVOST_LOCK_MAX_AGE )); then return 0; fi
     _lock_host_init
     [[ "$host" == "$_LOCK_HOST" ]] && _pid_gone "$pid" && return 0
     return 1
 }
 _lock_break () {  # 0 = we removed a stale lock
-    local lock="$1" brk="$1.break" rc=1 aside seen got
-    if ! mkdir "$brk" 2>/dev/null; then
+    local lock="$1" brk="$1.break" rc=1 aside seen
+    if ! _excl_create "$brk"; then
         # Another process is breaking it. Clear an abandoned break mutex.
-        if (( $(_age "$brk") > 60 )); then rmdir "$brk" 2>/dev/null || true; fi
+        if (( $(_age "$brk") > 60 )); then _mutex_clear "$brk"; fi
         return 1
     fi
     if _lock_stale "$lock"; then
         seen="$_STALE_SEEN"
         aside="$lock.stale.$BASHPID.$RANDOM"
-        if mv "$lock" "$aside" 2>/dev/null; then
+        if mv "$lock" "$aside" 2>/dev/null && [[ -d "$aside" ]]; then
             # Verify we moved the lock we judged (not one created meanwhile).
-            got="$(cat "$aside/owner" 2>/dev/null || true)"
-            if [[ -z "$got" ]]; then
-                if [[ -f "$aside/pid" ]]; then got="legacy:$(cat "$aside/pid" 2>/dev/null || true)"; else got="none"; fi
-            fi
-            if [[ "$got" == "$seen" ]]; then
+            _lock_seen "$aside"
+            if [[ "$_SEEN" == "$seen" ]]; then
                 rm -rf "$aside" 2>/dev/null || true; rc=0
             else
                 mv "$aside" "$lock" 2>/dev/null || true     # not ours to break: put it back
             fi
         fi
     fi
-    rmdir "$brk" 2>/dev/null || true
+    rm -f -- "$brk" 2>/dev/null || true
     return $rc
+}
+# _lock_claim LOCK -- one attempt at the lock; 0 = this process holds it,
+# its owner record in $_LOCK_REC.
+_lock_claim () {
+    local lock="$1" myuid
+    # a .lock with no owner record is someone's claim in progress, not free
+    [[ -d "$lock" && ! -e "$lock/owner" ]] && return 1
+    mkdir -p "$lock" 2>/dev/null || true      # its status proves nothing
+    [[ -d "$lock" ]] || return 1
+    _lock_host_init
+    myuid="$(id -u 2>/dev/null || echo "?")"
+    printf -v _LOCK_REC "%s\t%s\t%s\t%s" "$_LOCK_HOST" "$BASHPID" "$myuid" "$(date +%s)"
+    _excl_create "$lock/owner" "$_LOCK_REC"$'\n'
+}
+# _claim_new PATH -- claim a path that is about to be made (an import's or
+# an archive's new directory) for this process: an exclusive create of
+# .NAME.provost-claim beside it, removed when this process exits. 1 = some
+# other provost holds the claim.
+_claim_new () {
+    local c="${1%/}"; c="$(dirname -- "$c")/.$(basename -- "$c").provost-claim"
+    _excl_create "$c" "$BASHPID"$'\n' || return 1
+    _TMPDIRS+=("$c")
 }
 # _lock [STORE-DIR] (default: the active store)
 _lock () {
@@ -970,7 +1020,7 @@ _lock () {
     if [[ -d "$dir" && ! -w "$dir" && ! -e "$lock" ]]; then
         die "the store at $dir is read-only (an imported archive, or a copy kept as evidence) — provost does not write to it."
     fi
-    while ! mkdir "$lock" 2>/dev/null; do
+    while ! _lock_claim "$lock"; do
         # a signal that stops a capture's filing gives up the wait (PV-038):
         # no lock is taken, and the caller files nothing
         [[ -z "${_CAP_ABORT:-}" ]] || return 1
@@ -978,16 +1028,13 @@ _lock () {
         if _lock_stale "$lock" && _lock_break "$lock"; then continue; fi
         tries=$((tries + 1))
         if (( tries > max )); then
-            owner="$(cat "$lock/owner" 2>/dev/null || cat "$lock/pid" 2>/dev/null || echo unknown)"
+            _lock_seen "$lock"; owner="$_SEEN"
+            [[ "$owner" == none || "$owner" == partial ]] && owner="a claim with no owner record yet"
             die "store is locked (waited ${PROVOST_LOCK_TIMEOUT}s): $lock — held by ${owner//$'\t'/ }. If that holder is gone, remove the lock dir."
         fi
         sleep 0.2
     done
-    _lock_host_init
-    local mypid="$BASHPID" myuid; myuid="$(id -u 2>/dev/null || echo "?")"
-    printf -v owner "%s\t%s\t%s\t%s" "$_LOCK_HOST" "$mypid" "$myuid" "$(date +%s)"
-    printf '%s\n' "$owner" > "$lock/owner.tmp" && mv "$lock/owner.tmp" "$lock/owner"
-    _LOCKS_HELD+=("$lock"); _LOCKS_OWNER+=("$owner")
+    _LOCKS_HELD+=("$lock"); _LOCKS_OWNER+=("$_LOCK_REC")
 }
 # _lock_if_writable -- _lock, for a reader that wants a consistent view: in
 # a store this process can write; in one it cannot, nothing (no writer can
@@ -5622,10 +5669,13 @@ cmd_import () {
     _mktempd import
     git init -q "$_MKTEMPD" >/dev/null 2>&1 || die "cannot create a scratch repository in $PROVOST_TEMP_DIR (set TMPDIR)."
     git -C "$_MKTEMPD" bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
-    # mkdir is the atomic claim on the destination (two concurrent imports to
-    # the same place cannot both win); the clone then fills the empty dir.
+    # the claim on the destination is an exclusive create beside it (two
+    # concurrent imports to the same place cannot both win; PV-043: not
+    # mkdir's exit status); the clone then fills the empty dir.
     [[ -e "$dest" ]] && die "destination already exists: $dest"
-    mkdir "$dest" 2>/dev/null || die "destination already exists (or cannot be created): $dest"
+    _claim_new "$dest" || die "destination is being created by another provost (or cannot be created): $dest"
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    mkdir "$dest" 2>/dev/null; [[ -d "$dest" ]] || die "destination cannot be created: $dest"
     if ! out="$(git clone -q "$file" "$dest" 2>&1)"; then
         rm -rf "$dest"; printf 'git: %s\n' "$out" >&2; die "import (clone) failed."
     fi
@@ -6503,11 +6553,11 @@ _rm_cap_owner () {
     # little, as the hand-back does; one older than a minute was abandoned
     # (_lock_break's own rule) and is cleared.
     local w=0 cleared=0
-    until mkdir "$lock.break" 2>/dev/null; do
-        # cleared at most once: one that cannot be removed (not empty, not a
-        # directory, another user's) is waited out like a busy one
+    until _excl_create "$lock.break"; do
+        # cleared at most once: one that cannot be removed (a directory not
+        # empty, another user's) is waited out like a busy one
         if (( ! cleared )) && (( $(_age "$lock.break") > 60 )); then
-            cleared=1; rmdir "$lock.break" 2>/dev/null || true
+            cleared=1; _mutex_clear "$lock.break"
         fi
         w=$((w + 1)); (( w < 30 )) || { : > "$tmpd/claimbusy"; return 1; }; sleep 0.1
     done
@@ -6518,7 +6568,7 @@ _rm_cap_owner () {
         printf '%s\n' "$rmchild" > "$lock/owner.tmp" 2>/dev/null \
             && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null && rc=0
     fi
-    rmdir "$lock.break" 2>/dev/null || true
+    rm -f -- "$lock.break" 2>/dev/null || true
     return $rc
 }
 
@@ -6529,14 +6579,14 @@ _rm_cap_hand_back () {
     [[ -n "$1" ]] || return 0
     # under _lock_break's mutex, as the claim; if it cannot be had the record
     # stays as it is (a dead owner's lock is broken as stale in time)
-    until mkdir "$lock.break" 2>/dev/null; do
+    until _excl_create "$lock.break"; do
         w=$((w + 1)); (( w < 20 )) || return 0; sleep 0.1
     done
     { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
     if [[ "$cur" == "$1" ]]; then
         printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
     fi
-    rmdir "$lock.break" 2>/dev/null || true
+    rm -f -- "$lock.break" 2>/dev/null || true
     return 0
 }
 
@@ -7064,7 +7114,9 @@ cmd_archive () {
     local dest; dest="$(_abspath "$to")"
     [[ -e "$dest" ]] && die "the archive's directory already exists: $dest (an archive is always written to a new one)."
     mkdir -p -- "$(dirname -- "$dest")" 2>/dev/null || true
-    mkdir -- "$dest" 2>/dev/null || die "cannot create the archive's directory: $dest"
+    _claim_new "$dest" || die "the archive's directory is being created by another provost (or cannot be created): $dest"
+    [[ -e "$dest" ]] && die "the archive's directory already exists: $dest (an archive is always written to a new one)."
+    mkdir -- "$dest" 2>/dev/null; [[ -d "$dest" ]] || die "cannot create the archive's directory: $dest"
     _TMPDIRS+=("$dest")      # removed on any failure until it is complete
     local c ts e ds osha isha rsha rart commit kp got out
     printf '%s\n' "$_ARCHIVE_CAPS_HDR" > "$dest/captures.tsv"
@@ -7320,7 +7372,9 @@ _archive_import () {
     if ! _archive_verify "$d" "$PROVOST_ALLOWED_SIGNERS" 0 > "$vout" 2>&1; then
         cat "$vout" >&2; die "the archive does not verify — not imported."
     fi
-    mkdir -- "$dest" 2>/dev/null || die "cannot create $dest"
+    _claim_new "$dest" || die "$dest is being created by another provost (or cannot be created)"
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    mkdir -- "$dest" 2>/dev/null; [[ -d "$dest" ]] || die "cannot create $dest"
     rmdir -- "$dest"
     mv -- "$_ARCHIVE_CLONE" "$dest" 2>/dev/null || cp -R -- "$_ARCHIVE_CLONE" "$dest" || die "could not put the store at $dest"
     git -C "$dest" remote remove origin >/dev/null 2>&1 || true

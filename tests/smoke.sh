@@ -705,6 +705,26 @@ check "no duplicate row indices under concurrency" "0" "$dup"
 check "6 concurrent captures got 6 distinct capture ids" "6" "$(find "$CWS/captures" -mindepth 1 -maxdepth 1 -type d -name 'c*' | wc -l | tr -d ' ')"
 check "the store lock is never committed" "0" "$(git -C "$CWS" ls-files | grep -c '^\.lock' || true)"
 check "the store has a .gitignore for runtime files" ".lock" "$(cat "$CWS/.gitignore" 2>&1)"
+# PV-043: a mkdir that reports success when the directory already exists
+# (uutils mkdir before 0.11.0, /usr/bin/mkdir on Ubuntu 25.10) first on
+# PATH. The lock must not depend on its exit status: 8 writers at once
+# still file every capture, each row once.
+UUBIN="$(mktemp -d)"; real_mkdir="$(command -v mkdir)"
+printf '#!/usr/bin/env bash\n%q "$@" 2>/dev/null\nexit 0\n' "$real_mkdir" > "$UUBIN/mkdir"; chmod +x "$UUBIN/mkdir"
+check "setup: the stand-in mkdir exits 0 on a directory that exists" "0" "$(PATH="$UUBIN:$PATH" rc_of mkdir "$UUBIN")"
+UWS="$(mktemp -d)/uushared"
+printf 'k=v0\n' | PATH="$UUBIN:$PATH" PROVOST_WORKSPACE="$UWS" PROVOST_ASYNC=0 "$PROVOST" --name uu >/dev/null 2>&1
+for i in 1 2 3 4 5 6 7 8; do ( rc=0; PATH="$UUBIN:$PATH" PROVOST_WORKSPACE="$UWS" "$PROVOST" run --name uu printf "k=v$i\n" >/dev/null 2>&1 || rc=$?; echo "$rc" > "$UUBIN/rc.$i" ) & done
+wait
+check "8 writers under a mkdir that always succeeds all finish" "0 0 0 0 0 0 0 0" "$(cat "$UUBIN"/rc.? | tr '\n' ' ' | sed 's/ $//')"
+check "...every capture is filed (9 captures)" "9" "$(find "$UWS/captures" -mindepth 1 -maxdepth 1 -type d -name 'c*' | wc -l | tr -d ' ')"
+check "...every row is in the dataset, none duplicated" "9 9" \
+    "$(awk -F'\t' 'NR > 1 { n++; if (!seen[$1]++) u++ } END { print n+0, u+0 }' "$UWS/datasets/uu.tsv")"
+check "...every row is in provenance, none duplicated" "9 9" \
+    "$(tail -n +2 "$UWS/provenance.tsv" | awk -F'\t' '{ n++; if (!seen[$1]++) u++ } END { print n+0, u+0 }')"
+check "...and every value is there" "v0 v1 v2 v3 v4 v5 v6 v7 v8" \
+    "$(grep -o 'v[0-9]' "$UWS/datasets/uu.tsv" | sort | tr '\n' ' ' | sed 's/ $//')"
+check "...and no lock is left behind" "no" "$([[ -e "$UWS/.lock" || -e "$UWS/.lock.break" ]] && echo yes || echo no)"
 fi
 
 if _part lock; then
@@ -740,6 +760,51 @@ mkdir "$LWS/.lock"; dead_pid > "$LWS/.lock/pid"
 check "a legacy pid-file lock whose pid is gone is broken" "0" \
     "$(printf 'a=6\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
 check "no lock is left behind after captures" "false" "$([[ -e "$LWS/.lock" ]] && echo true || echo false)"
+# PV-043: the claim is an exclusive create of .lock/owner. A .lock with no
+# owner record yet is a claim in progress (an older provost between its
+# mkdir and its record): respected while fresh, broken after a minute.
+mkdir "$LWS/.lock"
+check "a fresh .lock with no owner record is respected" "store is locked" \
+    "$(printf 'a=7\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+touch -d '2 minutes ago' "$LWS/.lock" 2>/dev/null || touch -t "$(date -d '2 minutes ago' +%Y%m%d%H%M.%S 2>/dev/null || echo 200001010000)" "$LWS/.lock"
+check "a .lock with no owner record for over a minute is broken" "0" \
+    "$(printf 'a=8\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+# a record still being written (no newline yet) is never judged: here its
+# pid looks dead, yet the lock is respected while the record is fresh
+mkdir "$LWS/.lock"; printf '%s\t%s' "$LOCK_HOST" "$(dead_pid)" > "$LWS/.lock/owner"
+check "a half-written owner record is not taken for a dead holder" "store is locked" \
+    "$(printf 'a=9\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+touch -d '2 minutes ago' "$LWS/.lock/owner" 2>/dev/null || touch -t 200001010000 "$LWS/.lock/owner"
+check "...and is broken once it has stayed half-written a minute" "0" \
+    "$(printf 'a=10\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+# an older provost's lock (owner record put in place by mv) is honoured
+mkdir "$LWS/.lock"; printf 'elsewhere.example/pid:[1]\t1\t0\t%s\n' "$(date +%s)" > "$LWS/.lock/owner.tmp"; mv "$LWS/.lock/owner.tmp" "$LWS/.lock/owner"
+check "an older provost's lock is honoured" "store is locked" \
+    "$(printf 'a=11\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+check "...and left as it was" "elsewhere.example/pid:[1]" "$(cat "$LWS/.lock/owner")"
+rm -rf "$LWS/.lock"
+# the break mutex: an older provost's (a directory) or this one's (a file)
+# held by a live breaker stops a break; an abandoned one is cleared
+mkdir "$LWS/.lock"; printf '%s\t%s\t0\t%s\n' "$LOCK_HOST" "$(dead_pid)" "$(date +%s)" > "$LWS/.lock/owner"
+mkdir "$LWS/.lock.break"
+check "a fresh break mutex of an older provost (a directory) is respected" "store is locked" \
+    "$(printf 'a=12\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+rmdir "$LWS/.lock.break"; : > "$LWS/.lock.break"
+check "a fresh break mutex (a file) is respected" "store is locked" \
+    "$(printf 'a=13\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+touch -d '2 hours ago' "$LWS/.lock.break" 2>/dev/null || touch -t 200001010000 "$LWS/.lock.break"
+check "an abandoned break mutex is cleared and the stale lock broken" "0" \
+    "$(printf 'a=14\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=3 rc_of "$PROVOST")"
+check "...leaving neither behind" "no" "$([[ -e "$LWS/.lock" || -e "$LWS/.lock.break" ]] && echo yes || echo no)"
+# the same rules hold when mkdir always reports success (PV-043)
+UUL="$(mktemp -d)"; printf '#!/usr/bin/env bash\n%q "$@" 2>/dev/null\nexit 0\n' "$(command -v mkdir)" > "$UUL/mkdir"; chmod +x "$UUL/mkdir"
+mkdir "$LWS/.lock"; printf 'elsewhere.example/pid:[1]\t1\t0\t%s\n' "$(date +%s)" > "$LWS/.lock/owner"
+check "a held lock is respected when mkdir always reports success" "store is locked" \
+    "$(printf 'a=15\n' | PATH="$UUL:$PATH" PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+rm -rf "$LWS/.lock"; mkdir "$LWS/.lock"; dead_pid > "$LWS/.lock/pid"
+check "a legacy pid-file lock is still broken when mkdir always reports success" "0" \
+    "$(printf 'a=16\n' | PATH="$UUL:$PATH" PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+check "...and leaves no lock behind" "no" "$([[ -e "$LWS/.lock" ]] && echo yes || echo no)"
 fi
 
 if _part control; then
@@ -826,6 +891,17 @@ check "and the copy is a working store" "free" "$(PROVOST_WORKSPACE="$NOREPO/cop
 printf 'not a bundle\n' > "$NOREPO/junk.bundle"
 check "a file that is not a bundle is still refused" "not a valid provost export bundle" "$(cd "$NOREPO" && "$PROVOST" import junk.bundle junk 2>&1 || true)"
 check "and leaves no destination behind" "absent" "$([[ -e "$NOREPO/junk" ]] || echo absent)"
+# PV-043: the claim on an import's destination does not rest on mkdir's
+# exit status. Under a mkdir that always reports success, two imports to
+# one place: one wins, the other is refused, and no claim file is left.
+UUI="$(mktemp -d)"; printf '#!/usr/bin/env bash\n%q "$@" 2>/dev/null\nexit 0\n' "$(command -v mkdir)" > "$UUI/mkdir"; chmod +x "$UUI/mkdir"
+for i in 1 2; do ( rc=0; cd "$NOREPO" && PATH="$UUI:$PATH" GIT_CEILING_DIRECTORIES="$NOREPO/.." PROVOST_WORKSPACE="" "$PROVOST" import store.bundle racer >/dev/null 2>&1 || rc=$?; echo "$rc" > "$UUI/rc.$i" ) & done
+wait
+check "two imports to one place under a mkdir that always succeeds: exactly one wins" "0 1" "$(sort "$UUI"/rc.? | tr '\n' ' ' | sed 's/ $//')"
+check "...the winner's copy is a working store" "free" "$(PROVOST_WORKSPACE="$NOREPO/racer" "$PROVOST" ls 2>&1)"
+check "...and no claim file is left" "none" "$(ls -A "$NOREPO" | grep -c 'provost-claim' | sed 's/^0$/none/')"
+check "an import onto an existing destination is still refused" "destination already exists" \
+    "$(cd "$NOREPO" && PATH="$UUI:$PATH" PROVOST_WORKSPACE="" "$PROVOST" import store.bundle racer 2>&1 || true)"
 
 # --- plugin strategies + metadata prologue (deframe integration) -----------
 # An external project's strategies reach detection via --plugin-dir (or
