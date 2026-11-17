@@ -1064,6 +1064,7 @@ check "a positional part of prose split into words is still declined" \
 # table passes the same gate. Off by default. Needs python3.
 check "PROVOST_MODEL must be 0 or 1" "2" "$(PROVOST_MODEL=2 rc_of "$PROVOST" --sync "$COV_IN")"
 check "--model is documented" "--model" "$("$PROVOST" inject --help 2>&1)"
+check "--strict-model is documented" "--strict-model" "$("$PROVOST" inject --help 2>&1)"
 if command -v python3 >/dev/null 2>&1; then
     LM_IN="$HERE/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt"
     LWS="$(mktemp -d)/.model"
@@ -1089,6 +1090,51 @@ if command -v python3 >/dev/null 2>&1; then
     LWS5="$(mktemp -d)/.lmnopy"
     lm_out="$(PROVOST_WORKSPACE="$LWS5" PROVOST_PYTHON=/nonexistent/python3 "$PROVOST" --sync --model "$LM_IN" 2>&1)"
     check_not "a missing PROVOST_PYTHON: the layout model declines" "strategy layout-model" "$lm_out"
+    # PV-044: an LM asked for that does not load is said once, recorded in
+    # meta.tsv, and under --strict-model is an error that files nothing.
+    check "the fallback to the trees is warned of, with the cause" "has no weights.pt); the layout model's decision trees labelled in its place" \
+        "$(PROVOST_WORKSPACE="$(mktemp -d)/.lmw" PROVOST_LAYOUT_LM="$(mktemp -d)" "$PROVOST" --sync --model "$LM_IN" 2>&1)"
+    check "meta.tsv records the trees, and why" "labeller	trees (fallback: the layout LM at" "$(cat "$LWS3/captures/c0001/meta.tsv")"
+    check "meta.tsv records the trees with no LM asked for" "labeller	trees" "$(cat "$LWS4/captures/c0001/meta.tsv")"
+    check_not "...and no fallback" "fallback" "$(cat "$LWS4/captures/c0001/meta.tsv")"
+    lm_out="$(PROVOST_WORKSPACE="$(mktemp -d)/.lmquiet" PROVOST_LAYOUT_LM=0 "$PROVOST" --sync --model "$LM_IN" 2>&1)"
+    check_not "no LM asked for: no warning" "warning" "$lm_out"
+    LWS6="$(mktemp -d)/.lmstrict"
+    lm_out="$(PROVOST_WORKSPACE="$LWS6" PROVOST_LAYOUT_LM="$(mktemp -d)" "$PROVOST" --sync --strict-model "$LM_IN" 2>&1 || true)"
+    check "--strict-model: an LM that does not load is an error" "--strict-model: the layout LM at" "$lm_out"
+    check "...exit 4" "4" "$(PROVOST_WORKSPACE="$LWS6" PROVOST_LAYOUT_LM="$(mktemp -d)" rc_of "$PROVOST" --sync --strict-model "$LM_IN")"
+    check "...and nothing is filed" "0" "$(find "$LWS6/captures" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
+    check "PROVOST_MODEL_STRICT=1 does the same" "4" "$(PROVOST_WORKSPACE="$LWS6" PROVOST_LAYOUT_LM="$(mktemp -d)" PROVOST_MODEL=1 PROVOST_MODEL_STRICT=1 rc_of "$PROVOST" --sync "$LM_IN")"
+    check "PROVOST_MODEL_STRICT must be 0 or 1" "2" "$(PROVOST_MODEL_STRICT=2 rc_of "$PROVOST" --sync "$COV_IN")"
+    check "--strict-model with no LM asked for: the trees, as --model" "strategy layout-model" \
+        "$(PROVOST_WORKSPACE="$(mktemp -d)/.lmstrict0" PROVOST_LAYOUT_LM=0 "$PROVOST" --sync --strict-model "$LM_IN" 2>&1)"
+    # torch missing (a sys.path shim whose torch will not import), for a
+    # model directory that has its weights: the same, naming torch
+    LMSHIM="$(mktemp -d)"; LMDIR="$(mktemp -d)"
+    printf 'raise ImportError("no torch here")\n' > "$LMSHIM/torch.py"
+    printf '{}\n' > "$LMDIR/config.json"; : > "$LMDIR/weights.pt"
+    check "torch missing: the warning names it" "torch is not installed" \
+        "$(PYTHONPATH="$LMSHIM" PROVOST_WORKSPACE="$(mktemp -d)/.lmtorch" PROVOST_LAYOUT_LM="$LMDIR" "$PROVOST" --sync --model "$LM_IN" 2>&1)"
+    # provost-model installed but torch missing counts as asking for the LM
+    # (the owner's answer, BN-008)
+    mkdir -p "$LMSHIM/provost_model"; printf 'MODEL_DIR = %s\n' "'$LMDIR'" > "$LMSHIM/provost_model/__init__.py"
+    LWS7="$(mktemp -d)/.lmpkg"
+    check "provost-model installed, torch missing: warned of" "torch is not installed" \
+        "$(env -u PROVOST_LAYOUT_LM PYTHONPATH="$LMSHIM" PROVOST_WORKSPACE="$LWS7" "$PROVOST" --sync --model "$LM_IN" 2>&1)"
+    check "...and recorded" "labeller	trees (fallback:" "$(cat "$LWS7/captures/c0001/meta.tsv")"
+    check "...and an error under --strict-model" "4" \
+        "$(rc_of env -u PROVOST_LAYOUT_LM PYTHONPATH="$LMSHIM" PROVOST_WORKSPACE="$LWS7" "$PROVOST" --sync --strict-model "$LM_IN")"
+    # a batch of captures: one warning, every capture recorded; strict: the
+    # whole batch fails and files nothing
+    LMB="$(mktemp -d)"; for i in 1 2 3; do cp "$LM_IN" "$LMB/in$i.txt"; done
+    LWS8="$(mktemp -d)/.lmbatch"
+    lm_out="$(PROVOST_WORKSPACE="$LWS8" PROVOST_LAYOUT_LM="$LMDIR.none" "$PROVOST" batch --model --name cm "$LMB"/in{1,2,3}.txt 2>&1)"
+    check "a batch warns of the fallback once" "1" "$(printf '%s\n' "$lm_out" | grep -c 'decision trees labelled in its place')"
+    check "...and every capture records it" "3" "$(grep -l 'labeller	trees (fallback:' "$LWS8"/captures/c*/meta.tsv | wc -l | tr -d ' ')"
+    LWS9="$(mktemp -d)/.lmbatchstrict"
+    check "a batch under --strict-model fails with exit 4" "4" \
+        "$(PROVOST_WORKSPACE="$LWS9" PROVOST_LAYOUT_LM="$LMDIR.none" rc_of "$PROVOST" batch --strict-model --name cm "$LMB"/in{1,2,3}.txt)"
+    check "...and files nothing" "0" "$(find "$LWS9/captures" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
     # Declined: the model's table would keep too little; held as before, with why.
     printf '%s\n' '-- Cache values' '// Upper bound on bins per run' 'BINPACK_MAX_BINS:STRING=64' '' \
         '// Collect allocation statistics' 'BINPACK_WITH_STATS:BOOL=ON' '' '// Path to a program.' \
@@ -1885,7 +1931,7 @@ MAN="$HERE/../man/provost.1"
 while IFS= read -r v; do
     case "$v" in PROVOST_VERSION|PROVOST_ROOT|PROVOST_WORKSPACE_EXPLICIT|PROVOST_STORE_KIND|PROVOST_TEMP_DIR \
         |PROVOST_NO_RC|PROVOST_ANALYZE_SUPPRESS_AWK_WARNING|PROVOST_MULTI_TEXT_DIR \
-        |PROVOST_LM_ENGINE_WIDE|PROVOST_LM_ENGINE_META|PROVOST_LM_RECORDS|PROVOST_LLM_RECORDS) continue ;; esac  # set for the engines, not by users
+        |PROVOST_LM_ENGINE_WIDE|PROVOST_LM_ENGINE_META|PROVOST_LM_RECORDS|PROVOST_LLM_RECORDS|PROVOST_LM_STATUS) continue ;; esac  # set for the engines, not by users
     check "help documents $v" "$v" "$help_out"
     check "man page documents $v" "$v" "$(cat "$MAN")"
 done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)

@@ -1,5 +1,44 @@
 # provost — Changelog
 
+## 2.27.0 — 2026-11-17 — the layout model says when it falls back to the decision trees; `--strict-model` (PV-044)
+
+`VERSION` 2.26.0 → 2.27.0, and the `man/provost.1` header. Minor: a new
+option and a new `meta.tsv` key; with no LM asked for, a capture is filed as
+before (one key more in its `meta.tsv`).
+
+`--model` labels with the tiny LM when one is asked for (`PROVOST_LAYOUT_LM`
+names a directory, or the `provost-model` package is installed) and with
+the decision trees otherwise. An LM that was asked for and did not load (no
+weights, no torch or numpy, a broken model) fell back to the trees in
+silence, which quietly turned the LM off.
+
+- **A warning, once per provost process**, on stderr, naming the cause:
+  `warning the layout LM at DIR did not load (torch is not installed); the
+  layout model's decision trees labelled in its place`. A `batch` prints it
+  once after its parses, however many captures fell back. The owner's
+  answer (BN-008): `provost-model` installed but torch missing counts as
+  asking for the LM, so it warns.
+- **`meta.tsv` records the labeller** whenever the layout model ran: a new
+  key `labeller`, `lm`, `trees`, or `trees (fallback: WHY)`.
+- **`--strict-model`** (`PROVOST_MODEL_STRICT=1`) turns the fallback into
+  an error: exit status **4**, nothing filed (the trees do not label in its
+  place; a whole `batch` files nothing). It implies `--model`. With no LM
+  asked for, it is `--model`: the trees label, no error.
+- The reason travels from Python to provost by a status file
+  (`PROVOST_LM_STATUS`, set by provost for the layout model, not for
+  users): `layout_model.load_lm` keeps why the LM did not load,
+  `lm_runtime.load_why` says why a model directory did not load (`load`
+  keeps its signature).
+
+Files: `provost`, `extract/model/layout_model.py`,
+`extract/model/lm_runtime.py`, `man/provost.1`, `README.md`,
+`docs/store-format.md` (the `labeller` key), `tests/smoke.sh` (`core`: an
+empty LM directory warns and records the fallback, `--strict-model` exits 4
+and files nothing, torch missing via a `sys.path` shim, `provost-model`
+installed without torch, a batch warns once and files nothing under
+`--strict-model`, no LM asked for warns of nothing), `ml/tests/test_runtime.py`
+(`load_why`, `LM_FALLBACK`, the status line, `main` under strict).
+
 ## 2.26.0 — 2026-11-17 — 28 templates Claude wrote for the held benchmark captures ship with provost (PV-007)
 
 `VERSION` 2.25.0 → 2.26.0, and the `man/provost.1` header. Minor: provost

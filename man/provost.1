@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-11-17" "provost 2.26.0" "User Commands"
+.TH PROVOST 1 "2026-11-17" "provost 2.27.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -105,6 +105,11 @@ Before holding a parse the gate still rejects after \fBAUTO-MULTI\fR, try the
 learned layout model and file its table when it passes the same gate (or
 \fBPROVOST_MODEL=1\fR; \fB--no-model\fR, the default, doesn't). Needs
 \fBpython3\fR. See \fBLAYOUT MODEL\fR.
+.TP
+.B --strict-model
+\fB--model\fR, and when the layout LM asked for does not load, fail (exit 4,
+nothing filed) instead of letting the decision trees label in its place (or
+\fBPROVOST_MODEL_STRICT=1\fR). See \fBLAYOUT MODEL\fR.
 .TP
 .BR --templates ", " --no-templates
 Apply a parsing template written for this tool, by hand or by Claude, stored
@@ -694,8 +699,13 @@ of its split that the gate rejects; and when the whole-capture table is
 declined, the model cuts the report into its own uniform sections (a
 key/value block, a table, a list), filed under \fBAUTO-MULTI\fR's rules.
 Otherwise the capture is held exactly as before. \fImeta.tsv\fR records \fBlayout_model\fR (filed
-or declined, and why) and the held parse's \fBsingle_strategy\fR and
-\fBsingle_coverage\fR. It needs \fBpython3\fR (no packages) and declines
+or declined, and why), \fBlabeller\fR (\fBlm\fR, \fBtrees\fR, or
+\fBtrees (fallback: \fR\fIwhy\fR\fB)\fR) and the held parse's \fBsingle_strategy\fR and
+\fBsingle_coverage\fR. The tiny LM is asked for by \fBPROVOST_LAYOUT_LM\fR, or by
+an installed \fBprovost-model\fR package (with \fBtorch\fR or without). When
+one is asked for and does not load (no weights, no \fBtorch\fR, a broken model),
+provost prints one warning per run naming the cause and the trees label, or,
+under \fB--strict-model\fR, stops with exit status 4 and files nothing. It needs \fBpython3\fR (no packages) and declines
 inputs over 600 lines; only held captures pay for it.
 .SH TEMPLATES
 A capture is parsed by a \fItemplate\fR for its tool when one fits
@@ -1010,6 +1020,11 @@ the input (see \fBAUTO-MULTI\fR); \fB0\fR: hold it straight away (same as
 layout model (see \fBLAYOUT MODEL\fR); \fB0\fR (the default): don't (same as
 \fB--no-model\fR).
 .TP
+.B PROVOST_MODEL_STRICT
+\fB1\fR: a layout LM that was asked for and does not load is an error (exit 4,
+nothing filed) rather than a fallback to the trees (same as
+\fB--strict-model\fR); \fB0\fR (the default): warn and use the trees.
+.TP
 .B PROVOST_TEMPLATES
 \fB1\fR (the default): apply a template written for the tool when one fits
 (see \fBTEMPLATES\fR); \fB0\fR: don't (same as \fB--templates\fR /
@@ -1160,6 +1175,8 @@ A capture interrupted by \fBSIGINT\fR, \fBSIGTERM\fR or \fBSIGHUP\fR exits
 \fI.store_format\fR is not a number): every command that uses the store
 refuses it before reading or writing anything, \fBrun\fR before it runs the
 command (\fBstore check\fR and \fBstore format\fR report on it instead).
+4 under \fB--strict-model\fR when the layout LM asked for does not load:
+nothing is filed (a whole \fBbatch\fR files nothing).
 .SH EXAMPLES
 .nf
 free -m | provost                 # capture + auto-detect + file (dataset 'free')

@@ -134,9 +134,24 @@ def lm_dir(env=os.environ):
     return path
 
 
+# Why the LM asked for is not labelling, set by load_lm: "" when it loaded
+# or when none was asked for (PV-044). main() hands it to provost.
+LM_FALLBACK = ""
+
+
+def _one_line(text, limit=300):
+    """text on one line, with no tab, cut to limit characters (meta.tsv and
+    a warning carry it)."""
+    text = " ".join(str(text).split())
+    return text if len(text) <= limit else text[:limit - 3] + "..."
+
+
 def load_lm(env=os.environ):
     """The tiny LM in the directory PROVOST_LAYOUT_LM names, else the
-    installed provost-model package's, or None (the trees label)."""
+    installed provost-model package's, or None (the trees label). When one
+    was asked for and does not load, LM_FALLBACK says why."""
+    global LM_FALLBACK
+    LM_FALLBACK = ""
     path = lm_dir(env)
     if not path:
         return None
@@ -145,10 +160,30 @@ def load_lm(env=os.environ):
         try:
             import lm_numpy
             return lm_numpy.load(path)
-        except Exception:  # noqa: BLE001 -- no numpy, or a broken model: the trees label
+        except Exception as e:  # noqa: BLE001 -- no numpy, or a broken model: the trees label
+            why = "numpy is not installed" if isinstance(e, ImportError) else f"it failed to load: {type(e).__name__}: {e}"
+            LM_FALLBACK = _one_line(f"the layout LM at {path} did not load ({why})")
             return None
     import lm_runtime
-    return lm_runtime.load(path)
+    lm, why = lm_runtime.load_why(path)
+    if lm is None:
+        LM_FALLBACK = _one_line(f"the layout LM at {path} did not load ({why})")
+    return lm
+
+
+def write_status(lm, env=os.environ):
+    """PROVOST_LM_STATUS, when provost names a file: one line, the labeller
+    that ran (lm or trees), a tab, and why the trees ran in place of an LM
+    that was asked for ("" when none was asked for)."""
+    path = env.get("PROVOST_LM_STATUS", "")
+    if not path:
+        return
+    line = "lm\t" if lm is not None else "trees\t" + _one_line(LM_FALLBACK)
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(line + "\n")
+    except OSError:
+        pass
 
 
 def engine_labels(lines, wide):
@@ -568,6 +603,9 @@ def main(argv=None):
     if len(lines) > MAX_LINES:
         return 3
     lm = load_lm()
+    write_status(lm)
+    if lm is None and LM_FALLBACK and os.environ.get("PROVOST_MODEL_STRICT") == "1":
+        return 4                     # --strict-model: the trees do not label in its place
     rprobs = None
     if lm is not None:
         roles, starts, probs, rprobs = label_lm(lm, lines, role_probs=True)
