@@ -178,6 +178,72 @@ class Store(unittest.TestCase):
             T.compile_template(T.load(os.path.join(T.SHIPPED, f)))
 
 
+# PV-007 (2026-11-17): the templates Claude wrote through the real API for the
+# held captures of benchmark rounds 2-4 that rated PASS, shipped as written
+# (docs/benchmark-2026-11-17-llm-held-captures.md). Two more rated PASS and
+# are not shipped, because their detect pattern takes captures of other tools
+# in tests/corpus/: update-alternatives-query (44: pip show, kubectl describe,
+# dpkg -s ...) and cmake-cache-advanced-help (cmake-list-cache).
+PV007 = ["apt-cache-showpkg", "apt-get-simulate-install", "callgrind-annotate",
+         "coverage-debug-sys", "diff-normal", "gcov-branch-counts", "git-show-branch", "gprof-brief",
+         "infocmp-terminfo", "jstack-thread-dump", "objdump-disassemble", "patch-dry-run-verbose",
+         "pytest-fixtures", "readelf-notes", "aws-ec2-describe-key-pairs-table",
+         "gitlab-ci-job-log", "hp-ssacli-show-config", "hpux-ioscan-fnc-disk", "ibmi-wrksyssts",
+         "routeros-ip-address-print", "cisco-show-spanning-tree-vlan", "junos-show-interfaces-terse",
+         "oracle-lsnrctl-status", "kubectl-cnpg-status", "teamspeak-serverquery-clientlist",
+         "teradata-bteq-select", "r-lm-summary", "srcds-status"]
+
+
+class ShippedLibrary(unittest.TestCase):
+    def test_the_pv007_templates_are_shipped(self):
+        for n in PV007:
+            self.assertTrue(os.path.isfile(os.path.join(T.SHIPPED, n + ".json")), n)
+
+    def test_each_shipped_template_is_found_for_the_capture_it_was_written_from(self):
+        # find() over the whole shipped library picks the template for its own
+        # example and reads all of it: no other shipped template's detect
+        # steals it, and the parser still covers what it was rated on
+        for f in sorted(os.listdir(T.SHIPPED)):
+            t = T.load(os.path.join(T.SHIPPED, f))
+            for ex in t.get("examples") or []:
+                with self.subTest(template=f):
+                    path, score = T.find(ex.split("\n"), [T.SHIPPED])
+                    self.assertEqual(os.path.basename(path or ""), f)
+                    self.assertEqual(score, 1.0)
+
+    def test_the_round_inputs_they_came_from_are_read_by_them(self):
+        # the benchmark input each template was written from, read off disk
+        bench = os.path.join(ROOT, "tests", "benchmark")
+        seen = 0
+        for r in ("round2", "round3", "round4"):
+            for f in sorted(os.listdir(os.path.join(bench, r, "inputs"))):
+                n = f.split("-", 1)[1][:-len(".txt")]
+                if n not in PV007:
+                    continue
+                with self.subTest(input=f):
+                    path, score = T.find(T.read_lines(os.path.join(bench, r, "inputs", f)), [T.SHIPPED])
+                    self.assertEqual(os.path.basename(path or ""), n + ".json")
+                    seen += 1
+        self.assertEqual(seen, len(PV007))
+
+    def test_no_pv007_template_takes_a_corpus_capture(self):
+        # a shipped template applies without --llm to any capture its detect
+        # recognises; one that read a corpus tool's output well enough to be
+        # filed (the CLI files from about 0.93 coverage) would replace that
+        # tool's own parser. The best any of these manages on the corpus is
+        # 0.167 (apt-cache-showpkg on apt-cache show).
+        cts = [T.compile_template(T.load(os.path.join(T.SHIPPED, n + ".json"))) for n in PV007]
+        corpus = os.path.join(ROOT, "tests", "corpus", "inputs")
+        for f in sorted(os.listdir(corpus)):
+            lines = T.read_lines(os.path.join(corpus, f))
+            if not any(T._detects(ct, lines) is not None for ct in cts):
+                continue
+            path, score = T.find(lines, [T.SHIPPED])
+            if path and os.path.basename(path)[:-len(".json")] in PV007:
+                with self.subTest(input=f, template=os.path.basename(path)):
+                    self.assertLess(score, 0.5)
+
+
 PASS = json.dumps({"verdict": "PASS"})
 
 

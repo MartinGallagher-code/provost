@@ -122,6 +122,7 @@ worse than no rating.
 | `round5/novelty.py` | round 5: name and content check against the corpus, holdout, rounds 1-4 and round 4's second captures |
 | `round5/llm-templates-learn/summary.tsv` | round 5: how each input was filed when `--llm` wrote its template at first contact (the templates and API log are [at d9c32f04](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-templates-learn); see "LLM run records") |
 | `round5/llm-judge/judge.tsv`, `ratings.tsv` | round 5: the judge's verdict on each template, and the blind ratings of the 26 it revised |
+| `llm-held/summary.tsv` | PV-007: `--llm` through the real API on the 38 captures the engine held in rounds 2-4: how each was filed, its calls, tokens and cost, its blind rating and whether its template now ships ([report](../../docs/benchmark-2026-11-17-llm-held-captures.md)) |
 | `round4/llm-templates-*/summary.tsv` | round 4: how each input was filed in parts 4-7 of the LLM-templates report |
 | `llm_round.sh` | run a round through `provost --sync --llm` with a directory of stored templates (or `--learn` them) |
 | `judge_round.sh` | run the `--llm` judge alone on a round's stored templates |
@@ -162,6 +163,14 @@ input set. Two of round 4's format-2 templates are smoke fixtures, in
 | [`round4/llm-templates-learn-cleanup-repaired/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round4/llm-templates-learn-cleanup-repaired) | 4 of those repaired, and the API log | part 7 |
 | [`round5/llm-templates-learn/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-templates-learn) | 100 templates `--llm` wrote at first contact, and the API log | [round 5 report](../../docs/benchmark-2026-11-04-generalisation-round5.md) |
 | [`round5/llm-judge/`](https://github.com/MartinGallagher-code/provost/tree/d9c32f046ca1d9457a3ecd7439c2dcf410f85c34/tests/benchmark/round5/llm-judge) | the 26 templates the judge revised (`revised/`), and the API log | round 5 report, the addendum on the `--llm` judge (PV-009) |
+
+PV-007 (2.25.0) kept its own run records the same way, at commit
+[`c9797028`](https://github.com/MartinGallagher-code/provost/tree/c9797028c4aa0ec2715fd8446d26456f81c52784/tests/benchmark/llm-held):
+the 34 templates `--llm` wrote for the held captures of rounds 2-4 and the API
+log of its 100 replies, under `tests/benchmark/llm-held/`. The 28 that rated
+PASS, and take no corpus capture, ship in `extract/llm/templates/`. Restore the
+rest with
+`git archive c9797028c4aa0ec2715fd8446d26456f81c52784 tests/benchmark/llm-held | tar -x`.
 
 Restore one directory, from the top of the checkout (it lands where it was):
 

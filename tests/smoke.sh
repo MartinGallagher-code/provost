@@ -966,18 +966,20 @@ rm -f "$COV_IN.frag"
 # and declined for box chrome (round 2's 102), a header-like line right above
 # it (round 3's 115: the header sat over a rule line) or rows shredded into
 # words (round 4's 031).
+# Those three are the engine's own: since 2.25.0 (PV-007) a shipped template
+# reads each of them, so they run with PROVOST_TEMPLATES=0.
 BR="$HERE/benchmark"
 am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/048-pytest-ra-report.txt" 2>&1)"
 check "a tool-specific parser under the gate's coverage sinks the split" \
     "git-annex-list, a tool-specific parser) keeps 50% of its lines" "$am_out"
 am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/137-windows-robocopy-log.txt" 2>&1)"
 check "a headerless positional part no longer sinks the split" "→ 6 datasets" "$am_out"
-am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round2/inputs/102-aws-ec2-describe-key-pairs-table.txt" 2>&1)"
+am_out="$(PROVOST_TEMPLATES=0 PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round2/inputs/102-aws-ec2-describe-key-pairs-table.txt" 2>&1)"
 check "a positional part of box chrome is still declined" "positional columns only: box chrome read as cells" "$am_out"
-am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round3/inputs/115-cisco-show-spanning-tree-vlan.txt" 2>&1)"
+am_out="$(PROVOST_TEMPLATES=0 PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round3/inputs/115-cisco-show-spanning-tree-vlan.txt" 2>&1)"
 check "a positional part under a cut-off header is still declined" \
     "positional columns only: a header-like line sits right above it" "$am_out"
-am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/031-jstack-thread-dump.txt" 2>&1)"
+am_out="$(PROVOST_TEMPLATES=0 PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$BR/round4/inputs/031-jstack-thread-dump.txt" 2>&1)"
 check "a positional part of prose split into words is still declined" \
     "positional columns only: its cells are mostly empty" "$am_out"
 
@@ -1462,6 +1464,12 @@ if command -v python3 >/dev/null 2>&1; then
     tp_out="$(tp --sync "$TPS" 2>&1)"
     check "a shipped template reads its tool's output without --llm" "mcstatus.players  #1..9  (strategy llm-template" "$tp_out"
     check "meta names the template's file" "template	shipped:mcstatus.json" "$(cat "$TPD/.st/captures/c0001/meta.tsv")"
+    # PV-007: a template Claude wrote for a capture the engine held, shipped
+    tp7="$(mktemp -d)"
+    tp7_out="$(PROVOST_WORKSPACE="$tp7/.st" "$PROVOST" --sync "$HERE/benchmark/round4/inputs/116-junos-show-interfaces-terse.txt" 2>&1)"
+    check "a PV-007 shipped template reads a capture the engine held" "junos-show-interfaces-terse.interfaces  #1..29  (strategy llm-template" "$tp7_out"
+    check "...and meta names it" "template	shipped:junos-show-interfaces-terse.json" "$(cat "$tp7/.st/captures/c0001/meta.tsv")"
+    rm -rf "$tp7"
     tp_out="$(tp --sync --no-templates "$TPS" 2>&1)"
     check "--no-templates: the engine's parse" "strategy aligned-columns" "$tp_out"
     check_not "...and meta says nothing of templates" "template" "$(cat "$TPD/.st/captures/c0002/meta.tsv")"
