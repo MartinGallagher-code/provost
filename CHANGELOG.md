@@ -44,7 +44,20 @@ one-host `qd run -- ls` spent almost all of its time in provost.
 - The hint is read with `read`, not `sed` and `head` (four processes fewer
   per reused input).
 
-Measured (Linux, 4 CPUs shared with other jobs, so upper bounds): MEASURE
+Measured on 2026-11-18 (Linux, 4 CPUs shared with other test suites at a
+load near 30, so the times are upper bounds; compare them with each other):
+quarterdeck's three captures of a one-host `qd run -- ls` (the answer,
+`qd.hosts`, `qd.runs`) as one `provost batch --context-columns`, median of
+5 runs, processes counted with `strace -f`:
+
+| | 2.27.0 | 2.28.0 |
+|---|---:|---:|
+| into a new store | 6.76 s, 718 processes (497 `awk`), 1,000 `execve` | 4.32 s, 260 processes (41 `awk`), 541 `execve` |
+| into a store that has the three | 6.74 s, 723 processes (492 `awk`), 948 `execve` | 2.76 s (41%), 266 processes (40 `awk`), 474 `execve` |
+| the same, `-j 1` | 8.88 s | 2.92 s (33%) |
+
+The whole `qd run -- ls` into a store that has it: 747 processes before,
+275 after (quarterdeck's `tests/small_run.sh`).
 
 Files: `extract/lib/_ceiling.awk` (new), `extract/lib/_discovery.sh`
 (`_ceil_fill`, `_strategy_ceiling`), `provost` (`_ceil_table_write`,

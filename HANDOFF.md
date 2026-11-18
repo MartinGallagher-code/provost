@@ -5,7 +5,7 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.27.0 is everything through 2026-11-17** (`VERSION`, man header,
+**provost 2.28.0 is everything through 2026-11-18** (`VERSION`, man header,
 the `## 2.27.0` section at the top of CHANGELOG): 2.4.0 (BN-002), the HPC
 benchmark outputs (PV-030, below, 2.5.0), the generalisation decision record
 (PV-006, 2.5.1: docs only, see "Next steps" 1e), the two `--llm` gate rules
@@ -43,7 +43,9 @@ every command, `store upgrade` and `store format` (PV-045, Next steps 1v;
 2.25.0); 28 templates Claude wrote through the real API for the captures rounds 2-4
 held, shipped (PV-007, Next steps 1w; 2.26.0); a warning and a meta.tsv record when the
 layout model falls back to the trees, and `--strict-model` (PV-044, Next
-steps 1x; 2.27.0). 2.4.0 added `provost
+steps 1x; 2.27.0); a small capture filed in a fraction of the time, by one
+ceiling scan and a dataset's own strategy tried first (QD-056, Next steps
+1y; 2.28.0). 2.4.0 added `provost
 verify` and input hashes (PV-026), the run manifest (PV-020) and the
 2026-11-04 to 2026-11-09 fixes to 2.3.0. **From 2.4.0 on every change moves
 the version** (`CLAUDE.md`, "Every change moves the version";
@@ -369,6 +371,31 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+1y. **2026-11-18: a small capture's fixed cost** (QD-056, quarterdeck's
+    ticket; 2.28.0). quarterdeck's one-host `qd run -- ls` spent almost all
+    of its time in provost. Two changes, both in the detection path:
+    - **One ceiling scan.** `extract/lib/_ceiling.awk` reads every strategy
+      file's confidence ceiling in one awk; `_strategy_ceiling` fills its
+      cache from it (`_ceil_fill`) instead of one awk per file (about 230
+      per engine process). `batch` writes the table once
+      (`_ceil_table_write`) and hands it to its parses in
+      `PROVOST_CEIL_TABLE` (set for the engines, not by users; provost
+      unsets an inherited one). `extract/tests/test_ceilings.sh` keeps the
+      old per-file scan as the oracle and counts awk with a PATH shim.
+    - **The store's hint.** `_store_hint NAME` reads the capture that filed
+      NAME's last row (one `tail`) and, when its meta.tsv has the new
+      `header` key (one clean table), `_ingest_parse` tries its strategy
+      first under batch reuse's checks. Applies to `batch`, `run` and piped
+      input; `PROVOST_BATCH_REUSE=0` turns it off.
+    - **Open:** the header compared is the wide one, which names rows
+      (`entry1.host ... total_entries`), so a dataset whose row count
+      changes (an `ls` of a directory that grew, a fleet of another size)
+      is detected afresh. Comparing column names without the `entryN.`
+      prefix would reuse those too; it was left for the owner (QD-056's
+      review). The next cost is per capture, not per strategy: about 90
+      processes for a reused capture (`dirname`, `wc`, `tr`, `head`, `rm`,
+      `git`, `sha256sum` ...), which bash builtins could replace.
 
 1x. **2026-11-17: layout-model fallback** (PV-044, 2.27.0). When the tiny LM
     asked for (`PROVOST_LAYOUT_LM`, or `provost-model` installed, torch or
