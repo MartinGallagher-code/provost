@@ -14,7 +14,7 @@ one-host `qd run -- ls` spent almost all of its time in provost.
   small capture's cost. The scan is now `extract/lib/_ceiling.awk`, one
   pass over every file of the strategy list (POSIX awk, resetting at each
   file's first line), once per engine process. `batch` runs it once before
-  its parses start and hands the table down (`_PROVOST_CEIL_TABLE`, a file
+  its parses start and hands the table down (`PROVOST_CEIL_TABLE`, a file
   in the batch's work dir; inherited from anywhere else it is ignored), so
   no parse scans at all. Every ceiling is the old scan's: shipped
   strategies, `--plugin-dir` ones (a header, a computed

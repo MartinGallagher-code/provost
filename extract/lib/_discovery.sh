@@ -2260,7 +2260,7 @@ _extract_and_store () {
 # ONE SCAN (QD-056). The ceilings are read by ONE awk over every strategy
 # file of the current list, the first time one is wanted, not one awk per
 # file: 274 processes per input were most of what a small capture cost. A
-# table handed down in _PROVOST_CEIL_TABLE (CEILING<TAB>PATH lines; provost's
+# table handed down in PROVOST_CEIL_TABLE (CEILING<TAB>PATH lines; provost's
 # batch builds one before its parses start, as _ceil_table_write) is read
 # first, with no process at all; a file it does not name is scanned here.
 # The table lives for one batch, so a strategy edited between runs is read
@@ -2274,10 +2274,10 @@ _ceil_fill () {
     local -a scan=()
     if [[ $_CEIL_HANDED -eq 0 ]]; then
         _CEIL_HANDED=1
-        if [[ -n "${_PROVOST_CEIL_TABLE:-}" && -r "$_PROVOST_CEIL_TABLE" ]]; then
+        if [[ -n "${PROVOST_CEIL_TABLE:-}" && -r "$PROVOST_CEIL_TABLE" ]]; then
             while IFS=$'\t' read -r c f; do
                 [[ -n "$f" && "$c" =~ ^[0-9]+$ ]] && _CEIL_CACHE[$f]="$c"
-            done < "$_PROVOST_CEIL_TABLE"
+            done < "$PROVOST_CEIL_TABLE"
         fi
     fi
     # every file of the current list (and the one asked for) not yet known

@@ -69,7 +69,7 @@ _provost_root () {
 PROVOST_ROOT="$(_provost_root)"
 # The engine's table of strategy ceilings (QD-056) is handed down by `batch`
 # to its own parses only: one inherited from anywhere else is never read.
-unset _PROVOST_CEIL_TABLE
+unset PROVOST_CEIL_TABLE
 
 # A controlled directory holds its instance at <dir>/.provost with a CONTROLLED
 # marker (which the global store lacks). Walk up from $start to find one.
@@ -4770,7 +4770,7 @@ _ncpu () {
 # CEILING<TAB>PATH line each, by ONE awk over every file the engine may
 # search: its own strategies, the user's and the plugin dir (QD-056). batch
 # writes it once before its parses start and hands it down in
-# _PROVOST_CEIL_TABLE, so no parse scans the files again; a file it lacks
+# PROVOST_CEIL_TABLE, so no parse scans the files again; a file it lacks
 # (an empty one, or one named differently) the engine scans itself.
 _ceil_table_write () {
     local out="$1" d f
@@ -4936,7 +4936,7 @@ cmd_batch () {
                 _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
                 trap _cleanup EXIT
                 _BATCH_WARN_DIR="$bwarn"
-                [[ -s "$ceil" ]] && export _PROVOST_CEIL_TABLE="$ceil"
+                [[ -s "$ceil" ]] && export PROVOST_CEIL_TABLE="$ceil"
                 _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
             ) > "$d/parse.log" 2>&1 &
             pre_g+=("$g"); pre_pid+=("$!")
@@ -4963,7 +4963,7 @@ cmd_batch () {
                 _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
                 trap _cleanup EXIT
                 _BATCH_WARN_DIR="$bwarn"
-                [[ -s "$ceil" ]] && export _PROVOST_CEIL_TABLE="$ceil"
+                [[ -s "$ceil" ]] && export PROVOST_CEIL_TABLE="$ceil"
                 _BATCH_HINT="${hint_of[=${names[i]}]:-}" \
                     _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
             ) > "$d/parse.log" 2>&1 &

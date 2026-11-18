@@ -158,7 +158,7 @@ test_handed_down_table () {
     local d="$CT_TMP/hand" got
     _plugins "$d"
     printf '33\t%s\n' "$d/hdr.sh" > "$CT_TMP/table.tsv"
-    got="$(CT_ENV="_PROVOST_CEIL_TABLE=$CT_TMP/table.tsv" _new_ceilings "$d/hdr.sh" "$d/literal.sh")"
+    got="$(CT_ENV="PROVOST_CEIL_TABLE=$CT_TMP/table.tsv" _new_ceilings "$d/hdr.sh" "$d/literal.sh")"
     assert_contains "$got" "33	$d/hdr.sh" "the handed-down table is what the engine uses"
     assert_contains "$got" "77	$d/literal.sh" "a file the table lacks is scanned"
 }
