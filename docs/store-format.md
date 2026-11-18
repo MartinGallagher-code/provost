@@ -371,7 +371,8 @@ Present when they apply:
 | `context_columns` | `key=column,...`: the dataset columns its prologue became. |
 | `units`, `units_columns` | `base`; `units.tsv`. |
 | `renamed_columns` | `DATASET:old=new,...`: data columns the melt renamed (`#` to `#_2`). |
-| `detection` | How the parser was chosen when it was not detected afresh (`reused (...)` in a batch). |
+| `detection` | How the parser was chosen when it was not detected afresh: `reused (STRATEGY, from the batch's first input of this name)` in a batch, or `reused (STRATEGY, from cNNNN, the latest capture of NAME)` (2.28.0 on). |
+| `header` | The parse's header line as the parser read it, before context columns and the melt (tabs written as `\t`), when the capture filed one clean table under its name; at most 8,192 characters. The next capture of that name is read with this capture's `strategy` first, and kept only if it gives the same header (2.28.0 on). |
 | `redacted` | What the secret scrub replaced: `kind=n,...`, `none`, or `off`. |
 | `input_sha256`, `input_bytes` | The input as received, before any change: its sha256 (64 lower-case hex digits) and size. |
 | `output_sha256` | The sha256 of `output.txt` as stored. `provost verify` re-checks it. |

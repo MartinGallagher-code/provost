@@ -2513,6 +2513,43 @@ done
 check "several names: -j 1 and -j 8 file the same rows" "same" "$( (diff -r "$RM1/datasets" "$RMJ/datasets" >/dev/null && echo same) || echo differ)"
 check "several names: each name's own hint is reused" "reused (" "$(cat "$RMJ/captures/c0006/meta.tsv")"
 check "several names: ...and the first name's too" "reused (" "$(cat "$RMJ/captures/c0002/meta.tsv")"
+# Detection reuse from the store (QD-056): a capture filed under a name the
+# store already has is read with that dataset's latest strategy first, kept
+# only when it is the same table; the rows are the same as with it off.
+printf 'host\tstatus\trc\nh1\tok\t0\n' > "$BTD/s1.tsv"
+printf 'host\tstatus\trc\nh2\tfailed\t3\n' > "$BTD/s2.tsv"
+printf 'host\tstatus\trc\tnote\nh4\tok\t0\tnew column\n' > "$BTD/s3.tsv"
+printf 'Everything went fine on all of the hosts today,\nand nothing at all needs a look.\n' > "$BTD/s4.txt"
+printf 'host\tstatus\trc\nh5\tok\t0\n' > "$BTD/s5.tsv"
+SR0="$(mktemp -d)/.sr0"; SR1="$(mktemp -d)/.sr1"; SRJ="$(mktemp -d)/.srj"
+for ws in "$SR0:0:1" "$SR1:1:1" "$SRJ:1:8"; do
+    for f in s1.tsv s2.tsv s3.tsv s4.txt s5.tsv; do
+        PROVOST_BATCH_REUSE="$(cut -d: -f2 <<< "$ws")" PROVOST_WORKSPACE="${ws%%:*}" \
+            "$PROVOST" batch -q -j "${ws##*:}" --name st "$BTD/$f" >/dev/null 2>&1 || true
+    done
+done
+check "store reuse: a clean table records its header in meta.tsv" "header	entry1.host\\tentry1.status\\tentry1.rc\\ttotal_entries" "$(cat "$SR1/captures/c0001/meta.tsv")"
+check_not "store reuse: the first capture of a name is detected" "detection	" "$(cat "$SR1/captures/c0001/meta.tsv")"
+check "store reuse: the next one of the same shape is read with the dataset's strategy" \
+    "detection	reused (tsv, from c0001, the latest capture of st)" "$(cat "$SR1/captures/c0002/meta.tsv")"
+check_not "store reuse: a column added is detected from scratch" "detection	" "$(cat "$SR1/captures/c0003/meta.tsv")"
+check_not "store reuse: free text in place of the table is detected from scratch" "detection	" "$(cat "$SR1/captures/c0004/meta.tsv")"
+check_not "store reuse: ...and a free-text capture gives no hint after it" "detection	" "$(cat "$SR1/captures/c0005/meta.tsv")"
+check "store reuse: the tables are the same as with PROVOST_BATCH_REUSE=0" "same" \
+    "$( (diff -r "$SR0/datasets" "$SR1/datasets" >/dev/null && echo same) || echo differ)"
+check_not "store reuse: PROVOST_BATCH_REUSE=0 turns it off" "detection	" "$(cat "$SR0"/captures/*/meta.tsv)"
+check "store reuse: -j 1 and -j 8 file the same tables" "same" \
+    "$( (diff -r "$SR1/datasets" "$SRJ/datasets" >/dev/null && echo same) || echo differ)"
+printf 'host\tstatus\trc\nh6\tok\t0\n' | PROVOST_WORKSPACE="$SR1" PROVOST_ASYNC=0 "$PROVOST" --name st >/dev/null 2>&1 || true
+check "store reuse: a piped capture under the name is read the same way" \
+    "detection	reused (tsv, from c0005, the latest capture of st)" "$(cat "$SR1/captures/c0006/meta.tsv")"
+# two captures of one new name in one batch: batch reuse, as before; the
+# store's hint goes to the first of a name the store has
+PROVOST_WORKSPACE="$SR1" "$PROVOST" batch -q --name st2 "$BTD/s1.tsv" "$BTD/s5.tsv" --name st "$BTD/s5.tsv" "$BTD/s2.tsv" >/dev/null 2>&1 || true
+check_not "a new name's first input in a batch is detected" "detection	" "$(cat "$SR1/captures/c0007/meta.tsv")"
+check "...the next is reused from the batch's first input" "detection	reused (tsv, from the batch's first input of this name)" "$(cat "$SR1/captures/c0008/meta.tsv")"
+check "...a name the store has: its first input from the store" "detection	reused (tsv, from c0006, the latest capture of st)" "$(cat "$SR1/captures/c0009/meta.tsv")"
+check "...and the rest from the batch's first" "detection	reused (tsv, from the batch's first input of this name)" "$(cat "$SR1/captures/c0010/meta.tsv")"
 check "--llm parses one input at a time" "parses one input at a time" "$(bt batch --llm -j 4 --name llmone "$BTD/web01.txt")"
 check "batch with no files is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch)"
 check "batch refuses --async (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch --async "$BTD/web01.txt")"

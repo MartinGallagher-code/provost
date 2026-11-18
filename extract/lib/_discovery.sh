@@ -2254,30 +2254,57 @@ _extract_and_store () {
 # `## Confidence-Max: N` header when it computes a score, else the largest
 # literal it assigns (and 50, the default _detect_strategy starts from). A
 # computed assignment without the header makes the ceiling 100 — never pruned.
-# Plugin strategies are scanned the same way. Cached per file per process.
+# Plugin strategies are scanned the same way (lib/_ceiling.awk says how).
+# Cached per file per process.
+#
+# ONE SCAN (QD-056). The ceilings are read by ONE awk over every strategy
+# file of the current list, the first time one is wanted, not one awk per
+# file: 274 processes per input were most of what a small capture cost. A
+# table handed down in _PROVOST_CEIL_TABLE (CEILING<TAB>PATH lines; provost's
+# batch builds one before its parses start, as _ceil_table_write) is read
+# first, with no process at all; a file it does not name is scanned here.
+# The table lives for one batch, so a strategy edited between runs is read
+# afresh. An empty file is 50 and an unreadable one 100, as the per-file
+# scan made them.
 declare -gA _CEIL_CACHE=()
+_CEIL_AWK_FILE="${BASH_SOURCE[0]%/*}/_ceiling.awk"
+_CEIL_HANDED=0
+_ceil_fill () {
+    local f c _p _v
+    local -a scan=()
+    if [[ $_CEIL_HANDED -eq 0 ]]; then
+        _CEIL_HANDED=1
+        if [[ -n "${_PROVOST_CEIL_TABLE:-}" && -r "$_PROVOST_CEIL_TABLE" ]]; then
+            while IFS=$'\t' read -r c f; do
+                [[ -n "$f" && "$c" =~ ^[0-9]+$ ]] && _CEIL_CACHE[$f]="$c"
+            done < "$_PROVOST_CEIL_TABLE"
+        fi
+    fi
+    # every file of the current list (and the one asked for) not yet known
+    while IFS='|' read -r _p _v f; do
+        [[ -n "$f" && -z "${_CEIL_CACHE[$f]+x}" ]] || continue
+        if [[ ! -r "$f" ]]; then _CEIL_CACHE[$f]=100
+        elif [[ ! -s "$f" ]]; then _CEIL_CACHE[$f]=50
+        else scan+=("$f"); fi
+    done <<< "${_SORTED_STRATEGIES:-}"$'\n'"||$1"
+    (( ${#scan[@]} > 0 )) || return 0
+    while IFS=$'\t' read -r c f; do
+        [[ -n "$f" ]] || continue
+        [[ "$c" =~ ^[0-9]+$ ]] || c=100
+        _CEIL_CACHE[$f]="$c"
+    done < <(awk -f "$_CEIL_AWK_FILE" "${scan[@]}" 2>/dev/null)
+}
 _strategy_ceiling () {
     local f="$1"
     if [[ -z "${_CEIL_CACHE[$f]+x}" ]]; then
-        _CEIL_CACHE[$f]="$(awk '
-            /^## Confidence-Max:/ { hdr = $3 + 0; have = 1 }
-            {
-                line = $0; sub(/^[ \t]+/, "", line)
-                if (line ~ /^#/) next
-                while ((i = index(line, "_STRATEGY_CONFIDENCE=")) > 0) {
-                    rest = substr(line, i + 21)
-                    if (match(rest, /^[0-9]+/)) {
-                        v = substr(rest, 1, RLENGTH) + 0; if (v > mx) mx = v
-                    } else computed = 1
-                    line = rest
-                }
-            }
-            END {
-                if (have) { print hdr; exit }
-                if (computed) { print 100; exit }
-                print (mx > 50 ? mx : 50)
-            }' "$f" 2>/dev/null)"
-        [[ "${_CEIL_CACHE[$f]}" =~ ^[0-9]+$ ]] || _CEIL_CACHE[$f]=100
+        _ceil_fill "$f"
+        # (a path awk names differently -- one with a newline -- is scanned
+        # alone, as every file used to be)
+        if [[ -z "${_CEIL_CACHE[$f]+x}" ]]; then
+            _CEIL_CACHE[$f]="$(awk -f "$_CEIL_AWK_FILE" "$f" 2>/dev/null)"
+            _CEIL_CACHE[$f]="${_CEIL_CACHE[$f]%%$'\t'*}"
+            [[ "${_CEIL_CACHE[$f]}" =~ ^[0-9]+$ ]] || _CEIL_CACHE[$f]=100
+        fi
     fi
     _CEIL="${_CEIL_CACHE[$f]}"
 }

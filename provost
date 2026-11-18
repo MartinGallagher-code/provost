@@ -67,6 +67,9 @@ _provost_root () {
     cd -P "$(dirname "$src")" && pwd
 }
 PROVOST_ROOT="$(_provost_root)"
+# The engine's table of strategy ceilings (QD-056) is handed down by `batch`
+# to its own parses only: one inherited from anywhere else is never read.
+unset _PROVOST_CEIL_TABLE
 
 # A controlled directory holds its instance at <dir>/.provost with a CONTROLLED
 # marker (which the global store lacks). Walk up from $start to find one.
@@ -2701,6 +2704,27 @@ _read_engine_meta () {
     [[ "$tcons" =~ ^[0-9]{1,3}$ ]] || tcons=""
 }
 
+# _store_hint NAME — the hint the store gives a capture filed under NAME
+# (QD-056): the strategy, coverage and header (as meta.tsv keeps it) of the
+# capture that filed NAME's last row, in h_strat, h_cov, h_head and h_from
+# (_ingest_parse's locals), when that capture filed NAME alone as one clean
+# table (it has a `header`). Status 1, and nothing set, otherwise. One `tail`.
+_store_hint () {
+    local name="$1" f last id k v s="" c="" h="" ds=""
+    [[ -n "$name" && -n "${PROVOST_WORKSPACE:-}" ]] || return 1
+    f="$PROVOST_WORKSPACE/datasets/$name.tsv"
+    [[ -f "$f" && -s "$f" ]] || return 1
+    last="$(tail -n 1 "$f" 2>/dev/null)" || return 1
+    id="${last#*$'\t'}"; id="${id%%$'\t'*}"
+    [[ "$id" =~ ^c[0-9]+$ && -r "$PROVOST_WORKSPACE/captures/$id/meta.tsv" ]] || return 1
+    while IFS=$'\t' read -r k v; do
+        case "$k" in
+            strategy) s="$v" ;; coverage) c="$v" ;; header) h="$v" ;; dataset) ds="$v" ;;
+        esac
+    done < "$PROVOST_WORKSPACE/captures/$id/meta.tsv"
+    [[ "$ds" == "$name" && -n "$s" && "$s" != *,* && "$c" =~ ^[0-9]{1,3}$ && -n "$h" ]] || return 1
+    h_strat="$s"; h_cov="$c"; h_head="$h"; h_from="$id, the latest capture of $name"
+}
 _ingest_parse () {
     local in="$1" threshold="$2" cmd="${3:-}" name="${4:-}" tmp="$5"
     local engine; engine="$(_find_engine)" \
@@ -2808,18 +2832,29 @@ _ingest_parse () {
         # small input -- and the result is kept only if it is the same table:
         # the same strategy, the same header, coverage no lower. Anything
         # else is parsed from scratch, as without the hint.
-        local reused=""
+        # DETECTION REUSE (the store, QD-056): with no hint from a batch, an
+        # input filed under a name the store already has is tried first with
+        # the strategy of that dataset's latest capture (_store_hint), under
+        # the same checks. Both are off with PROVOST_BATCH_REUSE=0, and under
+        # --multi, --model and --llm, which read an input their own ways.
+        local reused="" h_strat="" h_cov="" h_head="" h_from="" w_head=""
         if [[ -n "${_BATCH_HINT:-}" && -s "$_BATCH_HINT" ]]; then
-            local h_strat h_cov h_head
-            h_strat="$(sed -n 1p "$_BATCH_HINT")"
-            h_cov="$(sed -n 2p "$_BATCH_HINT")"
-            h_head="$(sed -n 3p "$_BATCH_HINT")"
+            { IFS= read -r h_strat; IFS= read -r h_cov; IFS= read -r h_head; } < "$_BATCH_HINT" || true
+            h_from="the batch's first input of this name"
+        elif [[ "${PROVOST_BATCH_REUSE:-1}" == 1 && "$PROVOST_MULTI" != 1 \
+                && "$PROVOST_MODEL" != 1 && "$PROVOST_LLM" != 1 ]]; then
+            _store_hint "$name" || true
+        fi
+        if [[ -n "$h_strat" ]]; then
             _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
                 ${eargs[@]+"${eargs[@]}"} -s "$h_strat" \
                 --emit-meta -f tsv --max-strategies 1 "$body" >"$tmp/wide.tsv" 2>"$metaf" || true
             _read_engine_meta "$metaf"
+            # (the headers compared as meta.tsv keeps them: tabs as \t)
+            IFS= read -r w_head < "$tmp/wide.tsv" || true
+            w_head="${w_head//$'\t'/\\t}"; h_head="${h_head//$'\t'/\\t}"
             if [[ "$strategy" == "$h_strat" && -n "$cov" && "$h_cov" =~ ^[0-9]{1,3}$ ]] \
-                && (( cov >= h_cov )) && [[ "$(head -n 1 "$tmp/wide.tsv")" == "$h_head" ]]; then
+                && (( cov >= h_cov )) && [[ -n "$w_head" && "$w_head" == "$h_head" ]]; then
                 reused="$h_strat"
             fi
         fi
@@ -2962,13 +2997,21 @@ _ingest_parse () {
 
     # The verdict, for the store half: every variable it reads, as `declare -p`
     # (sourced inside _ingest_store, each comes back as a local there).
-    local detection=""
-    [[ -n "${reused:-}" ]] && detection="reused ($reused, from the batch's first input of this name)"
+    local detection="" header=""
+    [[ -n "${reused:-}" ]] && detection="reused ($reused, from $h_from)"
+    # One clean table (as _batch_hint asks): its header line goes into
+    # meta.tsv (`header`), for the next capture of this name (_store_hint).
+    if [[ -z "$reason" && -z "$am_reason" && -z "$lm_reason" && -z "$llm_reason" && "$PROVOST_MULTI" != 1 \
+          && ${#ds_file[@]} -eq 1 && -n "$strategy" && "$cov" =~ ^[0-9]{1,3}$ \
+          && "$strategy" != layout-model && "$strategy" != llm-template && -s "$tmp/wide.tsv" ]]; then
+        IFS= read -r header < "$tmp/wide.tsv" || true
+        (( ${#header} <= 8192 )) || header=""
+    fi
     declare -p ds_name ds_strategy ds_conf ds_file ds_cov ds_cons reason \
         cmd_name cmd_state cmd_top cmd_raw cmd_fit \
         strategy conf cov tcons am_reason am_note am_cov am_kind am_model \
         single_strategy single_conf single_cov single_cons lm_reason lm_note lm_labeller \
-        llm_reason llm_note llm_how llm_learned llm_audit llm_seen_how llm_seen_tpl ctxf detection \
+        llm_reason llm_note llm_how llm_learned llm_audit llm_seen_how llm_seen_tpl ctxf detection header \
         ds_units units_mode > "$tmp/state.sh"
 }
 
@@ -3200,6 +3243,9 @@ _ingest_store () {
         fi
         if [[ -n "$renamed" ]]; then printf 'renamed_columns\t%s\n' "$(_meta_safe "$renamed")"; fi
         if [[ -n "${detection:-}" ]]; then printf 'detection\t%s\n' "$(_meta_safe "$detection")"; fi
+        if [[ -n "${header:-}" ]]; then
+            header="${header//$'\t'/\\t}"; printf 'header\t%s\n' "${header//$'\n'/\\n}"
+        fi
         # the command's name the engine used, and what it did (PV-037)
         if [[ -n "${cmd_name:-}" ]]; then
             case "${cmd_state:-}" in
@@ -4719,6 +4765,28 @@ _ncpu () {
     echo "$n"
 }
 
+# _ceil_table_write FILE — every strategy's confidence ceiling, as the
+# engine's _strategy_ceiling reads them (extract/lib/_ceiling.awk), one
+# CEILING<TAB>PATH line each, by ONE awk over every file the engine may
+# search: its own strategies, the user's and the plugin dir (QD-056). batch
+# writes it once before its parses start and hands it down in
+# _PROVOST_CEIL_TABLE, so no parse scans the files again; a file it lacks
+# (an empty one, or one named differently) the engine scans itself.
+_ceil_table_write () {
+    local out="$1" d f
+    local -a dirs=("$PROVOST_ROOT/extract/strategies") files=()
+    d="${XDG_CONFIG_HOME:-${HOME:-/nonexistent}/.config}/provost/strategies"
+    [[ -d "$d" ]] && dirs+=("$d")
+    [[ -n "${PROVOST_PLUGIN_DIR:-}" && -d "$PROVOST_PLUGIN_DIR" ]] && dirs+=("$PROVOST_PLUGIN_DIR")
+    for d in "${dirs[@]}"; do
+        for f in "$d"/*.sh "$d"/*/*.sh; do
+            [[ -f "$f" && -r "$f" && -s "$f" ]] && files+=("$f")
+        done
+    done
+    (( ${#files[@]} > 0 )) || return 1
+    awk -f "$PROVOST_ROOT/extract/lib/_ceiling.awk" "${files[@]}" > "$out" 2>/dev/null
+}
+
 # _batch_hint WORKDIR — a parse's hint for the rest of its batch group, on
 # stdout (strategy, coverage, the table's header line), or nothing and
 # status 1 when it was not one clean table: held, segmented, the model's or
@@ -4814,6 +4882,9 @@ cmd_batch () {
     _require_on_branch
     _mktempd batch; local broot="$_MKTEMPD" d size failed=0 skipped=0
     local bwarn="$broot/warn" strictfail=0; mkdir -p "$bwarn"
+    # The strategies' ceilings, scanned once here for every parse (QD-056).
+    local ceil="$broot/ceilings.tsv"
+    _ceil_table_write "$ceil" || true
     local -a todo=()
     # Stage each input as inject does: bounded by PROVOST_MAX_INPUT, CRs
     # stripped. An empty one is said and skipped, as `run` skips a command
@@ -4865,6 +4936,7 @@ cmd_batch () {
                 _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
                 trap _cleanup EXIT
                 _BATCH_WARN_DIR="$bwarn"
+                [[ -s "$ceil" ]] && export _PROVOST_CEIL_TABLE="$ceil"
                 _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
             ) > "$d/parse.log" 2>&1 &
             pre_g+=("$g"); pre_pid+=("$!")
@@ -4891,6 +4963,7 @@ cmd_batch () {
                 _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
                 trap _cleanup EXIT
                 _BATCH_WARN_DIR="$bwarn"
+                [[ -s "$ceil" ]] && export _PROVOST_CEIL_TABLE="$ceil"
                 _BATCH_HINT="${hint_of[=${names[i]}]:-}" \
                     _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
             ) > "$d/parse.log" 2>&1 &
@@ -9038,6 +9111,9 @@ BATCH CAPTURE (provost batch)
     strategy first (detection is most of the time a small input takes),
     each kept only if that gives the same table -- the same strategy, the
     same header, coverage no lower -- and detected from scratch otherwise.
+    The same goes for a file of a name the store already has (2.28.0): it
+    is read first with the strategy of that dataset's latest capture, under
+    the same checks; so does any capture filed under such a name.
     meta.tsv says 'detection  reused (...)' where it was. Off with
     PROVOST_BATCH_REUSE=0, and under --multi, --model and --llm.
 
@@ -9197,9 +9273,10 @@ SETTINGS (environment)
     PROVOST_ENV_VARS          the variables --env records: names or globs
                               (default: OMP_* MPI_* OMPI_MCA_* I_MPI_* MPICH_*
                               UCX_* CUDA_* NCCL_*; empty = none)
-    PROVOST_BATCH_REUSE       0 = batch detects every input from scratch
-                              (default 1: the rest of a name's inputs try its
-                              first one's strategy)
+    PROVOST_BATCH_REUSE       0 = detect every input from scratch (default
+                              1: the rest of a batch's inputs of a name try
+                              its first one's strategy, and a capture of a
+                              name the store has, its latest one's)
     PROVOST_AUTO_MULTI        1 = segment a parse the gate would hold (default;
                               0 = off, as --no-auto-multi)
     PROVOST_MODEL             1 = try the learned layout model (as --model;

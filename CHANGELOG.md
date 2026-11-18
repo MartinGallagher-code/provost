@@ -1,5 +1,63 @@
 # provost — Changelog
 
+## 2.28.0 — 2026-11-18 — a small capture files in a fraction of the time: one ceiling scan, and a dataset's own strategy tried first (QD-056)
+
+`VERSION` 2.27.0 → 2.28.0, and the `man/provost.1` header. Minor: what is
+filed is the same; a capture of a name the store already has is read
+faster, and its `meta.tsv` says so. Asked for by quarterdeck (QD-056): a
+one-host `qd run -- ls` spent almost all of its time in provost.
+
+- **The confidence ceilings are read by one `awk`, not one per strategy
+  file.** `_strategy_ceiling` (`extract/lib/_discovery.sh`) ran an `awk`
+  over each of the 274 strategy files the first time detection pruned it, in
+  every engine process: about 230 processes for a small TSV, most of a
+  small capture's cost. The scan is now `extract/lib/_ceiling.awk`, one
+  pass over every file of the strategy list (POSIX awk, resetting at each
+  file's first line), once per engine process. `batch` runs it once before
+  its parses start and hands the table down (`_PROVOST_CEIL_TABLE`, a file
+  in the batch's work dir; inherited from anywhere else it is ignored), so
+  no parse scans at all. Every ceiling is the old scan's: shipped
+  strategies, `--plugin-dir` ones (a header, a computed
+  `_STRATEGY_CONFIDENCE=$x`, neither, an empty file), and a plugin edited
+  between runs is read afresh.
+- **A capture filed under a name the store already has is read with that
+  dataset's last strategy first.** Batch reuse (the rest of a batch's
+  inputs of a name try its first one's strategy) now also takes its hint
+  from the store: the capture that filed the dataset's last row, when it
+  filed that name alone as one clean table. The capture is parsed with that
+  strategy and kept only under batch reuse's checks (the same strategy, the
+  same header, coverage no lower); otherwise it is detected from scratch,
+  as before. It applies to `batch` (a name's first input), `run` and piped
+  input. `meta.tsv` says `detection  reused (tsv, from c0003, the latest
+  capture of qd.runs)`. `PROVOST_BATCH_REUSE=0` turns it off with batch
+  reuse; `--multi`, `--model` and `--llm` do not use it.
+- **A new `meta.tsv` key, `header`**: the parse's header line (tabs as
+  `\t`, at most 8,192 characters), written when a capture files one clean
+  table under its name; it is what the next capture's header is compared
+  with. A store whose captures have none (written before 2.28.0) detects
+  as before, and gains the key from its next capture. No store-format
+  change (a key an older reader ignores).
+- **Note:** a table's header as the parser reads it names its rows
+  (`entry1.host ... total_entries` for a TSV), so a dataset whose row count
+  changed between captures is detected from scratch, as batch reuse already
+  did between hosts.
+- The hint is read with `read`, not `sed` and `head` (four processes fewer
+  per reused input).
+
+Measured (Linux, 4 CPUs shared with other jobs, so upper bounds): MEASURE
+
+Files: `extract/lib/_ceiling.awk` (new), `extract/lib/_discovery.sh`
+(`_ceil_fill`, `_strategy_ceiling`), `provost` (`_ceil_table_write`,
+`_store_hint`, `_ingest_parse`, `_ingest_store`'s `header`, `cmd_batch`,
+the help), `man/provost.1`, `docs/store-format.md` (`header`,
+`detection`), `extract/tests/test_ceilings.sh` (new: the old per-file scan
+as the oracle for every shipped strategy and for plugin strategies of every
+shape, a handed-down table, an edited plugin, and an awk-counting shim on
+PATH: a small TSV starts fewer than 20), `tests/smoke.sh` (`batch`: the
+store's hint kept, a column added and free text detected from scratch, the
+tables equal with reuse off, `-j 1` and `-j 8` equal, piped input, two
+inputs of a new name and of a known one in one batch).
+
 ## 2.27.0 — 2026-11-17 — the layout model says when it falls back to the decision trees; `--strict-model` (PV-044)
 
 `VERSION` 2.26.0 → 2.27.0, and the `man/provost.1` header. Minor: a new
